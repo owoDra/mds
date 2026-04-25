@@ -5,14 +5,13 @@ related:
   - docs/project/requirements/REQ-adapter-required-language-adapters.md
   - docs/project/requirements/REQ-generation-code-output-rules.md
   - docs/project/specs/shared/SPEC-code-generation-output.md
-  - docs/project/specs/shared/SPEC-md-state-quality-operations.md
 ---
 
 # Rust Adapter 生成
 
 ## 概要
 
-`crates/mds-lang-rs` は Rust の生成 file pattern、`mod` 管理、`use` 生成、Markdown 状態の品質操作に必要な toolchain 接続を担う。
+`crates/mds-lang-rs` は Rust の生成 file pattern、`mod` 管理、`use` 生成を担う。
 
 ## 関連要求
 
@@ -34,7 +33,6 @@ related:
 - Rust Test ファイル
 - Rust `use` 文
 - Rust の mds 管理 module block
-- Rust toolchain 診断
 
 ## 挙動
 
@@ -43,20 +41,17 @@ related:
 - Rust の `mod` 管理領域は `// mds:begin generated modules` から `// mds:end generated modules` の間とする。
 - Rust の `lib.rs` / `mod.rs` に mds 管理 marker がない場合、既存ファイルでは末尾に管理 block を追加し、ファイルがなければ header 付きで新規作成する。
 - `Uses` の `Types`、`Source`、`Test` 依存は Rust `use` として生成する。
-- Markdown 状態の品質操作では rustfmt、clippy、cargo test を代表 toolchain とする。
 
 ## 状態遷移 / 不変条件
 
 - Rust 固有の module tree 管理は adapter の責務とし、core の Markdown model を変更しない。
 - mds は管理 marker の外側の手書き Rust code を更新しない。
-- default import と alias に相当する特殊な `use` 変換は MVP では扱わない。
 
 ## エラー / 例外
 
 - `.rs.md` 以外の implementation md を Rust adapter の生成対象にしない。
 - Rust `use` に変換できない `Uses` は adapter 診断にする。
 - `mod` 管理 block の BEGIN / END が不整合な場合は生成エラーにする。
-- toolchain 実行失敗は Markdown 構造エラーと区別して報告する。
 
 ## 横断ルール
 
@@ -68,11 +63,9 @@ related:
 - `src-md/foo/bar.rs.md` から `src/foo/bar.rs`、`src/foo/bar_types.rs`、`tests/foo_bar_test.rs` が導出できることを確認する。
 - `lib.rs` / `mod.rs` の mds 管理 block が追加または更新されることを fixture で確認する。
 - `Uses` から Rust `use` が生成できることを fixture で確認する。
-- rustfmt、clippy、cargo test の接続は toolchain 接続仕様を実装するときに代表 fixture で確認する。
 
 ## 関連資料
 
 - `../shared/SPEC-code-generation-output.md`
 - `../shared/SPEC-expose-uses-tables.md`
-- `../shared/SPEC-md-state-quality-operations.md`
 - `../../patterns/impl-adapter-boundary.md`

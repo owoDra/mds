@@ -30,6 +30,6 @@
 - `SPEC-markdown-document-model.md`: `index.md`、`package.md`、implementation md の文書モデル仕様
 - `SPEC-expose-uses-tables.md`: `Expose` / `Uses` テーブル仕様
 - `SPEC-code-generation-output.md`: Source / Types / Test の生成出力仕様
-- `SPEC-md-state-quality-operations.md`: Markdown 状態での lint / format / test 仕様
+- `SPEC-parser-generation-mvp-phase.md`: Parser + 生成 MVP の今フェーズ実装範囲と詳細判断
 - `SPEC-cli-commands.md`: CLI コマンド仕様
 - `SPEC-obsidian-readable-markdown.md`: Obsidian で読める Markdown 仕様

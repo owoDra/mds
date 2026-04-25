@@ -35,12 +35,10 @@ mds は monorepo 内で package 単位に対象範囲を決め、mds 対象 pack
 - `enabled = false` の package は mds 対象外とする。
 - `allow_raw_source = true` の場合、mds 非対象 package や直書きソースとの混在を許可する。
 - package 情報は実体 package metadata を正とし、`package.md` の生成管理部分が違う場合は `mds check` で診断する。
-- package manager 実行後の自動同期は MVP では扱わず、将来対応項目とする。
-- 将来対応では、npm / uv / Cargo などの package manager hook から任意で `mds package sync` を呼べる導線を検討する。
 
 ## 状態遷移 / 不変条件
 
-- 対象 package の判定は build、check、lint、format、test、package sync で一貫する。
+- 対象 package の判定は build と check で一貫する。
 - 非対象 package の source は mds が破壊的に書き換えない。
 
 ## エラー / 例外
@@ -48,7 +46,6 @@ mds は monorepo 内で package 単位に対象範囲を決め、mds 対象 pack
 - `enabled = true` だが `package.md` または package 定義がない場合は対象 package として扱わず、設定または構造の不備として報告する。
 - package 定義がない任意ディレクトリは暗黙に mds package とみなさない。
 - `package.md` と実体 package metadata が矛盾する場合は package metadata を正として診断する。
-- package manager hook が未設定であっても、それ自体は構造エラーにしない。
 
 ## 横断ルール
 

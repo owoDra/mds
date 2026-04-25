@@ -30,6 +30,7 @@
 
 ## 参照
 
-- `active/`: 採否判断前の proposal の配置先。現在は個票なし
+- `active/`: 採否判断前の proposal の配置先
+- `active/proposal-post-mvp-generation-followups.md`: Parser + 生成 MVP 後続フェーズで扱う事項
 - `archive/`: 参照優先度を落とした proposal の配置先
 - `archive/proposal-markdown-grammar-open-details.md`: Markdown grammar の未確定細部に関する採否判断済み proposal
