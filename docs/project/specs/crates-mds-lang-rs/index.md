@@ -6,4 +6,4 @@
 
 ## 参照
 
-- 現在は個票なし。追加時は `SPEC-<category>-<short-title>.md` を置く。
+- `SPEC-adapter-rust-generation.md`: Rust adapter の生成 file pattern、`mod` 管理、`use` 生成、代表 toolchain 仕様

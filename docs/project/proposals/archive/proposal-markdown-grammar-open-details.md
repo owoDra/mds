@@ -1,5 +1,9 @@
 # Markdown Grammar Open Details
 
+## 状態
+
+archived: 2026-04-25 に採否判断済み。正式な振る舞いは shared spec に反映した。
+
 ## 背景
 
 README の最終要件では中核方針は採用済みだが、Markdown grammar の細部には未確定事項が残っている。
@@ -34,16 +38,25 @@ README の最終要件では中核方針は採用済みだが、Markdown grammar
 
 ## 未確定事項
 
-- 各項目の採否
-- 分割 proposal 化のタイミング
-- spec 化する項目と ADR 化する項目の境界
+- none
+
+## 採用結果
+
+- `Expose.Kind` は Markdown 記述上は全言語共通 kind とし、`type`、`value`、`function`、`class`、`module` の5種を正式一覧にする。
+- `Uses.From` は `internal`、`workspace`、`package`、`builtin` の4種にする。
+- `Uses.Expose` の複数名表現は `A, B, C` のカンマ区切りにする。
+- 複数コードブロック連結時は LF 1 行で連結し、出力末尾も LF 1 行にする。
+- generated files は adapter ごとの言語別 root へ出す。
+- implementation md 内の補助見出しは H3-H4 まで許容する。
 
 ## 正式化先候補
 
 - `docs/project/specs/shared/SPEC-expose-uses-tables.md`
 - `docs/project/specs/shared/SPEC-code-generation-output.md`
 - `docs/project/specs/shared/SPEC-markdown-document-model.md`
-- `docs/project/adr/active/`
+- `docs/project/specs/shared/SPEC-config-toml-resolution.md`
+- `docs/project/specs/shared/SPEC-cli-commands.md`
+- `docs/project/specs/shared/SPEC-package-boundary-detection.md`
 
 ## 関連資料
 
