@@ -12,7 +12,8 @@
 
 ## 不変条件
 
-- `.md` が設計書兼ソースの正本であり、生成コードは派生物とする。
+- `.md` が設計書兼ソースの正本であり、implementation md には実装レベルのコードを含め、生成コードはその派生物とする。
+- mds は設計説明から AI にコードを書かせる仕組みではなく、Markdown 内のコードブロックとメタ情報を generator / language adapter が処理する仕組みとする。
 - 1 つの implementation md は 1 機能だけを扱う。
 - import / use / require はコードブロック外の `Uses` に記録し、language adapter が生成する。
 - 設定ファイルは `mds.config.toml` 固定とし、セクションの意味や必須構造は設定で変更しない。
@@ -25,7 +26,7 @@
 - language adapter は言語固有の import 生成、lint、format、test runner 接続、ファイル名規約、出力規則を担う。
 - `index.md` は階層の設計、責務、公開面、ルールを説明する。
 - `package.md` は package metadata と package 単位のルールを説明する。
-- implementation md は `Purpose`、`Contract`、`Types`、`Source`、`Cases`、`Test` を持つ 1 機能の正本とする。
+- implementation md は `Purpose`、`Contract`、`Types`、`Source`、`Cases`、`Test` を持ち、`Types`、`Source`、`Test` には生成元となる実コードを置く 1 機能の正本とする。
 
 ## 設計方針
 

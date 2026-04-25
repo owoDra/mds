@@ -11,11 +11,11 @@
 
 | 技術名 | 採用スタック | バージョン | ADR参照 |
 | --- | --- | --- | --- |
-| Rust | core、native CLI、Rust language adapter | tbd | tbd |
-| TypeScript / Node.js | npm packages、TypeScript language adapter | tbd | tbd |
-| Python | Python distribution、Python language adapter | tbd | tbd |
-| Markdown | 設計書兼ソースの正本 | tbd | tbd |
-| TOML | `mds.config.toml` 設定ファイル | tbd | tbd |
+| Rust | core、native CLI、Rust language adapter | tbd | `adr/active/ADR-003-multi-ecosystem-rust-core.md` |
+| TypeScript / Node.js | npm packages、TypeScript language adapter | tbd | `adr/active/ADR-003-multi-ecosystem-rust-core.md` |
+| Python | Python distribution、Python language adapter | tbd | `adr/active/ADR-003-multi-ecosystem-rust-core.md` |
+| Markdown | 設計書兼ソースの正本 | tbd | `adr/active/ADR-001-markdown-source-of-truth.md` |
+| TOML | `mds.config.toml` 設定ファイル | tbd | `adr/active/ADR-002-toml-only-config.md` |
 | cargo | Rust distribution / runner | tbd | tbd |
 | npm | Node.js distribution / runner | tbd | tbd |
 | uv | Python distribution / runner | tbd | tbd |
