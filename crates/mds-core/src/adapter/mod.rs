@@ -5,7 +5,7 @@ use std::path::{Component, Path, PathBuf};
 use crate::diagnostics::{Diagnostic, RunState};
 use crate::hash::sha256;
 use crate::model::{
-    GeneratedFile, GeneratedKind, ImplDoc, Lang, OutputKind, Package, UseFrom, UseRow,
+    GeneratedFile, GeneratedKind, ImplDoc, Lang, OutputKind, Package, UseExpose, UseFrom, UseRow,
 };
 
 pub(crate) fn output_relative_path(doc: &ImplDoc, kind: OutputKind) -> PathBuf {
@@ -59,6 +59,7 @@ pub(crate) fn imports_for(
     doc: &ImplDoc,
     kind: OutputKind,
     output_path: &Path,
+    state: &mut RunState,
 ) -> String {
     let uses = doc.uses.get(&kind).cloned().unwrap_or_default();
     let mut grouped: Vec<UseRow> = Vec::new();
@@ -94,8 +95,8 @@ pub(crate) fn imports_for(
         .iter()
         .map(|row| match doc.lang {
             Lang::TypeScript => ts_import(package, row, kind, output_path),
-            Lang::Python => py_import(row),
-            Lang::Rust => rs_import(row),
+            Lang::Python => py_import(row, &doc.path, state),
+            Lang::Rust => rs_import(row, &doc.path, state),
         })
         .collect::<Vec<_>>()
         .join("\n")
@@ -120,39 +121,107 @@ pub(crate) fn ts_import(
     if row.exposes.is_empty() {
         format!("import \"{target}\";")
     } else if kind == OutputKind::Types {
-        format!(
-            "import type {{ {} }} from \"{target}\";",
-            row.exposes.join(", ")
-        )
+        format!("import type {} from \"{target}\";", ts_import_clause(row))
     } else {
-        format!("import {{ {} }} from \"{target}\";", row.exposes.join(", "))
+        format!("import {} from \"{target}\";", ts_import_clause(row))
     }
 }
 
-pub(crate) fn py_import(row: &UseRow) -> String {
+pub(crate) fn ts_import_clause(row: &UseRow) -> String {
+    let mut default = None;
+    let mut namespace = None;
+    let mut named = Vec::new();
+    for expose in &row.exposes {
+        match expose {
+            UseExpose::Default { local } => default = Some(local.clone()),
+            UseExpose::Namespace { local } => namespace = Some(local.clone()),
+            UseExpose::Named { name, alias } => named.push(match alias {
+                Some(alias) => format!("{name} as {alias}"),
+                None => name.clone(),
+            }),
+        }
+    }
+    if let Some(namespace) = namespace {
+        return format!("* as {namespace}");
+    }
+    match (default, named.is_empty()) {
+        (Some(default), true) => default,
+        (Some(default), false) => format!("{default}, {{ {} }}", named.join(", ")),
+        (None, false) => format!("{{ {} }}", named.join(", ")),
+        (None, true) => String::new(),
+    }
+}
+
+pub(crate) fn py_import(row: &UseRow, path: &Path, state: &mut RunState) -> String {
     let target = if row.from == UseFrom::Internal {
         row.target.replace('/', ".")
     } else {
         row.target.clone()
     };
+    if row
+        .exposes
+        .iter()
+        .any(|expose| !matches!(expose, UseExpose::Named { .. }))
+    {
+        state.diagnostics.push(Diagnostic::error(
+            Some(path.to_path_buf()),
+            "Python adapter does not support default or namespace Uses.Expose tokens",
+        ));
+    }
     if row.exposes.is_empty() {
         format!("import {target}")
     } else {
-        format!("from {target} import {}", row.exposes.join(", "))
+        format!("from {target} import {}", py_names(row).join(", "))
     }
 }
 
-pub(crate) fn rs_import(row: &UseRow) -> String {
+fn py_names(row: &UseRow) -> Vec<String> {
+    row.exposes
+        .iter()
+        .filter_map(|expose| match expose {
+            UseExpose::Named { name, alias } => Some(match alias {
+                Some(alias) => format!("{name} as {alias}"),
+                None => name.clone(),
+            }),
+            _ => None,
+        })
+        .collect()
+}
+
+pub(crate) fn rs_import(row: &UseRow, path: &Path, state: &mut RunState) -> String {
     let target = if row.from == UseFrom::Internal {
         format!("crate::{}", row.target.replace('/', "::"))
     } else {
         row.target.replace('/', "::")
     };
+    if row
+        .exposes
+        .iter()
+        .any(|expose| !matches!(expose, UseExpose::Named { .. }))
+    {
+        state.diagnostics.push(Diagnostic::error(
+            Some(path.to_path_buf()),
+            "Rust adapter does not support default or namespace Uses.Expose tokens",
+        ));
+    }
     if row.exposes.is_empty() {
         format!("use {target};")
     } else {
-        format!("use {target}::{{{}}};", row.exposes.join(", "))
+        format!("use {target}::{{{}}};", rs_names(row).join(", "))
     }
+}
+
+fn rs_names(row: &UseRow) -> Vec<String> {
+    row.exposes
+        .iter()
+        .filter_map(|expose| match expose {
+            UseExpose::Named { name, alias } => Some(match alias {
+                Some(alias) => format!("{name} as {alias}"),
+                None => name.clone(),
+            }),
+            _ => None,
+        })
+        .collect()
 }
 
 pub(crate) fn relative_module(from_dir: &Path, to_file: &Path) -> String {

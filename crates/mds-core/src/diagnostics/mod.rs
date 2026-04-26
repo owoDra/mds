@@ -58,6 +58,7 @@ pub(crate) struct RunState {
     pub(crate) stdout: String,
     pub(crate) diagnostics: Vec<Diagnostic>,
     pub(crate) generated: Vec<PathBuf>,
+    pub(crate) environment_missing: bool,
 }
 
 impl RunState {

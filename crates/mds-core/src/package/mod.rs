@@ -316,10 +316,12 @@ fn validate_dependency_section(
     let Some(section) = sections.get(section_name) else {
         return;
     };
-    let Some(rows) = parse_table(section, &["Name", "Version"], path, state) else {
+    let Some(rows) = parse_table(section, &["Name", "Version", "Summary"], path, state) else {
         state.diagnostics.push(Diagnostic::error(
             Some(path.to_path_buf()),
-            format!("package.md {section_name} section requires Name and Version table columns"),
+            format!(
+                "package.md {section_name} section requires Name, Version, and Summary table columns"
+            ),
         ));
         return;
     };

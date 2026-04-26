@@ -11,6 +11,16 @@ pub enum BuildMode {
 pub enum Command {
     Check,
     Build { mode: BuildMode },
+    Lint { fix: bool, check: bool },
+    Test,
+    Doctor { format: DoctorFormat },
+    PackageSync { check: bool },
+}
+
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+pub enum DoctorFormat {
+    Text,
+    Json,
 }
 
 #[derive(Debug)]
@@ -90,6 +100,10 @@ pub(crate) struct Config {
     pub(crate) allow_raw_source: bool,
     pub(crate) roots: Roots,
     pub(crate) adapters: HashMap<Lang, bool>,
+    pub(crate) quality: HashMap<Lang, QualityConfig>,
+    pub(crate) excludes: Vec<String>,
+    pub(crate) package_sync_hook: Option<String>,
+    pub(crate) label_overrides: HashMap<String, String>,
 }
 
 impl Default for Config {
@@ -103,6 +117,64 @@ impl Default for Config {
                 (Lang::Python, true),
                 (Lang::Rust, true),
             ]),
+            quality: HashMap::from([
+                (Lang::TypeScript, QualityConfig::for_lang(Lang::TypeScript)),
+                (Lang::Python, QualityConfig::for_lang(Lang::Python)),
+                (Lang::Rust, QualityConfig::for_lang(Lang::Rust)),
+            ]),
+            excludes: Vec::new(),
+            package_sync_hook: None,
+            label_overrides: HashMap::new(),
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub(crate) struct QualityConfig {
+    pub(crate) lint: Option<String>,
+    pub(crate) fix: Option<String>,
+    pub(crate) test: Option<String>,
+    pub(crate) required: Vec<String>,
+    pub(crate) optional: Vec<String>,
+}
+
+impl QualityConfig {
+    fn for_lang(lang: Lang) -> Self {
+        match lang {
+            Lang::TypeScript => Self {
+                lint: Some("eslint".to_string()),
+                fix: Some("prettier --write".to_string()),
+                test: Some("vitest run".to_string()),
+                required: vec![
+                    "node".to_string(),
+                    "eslint".to_string(),
+                    "prettier".to_string(),
+                    "vitest".to_string(),
+                ],
+                optional: Vec::new(),
+            },
+            Lang::Python => Self {
+                lint: Some("ruff check".to_string()),
+                fix: Some("ruff format".to_string()),
+                test: Some("pytest".to_string()),
+                required: vec![
+                    "python3".to_string(),
+                    "ruff".to_string(),
+                    "pytest".to_string(),
+                ],
+                optional: Vec::new(),
+            },
+            Lang::Rust => Self {
+                lint: Some("cargo clippy".to_string()),
+                fix: Some("rustfmt".to_string()),
+                test: Some("cargo test".to_string()),
+                required: vec![
+                    "rustc".to_string(),
+                    "cargo".to_string(),
+                    "rustfmt".to_string(),
+                ],
+                optional: vec!["clippy-driver".to_string()],
+            },
         }
     }
 }
@@ -169,7 +241,28 @@ impl OutputKind {
 pub(crate) struct UseRow {
     pub(crate) from: UseFrom,
     pub(crate) target: String,
-    pub(crate) exposes: Vec<String>,
+    pub(crate) exposes: Vec<UseExpose>,
+}
+
+#[derive(Debug, Clone, Eq, Hash, PartialEq)]
+pub(crate) enum UseExpose {
+    Named { name: String, alias: Option<String> },
+    Default { local: String },
+    Namespace { local: String },
+}
+
+impl UseExpose {
+    pub(crate) fn render_key(&self) -> String {
+        match self {
+            Self::Named { name, alias: None } => name.clone(),
+            Self::Named {
+                name,
+                alias: Some(alias),
+            } => format!("{name} as {alias}"),
+            Self::Default { local } => format!("default: {local}"),
+            Self::Namespace { local } => format!("* as {local}"),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, Eq, Hash, Ord, PartialEq, PartialOrd)]

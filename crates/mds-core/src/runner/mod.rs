@@ -1,10 +1,13 @@
 use crate::diagnostics::{Diagnostic, RunState};
 use crate::diff::{render_dry_run, write_generated};
+use crate::doctor::run_doctor;
 use crate::generation::plan_generation;
 use crate::manifest::validate_manifest;
 use crate::markdown::load_implementation_docs;
 use crate::model::{BuildMode, CliRequest, CliResult, Command, Package};
 use crate::package::{discover_packages, validate_index_docs, validate_package_md};
+use crate::package_sync::sync_package_md;
+use crate::quality::{run_quality, QualityOperation};
 
 pub fn execute(request: CliRequest) -> CliResult {
     match execute_inner(request) {
@@ -27,8 +30,12 @@ fn execute_inner(request: CliRequest) -> Result<RunState, String> {
         return Ok(state);
     }
 
-    for package in packages {
-        run_package(&package, request.command, request.verbose, &mut state)?;
+    if let Command::Doctor { format } = request.command {
+        run_doctor(&packages, format, &mut state);
+    } else {
+        for package in packages {
+            run_package(&package, request.command, request.verbose, &mut state)?;
+        }
     }
 
     Ok(state)
@@ -49,7 +56,13 @@ fn render_result(mut state: RunState) -> CliResult {
         .iter()
         .map(Diagnostic::render)
         .collect::<String>();
-    let exit_code = if state.has_errors() { 1 } else { 0 };
+    let exit_code = if state.environment_missing {
+        4
+    } else if state.has_errors() {
+        1
+    } else {
+        0
+    };
     CliResult {
         stdout: state.stdout,
         stderr,
@@ -68,6 +81,11 @@ pub(crate) fn run_package(
             .stdout
             .push_str(&format!("Checking package {}\n", package.root.display()));
     }
+    if let Command::PackageSync { check } = command {
+        sync_package_md(package, check, state)?;
+        return Ok(());
+    }
+
     validate_manifest(package, state);
     validate_package_md(package, state);
     validate_index_docs(package, state);
@@ -94,6 +112,25 @@ pub(crate) fn run_package(
                 BuildMode::Write => write_generated(&generated, state)?,
             }
         }
+        Command::Lint { fix, check } => {
+            if state.has_errors() {
+                return Ok(());
+            }
+            let operation = if fix {
+                QualityOperation::Fix { check }
+            } else {
+                QualityOperation::Lint
+            };
+            run_quality(package, &docs, operation, state)?;
+        }
+        Command::Test => {
+            if state.has_errors() {
+                return Ok(());
+            }
+            run_quality(package, &docs, QualityOperation::Test, state)?;
+        }
+        Command::PackageSync { .. } => unreachable!(),
+        Command::Doctor { .. } => {}
     }
     Ok(())
 }

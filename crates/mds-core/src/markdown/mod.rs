@@ -4,7 +4,7 @@ use std::path::{Component, Path};
 
 use crate::diagnostics::{Diagnostic, RunState};
 use crate::fs_utils::collect_files;
-use crate::model::{ImplDoc, Lang, OutputKind, Package, UseFrom, UseRow};
+use crate::model::{ImplDoc, Lang, OutputKind, Package, UseExpose, UseFrom, UseRow};
 use crate::table::parse_table;
 
 pub(crate) fn load_implementation_docs(
@@ -173,16 +173,20 @@ pub(crate) fn parse_uses(section: &str, path: &Path, state: &mut RunState) -> Ve
             .trim()
             .to_string();
         validate_target(from, &target, path, state);
-        let exposes = row
-            .get("expose")
-            .map(String::as_str)
-            .unwrap_or_default()
-            .split(',')
-            .map(str::trim)
-            .filter(|value| !value.is_empty())
-            .map(ToOwned::to_owned)
-            .collect::<Vec<_>>();
-        let key = (from, target.clone(), exposes.join(","));
+        let exposes = parse_use_exposes(
+            row.get("expose").map(String::as_str).unwrap_or_default(),
+            path,
+            state,
+        );
+        let key = (
+            from,
+            target.clone(),
+            exposes
+                .iter()
+                .map(UseExpose::render_key)
+                .collect::<Vec<_>>()
+                .join(","),
+        );
         if !seen.insert(key) {
             state.diagnostics.push(Diagnostic::error(
                 Some(path.to_path_buf()),
@@ -196,6 +200,77 @@ pub(crate) fn parse_uses(section: &str, path: &Path, state: &mut RunState) -> Ve
         });
     }
     uses
+}
+
+pub(crate) fn parse_use_exposes(value: &str, path: &Path, state: &mut RunState) -> Vec<UseExpose> {
+    let mut exposes = Vec::new();
+    let mut has_default = false;
+    let mut has_namespace = false;
+    for token in value
+        .split(',')
+        .map(str::trim)
+        .filter(|token| !token.is_empty())
+    {
+        if let Some(local) = token.strip_prefix("default:") {
+            let local = local.trim();
+            if local.is_empty() {
+                state.diagnostics.push(Diagnostic::error(
+                    Some(path.to_path_buf()),
+                    "Uses.Expose default token requires a local name",
+                ));
+                continue;
+            }
+            has_default = true;
+            exposes.push(UseExpose::Default {
+                local: local.to_string(),
+            });
+        } else if let Some(local) = token.strip_prefix("* as ") {
+            let local = local.trim();
+            if local.is_empty() {
+                state.diagnostics.push(Diagnostic::error(
+                    Some(path.to_path_buf()),
+                    "Uses.Expose namespace token requires a local name",
+                ));
+                continue;
+            }
+            has_namespace = true;
+            exposes.push(UseExpose::Namespace {
+                local: local.to_string(),
+            });
+        } else if let Some((name, alias)) = token.split_once(" as ") {
+            let name = name.trim();
+            let alias = alias.trim();
+            if name.is_empty() || alias.is_empty() {
+                state.diagnostics.push(Diagnostic::error(
+                    Some(path.to_path_buf()),
+                    "Uses.Expose alias token requires both source and local names",
+                ));
+                continue;
+            }
+            exposes.push(UseExpose::Named {
+                name: name.to_string(),
+                alias: Some(alias.to_string()),
+            });
+        } else {
+            exposes.push(UseExpose::Named {
+                name: token.to_string(),
+                alias: None,
+            });
+        }
+    }
+    if has_default && has_namespace {
+        state.diagnostics.push(Diagnostic::error(
+            Some(path.to_path_buf()),
+            "Uses.Expose does not allow default and namespace imports in the same cell",
+        ));
+    }
+    if has_namespace && exposes.len() > 1 {
+        state.diagnostics.push(Diagnostic::error(
+            Some(path.to_path_buf()),
+            "Uses.Expose namespace import must be the only token in the cell",
+        ));
+    }
+    exposes
 }
 
 pub(crate) fn validate_target(from: UseFrom, target: &str, path: &Path, state: &mut RunState) {
