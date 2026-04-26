@@ -40,6 +40,7 @@ related:
 - toolchain 検出は package metadata を優先し、必要に応じて PATH 上の代表 command 実行で version を補完する。
 - 必須 toolchain 不足は environment 不足として扱う。
 - 任意 toolchain 不足は warning として扱う。
+- runtime / toolchain が最低対応 version を下回る場合は environment 不足として扱う。
 - 既定出力は人間向け text とし、`--format json` で機械処理向け JSON を stdout に出す。
 
 ## 状態遷移 / 不変条件
@@ -51,6 +52,7 @@ related:
 ## エラー / 例外
 
 - 必須 toolchain または runtime 不足は exit code 4 にする。
+- 最低対応 version 未満の必須 runtime / toolchain は exit code 4 にする。
 - 設定 parse error は exit code 2 にする。
 - 診断 warning のみの場合、exit code は 0 とする。
 - 内部エラーは exit code 3 にする。
@@ -65,6 +67,7 @@ related:
 
 - 必須 runtime / toolchain の存在と version を確認する fixture を用意する。
 - toolchain 不足時の exit code 4 を確認する。
+- 最低対応 version 未満の runtime / toolchain が exit code 4 になることを確認する。
 - optional toolchain warning が exit code 0 になることを確認する。
 - package metadata 優先検出、PATH 補完、`--format json` を確認する。
 - wrapper 経由でも同じ診断を返すことを確認する。

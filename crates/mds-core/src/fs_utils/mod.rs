@@ -69,3 +69,38 @@ pub(crate) fn collect_files_inner(
     }
     Ok(())
 }
+
+pub(crate) fn is_excluded(root: &Path, path: &Path, patterns: &[String]) -> bool {
+    let relative = path.strip_prefix(root).unwrap_or(path);
+    let value = relative
+        .components()
+        .filter_map(|component| match component {
+            Component::Normal(value) => Some(value.to_string_lossy()),
+            _ => None,
+        })
+        .collect::<Vec<_>>()
+        .join("/");
+    patterns.iter().any(|pattern| glob_match(pattern, &value))
+}
+
+fn glob_match(pattern: &str, value: &str) -> bool {
+    glob_match_bytes(pattern.as_bytes(), value.as_bytes())
+}
+
+fn glob_match_bytes(pattern: &[u8], value: &[u8]) -> bool {
+    match (pattern.split_first(), value.split_first()) {
+        (None, None) => true,
+        (None, Some(_)) => false,
+        (Some((&b'*', rest)), _) => {
+            glob_match_bytes(rest, value)
+                || value
+                    .split_first()
+                    .is_some_and(|(_, tail)| glob_match_bytes(pattern, tail))
+        }
+        (Some((&b'?', rest)), Some((_, tail))) => glob_match_bytes(rest, tail),
+        (Some((&expected, rest)), Some((&actual, tail))) if expected == actual => {
+            glob_match_bytes(rest, tail)
+        }
+        _ => false,
+    }
+}

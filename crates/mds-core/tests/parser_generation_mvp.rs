@@ -459,6 +459,215 @@ fn doctor_outputs_json_and_uses_exit_code_four_for_missing_required_tools() {
 }
 
 #[test]
+fn doctor_rejects_runtime_versions_below_minimum() {
+    let temp = TestDir::new();
+    write_fixture(temp.path());
+    let node = write_tool(temp.path(), "node", "#!/bin/sh\nprintf 'v23.0.0\n'\n");
+    fs::write(
+        temp.path().join("pkg/mds.config.toml"),
+        format!(
+            "[package]\nenabled = true\n\n[adapters.py]\nenabled = false\n\n[adapters.rs]\nenabled = false\n\n[quality.ts]\nrequired = [\"{}\"]\noptional = []\n",
+            node.display()
+        ),
+    )
+    .unwrap();
+
+    let doctor = execute(CliRequest {
+        cwd: temp.path().to_path_buf(),
+        package: None,
+        verbose: false,
+        command: Command::Doctor {
+            format: mds_core::DoctorFormat::Text,
+        },
+    });
+    assert_eq!(doctor.exit_code, 4);
+    assert!(doctor.stderr.contains("DOCTOR002_VERSION_TOO_OLD"));
+}
+
+#[test]
+fn exclude_skips_markdown_discovery_and_generation_outputs() {
+    let temp = TestDir::new();
+    write_fixture(temp.path());
+    fs::write(
+        temp.path().join("pkg/mds.config.toml"),
+        "[package]\nenabled = true\nallow_raw_source = false\n\n[roots]\nexclude = [\"src-md/foo/bar.rs.md\", \"src/foo/bar.rs\"]\n",
+    )
+    .unwrap();
+
+    let build = execute(CliRequest {
+        cwd: temp.path().to_path_buf(),
+        package: None,
+        verbose: false,
+        command: Command::Build {
+            mode: BuildMode::Write,
+        },
+    });
+    assert_eq!(build.exit_code, 0, "{}", build.stderr);
+    assert!(!temp.path().join("pkg/src/foo/bar.rs").exists());
+    assert!(temp.path().join("pkg/src/foo/bar.ts").exists());
+}
+
+#[test]
+fn label_overrides_preserve_canonical_table_and_section_meaning() {
+    let temp = TestDir::new();
+    write_fixture(temp.path());
+    fs::write(
+        temp.path().join("pkg/mds.config.toml"),
+        "[package]\nenabled = true\nallow_raw_source = false\n\n[labels]\ntypes = \"Type Definitions\"\nfrom = \"Origin\"\ntarget = \"Module\"\nexpose = \"Symbols\"\nsummary = \"Notes\"\n",
+    )
+    .unwrap();
+    let doc = temp.path().join("pkg/src-md/foo/bar.ts.md");
+    let text = fs::read_to_string(&doc)
+        .unwrap()
+        .replace("## Types", "## Type Definitions")
+        .replace(
+            "| From | Target | Expose | Summary |\n| --- | --- | --- | --- |\n| internal | foo/util | Util | helper |",
+            "| Origin | Module | Symbols | Notes |\n| --- | --- | --- | --- |\n| internal | foo/util | Util | helper |",
+        );
+    fs::write(doc, text).unwrap();
+
+    let check = execute(CliRequest {
+        cwd: temp.path().to_path_buf(),
+        package: None,
+        verbose: false,
+        command: Command::Check,
+    });
+    assert_eq!(check.exit_code, 0, "{}", check.stderr);
+}
+
+#[test]
+fn metadata_parser_handles_common_json_toml_dependency_shapes() {
+    let temp = TestDir::new();
+    write_fixture(temp.path());
+    fs::write(
+        temp.path().join("pkg/package.json"),
+        "{\n  \"name\": \"fixture\",\n  \"version\": \"0.1.0\",\n  \"dependencies\": {\n    \"simple\": \"1.0.0\",\n    \"detailed\": { \"version\": \"2.0.0\" }\n  }\n}\n",
+    )
+    .unwrap();
+    let check = execute(CliRequest {
+        cwd: temp.path().to_path_buf(),
+        package: None,
+        verbose: false,
+        command: Command::Check,
+    });
+    assert_eq!(check.exit_code, 1);
+    assert!(check.stderr.contains("missing dependency `simple`"));
+    assert!(check.stderr.contains("missing dependency `detailed`"));
+
+    let rust_pkg = temp.path().join("rust-pkg");
+    fs::create_dir_all(&rust_pkg).unwrap();
+    fs::write(
+        rust_pkg.join("mds.config.toml"),
+        "[package]\nenabled = true\nallow_raw_source = false\n",
+    )
+    .unwrap();
+    fs::write(
+        rust_pkg.join("Cargo.toml"),
+        "[package]\nname = \"rust-fixture\"\nversion = \"0.1.0\"\n\n[dependencies]\nserde = { version = \"1.0\", features = [\"derive\"] }\n",
+    )
+    .unwrap();
+    fs::write(
+        rust_pkg.join("package.md"),
+        "# Package\n\n## Package\n\n| Name | Version |\n| --- | --- |\n| rust-fixture | 0.1.0 |\n\n## Dependencies\n\n| Name | Version | Summary |\n| --- | --- | --- |\n\n## Dev Dependencies\n\n| Name | Version | Summary |\n| --- | --- | --- |\n\n## Rules\n\n- test fixture\n",
+    )
+    .unwrap();
+
+    let rust_check = execute(CliRequest {
+        cwd: rust_pkg.clone(),
+        package: None,
+        verbose: false,
+        command: Command::Check,
+    });
+    assert_eq!(rust_check.exit_code, 1);
+    assert!(rust_check.stderr.contains("missing dependency `serde`"));
+}
+
+#[test]
+fn package_sync_rejects_handwritten_content_inside_managed_sections() {
+    let temp = TestDir::new();
+    write_fixture(temp.path());
+    let package_md = temp.path().join("pkg/package.md");
+    let text = fs::read_to_string(&package_md)
+        .unwrap()
+        .replace("## Dependencies\n\n", "## Dependencies\n\nManual note.\n");
+    fs::write(package_md, text).unwrap();
+
+    let sync = execute(CliRequest {
+        cwd: temp.path().to_path_buf(),
+        package: None,
+        verbose: false,
+        command: Command::PackageSync { check: false },
+    });
+    assert_eq!(sync.exit_code, 1);
+    assert!(sync.stderr.contains("hand-written content"));
+}
+
+#[test]
+fn package_sync_hook_enabled_uses_default_check_command() {
+    let temp = TestDir::new();
+    write_fixture(temp.path());
+    fs::write(
+        temp.path().join("pkg/mds.config.toml"),
+        "[package]\nenabled = true\nallow_raw_source = false\n\n[package_sync]\nhook_enabled = true\n",
+    )
+    .unwrap();
+
+    let sync = execute(CliRequest {
+        cwd: temp.path().to_path_buf(),
+        package: None,
+        verbose: false,
+        command: Command::PackageSync { check: true },
+    });
+    assert_eq!(sync.exit_code, 0, "{}", sync.stderr);
+    assert!(sync
+        .stdout
+        .contains("package sync hook command: mds package sync --check"));
+}
+
+#[test]
+fn lint_fix_updates_successful_quality_blocks_only() {
+    let temp = TestDir::new();
+    write_fixture(temp.path());
+    let fixer = write_tool(
+        temp.path(),
+        "partial-fixer",
+        "#!/bin/sh\nif grep -q DO_NOT_FIX \"$1\"; then exit 1; fi\nprintf 'fixed_code()\n' > \"$1\"\n",
+    );
+    fs::write(
+        temp.path().join("pkg/mds.config.toml"),
+        format!(
+            "[package]\nenabled = true\nallow_raw_source = false\n\n[quality.ts]\nfixer = \"{}\"\nrequired = []\noptional = []\n\n[quality.py]\nfixer = false\nrequired = []\noptional = []\n\n[quality.rs]\nfixer = false\nrequired = []\noptional = []\n",
+            fixer.display()
+        ),
+    )
+    .unwrap();
+    let doc = temp.path().join("pkg/src-md/foo/bar.ts.md");
+    let text = fs::read_to_string(&doc)
+        .unwrap()
+        .replace(
+            "Fixture.\n\n## Contract",
+            "Fixture.\n\n```text\nnot_quality_block\n```\n\n## Contract",
+        )
+        .replace("expect(bar).toBe(\"ok\");", "DO_NOT_FIX");
+    fs::write(&doc, text).unwrap();
+
+    let fix = execute(CliRequest {
+        cwd: temp.path().to_path_buf(),
+        package: None,
+        verbose: false,
+        command: Command::Lint {
+            fix: true,
+            check: false,
+        },
+    });
+    assert_eq!(fix.exit_code, 1);
+    let fixed = fs::read_to_string(&doc).unwrap();
+    assert!(fixed.contains("fixed_code()"));
+    assert!(fixed.contains("DO_NOT_FIX"));
+    assert!(fixed.contains("not_quality_block"));
+}
+
+#[test]
 fn refuses_to_overwrite_unmanaged_file() {
     let temp = TestDir::new();
     write_fixture(temp.path());

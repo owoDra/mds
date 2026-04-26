@@ -5,10 +5,10 @@ use std::path::{Path, PathBuf};
 
 use crate::config::{merge_config_file, parse_string};
 use crate::diagnostics::{Diagnostic, RunState};
-use crate::fs_utils::collect_files;
-use crate::markdown::sections;
+use crate::fs_utils::{collect_files, is_excluded};
+use crate::markdown::sections_with_labels;
 use crate::model::{MetadataKind, Package, PackageMetadata};
-use crate::table::parse_table;
+use crate::table::parse_table_with_labels;
 
 pub(crate) fn discover_packages(
     cwd: &Path,
@@ -121,7 +121,7 @@ pub(crate) fn validate_package_md(package: &Package, state: &mut RunState) {
             return;
         }
     };
-    let sections = sections(&text);
+    let sections = sections_with_labels(&text, &package.config.label_overrides);
     for required in ["Package", "Dependencies", "Dev Dependencies", "Rules"] {
         if !sections.contains_key(required) {
             state.diagnostics.push(Diagnostic::error(
@@ -132,7 +132,13 @@ pub(crate) fn validate_package_md(package: &Package, state: &mut RunState) {
     }
 
     if let Some(package_section) = sections.get("Package") {
-        if let Some(rows) = parse_table(package_section, &["Name", "Version"], &path, state) {
+        if let Some(rows) = parse_table_with_labels(
+            package_section,
+            &["Name", "Version"],
+            &path,
+            &package.config.label_overrides,
+            state,
+        ) {
             if rows.is_empty() {
                 state.diagnostics.push(Diagnostic::error(
                     Some(path.clone()),
@@ -181,9 +187,7 @@ pub(crate) fn read_package_metadata(
 ) -> Option<PackageMetadata> {
     match package.metadata_kind {
         MetadataKind::Node => read_node_metadata(&package.root.join("package.json"), state),
-        MetadataKind::Python => {
-            read_toml_metadata(&package.root.join("pyproject.toml"), &["project"], state)
-        }
+        MetadataKind::Python => read_python_metadata(&package.root.join("pyproject.toml"), state),
         MetadataKind::Rust => {
             read_toml_metadata(&package.root.join("Cargo.toml"), &["package"], state)
         }
@@ -235,21 +239,93 @@ fn json_object_field(text: &str, key: &str) -> HashMap<String, String> {
     let Some(mut body) = after_colon.strip_prefix('{') else {
         return values;
     };
-    let Some(end) = body.find('}') else {
+    let Some(end) = matching_json_object_end(body) else {
         return values;
     };
     body = &body[..end];
-    for entry in body.split(',') {
+    for entry in split_top_level(body, ',') {
         let Some((raw_key, raw_value)) = entry.split_once(':') else {
             continue;
         };
         let key = raw_key.trim().trim_matches('"');
-        let value = raw_value.trim().trim_matches('"');
+        let value = dependency_version(raw_value.trim());
         if !key.is_empty() {
-            values.insert(key.to_string(), value.to_string());
+            values.insert(key.to_string(), value);
         }
     }
     values
+}
+
+fn dependency_version(value: &str) -> String {
+    if value.starts_with('"') {
+        value.trim_matches('"').to_string()
+    } else if value.starts_with('{') {
+        json_string_field(value, "version").unwrap_or_else(|| value.trim().to_string())
+    } else {
+        value.trim().to_string()
+    }
+}
+
+fn matching_json_object_end(text: &str) -> Option<usize> {
+    let mut depth = 0;
+    let mut in_string = false;
+    let mut escaped = false;
+    for (idx, ch) in text.char_indices() {
+        if in_string {
+            if escaped {
+                escaped = false;
+            } else if ch == '\\' {
+                escaped = true;
+            } else if ch == '"' {
+                in_string = false;
+            }
+            continue;
+        }
+        match ch {
+            '"' => in_string = true,
+            '{' => depth += 1,
+            '}' => {
+                if depth == 0 {
+                    return Some(idx);
+                }
+                depth -= 1;
+            }
+            _ => {}
+        }
+    }
+    None
+}
+
+fn split_top_level(text: &str, separator: char) -> Vec<&str> {
+    let mut parts = Vec::new();
+    let mut start = 0;
+    let mut depth = 0;
+    let mut in_string = false;
+    let mut escaped = false;
+    for (idx, ch) in text.char_indices() {
+        if in_string {
+            if escaped {
+                escaped = false;
+            } else if ch == '\\' {
+                escaped = true;
+            } else if ch == '"' {
+                in_string = false;
+            }
+            continue;
+        }
+        match ch {
+            '"' => in_string = true,
+            '{' | '[' => depth += 1,
+            '}' | ']' if depth > 0 => depth -= 1,
+            ch if ch == separator && depth == 0 => {
+                parts.push(&text[start..idx]);
+                start = idx + ch.len_utf8();
+            }
+            _ => {}
+        }
+    }
+    parts.push(&text[start..]);
+    parts
 }
 
 pub(crate) fn json_string_field(text: &str, key: &str) -> Option<String> {
@@ -284,8 +360,8 @@ pub(crate) fn read_toml_metadata(
         (Some(name), Some(version)) => Some(PackageMetadata {
             name,
             version,
-            dependencies: simple_toml_section(&text, "dependencies"),
-            dev_dependencies: simple_toml_section(&text, "dev-dependencies"),
+            dependencies: toml_dependency_section(&text, "dependencies"),
+            dev_dependencies: toml_dependency_section(&text, "dev-dependencies"),
         }),
         _ => {
             state.diagnostics.push(Diagnostic::error(
@@ -295,6 +371,103 @@ pub(crate) fn read_toml_metadata(
             None
         }
     }
+}
+
+pub(crate) fn read_python_metadata(path: &Path, state: &mut RunState) -> Option<PackageMetadata> {
+    let text = match fs::read_to_string(path) {
+        Ok(text) => text,
+        Err(error) => {
+            state.diagnostics.push(Diagnostic::error(
+                Some(path.to_path_buf()),
+                format!("failed to read package metadata: {error}"),
+            ));
+            return None;
+        }
+    };
+    let project = simple_toml_section(&text, "project");
+    let name = project.get("name").cloned();
+    let version = project.get("version").cloned();
+    match (name, version) {
+        (Some(name), Some(version)) => Some(PackageMetadata {
+            name,
+            version,
+            dependencies: pyproject_dependency_array(&project),
+            dev_dependencies: pyproject_optional_dependencies(&text, "dev"),
+        }),
+        _ => {
+            state.diagnostics.push(Diagnostic::error(
+                Some(path.to_path_buf()),
+                "package metadata requires [project] name and version",
+            ));
+            None
+        }
+    }
+}
+
+fn toml_dependency_section(text: &str, section_name: &str) -> HashMap<String, String> {
+    simple_toml_section(text, section_name)
+        .into_iter()
+        .map(|(name, value)| (name, toml_dependency_version(&value)))
+        .collect()
+}
+
+fn toml_dependency_version(value: &str) -> String {
+    if value.starts_with('{') && value.ends_with('}') {
+        simple_inline_toml(value)
+            .get("version")
+            .cloned()
+            .unwrap_or_else(|| value.to_string())
+    } else {
+        value.to_string()
+    }
+}
+
+fn simple_inline_toml(value: &str) -> HashMap<String, String> {
+    let body = value.trim().trim_start_matches('{').trim_end_matches('}');
+    split_top_level(body, ',')
+        .into_iter()
+        .filter_map(|entry| {
+            let (key, value) = entry.split_once('=')?;
+            Some((key.trim().to_string(), parse_string(value.trim())))
+        })
+        .collect()
+}
+
+fn pyproject_dependency_array(project: &HashMap<String, String>) -> HashMap<String, String> {
+    project
+        .get("dependencies")
+        .map(|value| dependency_array(value))
+        .unwrap_or_default()
+}
+
+fn pyproject_optional_dependencies(text: &str, group: &str) -> HashMap<String, String> {
+    let section = simple_toml_section(text, "project.optional-dependencies");
+    section
+        .get(group)
+        .map(|value| dependency_array(value))
+        .unwrap_or_default()
+}
+
+fn dependency_array(value: &str) -> HashMap<String, String> {
+    let body = value.trim().trim_start_matches('[').trim_end_matches(']');
+    split_top_level(body, ',')
+        .into_iter()
+        .map(parse_string)
+        .filter(|value| !value.is_empty())
+        .map(|value| split_dependency_spec(&value))
+        .collect()
+}
+
+fn split_dependency_spec(value: &str) -> (String, String) {
+    for marker in [">=", "<=", "==", "~=", "!=", ">", "<"] {
+        if let Some((name, version)) = value.split_once(marker) {
+            return (
+                name.trim().to_string(),
+                format!("{marker}{}", version.trim()),
+            );
+        }
+    }
+    (value.trim().to_string(), String::new())
 }
 
 fn validate_dependency_section(
@@ -316,7 +489,13 @@ fn validate_dependency_section(
     let Some(section) = sections.get(section_name) else {
         return;
     };
-    let Some(rows) = parse_table(section, &["Name", "Version", "Summary"], path, state) else {
+    let Some(rows) = parse_table_with_labels(
+        section,
+        &["Name", "Version", "Summary"],
+        path,
+        &package.config.label_overrides,
+        state,
+    ) else {
         state.diagnostics.push(Diagnostic::error(
             Some(path.to_path_buf()),
             format!(
@@ -373,19 +552,21 @@ pub(crate) fn rust_expose_modules(package: &Package, state: &mut RunState) -> Ve
     let mut modules = Vec::new();
     for path in files
         .into_iter()
+        .filter(|path| !is_excluded(&package.root, path, &package.config.excludes))
         .filter(|path| path.file_name() == Some(OsStr::new("index.md")))
     {
         let Ok(text) = fs::read_to_string(&path) else {
             continue;
         };
-        let sections = sections(&text);
+        let sections = sections_with_labels(&text, &package.config.label_overrides);
         let Some(exposes_section) = sections.get("Exposes") else {
             continue;
         };
-        let Some(rows) = parse_table(
+        let Some(rows) = parse_table_with_labels(
             exposes_section,
             &["Kind", "Name", "Target", "Summary"],
             &path,
+            &package.config.label_overrides,
             state,
         ) else {
             continue;
@@ -443,6 +624,7 @@ pub(crate) fn validate_index_docs(package: &Package, state: &mut RunState) {
     };
     for path in files
         .into_iter()
+        .filter(|path| !is_excluded(&package.root, path, &package.config.excludes))
         .filter(|path| path.file_name() == Some(OsStr::new("index.md")))
     {
         let text = match fs::read_to_string(&path) {
@@ -455,7 +637,7 @@ pub(crate) fn validate_index_docs(package: &Package, state: &mut RunState) {
                 continue;
             }
         };
-        let sections = sections(&text);
+        let sections = sections_with_labels(&text, &package.config.label_overrides);
         for required in ["Purpose", "Architecture", "Exposes", "Rules"] {
             if !sections.contains_key(required) {
                 state.diagnostics.push(Diagnostic::error(
@@ -465,10 +647,11 @@ pub(crate) fn validate_index_docs(package: &Package, state: &mut RunState) {
             }
         }
         if let Some(exposes_section) = sections.get("Exposes") {
-            let Some(rows) = parse_table(
+            let Some(rows) = parse_table_with_labels(
                 exposes_section,
                 &["Kind", "Name", "Target", "Summary"],
                 &path,
+                &package.config.label_overrides,
                 state,
             ) else {
                 state.diagnostics.push(Diagnostic::error(

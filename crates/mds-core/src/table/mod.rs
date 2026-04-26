@@ -3,10 +3,11 @@ use std::path::Path;
 
 use crate::diagnostics::{Diagnostic, RunState};
 
-pub(crate) fn parse_table(
+pub(crate) fn parse_table_with_labels(
     section: &str,
     required: &[&str],
     path: &Path,
+    label_overrides: &HashMap<String, String>,
     state: &mut RunState,
 ) -> Option<Vec<HashMap<String, String>>> {
     let lines = section.lines().collect::<Vec<_>>();
@@ -19,7 +20,7 @@ pub(crate) fn parse_table(
         let headers = split_table_row(lines[idx]);
         let canonical = headers
             .iter()
-            .map(|header| header.trim().to_ascii_lowercase())
+            .map(|header| canonical_header(header, required, label_overrides))
             .collect::<Vec<_>>();
         let required_canonical = required
             .iter()
@@ -70,6 +71,27 @@ pub(crate) fn parse_table(
         ));
     }
     None
+}
+
+fn canonical_header(
+    header: &str,
+    required: &[&str],
+    label_overrides: &HashMap<String, String>,
+) -> String {
+    let header = header.trim().to_ascii_lowercase();
+    for canonical in required {
+        let canonical_lower = canonical.to_ascii_lowercase();
+        if header == canonical_lower {
+            return canonical_lower;
+        }
+        if label_overrides
+            .get(&canonical_lower)
+            .is_some_and(|override_label| override_label.trim().eq_ignore_ascii_case(&header))
+        {
+            return canonical_lower;
+        }
+    }
+    header
 }
 
 pub(crate) fn split_table_row(line: &str) -> Vec<String> {

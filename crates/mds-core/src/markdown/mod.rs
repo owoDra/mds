@@ -3,9 +3,9 @@ use std::fs;
 use std::path::{Component, Path};
 
 use crate::diagnostics::{Diagnostic, RunState};
-use crate::fs_utils::collect_files;
+use crate::fs_utils::{collect_files, is_excluded};
 use crate::model::{ImplDoc, Lang, OutputKind, Package, UseExpose, UseFrom, UseRow};
-use crate::table::parse_table;
+use crate::table::parse_table_with_labels;
 
 pub(crate) fn load_implementation_docs(
     package: &Package,
@@ -22,6 +22,9 @@ pub(crate) fn load_implementation_docs(
 
     let mut docs = Vec::new();
     for path in collect_files(&markdown_root, false)? {
+        if is_excluded(&package.root, &path, &package.config.excludes) {
+            continue;
+        }
         let Some(lang) = Lang::from_path(&path) else {
             continue;
         };
@@ -64,7 +67,7 @@ pub(crate) fn parse_impl_doc(
         }
     }
 
-    let sections = sections(&text);
+    let sections = sections_with_labels(&text, &package.config.label_overrides);
     for required in ["Purpose", "Contract", "Types", "Source", "Cases", "Test"] {
         if !sections.contains_key(required) {
             state.diagnostics.push(Diagnostic::error(
@@ -78,7 +81,10 @@ pub(crate) fn parse_impl_doc(
     let mut code = HashMap::new();
     for kind in [OutputKind::Types, OutputKind::Source, OutputKind::Test] {
         if let Some(section) = sections.get(kind.section()) {
-            uses.insert(kind, parse_uses(section, path, state));
+            uses.insert(
+                kind,
+                parse_uses(section, path, &package.config.label_overrides, state),
+            );
             let joined = code_blocks(section, path, state);
             if joined.trim().is_empty() {
                 state.diagnostics.push(Diagnostic::error(
@@ -115,13 +121,17 @@ pub(crate) fn parse_impl_doc(
     })
 }
 
-pub(crate) fn sections(text: &str) -> HashMap<String, String> {
+pub(crate) fn sections_with_labels(
+    text: &str,
+    label_overrides: &HashMap<String, String>,
+) -> HashMap<String, String> {
     let mut result = HashMap::new();
     let mut current: Option<String> = None;
     let mut body = String::new();
     for line in text.lines() {
         if let Some(title) = line.strip_prefix("## ") {
-            if let Some(name) = current.replace(title.trim().to_string()) {
+            let title = canonical_section_title(title.trim(), label_overrides);
+            if let Some(name) = current.replace(title) {
                 result.insert(name, body.trim_matches('\n').to_string());
                 body.clear();
             }
@@ -136,11 +146,35 @@ pub(crate) fn sections(text: &str) -> HashMap<String, String> {
     result
 }
 
-pub(crate) fn parse_uses(section: &str, path: &Path, state: &mut RunState) -> Vec<UseRow> {
-    let Some(rows) = parse_table(
+fn canonical_section_title(title: &str, label_overrides: &HashMap<String, String>) -> String {
+    for canonical in [
+        "Purpose", "Contract", "Types", "Source", "Cases", "Test", "Expose", "Exposes",
+    ] {
+        if title == canonical {
+            return canonical.to_string();
+        }
+        let key = canonical.to_ascii_lowercase();
+        if label_overrides
+            .get(&key)
+            .is_some_and(|override_label| override_label.trim() == title)
+        {
+            return canonical.to_string();
+        }
+    }
+    title.to_string()
+}
+
+pub(crate) fn parse_uses(
+    section: &str,
+    path: &Path,
+    label_overrides: &HashMap<String, String>,
+    state: &mut RunState,
+) -> Vec<UseRow> {
+    let Some(rows) = parse_table_with_labels(
         section,
         &["From", "Target", "Expose", "Summary"],
         path,
+        label_overrides,
         state,
     ) else {
         state.diagnostics.push(Diagnostic::error(

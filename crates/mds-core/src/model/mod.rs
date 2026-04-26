@@ -102,6 +102,7 @@ pub(crate) struct Config {
     pub(crate) adapters: HashMap<Lang, bool>,
     pub(crate) quality: HashMap<Lang, QualityConfig>,
     pub(crate) excludes: Vec<String>,
+    pub(crate) package_sync_hook_enabled: bool,
     pub(crate) package_sync_hook: Option<String>,
     pub(crate) label_overrides: HashMap<String, String>,
 }
@@ -123,6 +124,7 @@ impl Default for Config {
                 (Lang::Rust, QualityConfig::for_lang(Lang::Rust)),
             ]),
             excludes: Vec::new(),
+            package_sync_hook_enabled: false,
             package_sync_hook: None,
             label_overrides: HashMap::new(),
         }

@@ -1,6 +1,6 @@
 use crate::adapter::{imports_for, output_relative_path, plan_rust_modules};
 use crate::diagnostics::{Diagnostic, RunState};
-use crate::fs_utils::{is_mds_managed_file, path_within};
+use crate::fs_utils::{is_excluded, is_mds_managed_file, path_within};
 use crate::hash::sha256;
 use crate::manifest::plan_manifest;
 use crate::model::{GeneratedFile, GeneratedKind, ImplDoc, Lang, OutputKind, Package};
@@ -44,6 +44,9 @@ pub(crate) fn plan_output(
         OutputKind::Test => &package.config.roots.test,
     };
     let path = package.root.join(root).join(relative);
+    if is_excluded(&package.root, &path, &package.config.excludes) {
+        return None;
+    }
     if !path_within(&package.root, &path) {
         state.diagnostics.push(Diagnostic::error(
             Some(path),

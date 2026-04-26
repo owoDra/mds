@@ -1,5 +1,5 @@
 {
-  "name": "owox-harness-dev",
+  "name": "mds-dev",
   "dockerComposeFile": "compose.yml",
   "service": "dev",
   "runServices": [
@@ -11,7 +11,7 @@
   "shutdownAction": "stopCompose",
   "overrideCommand": false,
   "remoteEnv": {
-    "PATH": "${containerEnv:PATH}:/home/vscode/.npm-global/bin:/home/vscode/.local/bin:/home/vscode/.local/share/pnpm"
+    "PATH": "${containerEnv:PATH}:/usr/local/cargo/bin:/home/vscode/.npm-global/bin:/home/vscode/.local/bin:/usr/local/bin"
   },
   "customizations": {
     "vscode": {

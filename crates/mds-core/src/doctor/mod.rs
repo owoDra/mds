@@ -1,3 +1,5 @@
+use std::process::Command as ProcessCommand;
+
 use crate::diagnostics::{Diagnostic, RunState};
 use crate::model::{DoctorFormat, Lang, Package};
 use crate::quality::tool_available;
@@ -23,7 +25,40 @@ pub(crate) fn run_doctor(packages: &[Package], format: DoctorFormat, state: &mut
             };
             for command in &config.required {
                 if tool_available(command) {
-                    checks.push(DoctorCheck::ok(command, "available".to_string()));
+                    if let Some(required) = minimum_version(command) {
+                        match command_version(command) {
+                            Some(version) if version_at_least(&version, required) => checks.push(
+                                DoctorCheck::ok(command, format!("{}", render_version(&version))),
+                            ),
+                            Some(version) => {
+                                state.environment_missing = true;
+                                checks.push(DoctorCheck::error(
+                                    command,
+                                    format!(
+                                        "{} is below required {}.{}",
+                                        render_version(&version),
+                                        required.0,
+                                        required.1
+                                    ),
+                                ));
+                                state.diagnostics.push(Diagnostic::error(
+                                    Some(package.root.clone()),
+                                    format!(
+                                        "DOCTOR002_VERSION_TOO_OLD: `{command}` version {} is below required {}.{}",
+                                        render_version(&version),
+                                        required.0,
+                                        required.1
+                                    ),
+                                ));
+                            }
+                            None => checks.push(DoctorCheck::warning(
+                                command,
+                                "version unavailable".to_string(),
+                            )),
+                        }
+                    } else {
+                        checks.push(DoctorCheck::ok(command, "available".to_string()));
+                    }
                 } else {
                     state.environment_missing = true;
                     checks.push(DoctorCheck::error(command, "missing".to_string()));
@@ -50,6 +85,49 @@ pub(crate) fn run_doctor(packages: &[Package], format: DoctorFormat, state: &mut
         DoctorFormat::Text => render_text(&checks, state),
         DoctorFormat::Json => render_json(&checks, state),
     }
+}
+
+fn minimum_version(command: &str) -> Option<(u32, u32)> {
+    let name = command.rsplit('/').next().unwrap_or(command);
+    match name {
+        "node" => Some((24, 0)),
+        "python" | "python3" => Some((3, 13)),
+        "rustc" | "cargo" => Some((1, 86)),
+        _ => None,
+    }
+}
+
+fn command_version(command: &str) -> Option<(u32, u32, u32)> {
+    let output = ProcessCommand::new(command)
+        .arg("--version")
+        .output()
+        .ok()?;
+    let text = if output.stdout.is_empty() {
+        String::from_utf8_lossy(&output.stderr).to_string()
+    } else {
+        String::from_utf8_lossy(&output.stdout).to_string()
+    };
+    parse_version(&text)
+}
+
+fn parse_version(text: &str) -> Option<(u32, u32, u32)> {
+    let start = text.find(|ch: char| ch.is_ascii_digit())?;
+    let version = text[start..]
+        .split(|ch: char| !ch.is_ascii_digit() && ch != '.')
+        .next()?;
+    let mut parts = version.split('.');
+    let major = parts.next()?.parse().ok()?;
+    let minor = parts.next().unwrap_or("0").parse().ok()?;
+    let patch = parts.next().unwrap_or("0").parse().ok()?;
+    Some((major, minor, patch))
+}
+
+fn version_at_least(version: &(u32, u32, u32), minimum: (u32, u32)) -> bool {
+    version.0 > minimum.0 || version.0 == minimum.0 && version.1 >= minimum.1
+}
+
+fn render_version(version: &(u32, u32, u32)) -> String {
+    format!("{}.{}.{}", version.0, version.1, version.2)
 }
 
 #[derive(Debug)]

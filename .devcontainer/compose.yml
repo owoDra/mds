@@ -1,11 +1,13 @@
 services:
   dev:
     build:
-      context: ..
-      dockerfile: .devcontainer/Dockerfile
-      args:
-        NODE_MAJOR: ${NODE_MAJOR:-22}
-    image: ${COMPOSE_PROJECT_NAME:-monorepo}-opencode-devcontainer:local
+        context: ..
+        dockerfile: .devcontainer/Dockerfile
+        args:
+          NODE_MAJOR: ${NODE_MAJOR:-24}
+          RUST_VERSION: ${RUST_VERSION:-1.86.0}
+          PYTHON_VERSION: ${PYTHON_VERSION:-3.13}
+    image: ${COMPOSE_PROJECT_NAME:-mds}-opencode-devcontainer:local
     working_dir: /workspace
     init: true
     command: sleep infinity
@@ -14,13 +16,13 @@ services:
       TZ: ${TZ:-Asia/Tokyo}
       COMPOSE_FILE: /workspace/.devcontainer/compose.yml
       NPM_CONFIG_PREFIX: /home/vscode/.npm-global
-      PNPM_HOME: /home/vscode/.local/share/pnpm
-      PNPM_STORE_DIR: /pnpm/store
+      CARGO_HOME: /usr/local/cargo
+      RUSTUP_HOME: /usr/local/rustup
       UV_CACHE_DIR: /home/vscode/.cache/uv
       PIP_CACHE_DIR: /home/vscode/.cache/pip
       PIPX_HOME: /home/vscode/.local/pipx
       PIPX_BIN_DIR: /home/vscode/.local/bin
-      PATH: /home/vscode/.npm-global/bin:/home/vscode/.local/bin:/home/vscode/.local/share/pnpm:${PATH}
+      PATH: /usr/local/cargo/bin:/home/vscode/.npm-global/bin:/home/vscode/.local/bin:/usr/local/bin:${PATH}
     volumes:
       - ..:/workspace:cached
       - ${HOME}/.ssh:/home/vscode/.ssh:ro
@@ -31,7 +33,6 @@ services:
       - npm-global:/home/vscode/.npm-global
       - user-local:/home/vscode/.local
       - user-cache:/home/vscode/.cache
-      - pnpm-store:/pnpm/store
     extra_hosts:
       - host.docker.internal:host-gateway
 
@@ -43,4 +44,3 @@ volumes:
   npm-global:
   user-local:
   user-cache:
-  pnpm-store:

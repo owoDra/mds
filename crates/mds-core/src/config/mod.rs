@@ -143,7 +143,14 @@ pub(crate) fn merge_config_file(
                 )),
             },
             "package_sync" | "package-sync" => match key {
-                "hook" | "post_hook" | "post-command" | "post_command" => {
+                "hook_enabled" | "hook-enabled" => {
+                    config.package_sync_hook_enabled = parse_bool(value, path, idx + 1, state);
+                    if config.package_sync_hook_enabled && config.package_sync_hook.is_none() {
+                        config.package_sync_hook = Some("mds package sync --check".to_string());
+                    }
+                }
+                "hook" | "post_hook" | "post-command" | "post_command" | "hook_command"
+                | "hook-command" => {
                     config.package_sync_hook = Some(parse_string(value));
                 }
                 _ => state.diagnostics.push(Diagnostic::warning(
@@ -152,9 +159,17 @@ pub(crate) fn merge_config_file(
                 )),
             },
             "labels" | "label_overrides" | "label-overrides" => {
-                config
-                    .label_overrides
-                    .insert(key.to_ascii_lowercase(), parse_string(value));
+                let canonical = key.to_ascii_lowercase();
+                if is_supported_label(&canonical) {
+                    config
+                        .label_overrides
+                        .insert(canonical, parse_string(value));
+                } else {
+                    state.diagnostics.push(Diagnostic::error(
+                        Some(path.to_path_buf()),
+                        format!("unsupported label override `{key}`"),
+                    ));
+                }
             }
             _ => state.diagnostics.push(Diagnostic::warning(
                 Some(path.to_path_buf()),
@@ -164,6 +179,26 @@ pub(crate) fn merge_config_file(
     }
 
     Some(())
+}
+
+fn is_supported_label(key: &str) -> bool {
+    matches!(
+        key,
+        "purpose"
+            | "contract"
+            | "types"
+            | "source"
+            | "cases"
+            | "test"
+            | "expose"
+            | "exposes"
+            | "from"
+            | "target"
+            | "summary"
+            | "kind"
+            | "name"
+            | "version"
+    )
 }
 
 pub(crate) fn parse_bool(value: &str, path: &Path, line: usize, state: &mut RunState) -> bool {

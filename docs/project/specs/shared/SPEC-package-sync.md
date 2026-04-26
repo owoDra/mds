@@ -41,8 +41,10 @@ related:
 - package manager hook は任意機能とし、post 実行のみを対象にする。
 - post hook の既定 command は `mds package sync --check` とする。
 - post hook は依存変更後に `mds package sync --check` または利用者が明示した command を呼び出せる。
-- hook は利用者が明示的に有効化する。
+- hook は `[package_sync] hook_enabled = true` で利用者が明示的に有効化する。
+- `hook_command` が未指定の場合、hook command は `mds package sync --check` とする。
 - dependency table の最小列は `Name`、`Version`、`Summary` とする。
+- `Package`、`Dependencies`、`Dev Dependencies` の管理 section に table 以外の手書き内容が混在する場合は同期せず診断する。
 
 ## 状態遷移 / 不変条件
 
@@ -56,6 +58,7 @@ related:
 
 - package metadata が読めない場合は sync 診断にする。
 - `package.md` の必須セクションがない場合は sync 診断にする。
+- 管理 section に手書き補足が混在する場合は sync 診断にする。
 - `--check` で差分がある場合は exit code 1 にする。
 - hook 実行環境が不足する場合は exit code 4 にする。
 - usage / config error は exit code 2、internal error は exit code 3 にする。
@@ -73,6 +76,7 @@ related:
 - `--check` が書き込みなしで差分診断を返すことを確認する。
 - post hook 既定 command が `mds package sync --check` になることを確認する。
 - dependency table の `Name`、`Version`、`Summary` を確認する。
+- 管理 section 内の手書き混在を検出し、`Rules` などの手書き補足領域は保持されることを確認する。
 
 ## 関連資料
 

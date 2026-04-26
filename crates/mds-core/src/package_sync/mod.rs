@@ -12,6 +12,16 @@ pub(crate) fn sync_package_md(
     check: bool,
     state: &mut RunState,
 ) -> Result<(), String> {
+    if package.config.package_sync_hook_enabled {
+        let command = package
+            .config
+            .package_sync_hook
+            .as_deref()
+            .unwrap_or("mds package sync --check");
+        state
+            .stdout
+            .push_str(&format!("package sync hook command: {command}\n"));
+    }
     let path = package.root.join("package.md");
     let old = fs::read_to_string(&path)
         .map_err(|error| format!("failed to read {}: {error}", path.display()))?;
@@ -88,7 +98,27 @@ fn planned_package_md(
         ));
         return None;
     }
+    for (name, body) in sections_in_order(old) {
+        if matches!(
+            name.as_str(),
+            "Package" | "Dependencies" | "Dev Dependencies"
+        ) && contains_manual_mixed_content(&body)
+        {
+            state.diagnostics.push(Diagnostic::error(
+                Some(path.to_path_buf()),
+                format!("package.md ## {name} contains hand-written content inside managed sync section"),
+            ));
+            return None;
+        }
+    }
     Some(output)
+}
+
+fn contains_manual_mixed_content(body: &str) -> bool {
+    body.lines().any(|line| {
+        let line = line.trim();
+        !line.is_empty() && !line.starts_with('|')
+    })
 }
 
 fn dependency_table(dependencies: &std::collections::HashMap<String, String>) -> String {

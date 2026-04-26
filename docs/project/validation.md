@@ -76,8 +76,8 @@
 ## Doctor / Package Sync
 
 - いつ行うか: `mds doctor`、`mds package sync`、package manager hook、配布 wrapper を変更するとき。
-- 何で検証するか: toolchain 有無の doctor fixture、npm / Cargo / uv metadata sync fixture を使う。
-- 期待する結果: doctor は有効 adapter 分の runtime / toolchain を検出し、environment 不足を exit code 4 にし、package sync は手書き領域を壊さず package metadata 由来の管理部分だけを更新する。
+- 何で検証するか: toolchain 有無と最低 version の doctor fixture、npm / Cargo / uv metadata sync fixture、package sync hook fixture、npm / Python wrapper E2E smoke test を使う。
+- 期待する結果: doctor は有効 adapter 分の runtime / toolchain を検出し、environment 不足または最低 version 未満を exit code 4 にし、package sync は手書き領域を壊さず package metadata 由来の管理部分だけを更新し、hook は明示有効化時だけ既定 command `mds package sync --check` を使う。
 - 問題があった際にどうするか: 破壊的な自動更新を止め、`--check` や診断で利用者が次に取るべき対応を示す。
 
 ## ドキュメント同期
