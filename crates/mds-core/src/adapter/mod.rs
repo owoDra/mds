@@ -1,11 +1,14 @@
 use std::collections::BTreeMap;
 use std::fs;
+use std::io;
 use std::path::{Component, Path, PathBuf};
+use std::process::{Command as ProcessCommand, Stdio};
 
 use crate::diagnostics::{Diagnostic, RunState};
 use crate::hash::sha256;
 use crate::model::{
-    GeneratedFile, GeneratedKind, ImplDoc, Lang, OutputKind, Package, UseExpose, UseFrom, UseRow,
+    GeneratedFile, GeneratedKind, ImplDoc, Lang, OutputKind, Package, QualityConfig, UseExpose,
+    UseFrom, UseRow,
 };
 
 pub(crate) fn output_relative_path(doc: &ImplDoc, kind: OutputKind) -> PathBuf {
@@ -206,6 +209,8 @@ pub(crate) fn rs_import(row: &UseRow, path: &Path, state: &mut RunState) -> Stri
     }
     if row.exposes.is_empty() {
         format!("use {target};")
+    } else if let [UseExpose::Named { name, alias: None }] = row.exposes.as_slice() {
+        format!("use {target}::{name};")
     } else {
         format!("use {target}::{{{}}};", rs_names(row).join(", "))
     }
@@ -375,4 +380,72 @@ pub(crate) fn replace_or_append_module_block(
             None
         }
     }
+}
+
+pub(crate) fn run_toolchain_command(
+    command: &str,
+    file: Option<&Path>,
+    cwd: &Path,
+    config: &QualityConfig,
+    diagnostic_path: &Path,
+    state: &mut RunState,
+) -> Result<io::Result<()>, String> {
+    let Some((program, args)) = split_command(command) else {
+        return Ok(Ok(()));
+    };
+    if !tool_available(&program) {
+        state.environment_missing = true;
+        state.diagnostics.push(Diagnostic::error(
+            Some(diagnostic_path.to_path_buf()),
+            format!("LINT001_TOOLCHAIN_FAILED: required toolchain `{program}` is not available"),
+        ));
+        return Ok(Err(io::Error::new(io::ErrorKind::NotFound, program)));
+    }
+    let mut process = ProcessCommand::new(program);
+    process
+        .args(args)
+        .current_dir(cwd)
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped());
+    if let Some(file) = file {
+        process.arg(file);
+    }
+    let output = process
+        .output()
+        .map_err(|error| format!("failed to run toolchain: {error}"))?;
+    if !output.status.success() {
+        state.diagnostics.push(Diagnostic::error(
+            Some(diagnostic_path.to_path_buf()),
+            format!(
+                "LINT001_TOOLCHAIN_FAILED: toolchain command failed: {}",
+                String::from_utf8_lossy(&output.stderr).trim()
+            ),
+        ));
+        return Ok(Err(io::Error::other("toolchain command failed")));
+    }
+    for optional in &config.optional {
+        if !tool_available(optional) {
+            state.diagnostics.push(Diagnostic::warning(
+                Some(diagnostic_path.to_path_buf()),
+                format!("optional toolchain `{optional}` is not available"),
+            ));
+        }
+    }
+    Ok(Ok(()))
+}
+
+pub(crate) fn split_command(command: &str) -> Option<(&str, Vec<&str>)> {
+    let mut parts = command.split_whitespace();
+    let program = parts.next()?;
+    Some((program, parts.collect()))
+}
+
+pub(crate) fn tool_available(program: &str) -> bool {
+    if program.contains('/') {
+        return Path::new(program).exists();
+    }
+    let Some(path) = std::env::var_os("PATH") else {
+        return false;
+    };
+    std::env::split_paths(&path).any(|dir| dir.join(program).exists())
 }

@@ -12,6 +12,7 @@
 | 技術名 | 採用スタック | バージョン | ADR参照 |
 | --- | --- | --- | --- |
 | Rust | core、native CLI、Rust language adapter | 1.86+ | `adr/active/ADR-003-multi-ecosystem-rust-core.md` |
+| serde_json / toml Rust crates | package metadata と `mds.config.toml` の標準 parser | serde_json 1.x / toml 0.8.x | `adr/active/ADR-002-toml-only-config.md`, `adr/active/ADR-003-multi-ecosystem-rust-core.md` |
 | TypeScript / Node.js | npm packages、TypeScript language adapter | Node.js 24+ | `adr/active/ADR-003-multi-ecosystem-rust-core.md` |
 | Python | Python distribution、Python language adapter | 3.13+ | `adr/active/ADR-003-multi-ecosystem-rust-core.md` |
 | Markdown | 設計書兼ソースの正本 | tbd | `adr/active/ADR-001-markdown-source-of-truth.md` |

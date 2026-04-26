@@ -536,6 +536,49 @@ fn label_overrides_preserve_canonical_table_and_section_meaning() {
 }
 
 #[test]
+fn validates_local_markdown_links() {
+    let temp = TestDir::new();
+    write_fixture(temp.path());
+    let doc = temp.path().join("pkg/src-md/foo/bar.ts.md");
+    let text = fs::read_to_string(&doc)
+        .unwrap()
+        .replace("Fixture.", "Fixture. [Missing](missing.md)");
+    fs::write(doc, text).unwrap();
+
+    let check = execute(CliRequest {
+        cwd: temp.path().to_path_buf(),
+        package: None,
+        verbose: false,
+        command: Command::Check,
+    });
+    assert_eq!(check.exit_code, 1);
+    assert!(check.stderr.contains("Markdown link target does not exist"));
+}
+
+#[test]
+fn table_parser_keeps_pipes_inside_code_spans() {
+    let temp = TestDir::new();
+    write_fixture(temp.path());
+    let doc = temp.path().join("pkg/src-md/foo/bar.ts.md");
+    let text = fs::read_to_string(&doc)
+        .unwrap()
+        .replace(
+            "| internal | foo/util | Util | helper |",
+            "| internal | foo/util | Util | helper `a | b` |",
+        )
+        .replace("## Contract", "[Util](util.ts.md)\n\n## Contract");
+    fs::write(doc, text).unwrap();
+
+    let check = execute(CliRequest {
+        cwd: temp.path().to_path_buf(),
+        package: None,
+        verbose: false,
+        command: Command::Check,
+    });
+    assert_eq!(check.exit_code, 0, "{}", check.stderr);
+}
+
+#[test]
 fn metadata_parser_handles_common_json_toml_dependency_shapes() {
     let temp = TestDir::new();
     write_fixture(temp.path());

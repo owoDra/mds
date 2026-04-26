@@ -55,6 +55,7 @@ pub(crate) fn parse_impl_doc(
             return None;
         }
     };
+    validate_markdown_links(path, &text, state);
     for (idx, line) in text.lines().enumerate() {
         if line.starts_with("#####") {
             state.diagnostics.push(
@@ -391,4 +392,95 @@ pub(crate) fn normalized_input(path: &Path, text: &str) -> String {
     normalized.push_str(text.replace("\r\n", "\n").trim_end());
     normalized.push('\n');
     normalized
+}
+
+pub(crate) fn validate_markdown_links(path: &Path, text: &str, state: &mut RunState) {
+    for target in standard_markdown_links(text)
+        .into_iter()
+        .chain(wikilinks(text))
+    {
+        if !should_validate_local_link(&target) {
+            continue;
+        }
+        let clean_target = target
+            .split('#')
+            .next()
+            .unwrap_or_default()
+            .trim()
+            .trim_matches('<')
+            .trim_matches('>');
+        if clean_target.is_empty() {
+            continue;
+        }
+        let target_path = path
+            .parent()
+            .unwrap_or_else(|| Path::new("."))
+            .join(clean_target);
+        if !target_path.exists() {
+            state.diagnostics.push(Diagnostic::error(
+                Some(path.to_path_buf()),
+                format!("Markdown link target does not exist: `{target}`"),
+            ));
+        }
+    }
+}
+
+fn standard_markdown_links(text: &str) -> Vec<String> {
+    let mut links = Vec::new();
+    let bytes = text.as_bytes();
+    let mut idx = 0;
+    while idx < bytes.len() {
+        if bytes[idx] != b'[' {
+            idx += 1;
+            continue;
+        }
+        let Some(close_text) = text[idx + 1..].find(']') else {
+            break;
+        };
+        let open_target = idx + close_text + 2;
+        if bytes.get(open_target) != Some(&b'(') {
+            idx += 1;
+            continue;
+        }
+        let Some(close_target) = text[open_target + 1..].find(')') else {
+            break;
+        };
+        links.push(text[open_target + 1..open_target + 1 + close_target].to_string());
+        idx = open_target + close_target + 2;
+    }
+    links
+}
+
+fn wikilinks(text: &str) -> Vec<String> {
+    let mut links = Vec::new();
+    let mut rest = text;
+    while let Some(start) = rest.find("[[") {
+        rest = &rest[start + 2..];
+        let Some(end) = rest.find("]]") else {
+            break;
+        };
+        let target = rest[..end]
+            .split('|')
+            .next()
+            .unwrap_or_default()
+            .trim()
+            .to_string();
+        links.push(target);
+        rest = &rest[end + 2..];
+    }
+    links
+}
+
+fn should_validate_local_link(target: &str) -> bool {
+    let target = target.trim();
+    if target.is_empty()
+        || target.starts_with('#')
+        || target.starts_with("http://")
+        || target.starts_with("https://")
+        || target.starts_with("mailto:")
+    {
+        return false;
+    }
+    let clean = target.split('#').next().unwrap_or_default();
+    clean.ends_with(".md") || clean.contains('/')
 }

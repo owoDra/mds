@@ -95,9 +95,33 @@ fn canonical_header(
 }
 
 pub(crate) fn split_table_row(line: &str) -> Vec<String> {
-    line.trim()
-        .trim_matches('|')
-        .split('|')
-        .map(|cell| cell.trim().to_string())
-        .collect()
+    let line = line.trim().trim_matches('|');
+    let mut cells = Vec::new();
+    let mut cell = String::new();
+    let mut escaped = false;
+    let mut in_code = false;
+    for ch in line.chars() {
+        if escaped {
+            cell.push(ch);
+            escaped = false;
+            continue;
+        }
+        match ch {
+            '\\' => escaped = true,
+            '`' => {
+                in_code = !in_code;
+                cell.push(ch);
+            }
+            '|' if !in_code => {
+                cells.push(cell.trim().to_string());
+                cell.clear();
+            }
+            _ => cell.push(ch),
+        }
+    }
+    if escaped {
+        cell.push('\\');
+    }
+    cells.push(cell.trim().to_string());
+    cells
 }

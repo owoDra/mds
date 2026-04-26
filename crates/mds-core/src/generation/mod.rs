@@ -70,10 +70,15 @@ pub(crate) fn plan_output(
         doc.package_relative_path.display(),
         source_hash
     );
-    let content = if imports.is_empty() {
-        format!("{header}\n{code}")
+    let code_separator = if doc.lang == Lang::Python {
+        "\n\n"
     } else {
-        format!("{header}\n{imports}\n{code}")
+        "\n"
+    };
+    let content = if imports.is_empty() {
+        format!("{header}{code_separator}{code}")
+    } else {
+        format!("{header}\n{imports}{code_separator}{code}")
     };
     Some(GeneratedFile {
         path,

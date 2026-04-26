@@ -1,13 +1,11 @@
 use std::fs;
-use std::io;
-use std::path::{Path, PathBuf};
-use std::process::{Command as ProcessCommand, Stdio};
+use std::path::PathBuf;
 
-use crate::adapter::imports_for;
+use crate::adapter::{imports_for, run_toolchain_command};
 use crate::diagnostics::{Diagnostic, RunState};
 use crate::diff::unified_diff;
 use crate::fs_utils::is_excluded;
-use crate::model::{ImplDoc, Lang, OutputKind, Package, QualityConfig};
+use crate::model::{ImplDoc, Lang, OutputKind, Package};
 
 #[derive(Debug, Clone, Copy)]
 pub(crate) enum QualityOperation {
@@ -65,19 +63,24 @@ fn run_doc_quality(
     let Some(command) = command else {
         return Ok(());
     };
-    for kind in [OutputKind::Types, OutputKind::Source, OutputKind::Test] {
+    let target_kinds: &[OutputKind] = match operation {
+        QualityOperation::Lint => &[OutputKind::Types, OutputKind::Source, OutputKind::Test],
+        QualityOperation::Test => &[OutputKind::Test],
+        QualityOperation::Fix { .. } => &[],
+    };
+    for kind in target_kinds {
         let Some(code) = doc.code.get(&kind) else {
             continue;
         };
-        let path = temp_code_path(package, doc.lang, kind);
+        let path = temp_code_path(package, doc.lang, *kind);
         if let Some(parent) = path.parent() {
             fs::create_dir_all(parent)
                 .map_err(|error| format!("failed to create {}: {error}", parent.display()))?;
         }
-        let imports = imports_for(package, doc, kind, &path, state);
+        let imports = imports_for(package, doc, *kind, &path, state);
         fs::write(&path, format!("{imports}{code}"))
             .map_err(|error| format!("failed to write {}: {error}", path.display()))?;
-        let _ = run_tool(
+        let _ = run_toolchain_command(
             command,
             Some(&path),
             &package.root,
@@ -112,7 +115,7 @@ fn fix_doc(
         }
         fs::write(&path, block.content)
             .map_err(|error| format!("failed to write {}: {error}", path.display()))?;
-        if run_tool(
+        if run_toolchain_command(
             command,
             Some(&path),
             &package.root,
@@ -144,89 +147,18 @@ fn fix_doc(
     Ok(())
 }
 
-fn run_tool(
-    command: &str,
-    file: Option<&Path>,
-    cwd: &Path,
-    config: &QualityConfig,
-    diagnostic_path: &Path,
-    state: &mut RunState,
-) -> Result<io::Result<()>, String> {
-    let Some((program, args)) = split_command(command) else {
-        return Ok(Ok(()));
-    };
-    if !tool_available(&program) {
-        state.environment_missing = true;
-        state.diagnostics.push(Diagnostic::error(
-            Some(diagnostic_path.to_path_buf()),
-            format!("LINT001_TOOLCHAIN_FAILED: required toolchain `{program}` is not available"),
-        ));
-        return Ok(Err(io::Error::new(io::ErrorKind::NotFound, program)));
-    }
-    let mut process = ProcessCommand::new(program);
-    process
-        .args(args)
-        .current_dir(cwd)
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped());
-    if let Some(file) = file {
-        process.arg(file);
-    }
-    let output = process
-        .output()
-        .map_err(|error| format!("failed to run toolchain: {error}"))?;
-    if !output.status.success() {
-        state.diagnostics.push(Diagnostic::error(
-            Some(diagnostic_path.to_path_buf()),
-            format!(
-                "LINT001_TOOLCHAIN_FAILED: toolchain command failed: {}",
-                String::from_utf8_lossy(&output.stderr).trim()
-            ),
-        ));
-        return Ok(Err(io::Error::other("toolchain command failed")));
-    }
-    for optional in &config.optional {
-        if !tool_available(optional) {
-            state.diagnostics.push(Diagnostic::warning(
-                Some(diagnostic_path.to_path_buf()),
-                format!("optional toolchain `{optional}` is not available"),
-            ));
-        }
-    }
-    Ok(Ok(()))
-}
-
-pub(crate) fn split_command(command: &str) -> Option<(&str, Vec<&str>)> {
-    let mut parts = command.split_whitespace();
-    let program = parts.next()?;
-    Some((program, parts.collect()))
-}
-
-pub(crate) fn tool_available(program: &str) -> bool {
-    if program.contains('/') {
-        return Path::new(program).exists();
-    }
-    let Some(path) = std::env::var_os("PATH") else {
-        return false;
-    };
-    std::env::split_paths(&path).any(|dir| dir.join(program).exists())
-}
-
 fn temp_code_path(package: &Package, lang: Lang, kind: OutputKind) -> PathBuf {
-    let ext = match lang {
-        Lang::TypeScript => "ts",
-        Lang::Python => "py",
-        Lang::Rust => "rs",
+    let file_name = match (lang, kind) {
+        (Lang::TypeScript, OutputKind::Test) => "test.test.ts".to_string(),
+        (Lang::Python, OutputKind::Test) => "test_test.py".to_string(),
+        (Lang::Rust, OutputKind::Test) => "test.rs".to_string(),
+        (Lang::TypeScript, _) => format!("{}.ts", kind.manifest_kind()),
+        (Lang::Python, _) => format!("{}.py", kind.manifest_kind()),
+        (Lang::Rust, _) => format!("{}.rs", kind.manifest_kind()),
     };
-    let path = package
-        .root
-        .join(".mds/tmp")
-        .join(format!("{}.{}", kind.manifest_kind(), ext));
+    let path = package.root.join(".mds/tmp").join(&file_name);
     if is_excluded(&package.root, &path, &package.config.excludes) {
-        package
-            .root
-            .join(".mds-tmp")
-            .join(format!("{}.{}", kind.manifest_kind(), ext))
+        package.root.join(".mds-tmp").join(file_name)
     } else {
         path
     }

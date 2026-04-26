@@ -19,108 +19,134 @@ pub(crate) fn merge_config_file(
             return None;
         }
     };
-    let mut section = String::new();
-    for (idx, raw_line) in text.lines().enumerate() {
-        let line = raw_line
-            .split_once('#')
-            .map(|(line, _)| line)
-            .unwrap_or(raw_line)
-            .trim();
-        if line.is_empty() {
-            continue;
+    let value = match text.parse::<toml::Value>() {
+        Ok(value) => value,
+        Err(error) => {
+            state.diagnostics.push(Diagnostic::error(
+                Some(path.to_path_buf()),
+                format!("failed to parse mds.config.toml: {error}"),
+            ));
+            return None;
         }
-        if line.starts_with('[') && line.ends_with(']') {
-            section = line.trim_matches(['[', ']']).to_string();
-            if !is_supported_section(&section) {
-                state.diagnostics.push(Diagnostic::warning(
+    };
+    let Some(root) = value.as_table() else {
+        state.diagnostics.push(Diagnostic::error(
+            Some(path.to_path_buf()),
+            "mds.config.toml must contain TOML tables",
+        ));
+        return None;
+    };
+
+    for key in root.keys() {
+        if !is_supported_top_level_table(key) {
+            state.diagnostics.push(Diagnostic::warning(
+                Some(path.to_path_buf()),
+                format!("ignoring unsupported config table `{key}`"),
+            ));
+        }
+    }
+
+    if let Some(package) = root.get("package").and_then(toml::Value::as_table) {
+        for (key, value) in package {
+            match key.as_str() {
+                "enabled" => config.enabled = bool_value(value, path, key, state),
+                "allow_raw_source" => config.allow_raw_source = bool_value(value, path, key, state),
+                _ => warn_unsupported(path, state, "package config", key),
+            }
+        }
+    }
+
+    if let Some(roots) = root.get("roots").and_then(toml::Value::as_table) {
+        for (key, value) in roots {
+            match key.as_str() {
+                "markdown" => {
+                    config.roots.markdown = PathBuf::from(string_value(value, path, key, state))
+                }
+                "source" => {
+                    config.roots.source = PathBuf::from(string_value(value, path, key, state))
+                }
+                "types" => {
+                    config.roots.types = PathBuf::from(string_value(value, path, key, state))
+                }
+                "test" => config.roots.test = PathBuf::from(string_value(value, path, key, state)),
+                "exclude" | "excludes" => {
+                    config.excludes = string_array_value(value, path, key, state)
+                }
+                _ => warn_unsupported(path, state, "roots config", key),
+            }
+        }
+    }
+
+    if let Some(adapters) = root.get("adapters").and_then(toml::Value::as_table) {
+        for (adapter, value) in adapters {
+            let Some(lang) = lang_from_key(adapter) else {
+                warn_unsupported(path, state, "adapter config", adapter);
+                continue;
+            };
+            let Some(table) = value.as_table() else {
+                state.diagnostics.push(Diagnostic::error(
                     Some(path.to_path_buf()),
-                    format!("ignoring unsupported config table `{section}`"),
+                    format!("adapter config `{adapter}` must be a table"),
                 ));
-            }
-            continue;
-        }
-        let Some((key, value)) = line.split_once('=') else {
-            state.diagnostics.push(
-                Diagnostic::error(Some(path.to_path_buf()), "invalid config assignment")
-                    .at_line(idx + 1),
-            );
-            continue;
-        };
-        let key = key.trim();
-        let value = value.trim();
-        match section.as_str() {
-            "package" => match key {
-                "enabled" => config.enabled = parse_bool(value, path, idx + 1, state),
-                "allow_raw_source" => {
-                    config.allow_raw_source = parse_bool(value, path, idx + 1, state)
-                }
-                _ => state.diagnostics.push(Diagnostic::warning(
-                    Some(path.to_path_buf()),
-                    format!("ignoring unsupported package config `{key}`"),
-                )),
-            },
-            "roots" => match key {
-                "markdown" => config.roots.markdown = PathBuf::from(parse_string(value)),
-                "source" => config.roots.source = PathBuf::from(parse_string(value)),
-                "types" => config.roots.types = PathBuf::from(parse_string(value)),
-                "test" => config.roots.test = PathBuf::from(parse_string(value)),
-                "exclude" | "excludes" => config.excludes = parse_array(value),
-                _ => state.diagnostics.push(Diagnostic::warning(
-                    Some(path.to_path_buf()),
-                    format!("ignoring unsupported roots config `{key}`"),
-                )),
-            },
-            "adapters.ts"
-            | "adapters.typescript"
-            | "adapters.py"
-            | "adapters.python"
-            | "adapters.rs"
-            | "adapters.rust" => {
-                if key != "enabled" {
-                    state.diagnostics.push(Diagnostic::warning(
-                        Some(path.to_path_buf()),
-                        format!("ignoring unsupported adapter config `{section}.{key}`"),
-                    ));
-                    continue;
-                }
-                let lang = match section.as_str() {
-                    "adapters.ts" | "adapters.typescript" => Lang::TypeScript,
-                    "adapters.py" | "adapters.python" => Lang::Python,
-                    _ => Lang::Rust,
-                };
-                config
-                    .adapters
-                    .insert(lang, parse_bool(value, path, idx + 1, state));
-            }
-            "quality.ts" | "quality.typescript" | "quality.py" | "quality.python"
-            | "quality.rs" | "quality.rust" => {
-                let lang = lang_from_section(&section);
-                let entry =
+                continue;
+            };
+            for (key, value) in table {
+                if key == "enabled" {
                     config
-                        .quality
-                        .entry(lang)
-                        .or_insert_with(|| crate::model::QualityConfig {
-                            lint: None,
-                            fix: None,
-                            test: None,
-                            required: Vec::new(),
-                            optional: Vec::new(),
-                        });
-                match key {
-                    "lint" | "linter" => entry.lint = optional_command(value),
-                    "fix" | "fixer" => entry.fix = optional_command(value),
-                    "test" | "test_runner" => entry.test = optional_command(value),
-                    "required" => entry.required = parse_array(value),
-                    "optional" => entry.optional = parse_array(value),
-                    _ => state.diagnostics.push(Diagnostic::warning(
-                        Some(path.to_path_buf()),
-                        format!("ignoring unsupported quality config `{section}.{key}`"),
-                    )),
+                        .adapters
+                        .insert(lang, bool_value(value, path, key, state));
+                } else {
+                    warn_unsupported(path, state, &format!("adapter config `{adapter}`"), key);
                 }
             }
-            "doctor" => match key {
+        }
+    }
+
+    if let Some(quality) = root.get("quality").and_then(toml::Value::as_table) {
+        for (adapter, value) in quality {
+            let Some(lang) = lang_from_key(adapter) else {
+                warn_unsupported(path, state, "quality config", adapter);
+                continue;
+            };
+            let Some(table) = value.as_table() else {
+                state.diagnostics.push(Diagnostic::error(
+                    Some(path.to_path_buf()),
+                    format!("quality config `{adapter}` must be a table"),
+                ));
+                continue;
+            };
+            let entry = config
+                .quality
+                .entry(lang)
+                .or_insert_with(|| crate::model::QualityConfig {
+                    lint: None,
+                    fix: None,
+                    test: None,
+                    required: Vec::new(),
+                    optional: Vec::new(),
+                });
+            for (key, value) in table {
+                match key.as_str() {
+                    "lint" | "linter" => {
+                        entry.lint = optional_command_value(value, path, key, state)
+                    }
+                    "fix" | "fixer" => entry.fix = optional_command_value(value, path, key, state),
+                    "test" | "test_runner" => {
+                        entry.test = optional_command_value(value, path, key, state)
+                    }
+                    "required" => entry.required = string_array_value(value, path, key, state),
+                    "optional" => entry.optional = string_array_value(value, path, key, state),
+                    _ => warn_unsupported(path, state, &format!("quality config `{adapter}`"), key),
+                }
+            }
+        }
+    }
+
+    if let Some(doctor) = root.get("doctor").and_then(toml::Value::as_table) {
+        for (key, value) in doctor {
+            match key.as_str() {
                 "required" => {
-                    for command in parse_array(value) {
+                    for command in string_array_value(value, path, key, state) {
                         for quality in config.quality.values_mut() {
                             if !quality.required.contains(&command) {
                                 quality.required.push(command.clone());
@@ -129,7 +155,7 @@ pub(crate) fn merge_config_file(
                     }
                 }
                 "optional" => {
-                    for command in parse_array(value) {
+                    for command in string_array_value(value, path, key, state) {
                         for quality in config.quality.values_mut() {
                             if !quality.optional.contains(&command) {
                                 quality.optional.push(command.clone());
@@ -137,33 +163,39 @@ pub(crate) fn merge_config_file(
                         }
                     }
                 }
-                _ => state.diagnostics.push(Diagnostic::warning(
-                    Some(path.to_path_buf()),
-                    format!("ignoring unsupported doctor config `{key}`"),
-                )),
-            },
-            "package_sync" | "package-sync" => match key {
-                "hook_enabled" | "hook-enabled" => {
-                    config.package_sync_hook_enabled = parse_bool(value, path, idx + 1, state);
-                    if config.package_sync_hook_enabled && config.package_sync_hook.is_none() {
-                        config.package_sync_hook = Some("mds package sync --check".to_string());
+                _ => warn_unsupported(path, state, "doctor config", key),
+            }
+        }
+    }
+
+    for table_name in ["package_sync", "package-sync"] {
+        if let Some(package_sync) = root.get(table_name).and_then(toml::Value::as_table) {
+            for (key, value) in package_sync {
+                match key.as_str() {
+                    "hook_enabled" | "hook-enabled" => {
+                        config.package_sync_hook_enabled = bool_value(value, path, key, state);
+                        if config.package_sync_hook_enabled && config.package_sync_hook.is_none() {
+                            config.package_sync_hook = Some("mds package sync --check".to_string());
+                        }
                     }
+                    "hook" | "post_hook" | "post-command" | "post_command" | "hook_command"
+                    | "hook-command" => {
+                        config.package_sync_hook = Some(string_value(value, path, key, state));
+                    }
+                    _ => warn_unsupported(path, state, "package sync config", key),
                 }
-                "hook" | "post_hook" | "post-command" | "post_command" | "hook_command"
-                | "hook-command" => {
-                    config.package_sync_hook = Some(parse_string(value));
-                }
-                _ => state.diagnostics.push(Diagnostic::warning(
-                    Some(path.to_path_buf()),
-                    format!("ignoring unsupported package sync config `{key}`"),
-                )),
-            },
-            "labels" | "label_overrides" | "label-overrides" => {
+            }
+        }
+    }
+
+    for table_name in ["labels", "label_overrides", "label-overrides"] {
+        if let Some(labels) = root.get(table_name).and_then(toml::Value::as_table) {
+            for (key, value) in labels {
                 let canonical = key.to_ascii_lowercase();
                 if is_supported_label(&canonical) {
                     config
                         .label_overrides
-                        .insert(canonical, parse_string(value));
+                        .insert(canonical, string_value(value, path, key, state));
                 } else {
                     state.diagnostics.push(Diagnostic::error(
                         Some(path.to_path_buf()),
@@ -171,10 +203,6 @@ pub(crate) fn merge_config_file(
                     ));
                 }
             }
-            _ => state.diagnostics.push(Diagnostic::warning(
-                Some(path.to_path_buf()),
-                format!("ignoring unsupported config key `{key}`"),
-            )),
         }
     }
 
@@ -201,44 +229,13 @@ fn is_supported_label(key: &str) -> bool {
     )
 }
 
-pub(crate) fn parse_bool(value: &str, path: &Path, line: usize, state: &mut RunState) -> bool {
-    match value {
-        "true" => true,
-        "false" => false,
-        _ => {
-            state.diagnostics.push(
-                Diagnostic::error(
-                    Some(path.to_path_buf()),
-                    "boolean config value must be true or false",
-                )
-                .at_line(line),
-            );
-            false
-        }
-    }
-}
-
-pub(crate) fn parse_string(value: &str) -> String {
-    value.trim().trim_matches('"').to_string()
-}
-
-fn is_supported_section(section: &str) -> bool {
+fn is_supported_top_level_table(section: &str) -> bool {
     matches!(
         section,
         "package"
             | "roots"
-            | "adapters.ts"
-            | "adapters.typescript"
-            | "adapters.py"
-            | "adapters.python"
-            | "adapters.rs"
-            | "adapters.rust"
-            | "quality.ts"
-            | "quality.typescript"
-            | "quality.py"
-            | "quality.python"
-            | "quality.rs"
-            | "quality.rust"
+            | "adapters"
+            | "quality"
             | "doctor"
             | "package_sync"
             | "package-sync"
@@ -248,16 +245,51 @@ fn is_supported_section(section: &str) -> bool {
     )
 }
 
-fn lang_from_section(section: &str) -> Lang {
-    match section {
-        "quality.ts" | "quality.typescript" => Lang::TypeScript,
-        "quality.py" | "quality.python" => Lang::Python,
-        _ => Lang::Rust,
+fn lang_from_key(key: &str) -> Option<Lang> {
+    match key {
+        "ts" | "typescript" => Some(Lang::TypeScript),
+        "py" | "python" => Some(Lang::Python),
+        "rs" | "rust" => Some(Lang::Rust),
+        _ => None,
     }
 }
 
-fn optional_command(value: &str) -> Option<String> {
-    let command = parse_string(value);
+fn bool_value(value: &toml::Value, path: &Path, key: &str, state: &mut RunState) -> bool {
+    match value.as_bool() {
+        Some(value) => value,
+        None => {
+            state.diagnostics.push(Diagnostic::error(
+                Some(path.to_path_buf()),
+                format!("config `{key}` must be a boolean"),
+            ));
+            false
+        }
+    }
+}
+
+fn string_value(value: &toml::Value, path: &Path, key: &str, state: &mut RunState) -> String {
+    match value.as_str() {
+        Some(value) => value.to_string(),
+        None => {
+            state.diagnostics.push(Diagnostic::error(
+                Some(path.to_path_buf()),
+                format!("config `{key}` must be a string"),
+            ));
+            String::new()
+        }
+    }
+}
+
+fn optional_command_value(
+    value: &toml::Value,
+    path: &Path,
+    key: &str,
+    state: &mut RunState,
+) -> Option<String> {
+    if value.as_bool() == Some(false) {
+        return None;
+    }
+    let command = string_value(value, path, key, state);
     if command.is_empty() || command == "false" {
         None
     } else {
@@ -265,17 +297,38 @@ fn optional_command(value: &str) -> Option<String> {
     }
 }
 
-pub(crate) fn parse_array(value: &str) -> Vec<String> {
-    let value = value.trim();
-    let Some(inner) = value
-        .strip_prefix('[')
-        .and_then(|value| value.strip_suffix(']'))
-    else {
+fn string_array_value(
+    value: &toml::Value,
+    path: &Path,
+    key: &str,
+    state: &mut RunState,
+) -> Vec<String> {
+    let Some(values) = value.as_array() else {
+        state.diagnostics.push(Diagnostic::error(
+            Some(path.to_path_buf()),
+            format!("config `{key}` must be an array of strings"),
+        ));
         return Vec::new();
     };
-    inner
-        .split(',')
-        .map(parse_string)
+    values
+        .iter()
+        .filter_map(|value| match value.as_str() {
+            Some(value) => Some(value.to_string()),
+            None => {
+                state.diagnostics.push(Diagnostic::error(
+                    Some(path.to_path_buf()),
+                    format!("config `{key}` must contain only strings"),
+                ));
+                None
+            }
+        })
         .filter(|value| !value.is_empty())
         .collect()
+}
+
+fn warn_unsupported(path: &Path, state: &mut RunState, scope: &str, key: &str) {
+    state.diagnostics.push(Diagnostic::warning(
+        Some(path.to_path_buf()),
+        format!("ignoring unsupported {scope} `{key}`"),
+    ));
 }

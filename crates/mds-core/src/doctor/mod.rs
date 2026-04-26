@@ -1,8 +1,8 @@
 use std::process::Command as ProcessCommand;
 
+use crate::adapter::tool_available;
 use crate::diagnostics::{Diagnostic, RunState};
 use crate::model::{DoctorFormat, Lang, Package};
-use crate::quality::tool_available;
 
 pub(crate) fn run_doctor(packages: &[Package], format: DoctorFormat, state: &mut RunState) {
     let mut checks = Vec::new();
