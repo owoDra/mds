@@ -25,7 +25,9 @@ monorepo
 - `python/mds_lang_py`: Python language adapter distribution
 
 ## Teams
-- none
+- Rust implementation team
+- TypeScript implementation team
+- Python implementation team
 
 ## Integrations
 - none
