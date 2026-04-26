@@ -1,7 +1,8 @@
 {
   "name": "@mds/lang-rs",
   "version": "0.1.0",
-  "description": "Rust language adapter npm package metadata for mds.",
+  "private": true,
+  "description": "Placeholder metadata for the future Rust language adapter npm package.",
   "files": [],
   "engines": {
     "node": ">=24"

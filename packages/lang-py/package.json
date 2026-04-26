@@ -1,7 +1,8 @@
 {
   "name": "@mds/lang-py",
   "version": "0.1.0",
-  "description": "Python language adapter npm package metadata for mds.",
+  "private": true,
+  "description": "Placeholder metadata for the future Python language adapter npm package.",
   "files": [],
   "engines": {
     "node": ">=24"

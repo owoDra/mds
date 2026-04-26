@@ -1,8 +1,8 @@
 [workspace]
 members = [
-  "crates/mds-core",
-  "crates/mds-cli",
-  "crates/mds-lang-rs",
+  "mds-core",
+  "mds-cli",
+  "mds-lang-rs",
 ]
 resolver = "2"
 

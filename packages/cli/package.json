@@ -5,6 +5,9 @@
   "bin": {
     "mds": "bin/mds.js"
   },
+  "scripts": {
+    "check": "node --check bin/mds.js"
+  },
   "files": [
     "bin/",
     "vendor/"

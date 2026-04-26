@@ -1,7 +1,8 @@
 {
   "name": "@mds/lang-ts",
   "version": "0.1.0",
-  "description": "TypeScript language adapter package metadata for mds.",
+  "private": true,
+  "description": "Placeholder metadata for the future TypeScript language adapter npm package.",
   "files": [],
   "engines": {
     "node": ">=24"

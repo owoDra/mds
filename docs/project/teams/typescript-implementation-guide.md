@@ -13,6 +13,7 @@ TypeScript implementation team は、npm 配布、TypeScript language adapter、
 
 ## ルール
 
+- npm workspace は `packages/package.json` を入口にし、pnpm は導入しない。
 - TypeScript 固有の import 形式、拡張子有無、type-only import は `packages/lang-ts` に閉じ込める。
 - core の Markdown model、`Expose` / `Uses` schema、config の意味を TypeScript 側で変更しない。
 - package の public API は `src/index.ts` から明示的に export し、内部 module を barrel export で無制限に公開しない。

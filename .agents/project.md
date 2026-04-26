@@ -21,7 +21,7 @@ monorepo
 - `packages/lang-ts`: TypeScript language adapter
 - `packages/lang-py`: Python language adapter for npm distribution
 - `packages/lang-rs`: Rust language adapter for npm distribution
-- `python/mds`: Python package distribution
+- `python/mds_cli`: Python package distribution
 - `python/mds_lang_py`: Python language adapter distribution
 
 ## Teams

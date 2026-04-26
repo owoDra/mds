@@ -9,7 +9,7 @@ Rust implementation team は、`crates/mds-core`、`crates/mds-cli`、`crates/md
 - `crates/mds-core`: 言語横断の document model、config、package boundary、Markdown parsing、generation planning、manifest、diagnostics。
 - `crates/mds-cli`: native CLI の argument parsing、stdout / stderr、exit code、core 呼び出し。
 - `crates/mds-lang-rs`: Rust 固有の use / module block / file pattern 生成。
-- Rust workspace の `Cargo.toml`、`Cargo.lock`、format、test 実行導線。
+- Rust workspace の `crates/Cargo.toml`、`crates/Cargo.lock`、format、test 実行導線。
 
 ## ルール
 
@@ -18,7 +18,7 @@ Rust implementation team は、`crates/mds-core`、`crates/mds-cli`、`crates/md
 - mds の Rust crate では、module ごとの追加ファイルを見越して原則 `src/<name>/mod.rs` へ置く。単発の極小 module だけ `src/<name>.rs` を許容する。
 - crate 外へ必要な型だけ `pub` にする。crate 内共有は `pub(crate)` を優先し、外部公開面を増やすときは spec / README / API 利用者への影響を確認する。
 - tests は挙動単位で `tests/` に置く。production module 内の `#[cfg(test)]` は private helper の最小単体確認に限定し、fixture helper は production module に混ぜない。
-- Cargo workspace では root `Cargo.lock` と root `target/` を共有する。crate 間依存は暗黙にせず、各 crate の `Cargo.toml` に path dependency を明示する。
+- Cargo workspace では `crates/Cargo.lock` と `crates/target/` を共有する。crate 間依存は暗黙にせず、各 crate の `Cargo.toml` に path dependency を明示する。
 - `cargo fmt --check` と `cargo test` を Rust 実装変更の最小検証にする。
 
 ## 固有知識

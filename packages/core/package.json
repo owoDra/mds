@@ -1,7 +1,8 @@
 {
   "name": "@mds/core",
   "version": "0.1.0",
-  "description": "mds core package metadata for npm distribution.",
+  "private": true,
+  "description": "Placeholder metadata for the future mds npm core API package.",
   "files": [],
   "engines": {
     "node": ">=24"

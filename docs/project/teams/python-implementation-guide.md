@@ -6,7 +6,7 @@ Python implementation team は、Python 配布、Python language adapter、Pytho
 
 ## 担当範囲
 
-- `python/mds`: Python package distribution。
+- `python/mds_cli`: Python CLI wrapper distribution。
 - `python/mds_lang_py`: Python language adapter distribution。
 - `packages/lang-py`: npm distribution 向け Python adapter 境界。
 - Python の `.py` / `.pyi` / `test_*.py` 生成規則、import 生成、fixture。
