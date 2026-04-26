@@ -1,0 +1,13 @@
+[project]
+name = "mds-cli"
+version = "0.1.0"
+description = "Python wrapper for the native mds CLI."
+requires-python = ">=3.13"
+license = { text = "MIT" }
+
+[project.scripts]
+mds = "mds_cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

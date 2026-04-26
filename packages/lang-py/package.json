@@ -1,0 +1,13 @@
+{
+  "name": "@mds/lang-py",
+  "version": "0.1.0",
+  "description": "Python language adapter npm package metadata for mds.",
+  "files": [],
+  "engines": {
+    "node": ">=24"
+  },
+  "peerDependencies": {
+    "@mds/cli": "0.1.0"
+  },
+  "license": "MIT"
+}

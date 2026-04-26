@@ -1,0 +1,10 @@
+[project]
+name = "mds-lang-py"
+version = "0.1.0"
+description = "Python language adapter package metadata for mds."
+requires-python = ">=3.13"
+license = { text = "MIT" }
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

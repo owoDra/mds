@@ -1,0 +1,13 @@
+{
+  "name": "@mds/lang-ts",
+  "version": "0.1.0",
+  "description": "TypeScript language adapter package metadata for mds.",
+  "files": [],
+  "engines": {
+    "node": ">=24"
+  },
+  "peerDependencies": {
+    "@mds/cli": "0.1.0"
+  },
+  "license": "MIT"
+}

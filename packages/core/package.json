@@ -1,0 +1,10 @@
+{
+  "name": "@mds/core",
+  "version": "0.1.0",
+  "description": "mds core package metadata for npm distribution.",
+  "files": [],
+  "engines": {
+    "node": ">=24"
+  },
+  "license": "MIT"
+}
