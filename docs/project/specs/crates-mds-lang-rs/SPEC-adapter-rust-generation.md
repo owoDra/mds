@@ -41,6 +41,8 @@ related:
 - Rust の `mod` 管理領域は `// mds:begin generated modules` から `// mds:end generated modules` の間とする。
 - Rust の `lib.rs` / `mod.rs` に mds 管理 marker がない場合、既存ファイルでは末尾に管理 block を追加し、ファイルがなければ header 付きで新規作成する。
 - `Uses` の `Types`、`Source`、`Test` 依存は Rust `use` として生成する。
+- `Uses.Expose` の alias は Rust `as` use へ変換し、Rust use に対応しない default / namespace 表現は adapter 診断にする。
+- Markdown 状態の quality 操作では rustfmt、clippy、cargo test へ一時 Rust code を渡す。
 
 ## 状態遷移 / 不変条件
 
@@ -52,6 +54,7 @@ related:
 - `.rs.md` 以外の implementation md を Rust adapter の生成対象にしない。
 - Rust `use` に変換できない `Uses` は adapter 診断にする。
 - `mod` 管理 block の BEGIN / END が不整合な場合は生成エラーにする。
+- Rust toolchain が不足する場合は environment 不足診断にする。
 
 ## 横断ルール
 
@@ -63,9 +66,11 @@ related:
 - `src-md/foo/bar.rs.md` から `src/foo/bar.rs`、`src/foo/bar_types.rs`、`tests/foo_bar_test.rs` が導出できることを確認する。
 - `lib.rs` / `mod.rs` の mds 管理 block が追加または更新されることを fixture で確認する。
 - `Uses` から Rust `use` が生成できることを fixture で確認する。
+- alias use と rustfmt / clippy / cargo test 接続を fixture で確認する。
 
 ## 関連資料
 
 - `../shared/SPEC-code-generation-output.md`
 - `../shared/SPEC-expose-uses-tables.md`
+- `../shared/SPEC-md-state-quality-operations.md`
 - `../../patterns/impl-adapter-boundary.md`

@@ -254,6 +254,9 @@ completed
 - 2026-04-26: `cargo fmt --check`、`cargo test`、`bash /workspace/.agents/scripts/validate_harness.sh --root /workspace --verbose` は成功した。
 - 2026-04-26: root `mds.config.toml` と package `mds.config.toml` の key 単位 merge、`package.md` Dependencies / Dev Dependencies と metadata の version 同期診断、table 必須列エラー、`index.md` Exposes 由来の Rust module block 生成、dry-run diff 対象確認を追加した。
 - 2026-04-26: Parser + 生成 MVP の未完了事項を覆う regression test を追加し、`cargo fmt --check`、`cargo test`、`bash /workspace/.agents/scripts/validate_harness.sh --root /workspace --verbose` は成功した。
+- 2026-04-26: MVP 完了後検証として `.agents/project.md`、`docs/project/validation.md`、関連 MVP spec、adapter spec を再確認し、`cargo fmt --check`、`cargo test`、`bash /workspace/.agents/scripts/validate_harness.sh --root /workspace --verbose` が成功することを確認した。
+- 2026-04-26: `target/mds-validation/pkg` に TypeScript / Python / Rust の一時 fixture を作成し、native CLI で `cargo run -q --bin mds -- check --package target/mds-validation/pkg`、`cargo run -q --bin mds -- build --dry-run --package target/mds-validation/pkg`、`cargo run -q --bin mds -- build --package target/mds-validation/pkg`、build 後の再 `check` が成功することを確認した。
+- 2026-04-26: native CLI の dry-run は書き込みなしで Source / Types / Test、Rust `src/lib.rs`、`.mds/manifest.toml` の unified diff を表示し、build は 14 files written として 3 言語の期待 path、生成 header、manifest、Rust module block を生成することを確認した。
 
 ## 未実施検証 / 残リスク
 

@@ -10,7 +10,7 @@ related:
 
 ## 目標
 
-mds は build、check、graph、lint、format、test、doctor、package sync の各操作を CLI から実行できること。
+mds は build、check、lint、test、doctor、package sync の各操作を CLI から実行できること。
 
 ## 根拠
 
@@ -20,8 +20,7 @@ Markdown 正本からの派生コード生成、検査、品質確認、package 
 
 - `mds build` で Markdown 内のコードブロックとメタ情報から派生コードを生成すること
 - `mds check` で構造、参照、表を検証すること
-- `mds graph` で Markdown 依存グラフを表示すること
-- `mds lint`、`mds format`、`mds test` で adapter 経由の品質確認を行うこと
+- `mds lint`、`mds lint --fix`、`mds test` で adapter 経由の品質確認と自動修正を行うこと
 - `mds doctor` で環境を確認すること
 - `mds package sync` で package metadata から `package.md` を更新すること
 

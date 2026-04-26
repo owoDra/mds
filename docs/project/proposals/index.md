@@ -31,6 +31,12 @@
 ## 参照
 
 - `active/`: 採否判断前の proposal の配置先
-- `active/proposal-post-mvp-generation-followups.md`: Parser + 生成 MVP 後続フェーズで扱う事項
+- `active/`: 現在 active proposal はない
 - `archive/`: 参照優先度を落とした proposal の配置先
 - `archive/proposal-markdown-grammar-open-details.md`: Markdown grammar の未確定細部に関する採否判断済み proposal
+- `archive/proposal-post-mvp-generation-followups.md`: Post-MVP の残要件達成計画に関する採否判断済み proposal
+- `archive/proposal-md-state-quality-operations.md`: Markdown 状態の lint / lint --fix / test に関する採否判断済み proposal
+- `archive/proposal-graph-doctor-commands.md`: 旧 `mds graph` / `mds doctor` に関する採否判断済み proposal。`mds graph` は後続判断で削除済み
+- `archive/proposal-package-sync-hooks.md`: `mds package sync` と任意 post hook に関する採否判断済み proposal
+- `archive/proposal-import-expression-extensions.md`: `Uses` import 表現拡張に関する採否判断済み proposal
+- `archive/proposal-distribution-version-policy.md`: npm / Cargo / uv 配布と version 方針に関する採否判断済み proposal

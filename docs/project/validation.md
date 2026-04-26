@@ -33,9 +33,9 @@
 
 ## Language Adapter 動作
 
-- いつ行うか: language adapter、lint、format、test runner 接続、import / use / require 生成を変更するとき。
-- 何で検証するか: TypeScript、Python、Rust の代表 fixture と各 adapter の lint / format / test 接続を確認する。
-- 期待する結果: adapter ごとの出力、依存解決、formatter、linter、test runner が同じ概念を言語ごとに一貫して扱う。
+- いつ行うか: language adapter、lint、lint --fix、test runner 接続、import / use / require 生成を変更するとき。
+- 何で検証するか: TypeScript、Python、Rust の代表 fixture と各 adapter の lint / lint --fix / test 接続を確認する。
+- 期待する結果: adapter ごとの出力、依存解決、fixer、linter、test runner が同じ概念を言語ごとに一貫して扱う。
 - 問題があった際にどうするか: 言語固有の差分を adapter に閉じ込め、core の言語横断契約を崩さない。
 
 ## 設定継承
@@ -61,10 +61,24 @@
 
 ## CLI 振る舞い
 
-- いつ行うか: `mds build`、`mds check`、`mds lint`、`mds format`、`mds test`、`mds doctor`、`mds package sync` を変更するとき。
+- いつ行うか: `mds build`、`mds check`、`mds lint`、`mds lint --fix`、`mds test`、`mds doctor`、`mds package sync` を変更するとき。
 - 何で検証するか: 正常系、入力不備、対象なし、部分失敗の CLI fixture または統合テストを使う。
 - 期待する結果: 終了コード、標準出力、標準エラー、生成物、破壊的でない失敗動作が予測可能である。
 - 問題があった際にどうするか: ユーザーが次に取るべき行動が分かるエラーへ修正し、曖昧な成功扱いを避ける。
+
+## Markdown 状態の品質操作
+
+- いつ行うか: `mds lint`、`mds lint --fix`、`mds test`、adapter の toolchain 接続、`Uses` import 生成を変更するとき。
+- 何で検証するか: TypeScript、Python、Rust の Markdown fixture と toolchain 接続 fixture を使う。
+- 期待する結果: Markdown 内の `Types` / `Source` / `Test` が仮想 import 付きで toolchain に渡り、`mds lint --fix` は code block の中身だけを安全に書き戻す。
+- 問題があった際にどうするか: 正本構造を壊す fix 書き戻しを禁止し、adapter の診断 location を Markdown 上の位置へ戻す。
+
+## Doctor / Package Sync
+
+- いつ行うか: `mds doctor`、`mds package sync`、package manager hook、配布 wrapper を変更するとき。
+- 何で検証するか: toolchain 有無の doctor fixture、npm / Cargo / uv metadata sync fixture を使う。
+- 期待する結果: doctor は有効 adapter 分の runtime / toolchain を検出し、environment 不足を exit code 4 にし、package sync は手書き領域を壊さず package metadata 由来の管理部分だけを更新する。
+- 問題があった際にどうするか: 破壊的な自動更新を止め、`--check` や診断で利用者が次に取るべき対応を示す。
 
 ## ドキュメント同期
 

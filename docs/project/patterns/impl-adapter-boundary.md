@@ -9,14 +9,14 @@ related:
 
 ## 目的
 
-言語固有の import 生成、lint、format、test runner 接続、出力規則を language adapter に閉じ込める。
+言語固有の import 生成、lint、lint --fix、test runner 接続、出力規則を language adapter に閉じ込める。
 
 ## 適用範囲
 
 - TypeScript adapter
 - Python adapter
 - Rust adapter
-- md 状態の lint / format / test
+- md 状態の lint / lint --fix / test
 - Source / Types / Test の出力規則
 
 ## 適用しない範囲

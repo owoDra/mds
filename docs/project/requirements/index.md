@@ -37,6 +37,6 @@
 - `REQ-implementation-one-md-one-feature.md`: 1 implementation md が 1 機能を扱う要求
 - `REQ-metadata-expose-uses.md`: `Expose` と `Uses` による公開面と依存の明示要求
 - `REQ-generation-code-output-rules.md`: Source / Types / Test の生成コード出力要求
-- `REQ-quality-md-state-validation.md`: Markdown 状態での check / lint / format / test 要求
+- `REQ-quality-md-state-validation.md`: Markdown 状態での check / lint / lint --fix / test 要求
 - `REQ-cli-command-surface.md`: CLI コマンド面の要求
 - `REQ-ux-obsidian-readable-markdown.md`: Obsidian で読める Markdown の要求

@@ -23,7 +23,7 @@
 
 - Rust core は言語横断の中核処理を担う。
 - CLI は native binary として mds の各コマンドを提供する。
-- language adapter は言語固有の import 生成、lint、format、test runner 接続、ファイル名規約、出力規則を担う。
+- language adapter は言語固有の import 生成、lint、lint --fix、test runner 接続、ファイル名規約、出力規則を担う。
 - `index.md` は階層の設計、責務、公開面、ルールを説明する。
 - `package.md` は package metadata と package 単位のルールを説明する。
 - implementation md は `Purpose`、`Contract`、`Types`、`Source`、`Cases`、`Test` を持ち、`Types`、`Source`、`Test` には生成元となる実コードを置く 1 機能の正本とする。
@@ -34,7 +34,7 @@
 - Node / Rust / Python 環境を横断して使える配布形態にする。
 - Obsidian でそのまま読める標準寄り Markdown を使う。
 - package 単位で mds の有効 / 無効を切り替えられる monorepo 対応を前提にする。
-- lint / format / test は生成後コードだけでなく、md の状態にも適用できるようにする。
+- lint / lint --fix / test は生成後コードだけでなく、md の状態にも適用できるようにする。
 
 ## 関連資料
 

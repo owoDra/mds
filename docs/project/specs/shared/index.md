@@ -33,3 +33,7 @@
 - `SPEC-parser-generation-mvp-phase.md`: Parser + 生成 MVP の今フェーズ実装範囲と詳細判断
 - `SPEC-cli-commands.md`: CLI コマンド仕様
 - `SPEC-obsidian-readable-markdown.md`: Obsidian で読める Markdown 仕様
+- `SPEC-md-state-quality-operations.md`: Markdown 状態での lint / lint --fix / test 仕様
+- `SPEC-doctor-command.md`: `mds doctor` の環境診断仕様
+- `SPEC-package-sync.md`: `mds package sync` と任意 post hook 仕様
+- `SPEC-distribution-and-versions.md`: npm / Cargo / uv 配布と最低対応 version 仕様
