@@ -10,10 +10,12 @@ pub(crate) fn parse_table(
     state: &mut RunState,
 ) -> Option<Vec<HashMap<String, String>>> {
     let lines = section.lines().collect::<Vec<_>>();
+    let mut saw_table = false;
     for idx in 0..lines.len().saturating_sub(1) {
         if !lines[idx].trim_start().starts_with('|') || !lines[idx + 1].contains("---") {
             continue;
         }
+        saw_table = true;
         let headers = split_table_row(lines[idx]);
         let canonical = headers
             .iter()
@@ -60,6 +62,12 @@ pub(crate) fn parse_table(
             rows.push(row);
         }
         return Some(rows);
+    }
+    if saw_table {
+        state.diagnostics.push(Diagnostic::error(
+            Some(path.to_path_buf()),
+            format!("table is missing required columns: {}", required.join(", ")),
+        ));
     }
     None
 }

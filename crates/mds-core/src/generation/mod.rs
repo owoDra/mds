@@ -4,6 +4,7 @@ use crate::fs_utils::{is_mds_managed_file, path_within};
 use crate::hash::sha256;
 use crate::manifest::plan_manifest;
 use crate::model::{GeneratedFile, GeneratedKind, ImplDoc, Lang, OutputKind, Package};
+use crate::package::rust_expose_modules;
 
 pub(crate) fn plan_generation(
     package: &Package,
@@ -20,7 +21,8 @@ pub(crate) fn plan_generation(
         }
     }
     if docs.iter().any(|doc| doc.lang == Lang::Rust) {
-        if let Some(file) = plan_rust_modules(package, docs, state) {
+        let index_modules = rust_expose_modules(package, state);
+        if let Some(file) = plan_rust_modules(package, docs, index_modules, state) {
             generated.push(file);
         }
     }

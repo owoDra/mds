@@ -187,6 +187,7 @@ pub(crate) fn relative_module(from_dir: &Path, to_file: &Path) -> String {
 pub(crate) fn plan_rust_modules(
     package: &Package,
     docs: &[ImplDoc],
+    index_modules: Vec<Vec<String>>,
     state: &mut RunState,
 ) -> Option<GeneratedFile> {
     let path = package
@@ -200,6 +201,7 @@ pub(crate) fn plan_rust_modules(
         modules.push(module_path(&source));
         modules.push(module_path(&types));
     }
+    modules.extend(index_modules);
     modules.sort();
     modules.dedup();
     let block = rust_module_block(&modules);

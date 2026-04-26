@@ -118,6 +118,8 @@ pub(crate) struct Package {
 pub(crate) struct PackageMetadata {
     pub(crate) name: String,
     pub(crate) version: String,
+    pub(crate) dependencies: HashMap<String, String>,
+    pub(crate) dev_dependencies: HashMap<String, String>,
 }
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]

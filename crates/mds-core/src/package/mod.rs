@@ -3,7 +3,7 @@ use std::ffi::OsStr;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use crate::config::{parse_config, parse_string};
+use crate::config::{merge_config_file, parse_string};
 use crate::diagnostics::{Diagnostic, RunState};
 use crate::fs_utils::collect_files;
 use crate::markdown::sections;
@@ -15,13 +15,20 @@ pub(crate) fn discover_packages(
     package: Option<&Path>,
     state: &mut RunState,
 ) -> Result<Vec<Package>, String> {
+    let root_config = cwd.join("mds.config.toml");
+    let mut base_config = crate::model::Config::default();
+    if root_config.exists() {
+        merge_config_file(&mut base_config, &root_config, state);
+    }
     if let Some(package) = package {
         let root = if package.is_absolute() {
             package.to_path_buf()
         } else {
             cwd.join(package)
         };
-        return Ok(load_package(&root, state).into_iter().collect());
+        return Ok(load_package(&root, &base_config, state)
+            .into_iter()
+            .collect());
     }
 
     let mut packages = Vec::new();
@@ -30,7 +37,7 @@ pub(crate) fn discover_packages(
             let Some(root) = path.parent() else {
                 continue;
             };
-            if let Some(package) = load_package(root, state) {
+            if let Some(package) = load_package(root, &base_config, state) {
                 packages.push(package);
             }
         }
@@ -39,7 +46,11 @@ pub(crate) fn discover_packages(
     Ok(packages)
 }
 
-pub(crate) fn load_package(root: &Path, state: &mut RunState) -> Option<Package> {
+pub(crate) fn load_package(
+    root: &Path,
+    base_config: &crate::model::Config,
+    state: &mut RunState,
+) -> Option<Package> {
     let config_path = root.join("mds.config.toml");
     if !config_path.exists() {
         state.diagnostics.push(Diagnostic::error(
@@ -49,10 +60,8 @@ pub(crate) fn load_package(root: &Path, state: &mut RunState) -> Option<Package>
         return None;
     }
 
-    let mut config = match parse_config(&config_path, state) {
-        Some(config) => config,
-        None => return None,
-    };
+    let mut config = base_config.clone();
+    merge_config_file(&mut config, &config_path, state)?;
     if !config.enabled {
         return None;
     }
@@ -156,11 +165,14 @@ pub(crate) fn validate_package_md(package: &Package, state: &mut RunState) {
             }
         } else {
             state.diagnostics.push(Diagnostic::error(
-                Some(path),
+                Some(path.clone()),
                 "package.md Package section requires Name and Version table columns",
             ));
         }
     }
+
+    validate_dependency_section(package, &sections, "Dependencies", false, &path, state);
+    validate_dependency_section(package, &sections, "Dev Dependencies", true, &path, state);
 }
 
 pub(crate) fn read_package_metadata(
@@ -192,7 +204,12 @@ pub(crate) fn read_node_metadata(path: &Path, state: &mut RunState) -> Option<Pa
     let name = json_string_field(&text, "name");
     let version = json_string_field(&text, "version");
     match (name, version) {
-        (Some(name), Some(version)) => Some(PackageMetadata { name, version }),
+        (Some(name), Some(version)) => Some(PackageMetadata {
+            name,
+            version,
+            dependencies: json_object_field(&text, "dependencies"),
+            dev_dependencies: json_object_field(&text, "devDependencies"),
+        }),
         _ => {
             state.diagnostics.push(Diagnostic::error(
                 Some(path.to_path_buf()),
@@ -201,6 +218,38 @@ pub(crate) fn read_node_metadata(path: &Path, state: &mut RunState) -> Option<Pa
             None
         }
     }
+}
+
+fn json_object_field(text: &str, key: &str) -> HashMap<String, String> {
+    let mut values = HashMap::new();
+    let pattern = format!("\"{key}\"");
+    let Some(after_key) = text.split_once(&pattern).map(|(_, value)| value) else {
+        return values;
+    };
+    let Some(after_colon) = after_key
+        .split_once(':')
+        .map(|(_, value)| value.trim_start())
+    else {
+        return values;
+    };
+    let Some(mut body) = after_colon.strip_prefix('{') else {
+        return values;
+    };
+    let Some(end) = body.find('}') else {
+        return values;
+    };
+    body = &body[..end];
+    for entry in body.split(',') {
+        let Some((raw_key, raw_value)) = entry.split_once(':') else {
+            continue;
+        };
+        let key = raw_key.trim().trim_matches('"');
+        let value = raw_value.trim().trim_matches('"');
+        if !key.is_empty() {
+            values.insert(key.to_string(), value.to_string());
+        }
+    }
+    values
 }
 
 pub(crate) fn json_string_field(text: &str, key: &str) -> Option<String> {
@@ -232,7 +281,12 @@ pub(crate) fn read_toml_metadata(
     let name = fields.get("name").cloned();
     let version = fields.get("version").cloned();
     match (name, version) {
-        (Some(name), Some(version)) => Some(PackageMetadata { name, version }),
+        (Some(name), Some(version)) => Some(PackageMetadata {
+            name,
+            version,
+            dependencies: simple_toml_section(&text, "dependencies"),
+            dev_dependencies: simple_toml_section(&text, "dev-dependencies"),
+        }),
         _ => {
             state.diagnostics.push(Diagnostic::error(
                 Some(path.to_path_buf()),
@@ -241,6 +295,114 @@ pub(crate) fn read_toml_metadata(
             None
         }
     }
+}
+
+fn validate_dependency_section(
+    package: &Package,
+    sections: &HashMap<String, String>,
+    section_name: &str,
+    dev: bool,
+    path: &Path,
+    state: &mut RunState,
+) {
+    let Some(metadata) = read_package_metadata(package, state) else {
+        return;
+    };
+    let expected = if dev {
+        metadata.dev_dependencies
+    } else {
+        metadata.dependencies
+    };
+    let Some(section) = sections.get(section_name) else {
+        return;
+    };
+    let Some(rows) = parse_table(section, &["Name", "Version"], path, state) else {
+        state.diagnostics.push(Diagnostic::error(
+            Some(path.to_path_buf()),
+            format!("package.md {section_name} section requires Name and Version table columns"),
+        ));
+        return;
+    };
+    let actual = rows
+        .iter()
+        .filter_map(|row| {
+            let name = row.get("name")?.trim();
+            if name.is_empty() {
+                return None;
+            }
+            Some((
+                name.to_string(),
+                row.get("version").cloned().unwrap_or_default(),
+            ))
+        })
+        .collect::<HashMap<_, _>>();
+    for (name, version) in &expected {
+        match actual.get(name) {
+            Some(actual_version) if actual_version == version => {}
+            Some(actual_version) => state.diagnostics.push(Diagnostic::error(
+                Some(path.to_path_buf()),
+                format!(
+                    "package.md {section_name} dependency `{name}` version `{actual_version}` does not match metadata `{version}`"
+                ),
+            )),
+            None => state.diagnostics.push(Diagnostic::error(
+                Some(path.to_path_buf()),
+                format!("package.md {section_name} is missing dependency `{name}`"),
+            )),
+        }
+    }
+    for name in actual.keys() {
+        if !expected.contains_key(name) {
+            state.diagnostics.push(Diagnostic::error(
+                Some(path.to_path_buf()),
+                format!(
+                    "package.md {section_name} contains dependency `{name}` not present in metadata"
+                ),
+            ));
+        }
+    }
+}
+
+pub(crate) fn rust_expose_modules(package: &Package, state: &mut RunState) -> Vec<Vec<String>> {
+    let markdown_root = package.root.join(&package.config.roots.markdown);
+    let Ok(files) = collect_files(&markdown_root, false) else {
+        return Vec::new();
+    };
+    let mut modules = Vec::new();
+    for path in files
+        .into_iter()
+        .filter(|path| path.file_name() == Some(OsStr::new("index.md")))
+    {
+        let Ok(text) = fs::read_to_string(&path) else {
+            continue;
+        };
+        let sections = sections(&text);
+        let Some(exposes_section) = sections.get("Exposes") else {
+            continue;
+        };
+        let Some(rows) = parse_table(
+            exposes_section,
+            &["Kind", "Name", "Target", "Summary"],
+            &path,
+            state,
+        ) else {
+            continue;
+        };
+        for row in rows {
+            let target = row.get("target").map(String::as_str).unwrap_or_default();
+            if target.is_empty() {
+                continue;
+            }
+            modules.push(
+                target
+                    .split('/')
+                    .filter(|part| !part.is_empty())
+                    .map(ToOwned::to_owned)
+                    .collect(),
+            );
+        }
+    }
+    modules
 }
 
 pub(crate) fn simple_toml_section(text: &str, section_name: &str) -> HashMap<String, String> {

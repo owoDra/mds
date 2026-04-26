@@ -4,7 +4,11 @@ use std::path::{Path, PathBuf};
 use crate::diagnostics::{Diagnostic, RunState};
 use crate::model::{Config, Lang};
 
-pub(crate) fn parse_config(path: &Path, state: &mut RunState) -> Option<Config> {
+pub(crate) fn merge_config_file(
+    config: &mut Config,
+    path: &Path,
+    state: &mut RunState,
+) -> Option<()> {
     let text = match fs::read_to_string(path) {
         Ok(text) => text,
         Err(error) => {
@@ -15,7 +19,6 @@ pub(crate) fn parse_config(path: &Path, state: &mut RunState) -> Option<Config> 
             return None;
         }
     };
-    let mut config = Config::default();
     let mut section = String::new();
     for (idx, raw_line) in text.lines().enumerate() {
         let line = raw_line
@@ -105,7 +108,7 @@ pub(crate) fn parse_config(path: &Path, state: &mut RunState) -> Option<Config> 
         }
     }
 
-    Some(config)
+    Some(())
 }
 
 pub(crate) fn parse_bool(value: &str, path: &Path, line: usize, state: &mut RunState) -> bool {

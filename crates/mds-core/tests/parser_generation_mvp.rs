@@ -31,6 +31,9 @@ fn builds_three_language_fixture() {
     assert_eq!(dry_run.exit_code, 0, "{}", dry_run.stderr);
     assert!(dry_run.stdout.contains("Build plan:"));
     assert!(dry_run.stdout.contains("bar.types.ts"));
+    assert!(dry_run.stdout.contains(".mds/manifest.toml"));
+    assert!(dry_run.stdout.contains("src/lib.rs"));
+    assert!(dry_run.stdout.contains("--- /dev/null"));
     assert!(!temp.path().join("pkg/src/foo/bar.ts").exists());
 
     let build = execute(CliRequest {
@@ -49,6 +52,94 @@ fn builds_three_language_fixture() {
     assert!(fs::read_to_string(temp.path().join("pkg/src/lib.rs"))
         .unwrap()
         .contains("pub mod foo"));
+}
+
+#[test]
+fn merges_root_and_package_config() {
+    let temp = TestDir::new();
+    write_fixture(temp.path());
+    fs::write(
+        temp.path().join("mds.config.toml"),
+        "[roots]\nsource = \"generated\"\ntypes = \"generated\"\n",
+    )
+    .unwrap();
+
+    let build = execute(CliRequest {
+        cwd: temp.path().to_path_buf(),
+        package: None,
+        verbose: false,
+        command: Command::Build {
+            mode: BuildMode::Write,
+        },
+    });
+    assert_eq!(build.exit_code, 0, "{}", build.stderr);
+    assert!(temp.path().join("pkg/generated/foo/bar.ts").exists());
+    assert!(temp.path().join("pkg/generated/foo/bar.types.ts").exists());
+}
+
+#[test]
+fn checks_dependency_versions_against_metadata() {
+    let temp = TestDir::new();
+    write_fixture(temp.path());
+    fs::write(
+        temp.path().join("pkg/package.json"),
+        "{\"name\":\"fixture\",\"version\":\"0.1.0\",\"dependencies\":{\"left-pad\":\"1.3.0\"}}\n",
+    )
+    .unwrap();
+
+    let check = execute(CliRequest {
+        cwd: temp.path().to_path_buf(),
+        package: None,
+        verbose: false,
+        command: Command::Check,
+    });
+    assert_eq!(check.exit_code, 1);
+    assert!(check.stderr.contains("missing dependency `left-pad`"));
+}
+
+#[test]
+fn rejects_table_missing_required_columns() {
+    let temp = TestDir::new();
+    write_fixture(temp.path());
+    let doc = temp.path().join("pkg/src-md/foo/bar.ts.md");
+    let text = fs::read_to_string(&doc).unwrap().replace(
+        "| From | Target | Expose | Summary |",
+        "| From | Expose | Summary |",
+    );
+    fs::write(doc, text).unwrap();
+
+    let check = execute(CliRequest {
+        cwd: temp.path().to_path_buf(),
+        package: None,
+        verbose: false,
+        command: Command::Check,
+    });
+    assert_eq!(check.exit_code, 1);
+    assert!(check.stderr.contains("missing required columns"));
+}
+
+#[test]
+fn rust_module_block_includes_index_exposes() {
+    let temp = TestDir::new();
+    write_fixture(temp.path());
+    fs::write(
+        temp.path().join("pkg/src-md/index.md"),
+        "# Index\n\n## Purpose\n\nFixture.\n\n## Architecture\n\nFixture.\n\n## Exposes\n\n| Kind | Name | Target | Summary |\n| --- | --- | --- | --- |\n| module | Extra | extra/baz | extra module |\n\n## Rules\n\n- Fixture.\n",
+    )
+    .unwrap();
+
+    let build = execute(CliRequest {
+        cwd: temp.path().to_path_buf(),
+        package: None,
+        verbose: false,
+        command: Command::Build {
+            mode: BuildMode::Write,
+        },
+    });
+    assert_eq!(build.exit_code, 0, "{}", build.stderr);
+    let lib = fs::read_to_string(temp.path().join("pkg/src/lib.rs")).unwrap();
+    assert!(lib.contains("pub mod extra"));
+    assert!(lib.contains("pub mod baz;"));
 }
 
 #[test]

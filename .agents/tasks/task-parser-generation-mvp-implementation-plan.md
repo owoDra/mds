@@ -252,12 +252,13 @@ completed
 - 2026-04-26: `mds-core` に package metadata 同期診断、manifest 破損時の build 停止、非管理ファイル上書き拒否、SHA-256 の回帰 test を追加した。
 - 2026-04-26: `mds-cli` に CLI option parser の unit test を追加した。
 - 2026-04-26: `cargo fmt --check`、`cargo test`、`bash /workspace/.agents/scripts/validate_harness.sh --root /workspace --verbose` は成功した。
+- 2026-04-26: root `mds.config.toml` と package `mds.config.toml` の key 単位 merge、`package.md` Dependencies / Dev Dependencies と metadata の version 同期診断、table 必須列エラー、`index.md` Exposes 由来の Rust module block 生成、dry-run diff 対象確認を追加した。
+- 2026-04-26: Parser + 生成 MVP の未完了事項を覆う regression test を追加し、`cargo fmt --check`、`cargo test`、`bash /workspace/.agents/scripts/validate_harness.sh --root /workspace --verbose` は成功した。
 
 ## 未実施検証 / 残リスク
 
 - npm / Python 配布 wrapper は MVP 対象外として未作成。
-- root config と package config の多段 merge は MVP 実装の単純化として package 側 `mds.config.toml` を中心に扱っている。複数階層 merge の網羅 fixture が必要になった場合は後続で追加する。
-- `package.md` の Dependencies / Dev Dependencies の version 詳細同期は、現時点では必須 section / table schema 検査まで。依存 version の完全同期は後続で schema を追加して実装する。
+- Parser + 生成 MVP としての実装・検証ブロッカーは残っていない。
 
 ## 次に読むもの
 
