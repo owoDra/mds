@@ -26,6 +26,9 @@ pub struct InitOptions {
     pub force: bool,
     pub targets: Vec<AiTarget>,
     pub categories: Vec<AgentKitCategory>,
+    pub ts_tools: Vec<TypeScriptTool>,
+    pub py_tools: Vec<PythonTool>,
+    pub rs_tools: Vec<RustTool>,
     pub install_project_deps: bool,
     pub install_toolchains: bool,
     pub install_ai_cli: bool,
@@ -39,9 +42,86 @@ impl Default for InitOptions {
             force: false,
             targets: AiTarget::all().to_vec(),
             categories: AgentKitCategory::all().to_vec(),
+            ts_tools: TypeScriptTool::defaults().to_vec(),
+            py_tools: PythonTool::defaults().to_vec(),
+            rs_tools: RustTool::defaults().to_vec(),
             install_project_deps: false,
             install_toolchains: false,
             install_ai_cli: false,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+pub enum TypeScriptTool {
+    Eslint,
+    Prettier,
+    Biome,
+    Vitest,
+    Jest,
+}
+
+impl TypeScriptTool {
+    pub fn defaults() -> &'static [Self] {
+        &[Self::Eslint, Self::Prettier, Self::Vitest]
+    }
+
+    pub fn parse(value: &str) -> Option<Self> {
+        match value {
+            "eslint" => Some(Self::Eslint),
+            "prettier" => Some(Self::Prettier),
+            "biome" => Some(Self::Biome),
+            "vitest" => Some(Self::Vitest),
+            "jest" => Some(Self::Jest),
+            _ => None,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+pub enum PythonTool {
+    Ruff,
+    Black,
+    Pytest,
+    Unittest,
+}
+
+impl PythonTool {
+    pub fn defaults() -> &'static [Self] {
+        &[Self::Ruff, Self::Pytest]
+    }
+
+    pub fn parse(value: &str) -> Option<Self> {
+        match value {
+            "ruff" => Some(Self::Ruff),
+            "black" => Some(Self::Black),
+            "pytest" => Some(Self::Pytest),
+            "unittest" | "python-unittest" => Some(Self::Unittest),
+            _ => None,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+pub enum RustTool {
+    Rustfmt,
+    Clippy,
+    CargoTest,
+    Nextest,
+}
+
+impl RustTool {
+    pub fn defaults() -> &'static [Self] {
+        &[Self::Rustfmt, Self::Clippy, Self::CargoTest]
+    }
+
+    pub fn parse(value: &str) -> Option<Self> {
+        match value {
+            "rustfmt" => Some(Self::Rustfmt),
+            "clippy" | "cargo-clippy" => Some(Self::Clippy),
+            "cargo-test" | "test" => Some(Self::CargoTest),
+            "nextest" | "cargo-nextest" => Some(Self::Nextest),
+            _ => None,
         }
     }
 }
@@ -259,38 +339,25 @@ impl QualityConfig {
     fn for_lang(lang: Lang) -> Self {
         match lang {
             Lang::TypeScript => Self {
-                lint: Some("eslint".to_string()),
-                fix: Some("prettier --write".to_string()),
-                test: Some("vitest run".to_string()),
-                required: vec![
-                    "node".to_string(),
-                    "eslint".to_string(),
-                    "prettier".to_string(),
-                    "vitest".to_string(),
-                ],
+                lint: None,
+                fix: None,
+                test: None,
+                required: Vec::new(),
                 optional: Vec::new(),
             },
             Lang::Python => Self {
-                lint: Some("ruff check".to_string()),
-                fix: Some("ruff format".to_string()),
-                test: Some("pytest".to_string()),
-                required: vec![
-                    "python3".to_string(),
-                    "ruff".to_string(),
-                    "pytest".to_string(),
-                ],
+                lint: None,
+                fix: None,
+                test: None,
+                required: Vec::new(),
                 optional: Vec::new(),
             },
             Lang::Rust => Self {
-                lint: Some("cargo clippy".to_string()),
-                fix: Some("rustfmt".to_string()),
-                test: Some("cargo test".to_string()),
-                required: vec![
-                    "rustc".to_string(),
-                    "cargo".to_string(),
-                    "rustfmt".to_string(),
-                ],
-                optional: vec!["clippy-driver".to_string()],
+                lint: None,
+                fix: None,
+                test: None,
+                required: Vec::new(),
+                optional: Vec::new(),
             },
         }
     }

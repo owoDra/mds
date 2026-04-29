@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use mds_core::{
     AgentKitCategory, AiTarget, BuildMode, CliRequest, Command, DoctorFormat, InitOptions,
-    ReleaseQualityOptions,
+    PythonTool, ReleaseQualityOptions, RustTool, TypeScriptTool,
 };
 
 pub fn parse_args(cwd: PathBuf) -> Result<CliRequest, String> {
@@ -75,6 +75,24 @@ where
             }
             "--install-ai-cli" if command_name == "init" => {
                 init_options.install_ai_cli = true;
+            }
+            "--ts-tools" if command_name == "init" => {
+                let Some(value) = args.next() else {
+                    return Err("--ts-tools requires a value".to_string());
+                };
+                init_options.ts_tools = parse_ts_tools(&value)?;
+            }
+            "--py-tools" if command_name == "init" => {
+                let Some(value) = args.next() else {
+                    return Err("--py-tools requires a value".to_string());
+                };
+                init_options.py_tools = parse_py_tools(&value)?;
+            }
+            "--rs-tools" if command_name == "init" => {
+                let Some(value) = args.next() else {
+                    return Err("--rs-tools requires a value".to_string());
+                };
+                init_options.rs_tools = parse_rs_tools(&value)?;
             }
             "--manifest" if command_name == "release" => {
                 let Some(path) = args.next() else {
@@ -213,6 +231,92 @@ fn parse_categories(value: &str) -> Result<Vec<AgentKitCategory>, String> {
         .collect()
 }
 
+fn parse_ts_tools(value: &str) -> Result<Vec<TypeScriptTool>, String> {
+    if value == "default" {
+        return Ok(TypeScriptTool::defaults().to_vec());
+    }
+    if value == "none" {
+        return Ok(Vec::new());
+    }
+    let tools = parse_tool_list(
+        value,
+        TypeScriptTool::parse,
+        "TypeScript",
+        "eslint, prettier, biome, vitest, jest, default, or none",
+    )?;
+    if tools.contains(&TypeScriptTool::Vitest) && tools.contains(&TypeScriptTool::Jest) {
+        return Err("--ts-tools cannot select both vitest and jest".to_string());
+    }
+    Ok(tools)
+}
+
+fn parse_py_tools(value: &str) -> Result<Vec<PythonTool>, String> {
+    if value == "default" {
+        return Ok(PythonTool::defaults().to_vec());
+    }
+    if value == "none" {
+        return Ok(Vec::new());
+    }
+    let tools = parse_tool_list(
+        value,
+        PythonTool::parse,
+        "Python",
+        "ruff, black, pytest, unittest, default, or none",
+    )?;
+    if tools.contains(&PythonTool::Pytest) && tools.contains(&PythonTool::Unittest) {
+        return Err("--py-tools cannot select both pytest and unittest".to_string());
+    }
+    Ok(tools)
+}
+
+fn parse_rs_tools(value: &str) -> Result<Vec<RustTool>, String> {
+    if value == "default" {
+        return Ok(RustTool::defaults().to_vec());
+    }
+    if value == "none" {
+        return Ok(Vec::new());
+    }
+    let tools = parse_tool_list(
+        value,
+        RustTool::parse,
+        "Rust",
+        "rustfmt, clippy, cargo-test, nextest, default, or none",
+    )?;
+    if tools.contains(&RustTool::CargoTest) && tools.contains(&RustTool::Nextest) {
+        return Err("--rs-tools cannot select both cargo-test and nextest".to_string());
+    }
+    Ok(tools)
+}
+
+fn parse_tool_list<T>(
+    value: &str,
+    parse: fn(&str) -> Option<T>,
+    label: &str,
+    expected: &str,
+) -> Result<Vec<T>, String>
+where
+    T: Copy + Eq,
+{
+    let mut tools = Vec::new();
+    for part in value
+        .split(',')
+        .map(str::trim)
+        .filter(|part| !part.is_empty())
+    {
+        if part == "default" || part == "none" {
+            return Err(format!(
+                "{label} tool preset `{part}` must be used by itself"
+            ));
+        }
+        let tool = parse(part)
+            .ok_or_else(|| format!("unknown {label} tool `{part}`; expected {expected}"))?;
+        if !tools.contains(&tool) {
+            tools.push(tool);
+        }
+    }
+    Ok(tools)
+}
+
 pub fn print_usage() {
     eprintln!("usage: mds check [--package <path>] [--verbose]");
     eprintln!("       mds build [--package <path>] [--dry-run] [--verbose]");
@@ -220,6 +324,6 @@ pub fn print_usage() {
     eprintln!("       mds test [--package <path>] [--verbose]");
     eprintln!("       mds doctor [--package <path>] [--format text|json] [--verbose]");
     eprintln!("       mds package sync [--package <path>] [--check] [--verbose]");
-    eprintln!("       mds init [--package <path>] [--ai] [--target <list>] [--categories <list>] [--yes] [--force] [--install-project-deps] [--install-toolchains] [--install-ai-cli] [--verbose]");
+    eprintln!("       mds init [--package <path>] [--ai] [--target <list>] [--categories <list>] [--ts-tools <list|default|none>] [--py-tools <list|default|none>] [--rs-tools <list|default|none>] [--yes] [--force] [--install-project-deps] [--install-toolchains] [--install-ai-cli] [--verbose]");
     eprintln!("       mds release check [--manifest <path>] [--verbose]");
 }

@@ -1,7 +1,10 @@
 use std::path::PathBuf;
 
 use mds_cli::args::parse_args_from;
-use mds_core::{AgentKitCategory, AiTarget, BuildMode, Command, DoctorFormat};
+use mds_core::{
+    AgentKitCategory, AiTarget, BuildMode, Command, DoctorFormat, PythonTool, RustTool,
+    TypeScriptTool,
+};
 
 #[test]
 fn parses_build_dry_run() {
@@ -82,6 +85,12 @@ fn parses_init_command() {
             "--install-project-deps",
             "--install-toolchains",
             "--install-ai-cli",
+            "--ts-tools",
+            "biome,jest",
+            "--py-tools",
+            "ruff,black,unittest",
+            "--rs-tools",
+            "rustfmt,nextest",
         ]
         .map(String::from),
     )
@@ -102,9 +111,28 @@ fn parses_init_command() {
                 options.categories,
                 vec![AgentKitCategory::Instructions, AgentKitCategory::Commands]
             );
+            assert_eq!(
+                options.ts_tools,
+                vec![TypeScriptTool::Biome, TypeScriptTool::Jest]
+            );
+            assert_eq!(
+                options.py_tools,
+                vec![PythonTool::Ruff, PythonTool::Black, PythonTool::Unittest]
+            );
+            assert_eq!(options.rs_tools, vec![RustTool::Rustfmt, RustTool::Nextest]);
         }
         other => panic!("unexpected command: {other:?}"),
     }
+}
+
+#[test]
+fn rejects_conflicting_init_tool_choices() {
+    let error = parse_args_from(
+        PathBuf::from("/repo"),
+        ["init", "--ts-tools", "vitest,jest"].map(String::from),
+    )
+    .unwrap_err();
+    assert!(error.contains("vitest and jest"));
 }
 
 #[test]

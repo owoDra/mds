@@ -122,6 +122,20 @@ mds init --package path/to/package
 
 初期化では、プロジェクト構成、支援ツール向けの設定、開発環境の準備を扱います。外部コマンドの実行や環境変更は、利用者が明示した場合に行う方針です。
 
+品質検査で使うツールは、言語ごとに選択できます。
+
+```bash
+mds init --package path/to/package --ts-tools biome,jest --py-tools ruff,black,pytest --rs-tools rustfmt,cargo-test
+```
+
+使わない言語や品質検査は `none` で無効にできます。
+
+```bash
+mds init --package path/to/package --ts-tools none --py-tools pytest --rs-tools clippy,nextest
+```
+
+`default` を指定すると、mds の代表的な組み合わせを使います。選択内容は `mds.config.toml` の `[quality.ts]`、`[quality.py]`、`[quality.rs]` に書き込まれます。
+
 ## `mds release check`
 
 `mds release check` は、公開前の成果物検査を行います。

@@ -28,6 +28,13 @@ enabled = false
 
 [adapters.rs]
 enabled = false
+
+[quality.ts]
+linter = "eslint"
+fixer = "prettier --write"
+test_runner = "vitest run"
+required = ["node", "eslint", "prettier", "vitest"]
+optional = []
 ```
 
 ## `[package]`
@@ -68,17 +75,28 @@ enabled = false
 
 ## 品質検査の設定
 
-言語ごとの検査、修正、テストで使うコマンドは、品質検査用の設定で扱います。
+言語ごとの検査、修正、テストで使うコマンドは、品質検査用の設定で扱います。`mds init` で選択した quality tool は、`[quality.ts]`、`[quality.py]`、`[quality.rs]` に明示されます。
 
-既定では、次の考え方で接続します。
+選択できる代表的な候補は次のとおりです。
 
 | 言語 | 検査 | 修正 | テスト |
 | --- | --- | --- | --- |
-| TypeScript | ESLint | Prettier | Vitest |
-| Python | Ruff | Ruff | Pytest |
-| Rust | Cargo Clippy | rustfmt | Cargo test |
+| TypeScript | ESLint、Biome | Prettier、Biome | Vitest、Jest |
+| Python | Ruff | Ruff、Black | Pytest、unittest |
+| Rust | Cargo Clippy | rustfmt | Cargo test、cargo-nextest |
 
-実行環境に必要なツールがない場合、`mds doctor` で確認できます。
+使わない機能は `false` にできます。たとえば TypeScript の品質検査を使わない場合は次のように指定します。
+
+```toml
+[quality.ts]
+linter = false
+fixer = false
+test_runner = false
+required = []
+optional = []
+```
+
+実行環境に必要なツールがない場合、`mds doctor` で確認できます。未選択のツールは不足扱いになりません。
 
 ## 設定の注意点
 

@@ -39,7 +39,7 @@ Markdown は単なる説明文ではありません。`Types`、`Source`、`Test
 - Python 3.13 以上
 - npm 10 以上
 
-利用する機能によって必要な実行環境は変わります。たとえば TypeScript の検査には Node.js 周辺のツール、Python の検査には Ruff と Pytest、Rust の検査には Cargo と rustfmt が必要です。
+利用する機能によって必要な実行環境は変わります。TypeScript、Python、Rust の検査、修正、テストで使うツールは `mds init` の言語別オプションや `mds.config.toml` で選択できます。未選択のツールは暗黙には必須になりません。
 
 ## クイックスタート
 

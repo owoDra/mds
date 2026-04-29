@@ -19,6 +19,6 @@ mod table;
 
 pub use model::{
     AgentKitCategory, AiTarget, BuildMode, CliRequest, CliResult, Command, DoctorFormat,
-    InitOptions, ReleaseQualityOptions,
+    InitOptions, PythonTool, ReleaseQualityOptions, RustTool, TypeScriptTool,
 };
 pub use runner::execute;

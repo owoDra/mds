@@ -44,7 +44,7 @@ mds は npm、Cargo、uv / uvx から導入でき、Rust core の言語横断契
 - npm / Python wrapper は同梱 binary を優先して native CLI を呼び出し、利用できない場合は environment / wrapper 診断を返す。
 - CLI binary name は原則 `mds` とする。
 - 最低対応 version は Rust 1.86+、Node.js 24+、Python 3.13+ とする。
-- toolchain は Prettier、ESLint、Vitest、Ruff、Pytest、rustfmt、clippy、cargo test の最新安定系列を対象にする。
+- language quality toolchain は利用者選択式とし、Prettier、ESLint、Biome、Vitest、Jest、Ruff、Black、Pytest、unittest、rustfmt、clippy、cargo test、cargo-nextest の最新安定系列を候補にする。
 - bootstrap 導線は `npx`、Cargo、`uvx` を正式対応にする。
 - 公開前品質では npm、Cargo、Python / uvx、native binary の全配布経路に checksum、署名、SBOM、provenance、install smoke test を要求する。
 
