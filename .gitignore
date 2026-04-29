@@ -2,4 +2,3 @@ target/
 result/
 __pycache__/
 *.py[cod]
-.github
