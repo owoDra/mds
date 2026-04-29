@@ -53,30 +53,30 @@ channel = "alpha"
 name = "mds-core"
 channel = "alpha"
 path = "crates/target/package/mds-core-0.1.0-alpha.1.crate"
-checksum = "checksums/mds-core-0.1.0-alpha.1.sha256"
-signature = "signatures/mds-core-0.1.0-alpha.1.sig"
-sbom = "sbom/mds-core-0.1.0-alpha.1.spdx.json"
-provenance = "provenance/mds-core-0.1.0-alpha.1.jsonl"
+checksum = ".release/checksums/mds-core-0.1.0-alpha.1.sha256"
+signature = ".release/signatures/mds-core-0.1.0-alpha.1.sig"
+sbom = ".release/sbom/mds-core-0.1.0-alpha.1.spdx.json"
+provenance = ".release/provenance/mds-core-0.1.0-alpha.1.jsonl"
 smoke = true
 
 [[artifacts]]
 name = "mds-lang-rs"
 channel = "alpha"
 path = "crates/target/package/mds-lang-rs-0.1.0-alpha.1.crate"
-checksum = "checksums/mds-lang-rs-0.1.0-alpha.1.sha256"
-signature = "signatures/mds-lang-rs-0.1.0-alpha.1.sig"
-sbom = "sbom/mds-lang-rs-0.1.0-alpha.1.spdx.json"
-provenance = "provenance/mds-lang-rs-0.1.0-alpha.1.jsonl"
+checksum = ".release/checksums/mds-lang-rs-0.1.0-alpha.1.sha256"
+signature = ".release/signatures/mds-lang-rs-0.1.0-alpha.1.sig"
+sbom = ".release/sbom/mds-lang-rs-0.1.0-alpha.1.spdx.json"
+provenance = ".release/provenance/mds-lang-rs-0.1.0-alpha.1.jsonl"
 smoke = true
 
 [[artifacts]]
 name = "mds-cli"
 channel = "alpha"
 path = "crates/target/package/mds-cli-0.1.0-alpha.1.crate"
-checksum = "checksums/mds-cli-0.1.0-alpha.1.sha256"
-signature = "signatures/mds-cli-0.1.0-alpha.1.sig"
-sbom = "sbom/mds-cli-0.1.0-alpha.1.spdx.json"
-provenance = "provenance/mds-cli-0.1.0-alpha.1.jsonl"
+checksum = ".release/checksums/mds-cli-0.1.0-alpha.1.sha256"
+signature = ".release/signatures/mds-cli-0.1.0-alpha.1.sig"
+sbom = ".release/sbom/mds-cli-0.1.0-alpha.1.spdx.json"
+provenance = ".release/provenance/mds-cli-0.1.0-alpha.1.jsonl"
 smoke = true
 requires_published = "mds-core"
 
@@ -84,10 +84,10 @@ requires_published = "mds-core"
 name = "mds-lsp"
 channel = "alpha"
 path = "crates/target/package/mds-lsp-0.1.0-alpha.1.crate"
-checksum = "checksums/mds-lsp-0.1.0-alpha.1.sha256"
-signature = "signatures/mds-lsp-0.1.0-alpha.1.sig"
-sbom = "sbom/mds-lsp-0.1.0-alpha.1.spdx.json"
-provenance = "provenance/mds-lsp-0.1.0-alpha.1.jsonl"
+checksum = ".release/checksums/mds-lsp-0.1.0-alpha.1.sha256"
+signature = ".release/signatures/mds-lsp-0.1.0-alpha.1.sig"
+sbom = ".release/sbom/mds-lsp-0.1.0-alpha.1.spdx.json"
+provenance = ".release/provenance/mds-lsp-0.1.0-alpha.1.jsonl"
 smoke = true
 requires_published = "mds-core"
 
@@ -97,50 +97,50 @@ requires_published = "mds-core"
 name = "@mds/cli"
 channel = "alpha"
 path = "packages/cli/"
-checksum = "checksums/mds-cli-npm-0.1.0-alpha.1.sha256"
-signature = "signatures/mds-cli-npm-0.1.0-alpha.1.sig"
-sbom = "sbom/mds-cli-npm-0.1.0-alpha.1.spdx.json"
-provenance = "provenance/mds-cli-npm-0.1.0-alpha.1.jsonl"
+checksum = ".release/checksums/mds-cli-npm-0.1.0-alpha.1.sha256"
+signature = ".release/signatures/mds-cli-npm-0.1.0-alpha.1.sig"
+sbom = ".release/sbom/mds-cli-npm-0.1.0-alpha.1.spdx.json"
+provenance = ".release/provenance/mds-cli-npm-0.1.0-alpha.1.jsonl"
 smoke = true
 
 [[artifacts]]
 name = "@mds/core"
 channel = "alpha"
 path = "packages/core/"
-checksum = "checksums/mds-core-npm-0.1.0-alpha.1.sha256"
-signature = "signatures/mds-core-npm-0.1.0-alpha.1.sig"
-sbom = "sbom/mds-core-npm-0.1.0-alpha.1.spdx.json"
-provenance = "provenance/mds-core-npm-0.1.0-alpha.1.jsonl"
+checksum = ".release/checksums/mds-core-npm-0.1.0-alpha.1.sha256"
+signature = ".release/signatures/mds-core-npm-0.1.0-alpha.1.sig"
+sbom = ".release/sbom/mds-core-npm-0.1.0-alpha.1.spdx.json"
+provenance = ".release/provenance/mds-core-npm-0.1.0-alpha.1.jsonl"
 smoke = true
 
 [[artifacts]]
 name = "@mds/lang-ts"
 channel = "alpha"
 path = "packages/lang-ts/"
-checksum = "checksums/mds-lang-ts-npm-0.1.0-alpha.1.sha256"
-signature = "signatures/mds-lang-ts-npm-0.1.0-alpha.1.sig"
-sbom = "sbom/mds-lang-ts-npm-0.1.0-alpha.1.spdx.json"
-provenance = "provenance/mds-lang-ts-npm-0.1.0-alpha.1.jsonl"
+checksum = ".release/checksums/mds-lang-ts-npm-0.1.0-alpha.1.sha256"
+signature = ".release/signatures/mds-lang-ts-npm-0.1.0-alpha.1.sig"
+sbom = ".release/sbom/mds-lang-ts-npm-0.1.0-alpha.1.spdx.json"
+provenance = ".release/provenance/mds-lang-ts-npm-0.1.0-alpha.1.jsonl"
 smoke = true
 
 [[artifacts]]
 name = "@mds/lang-py"
 channel = "alpha"
 path = "packages/lang-py/"
-checksum = "checksums/mds-lang-py-npm-0.1.0-alpha.1.sha256"
-signature = "signatures/mds-lang-py-npm-0.1.0-alpha.1.sig"
-sbom = "sbom/mds-lang-py-npm-0.1.0-alpha.1.spdx.json"
-provenance = "provenance/mds-lang-py-npm-0.1.0-alpha.1.jsonl"
+checksum = ".release/checksums/mds-lang-py-npm-0.1.0-alpha.1.sha256"
+signature = ".release/signatures/mds-lang-py-npm-0.1.0-alpha.1.sig"
+sbom = ".release/sbom/mds-lang-py-npm-0.1.0-alpha.1.spdx.json"
+provenance = ".release/provenance/mds-lang-py-npm-0.1.0-alpha.1.jsonl"
 smoke = true
 
 [[artifacts]]
 name = "@mds/lang-rs"
 channel = "alpha"
 path = "packages/lang-rs/"
-checksum = "checksums/mds-lang-rs-npm-0.1.0-alpha.1.sha256"
-signature = "signatures/mds-lang-rs-npm-0.1.0-alpha.1.sig"
-sbom = "sbom/mds-lang-rs-npm-0.1.0-alpha.1.spdx.json"
-provenance = "provenance/mds-lang-rs-npm-0.1.0-alpha.1.jsonl"
+checksum = ".release/checksums/mds-lang-rs-npm-0.1.0-alpha.1.sha256"
+signature = ".release/signatures/mds-lang-rs-npm-0.1.0-alpha.1.sig"
+sbom = ".release/sbom/mds-lang-rs-npm-0.1.0-alpha.1.spdx.json"
+provenance = ".release/provenance/mds-lang-rs-npm-0.1.0-alpha.1.jsonl"
 smoke = true
 
 # --- Python packages ---
@@ -149,20 +149,20 @@ smoke = true
 name = "mds-cli (Python)"
 channel = "alpha"
 path = "python/mds_cli/"
-checksum = "checksums/mds-cli-py-0.1.0a1.sha256"
-signature = "signatures/mds-cli-py-0.1.0a1.sig"
-sbom = "sbom/mds-cli-py-0.1.0a1.spdx.json"
-provenance = "provenance/mds-cli-py-0.1.0a1.jsonl"
+checksum = ".release/checksums/mds-cli-py-0.1.0a1.sha256"
+signature = ".release/signatures/mds-cli-py-0.1.0a1.sig"
+sbom = ".release/sbom/mds-cli-py-0.1.0a1.spdx.json"
+provenance = ".release/provenance/mds-cli-py-0.1.0a1.jsonl"
 smoke = true
 
 [[artifacts]]
 name = "mds-lang-py"
 channel = "alpha"
 path = "python/mds_lang_py/"
-checksum = "checksums/mds-lang-py-0.1.0a1.sha256"
-signature = "signatures/mds-lang-py-0.1.0a1.sig"
-sbom = "sbom/mds-lang-py-0.1.0a1.spdx.json"
-provenance = "provenance/mds-lang-py-0.1.0a1.jsonl"
+checksum = ".release/checksums/mds-lang-py-0.1.0a1.sha256"
+signature = ".release/signatures/mds-lang-py-0.1.0a1.sig"
+sbom = ".release/sbom/mds-lang-py-0.1.0a1.spdx.json"
+provenance = ".release/provenance/mds-lang-py-0.1.0a1.jsonl"
 smoke = true
 
 # --- VS Code extension ---
@@ -171,8 +171,8 @@ smoke = true
 name = "mds-vscode"
 channel = "alpha"
 path = "editors/vscode/"
-checksum = "checksums/mds-vscode-0.1.0.sha256"
-signature = "signatures/mds-vscode-0.1.0.sig"
-sbom = "sbom/mds-vscode-0.1.0.spdx.json"
-provenance = "provenance/mds-vscode-0.1.0.jsonl"
+checksum = ".release/checksums/mds-vscode-0.1.0.sha256"
+signature = ".release/signatures/mds-vscode-0.1.0.sig"
+sbom = ".release/sbom/mds-vscode-0.1.0.spdx.json"
+provenance = ".release/provenance/mds-vscode-0.1.0.jsonl"
 smoke = true

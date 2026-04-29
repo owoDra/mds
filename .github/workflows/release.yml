@@ -1,14 +1,15 @@
-# Alpha Release Workflow
+# Release Workflow
 #
-# Performs the full alpha release pipeline:
+# Performs the full release pipeline:
 #   1. Quality gate (fmt + clippy + test + examples)
 #   2. Build release binaries
 #   3. Generate supply-chain artifacts & run release quality gate
 #   4. Publish to registries (sequential, respecting dependency order)
 #
 # Trigger: manual dispatch only (workflow_dispatch)
+# Supports: alpha, beta, stable channels via version input
 
-name: Alpha Release
+name: Release
 
 on:
   workflow_dispatch:
@@ -22,9 +23,18 @@ on:
           - 'true'
           - 'false'
       version:
-        description: 'Version to release (e.g. 0.1.0-alpha.1)'
+        description: 'Version to release (e.g. 0.1.0-alpha.1, 0.1.0-beta.1, 0.1.0)'
         required: true
         default: '0.1.0-alpha.1'
+      channel:
+        description: 'Release channel'
+        required: true
+        default: 'alpha'
+        type: choice
+        options:
+          - 'alpha'
+          - 'beta'
+          - 'stable'
 
 permissions:
   contents: read
@@ -152,10 +162,7 @@ jobs:
         with:
           name: release-artifacts
           path: |
-            checksums/
-            signatures/
-            sbom/
-            provenance/
+            .release/
 
   # --- Package & Publish Cargo Crates ---
   publish-cargo:
@@ -243,7 +250,7 @@ jobs:
 
       - name: Publish
         if: inputs.dry_run == 'false'
-        run: cd packages && npm publish --workspaces --tag alpha --access public
+        run: cd packages && npm publish --workspaces --tag ${{ inputs.channel }} --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
@@ -305,10 +312,22 @@ jobs:
         run: cd editors/vscode && npm run compile
 
       - name: Package VSIX
-        run: cd editors/vscode && npx @vscode/vsce package --pre-release
+        run: |
+          cd editors/vscode
+          if [[ "${{ inputs.channel }}" == "stable" ]]; then
+            npx @vscode/vsce package
+          else
+            npx @vscode/vsce package --pre-release
+          fi
 
       - name: Publish
         if: inputs.dry_run == 'false'
-        run: cd editors/vscode && npx @vscode/vsce publish --pre-release
+        run: |
+          cd editors/vscode
+          if [[ "${{ inputs.channel }}" == "stable" ]]; then
+            npx @vscode/vsce publish
+          else
+            npx @vscode/vsce publish --pre-release
+          fi
         env:
           VSCE_PAT: ${{ secrets.VSCE_PAT }}

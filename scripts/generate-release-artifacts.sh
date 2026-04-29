@@ -7,10 +7,10 @@ set -euo pipefail
 # Run after `cargo build --release && cargo package --allow-dirty`.
 #
 # Outputs:
-#   checksums/   — SHA-256 digests
-#   signatures/  — GPG detached signatures (or placeholder if no key)
-#   sbom/        — CycloneDX JSON SBOM
-#   provenance/  — Build provenance attestation (JSONL)
+#   .release/checksums/   — SHA-256 digests
+#   .release/signatures/  — GPG detached signatures (or placeholder if no key)
+#   .release/sbom/        — CycloneDX JSON SBOM
+#   .release/provenance/  — Build provenance attestation (JSONL)
 #
 # Usage:
 #   ./scripts/generate-release-artifacts.sh [--sign]
@@ -28,7 +28,7 @@ for arg in "$@"; do
   esac
 done
 
-mkdir -p "$ROOT"/{checksums,signatures,sbom,provenance}
+mkdir -p "$ROOT"/.release/{checksums,signatures,sbom,provenance}
 
 # ---------- Helper functions ----------
 
@@ -132,10 +132,10 @@ for crate in mds-core mds-cli mds-lang-rs mds-lsp; do
     fi
   fi
 
-  generate_checksum "$CRATE_FILE" "$ROOT/checksums/${crate}-${VERSION}.sha256"
-  generate_signature "$CRATE_FILE" "$ROOT/signatures/${crate}-${VERSION}.sig"
-  generate_sbom "$crate" "$VERSION" "$ROOT/sbom/${crate}-${VERSION}.spdx.json" "library"
-  generate_provenance "$crate" "$VERSION" "$ROOT/provenance/${crate}-${VERSION}.jsonl"
+  generate_checksum "$CRATE_FILE" "$ROOT/.release/checksums/${crate}-${VERSION}.sha256"
+  generate_signature "$CRATE_FILE" "$ROOT/.release/signatures/${crate}-${VERSION}.sig"
+  generate_sbom "$crate" "$VERSION" "$ROOT/.release/sbom/${crate}-${VERSION}.spdx.json" "library"
+  generate_provenance "$crate" "$VERSION" "$ROOT/.release/provenance/${crate}-${VERSION}.jsonl"
 done
 
 # ---------- npm packages ----------
@@ -155,10 +155,10 @@ for pkg in "${!NPM_PACKAGES[@]}"; do
   dir="${NPM_PACKAGES[$pkg]}"
   echo "[$pkg]"
   slug="${dir//\//-}"
-  generate_checksum "$ROOT/packages/$dir" "$ROOT/checksums/mds-${slug}-npm-${VERSION}.sha256"
-  generate_signature "$ROOT/packages/$dir" "$ROOT/signatures/mds-${slug}-npm-${VERSION}.sig"
-  generate_sbom "$pkg" "$VERSION" "$ROOT/sbom/mds-${slug}-npm-${VERSION}.spdx.json" "application"
-  generate_provenance "$pkg" "$VERSION" "$ROOT/provenance/mds-${slug}-npm-${VERSION}.jsonl"
+  generate_checksum "$ROOT/packages/$dir" "$ROOT/.release/checksums/mds-${slug}-npm-${VERSION}.sha256"
+  generate_signature "$ROOT/packages/$dir" "$ROOT/.release/signatures/mds-${slug}-npm-${VERSION}.sig"
+  generate_sbom "$pkg" "$VERSION" "$ROOT/.release/sbom/mds-${slug}-npm-${VERSION}.spdx.json" "application"
+  generate_provenance "$pkg" "$VERSION" "$ROOT/.release/provenance/mds-${slug}-npm-${VERSION}.jsonl"
 done
 
 # ---------- Python packages ----------
@@ -174,10 +174,10 @@ declare -A PY_PACKAGES=(
 for pkg in "${!PY_PACKAGES[@]}"; do
   slug="${PY_PACKAGES[$pkg]}"
   echo "[$pkg]"
-  generate_checksum "$ROOT/python/$pkg" "$ROOT/checksums/${slug}-${PY_VERSION}.sha256"
-  generate_signature "$ROOT/python/$pkg" "$ROOT/signatures/${slug}-${PY_VERSION}.sig"
-  generate_sbom "$pkg" "$PY_VERSION" "$ROOT/sbom/${slug}-${PY_VERSION}.spdx.json" "application"
-  generate_provenance "$pkg" "$PY_VERSION" "$ROOT/provenance/${slug}-${PY_VERSION}.jsonl"
+  generate_checksum "$ROOT/python/$pkg" "$ROOT/.release/checksums/${slug}-${PY_VERSION}.sha256"
+  generate_signature "$ROOT/python/$pkg" "$ROOT/.release/signatures/${slug}-${PY_VERSION}.sig"
+  generate_sbom "$pkg" "$PY_VERSION" "$ROOT/.release/sbom/${slug}-${PY_VERSION}.spdx.json" "application"
+  generate_provenance "$pkg" "$PY_VERSION" "$ROOT/.release/provenance/${slug}-${PY_VERSION}.jsonl"
 done
 
 # ---------- VS Code extension ----------
@@ -187,14 +187,14 @@ echo "=== VS Code extension ==="
 
 echo "[mds-vscode]"
 VSCODE_DIR="$ROOT/editors/vscode"
-generate_checksum "$VSCODE_DIR" "$ROOT/checksums/mds-vscode-0.1.0.sha256"
-generate_signature "$VSCODE_DIR" "$ROOT/signatures/mds-vscode-0.1.0.sig"
-generate_sbom "mds-vscode" "0.1.0" "$ROOT/sbom/mds-vscode-0.1.0.spdx.json" "application"
-generate_provenance "mds-vscode" "0.1.0" "$ROOT/provenance/mds-vscode-0.1.0.jsonl"
+generate_checksum "$VSCODE_DIR" "$ROOT/.release/checksums/mds-vscode-0.1.0.sha256"
+generate_signature "$VSCODE_DIR" "$ROOT/.release/signatures/mds-vscode-0.1.0.sig"
+generate_sbom "mds-vscode" "0.1.0" "$ROOT/.release/sbom/mds-vscode-0.1.0.spdx.json" "application"
+generate_provenance "mds-vscode" "0.1.0" "$ROOT/.release/provenance/mds-vscode-0.1.0.jsonl"
 
 echo ""
 echo "=== Done ==="
-echo "Artifacts generated in: checksums/, signatures/, sbom/, provenance/"
+echo "Artifacts generated in: .release/{checksums,signatures,sbom,provenance}/"
 
 if [[ ${#DEFERRED_CRATES[@]} -gt 0 ]]; then
   echo ""
