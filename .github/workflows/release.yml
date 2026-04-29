@@ -169,6 +169,7 @@ jobs:
     name: Publish Cargo Crates
     needs: release-gate
     runs-on: ubuntu-latest
+    environment: release
     steps:
       - uses: actions/checkout@v4
 
@@ -223,6 +224,7 @@ jobs:
     name: Publish npm Packages
     needs: release-gate
     runs-on: ubuntu-latest
+    environment: release
     steps:
       - uses: actions/checkout@v4
 
@@ -259,6 +261,7 @@ jobs:
     name: Publish Python Packages
     needs: release-gate
     runs-on: ubuntu-latest
+    environment: release
     steps:
       - uses: actions/checkout@v4
 
@@ -298,6 +301,7 @@ jobs:
     name: Publish VS Code Extension
     needs: release-gate
     runs-on: ubuntu-latest
+    environment: release
     steps:
       - uses: actions/checkout@v4
 
