@@ -53,6 +53,33 @@ vendor-python: build-release
 vendor: vendor-npm vendor-python
 	@echo "Vendored native binary into npm and Python packages."
 
+# --- Release ---
+release-artifacts: build-release
+	./scripts/generate-release-artifacts.sh
+
+release-check: release-artifacts
+	crates/target/debug/mds release check --manifest release.mds.toml --verbose
+
+release-dry-run: check release-artifacts
+	@echo ""
+	@echo "=== Cargo package ==="
+	cd crates && cargo package --allow-dirty -p mds-core && cargo package --allow-dirty -p mds-lang-rs
+	@echo ""
+	@echo "=== npm pack ==="
+	cd packages && npm pack --workspaces --dry-run
+	@echo ""
+	@echo "=== Python build ==="
+	cd python/mds_cli && python3 -m py_compile mds_cli/__init__.py && python3 -m py_compile mds_cli/__main__.py
+	cd python/mds_lang_py && python3 -m py_compile mds_lang_py/__init__.py
+	@echo ""
+	@echo "=== VS Code extension ==="
+	cd editors/vscode && npx @vscode/vsce package --pre-release 2>/dev/null || echo "vsce not available (install: npm i -g @vscode/vsce)"
+	@echo ""
+	@echo "=== Release gate ==="
+	crates/target/debug/mds release check --manifest release.mds.toml --verbose
+	@echo ""
+	@echo "Alpha release dry run complete."
+
 # --- Documentation ---
 doc:
 	cd crates && cargo doc --no-deps --open
@@ -79,6 +106,12 @@ help:
 	@echo "  make run-build      mds build"
 	@echo "  make run-init       mds init (interactive)"
 	@echo "  make run-doctor     mds doctor"
+	@echo ""
+	@echo "Release:"
+	@echo "  make vendor             Vendor native binary"
+	@echo "  make release-artifacts  Generate checksums/SBOM/provenance"
+	@echo "  make release-check      Run release quality gate"
+	@echo "  make release-dry-run    Full dry-run (check + package + gate)"
 	@echo ""
 	@echo "Docs:"
 	@echo "  make doc            Generate and open API docs"
