@@ -318,12 +318,43 @@ where
 }
 
 pub fn print_usage() {
-    eprintln!("usage: mds check [--package <path>] [--verbose]");
-    eprintln!("       mds build [--package <path>] [--dry-run] [--verbose]");
-    eprintln!("       mds lint [--package <path>] [--fix [--check]] [--verbose]");
-    eprintln!("       mds test [--package <path>] [--verbose]");
-    eprintln!("       mds doctor [--package <path>] [--format text|json] [--verbose]");
-    eprintln!("       mds package sync [--package <path>] [--check] [--verbose]");
-    eprintln!("       mds init [--package <path>] [--ai] [--target <list>] [--categories <list>] [--ts-tools <list|default|none>] [--py-tools <list|default|none>] [--rs-tools <list|default|none>] [--yes] [--force] [--install-project-deps] [--install-toolchains] [--install-ai-cli] [--verbose]");
-    eprintln!("       mds release check [--manifest <path>] [--verbose]");
+    eprintln!();
+    eprintln!("mds — Markdown-driven code generation toolchain");
+    eprintln!();
+    eprintln!("Commands:");
+    eprintln!("  mds init                                  Interactive project setup (wizard mode)");
+    eprintln!("  mds init [options] --yes                  Non-interactive project setup");
+    eprintln!("  mds check [--package <path>]              Validate Markdown structure");
+    eprintln!("  mds build [--package <path>] [--dry-run]  Generate derived code");
+    eprintln!("  mds lint [--package <path>] [--fix]       Run linters on code blocks");
+    eprintln!("  mds test [--package <path>]               Run tests from code blocks");
+    eprintln!("  mds doctor [--package <path>]             Diagnose environment");
+    eprintln!("  mds package sync [--package <path>]       Sync package.md");
+    eprintln!("  mds release check [--manifest <path>]     Pre-release validation");
+    eprintln!();
+    eprintln!("Init options:");
+    eprintln!("  --ai                      AI agent kit only (skip project files)");
+    eprintln!("  --target <list>           AI targets: all, claude-code, codex-cli, opencode, github-copilot-cli");
+    eprintln!("  --categories <list>       Agent kit categories: all, instructions, skills, commands");
+    eprintln!("  --ts-tools <list>         TypeScript tools: eslint, prettier, biome, vitest, jest, default, none");
+    eprintln!("  --py-tools <list>         Python tools: ruff, black, pytest, unittest, default, none");
+    eprintln!("  --rs-tools <list>         Rust tools: rustfmt, clippy, cargo-test, nextest, default, none");
+    eprintln!("  --yes                     Execute without confirmation");
+    eprintln!("  --force                   Overwrite non-managed files");
+    eprintln!("  --install-project-deps    Run npm install / cargo fetch / uv sync");
+    eprintln!("  --install-toolchains      Check required toolchains");
+    eprintln!("  --install-ai-cli          Check AI CLI tools");
+    eprintln!();
+    eprintln!("Global options:");
+    eprintln!("  --package <path>          Target package directory");
+    eprintln!("  --verbose                 Show detailed output");
+    eprintln!();
+    eprintln!("Examples:");
+    eprintln!("  mds init                                      # Interactive wizard");
+    eprintln!("  mds init --package ./my-pkg --yes              # Quick setup with defaults");
+    eprintln!("  mds check --package ./my-pkg                   # Validate structure");
+    eprintln!("  mds build --package ./my-pkg --dry-run         # Preview generation");
+    eprintln!("  mds build --package ./my-pkg                   # Generate code");
+    eprintln!();
+    eprintln!("Documentation: https://github.com/your-org/mds");
 }

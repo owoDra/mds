@@ -1,0 +1,123 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "mds: Build",
+      "type": "shell",
+      "command": "cargo build",
+      "group": "build",
+      "options": {
+        "cwd": "${workspaceFolder}/crates"
+      },
+      "problemMatcher": [
+        "$rustc"
+      ]
+    },
+    {
+      "label": "mds: Test",
+      "type": "shell",
+      "command": "cargo test",
+      "group": "test",
+      "options": {
+        "cwd": "${workspaceFolder}/crates"
+      },
+      "problemMatcher": [
+        "$rustc"
+      ]
+    },
+    {
+      "label": "mds: Clippy",
+      "type": "shell",
+      "command": "cargo clippy -- -D warnings",
+      "group": "test",
+      "options": {
+        "cwd": "${workspaceFolder}/crates"
+      },
+      "problemMatcher": [
+        "$rustc"
+      ]
+    },
+    {
+      "label": "mds: Format",
+      "type": "shell",
+      "command": "cargo fmt",
+      "options": {
+        "cwd": "${workspaceFolder}/crates"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "mds: Format Check",
+      "type": "shell",
+      "command": "cargo fmt --check",
+      "options": {
+        "cwd": "${workspaceFolder}/crates"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "mds: Check All (fmt + clippy + test)",
+      "type": "shell",
+      "command": "cargo fmt --check && cargo clippy -- -D warnings && cargo test",
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      },
+      "options": {
+        "cwd": "${workspaceFolder}/crates"
+      },
+      "problemMatcher": [
+        "$rustc"
+      ]
+    },
+    {
+      "label": "mds: Run check (examples)",
+      "type": "shell",
+      "command": "cargo run -p mds-cli -- check --package ../examples/minimal-ts --verbose",
+      "options": {
+        "cwd": "${workspaceFolder}/crates"
+      },
+      "problemMatcher": [
+        "$rustc"
+      ]
+    },
+    {
+      "label": "mds: Run build --dry-run (examples)",
+      "type": "shell",
+      "command": "cargo run -p mds-cli -- build --package ../examples/minimal-ts --dry-run --verbose",
+      "options": {
+        "cwd": "${workspaceFolder}/crates"
+      },
+      "problemMatcher": [
+        "$rustc"
+      ]
+    },
+    {
+      "label": "mds: Run init (interactive)",
+      "type": "shell",
+      "command": "cargo run -p mds-cli -- init --package /tmp/mds-test-project",
+      "options": {
+        "cwd": "${workspaceFolder}/crates"
+      },
+      "problemMatcher": [
+        "$rustc"
+      ],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "focus": true
+      }
+    },
+    {
+      "label": "mds: Run doctor",
+      "type": "shell",
+      "command": "cargo run -p mds-cli -- doctor --verbose",
+      "options": {
+        "cwd": "${workspaceFolder}/crates"
+      },
+      "problemMatcher": [
+        "$rustc"
+      ]
+    }
+  ]
+}

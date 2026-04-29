@@ -4,6 +4,40 @@
 
 mds は、Markdown を設計、実装、テストの正本として扱い、Markdown 内のコードブロックから言語ごとの派生コードを生成する開発ツールチェーンです。
 
+## あなたの目的は？
+
+### mds を試してみたい
+
+1. [はじめに](getting-started.md) — 前提条件と最小構成
+2. [サンプルプロジェクト](../../../examples/) — 動作する最小構成の例
+3. [コマンド](commands.md) — 基本的な使い方
+
+### mds の考え方を理解したい
+
+1. [基本概念](concepts.md) — 正本・派生コード・公開面
+2. [Markdown 正本](markdown-source.md) — Markdown 文書の種類と役割
+3. [生成の仕組み](generation.md) — コード生成の規則
+
+### 既存プロジェクトに mds を導入したい
+
+1. [はじめに](getting-started.md) — 最小構成の確認
+2. [設定](configuration.md) — mds.config.toml の詳細
+3. [モノレポでの使い方](monorepo.md) — 複数パッケージの管理
+
+### AI エージェントと連携したい
+
+1. [AI エージェント連携](ai-agent-integration.md) — 対応 CLI と設定生成
+
+### 問題を解決したい
+
+1. [トラブルシューティング](troubleshooting.md) — よくある問題と解決策
+2. [品質検査](quality.md) — 検査と診断の実行方法
+
+### mds の開発に参加したい
+
+1. [コントリビューション](contributing.md) — 報告と提案の方針
+2. [開発ガイド](development.md) — 環境構築、ビルド、テスト、デバッグ
+
 ## 読む順序
 
 初めて読む場合は、次の順序がおすすめです。
@@ -14,18 +48,6 @@ mds は、Markdown を設計、実装、テストの正本として扱い、Mark
 4. [コマンド](commands.md)
 5. [設定](configuration.md)
 6. [生成の仕組み](generation.md)
-
-## 目的別の入口
-
-mds を試したい場合は、[はじめに](getting-started.md)を読んでください。
-
-mds の考え方を理解したい場合は、[基本概念](concepts.md)と[Markdown 正本](markdown-source.md)を読んでください。
-
-コマンドの使い分けを確認したい場合は、[コマンド](commands.md)を読んでください。
-
-複数のパッケージを含むリポジトリで使いたい場合は、[モノレポでの使い方](monorepo.md)を読んでください。
-
-生成されるファイルの規則を知りたい場合は、[生成の仕組み](generation.md)を読んでください。
 
 ## ページ一覧
 
@@ -45,4 +67,5 @@ mds の考え方を理解したい場合は、[基本概念](concepts.md)と[Mar
 | [トラブルシューティング](troubleshooting.md) | よくある問題と確認方法を説明します。 |
 | [AI エージェント連携](ai-agent-integration.md) | AI コーディングエージェント向け設定の生成と拡張方法を説明します。 |
 | [コントリビューション](contributing.md) | 開発参加時に確認することを説明します。 |
+| [開発ガイド](development.md) | 開発環境の構築、ビルド、テスト、デバッグの手順を説明します。 |
 | [ロードマップ](roadmap.md) | 現在の中心範囲と今後の予定を説明します。 |

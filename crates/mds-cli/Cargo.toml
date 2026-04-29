@@ -9,4 +9,5 @@ name = "mds"
 path = "src/main.rs"
 
 [dependencies]
+dialoguer = "0.11"
 mds-core = { path = "../mds-core" }

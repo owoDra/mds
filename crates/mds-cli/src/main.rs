@@ -1,5 +1,6 @@
 use mds_cli::args::{parse_args, print_usage};
-use mds_core::execute;
+use mds_cli::wizard::run_interactive_init;
+use mds_core::{execute, CliRequest, Command};
 
 fn main() {
     let cwd = match std::env::current_dir() {
@@ -10,10 +11,55 @@ fn main() {
         }
     };
 
+    let args: Vec<String> = std::env::args().skip(1).collect();
+
+    // Interactive wizard: `mds init` with no additional flags
+    if args.len() == 1 && args[0] == "init"
+        || args.len() == 3 && args[0] == "init" && args[1] == "--package"
+    {
+        let package = if args.len() == 3 {
+            Some(std::path::PathBuf::from(&args[2]))
+        } else {
+            None
+        };
+
+        match run_interactive_init() {
+            Ok(options) => {
+                let request = CliRequest {
+                    cwd,
+                    package,
+                    verbose: false,
+                    command: Command::Init { options },
+                };
+                let result = execute(request);
+                if !result.stdout.is_empty() {
+                    print!("{}", result.stdout);
+                }
+                if !result.stderr.is_empty() {
+                    eprint!("{}", result.stderr);
+                }
+                std::process::exit(result.exit_code);
+            }
+            Err(message) => {
+                eprintln!("{message}");
+                std::process::exit(2);
+            }
+        }
+    }
+
     let request = match parse_args(cwd) {
         Ok(request) => request,
         Err(message) => {
-            eprintln!("usage error: {message}");
+            eprintln!("error: {message}");
+            eprintln!();
+            if message.contains("missing command") {
+                eprintln!("hint: Run `mds init` to set up a new project interactively.");
+                eprintln!("      Run `mds check --package <path>` to validate an existing project.");
+            } else if message.contains("unknown command") {
+                eprintln!("hint: Available commands: init, check, build, lint, test, doctor, package sync, release check");
+            } else if message.contains("unknown option") {
+                eprintln!("hint: Use --verbose for detailed output. Run `mds` without arguments for full usage.");
+            }
             print_usage();
             std::process::exit(2);
         }
