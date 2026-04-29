@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use mds_cli::args::parse_args_from;
-use mds_core::{BuildMode, Command, DoctorFormat};
+use mds_core::{AgentKitCategory, AiTarget, BuildMode, Command, DoctorFormat};
 
 #[test]
 fn parses_build_dry_run() {
@@ -64,4 +64,60 @@ fn parses_post_mvp_commands() {
     )
     .unwrap();
     assert!(matches!(sync.command, Command::PackageSync { check: true }));
+}
+
+#[test]
+fn parses_init_command() {
+    let request = parse_args_from(
+        PathBuf::from("/repo"),
+        [
+            "init",
+            "--ai",
+            "--target",
+            "claude-code,opencode",
+            "--categories",
+            "instructions,commands",
+            "--yes",
+            "--force",
+            "--install-project-deps",
+            "--install-toolchains",
+            "--install-ai-cli",
+        ]
+        .map(String::from),
+    )
+    .unwrap();
+    match request.command {
+        Command::Init { options } => {
+            assert!(options.ai_only);
+            assert!(options.yes);
+            assert!(options.force);
+            assert!(options.install_project_deps);
+            assert!(options.install_toolchains);
+            assert!(options.install_ai_cli);
+            assert_eq!(
+                options.targets,
+                vec![AiTarget::ClaudeCode, AiTarget::Opencode]
+            );
+            assert_eq!(
+                options.categories,
+                vec![AgentKitCategory::Instructions, AgentKitCategory::Commands]
+            );
+        }
+        other => panic!("unexpected command: {other:?}"),
+    }
+}
+
+#[test]
+fn parses_release_check_command() {
+    let request = parse_args_from(
+        PathBuf::from("/repo"),
+        ["release", "check", "--manifest", "dist/release.mds.toml"].map(String::from),
+    )
+    .unwrap();
+    match request.command {
+        Command::ReleaseCheck { options } => {
+            assert_eq!(options.manifest, PathBuf::from("dist/release.mds.toml"));
+        }
+        other => panic!("unexpected command: {other:?}"),
+    }
 }

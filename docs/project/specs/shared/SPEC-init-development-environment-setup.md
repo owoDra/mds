@@ -43,6 +43,7 @@ related:
 - 自動導入対象は project dependencies、toolchains、global AI CLI とする。
 - 非対話実行では `--yes`、`--ai`、`--install-toolchains`、`--install-ai-cli` などの明示 option がない限り変更しない。
 - global toolchain / AI CLI の導入に失敗した場合、成功済み項目は保持し、失敗項目を診断する。
+- toolchain / AI CLI が不足する場合は、次に実行すべき install hint を診断または setup plan に含める。
 - 再実行時は既存 mds project を検出し、生成計画と変更差分を提示する。
 
 ## 状態遷移 / 不変条件

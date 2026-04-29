@@ -2,12 +2,14 @@ use crate::diagnostics::{Diagnostic, RunState};
 use crate::diff::{render_dry_run, write_generated};
 use crate::doctor::run_doctor;
 use crate::generation::plan_generation;
+use crate::init::run_init;
 use crate::manifest::validate_manifest;
 use crate::markdown::load_implementation_docs;
 use crate::model::{BuildMode, CliRequest, CliResult, Command, Package};
 use crate::package::{discover_packages, validate_index_docs, validate_package_md};
 use crate::package_sync::sync_package_md;
 use crate::quality::{run_quality, QualityOperation};
+use crate::release_quality::run_release_check;
 
 pub fn execute(request: CliRequest) -> CliResult {
     match execute_inner(request) {
@@ -22,6 +24,23 @@ pub fn execute(request: CliRequest) -> CliResult {
 
 fn execute_inner(request: CliRequest) -> Result<RunState, String> {
     let mut state = RunState::default();
+    match &request.command {
+        Command::Init { options } => {
+            run_init(
+                &request.cwd,
+                request.package.as_deref(),
+                options,
+                request.verbose,
+                &mut state,
+            )?;
+            return Ok(state);
+        }
+        Command::ReleaseCheck { options } => {
+            run_release_check(&request.cwd, options, &mut state)?;
+            return Ok(state);
+        }
+        _ => {}
+    }
     let packages = discover_packages(&request.cwd, request.package.as_deref(), &mut state)?;
     if packages.is_empty() {
         state
@@ -34,7 +53,12 @@ fn execute_inner(request: CliRequest) -> Result<RunState, String> {
         run_doctor(&packages, format, &mut state);
     } else {
         for package in packages {
-            run_package(&package, request.command, request.verbose, &mut state)?;
+            run_package(
+                &package,
+                request.command.clone(),
+                request.verbose,
+                &mut state,
+            )?;
         }
     }
 
@@ -131,6 +155,7 @@ pub(crate) fn run_package(
         }
         Command::PackageSync { .. } => unreachable!(),
         Command::Doctor { .. } => {}
+        Command::Init { .. } | Command::ReleaseCheck { .. } => unreachable!(),
     }
     Ok(())
 }

@@ -7,7 +7,7 @@ pub enum BuildMode {
     Write,
 }
 
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub enum Command {
     Check,
     Build { mode: BuildMode },
@@ -15,6 +15,121 @@ pub enum Command {
     Test,
     Doctor { format: DoctorFormat },
     PackageSync { check: bool },
+    Init { options: InitOptions },
+    ReleaseCheck { options: ReleaseQualityOptions },
+}
+
+#[derive(Debug, Clone, Eq, PartialEq)]
+pub struct InitOptions {
+    pub ai_only: bool,
+    pub yes: bool,
+    pub force: bool,
+    pub targets: Vec<AiTarget>,
+    pub categories: Vec<AgentKitCategory>,
+    pub install_project_deps: bool,
+    pub install_toolchains: bool,
+    pub install_ai_cli: bool,
+}
+
+impl Default for InitOptions {
+    fn default() -> Self {
+        Self {
+            ai_only: false,
+            yes: false,
+            force: false,
+            targets: AiTarget::all().to_vec(),
+            categories: AgentKitCategory::all().to_vec(),
+            install_project_deps: false,
+            install_toolchains: false,
+            install_ai_cli: false,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+pub enum AiTarget {
+    ClaudeCode,
+    CodexCli,
+    Opencode,
+    GithubCopilotCli,
+}
+
+impl AiTarget {
+    pub fn all() -> &'static [Self] {
+        &[
+            Self::ClaudeCode,
+            Self::CodexCli,
+            Self::Opencode,
+            Self::GithubCopilotCli,
+        ]
+    }
+
+    pub fn parse(value: &str) -> Option<Self> {
+        match value {
+            "all" => None,
+            "claude" | "claude-code" => Some(Self::ClaudeCode),
+            "codex" | "codex-cli" => Some(Self::CodexCli),
+            "opencode" => Some(Self::Opencode),
+            "copilot" | "github-copilot" | "github-copilot-cli" => Some(Self::GithubCopilotCli),
+            _ => None,
+        }
+    }
+
+    pub fn key(self) -> &'static str {
+        match self {
+            Self::ClaudeCode => "claude-code",
+            Self::CodexCli => "codex-cli",
+            Self::Opencode => "opencode",
+            Self::GithubCopilotCli => "github-copilot-cli",
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+pub enum AgentKitCategory {
+    Instructions,
+    Skills,
+    Commands,
+    Workflows,
+    Docs,
+}
+
+impl AgentKitCategory {
+    pub fn all() -> &'static [Self] {
+        &[
+            Self::Instructions,
+            Self::Skills,
+            Self::Commands,
+            Self::Workflows,
+            Self::Docs,
+        ]
+    }
+
+    pub fn parse(value: &str) -> Option<Self> {
+        match value {
+            "instructions" => Some(Self::Instructions),
+            "skills" => Some(Self::Skills),
+            "commands" => Some(Self::Commands),
+            "workflows" => Some(Self::Workflows),
+            "docs" => Some(Self::Docs),
+            _ => None,
+        }
+    }
+
+    pub fn key(self) -> &'static str {
+        match self {
+            Self::Instructions => "instructions",
+            Self::Skills => "skills",
+            Self::Commands => "commands",
+            Self::Workflows => "workflows",
+            Self::Docs => "docs",
+        }
+    }
+}
+
+#[derive(Debug, Clone, Eq, PartialEq)]
+pub struct ReleaseQualityOptions {
+    pub manifest: PathBuf,
 }
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
