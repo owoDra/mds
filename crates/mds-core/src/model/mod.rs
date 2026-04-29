@@ -170,8 +170,6 @@ pub enum AgentKitCategory {
     Instructions,
     Skills,
     Commands,
-    Workflows,
-    Docs,
 }
 
 impl AgentKitCategory {
@@ -180,8 +178,6 @@ impl AgentKitCategory {
             Self::Instructions,
             Self::Skills,
             Self::Commands,
-            Self::Workflows,
-            Self::Docs,
         ]
     }
 
@@ -190,8 +186,6 @@ impl AgentKitCategory {
             "instructions" => Some(Self::Instructions),
             "skills" => Some(Self::Skills),
             "commands" => Some(Self::Commands),
-            "workflows" => Some(Self::Workflows),
-            "docs" => Some(Self::Docs),
             _ => None,
         }
     }
@@ -201,8 +195,6 @@ impl AgentKitCategory {
             Self::Instructions => "instructions",
             Self::Skills => "skills",
             Self::Commands => "commands",
-            Self::Workflows => "workflows",
-            Self::Docs => "docs",
         }
     }
 }

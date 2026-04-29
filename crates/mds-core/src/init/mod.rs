@@ -6,6 +6,10 @@ use crate::diagnostics::{Diagnostic, RunState};
 use crate::fs_utils::is_mds_managed_file;
 use crate::model::{AgentKitCategory, AiTarget, InitOptions, PythonTool, RustTool, TypeScriptTool};
 
+mod template_registry {
+    include!(concat!(env!("OUT_DIR"), "/template_registry.rs"));
+}
+
 pub(crate) fn run_init(
     cwd: &Path,
     package: Option<&Path>,
@@ -60,6 +64,11 @@ pub(crate) fn run_init(
     }
 
     if !state.has_errors() && !state.environment_missing {
+        if !options.targets.is_empty() {
+            state
+                .stdout
+                .push_str(&ai_post_init_guide(&options.targets));
+        }
         state.stdout.push_str("init ok\n");
     }
     Ok(())
@@ -288,94 +297,60 @@ fn ai_files(
 ) -> Vec<PlannedFile> {
     let mut files = Vec::new();
     for target in targets {
-        for category in categories {
-            if let Some(file) = ai_file(root, *target, *category) {
-                files.push(file);
-            }
+        for file in ai_target_files(root, *target, categories) {
+            files.push(file);
         }
     }
     files
 }
 
-fn ai_file(root: &Path, target: AiTarget, category: AgentKitCategory) -> Option<PlannedFile> {
-    let (path, title) = match (target, category) {
-        (AiTarget::ClaudeCode, AgentKitCategory::Instructions) => ("CLAUDE.md", "Claude Code"),
-        (AiTarget::ClaudeCode, AgentKitCategory::Skills) => {
-            (".claude/skills/mds/SKILL.md", "Claude Code skill")
-        }
-        (AiTarget::ClaudeCode, AgentKitCategory::Commands) => {
-            (".claude/commands/mds-check.md", "Claude Code command")
-        }
-        (AiTarget::ClaudeCode, AgentKitCategory::Workflows) => (
-            ".claude/workflows/mds-validation.md",
-            "Claude Code workflow",
-        ),
-        (AiTarget::CodexCli, AgentKitCategory::Instructions) => ("AGENTS.md", "Codex CLI"),
-        (AiTarget::CodexCli, AgentKitCategory::Skills) => {
-            (".codex/skills/mds.md", "Codex CLI skill")
-        }
-        (AiTarget::CodexCli, AgentKitCategory::Commands) => {
-            (".codex/commands/mds-check.md", "Codex CLI command")
-        }
-        (AiTarget::CodexCli, AgentKitCategory::Workflows) => {
-            (".codex/workflows/mds-validation.md", "Codex CLI workflow")
-        }
-        (AiTarget::Opencode, AgentKitCategory::Instructions) => {
-            (".opencode/instructions.md", "Opencode")
-        }
-        (AiTarget::Opencode, AgentKitCategory::Skills) => {
-            (".opencode/skills/mds/SKILL.md", "Opencode skill")
-        }
-        (AiTarget::Opencode, AgentKitCategory::Commands) => {
-            (".opencode/commands/mds-check.md", "Opencode command")
-        }
-        (AiTarget::Opencode, AgentKitCategory::Workflows) => {
-            (".opencode/workflows/mds-validation.md", "Opencode workflow")
-        }
-        (AiTarget::GithubCopilotCli, AgentKitCategory::Instructions) => {
-            (".github/copilot-instructions.md", "GitHub Copilot CLI")
-        }
-        (AiTarget::GithubCopilotCli, AgentKitCategory::Skills) => (
-            ".github/prompts/mds-skill.prompt.md",
-            "GitHub Copilot prompt skill",
-        ),
-        (AiTarget::GithubCopilotCli, AgentKitCategory::Commands) => (
-            ".github/prompts/mds-check.prompt.md",
-            "GitHub Copilot prompt command",
-        ),
-        (AiTarget::GithubCopilotCli, AgentKitCategory::Workflows) => (
-            ".github/prompts/mds-validation.prompt.md",
-            "GitHub Copilot workflow prompt",
-        ),
-        (AiTarget::ClaudeCode, AgentKitCategory::Docs) => (
-            "docs/ai/claude-code-mds-agent-guide.md",
-            "Claude Code mds AI agent guide",
-        ),
-        (AiTarget::CodexCli, AgentKitCategory::Docs) => (
-            "docs/ai/codex-cli-mds-agent-guide.md",
-            "Codex CLI mds AI agent guide",
-        ),
-        (AiTarget::Opencode, AgentKitCategory::Docs) => (
-            "docs/ai/opencode-mds-agent-guide.md",
-            "Opencode mds AI agent guide",
-        ),
-        (AiTarget::GithubCopilotCli, AgentKitCategory::Docs) => (
-            "docs/ai/github-copilot-cli-mds-agent-guide.md",
-            "GitHub Copilot CLI mds AI agent guide",
-        ),
-    };
-    Some(PlannedFile {
-        path: root.join(path),
-        content: agent_template(title, target, category),
-    })
+fn ai_target_files(
+    root: &Path,
+    target: AiTarget,
+    categories: &[AgentKitCategory],
+) -> Vec<PlannedFile> {
+    let entries = template_registry::templates_for_target(target.key());
+    entries
+        .iter()
+        .filter(|entry| {
+            AgentKitCategory::parse(entry.category)
+                .is_some_and(|cat| categories.contains(&cat))
+        })
+        .map(|entry| PlannedFile {
+            path: root.join(entry.output_path),
+            content: entry.content.to_string(),
+        })
+        .collect()
 }
 
-fn agent_template(title: &str, target: AiTarget, category: AgentKitCategory) -> String {
-    format!(
-        "<!-- Generated by mds init. Target: {}. Category: {}. -->\n# {title}\n\nUse Markdown as the source of truth. Read `docs/project/index.md` when it exists, then read requirements, specs, architecture, and validation before changing generated behavior.\n\nRules:\n\n- Do not edit generated code as the source of truth.\n- Put imports outside code blocks in `Uses` tables.\n- Keep one implementation md per feature.\n- Run `mds check` before generation-sensitive changes.\n- Run `mds build --dry-run` before writing generated outputs.\n\nCommon commands:\n\n```sh\nmds check\nmds build --dry-run\nmds lint --fix --check\nmds test\n```\n",
-        target.key(),
-        category.key()
-    )
+fn ai_post_init_guide(targets: &[AiTarget]) -> String {
+    let mut guide = String::new();
+    guide.push_str("\nIntegration guide:\n");
+    for target in targets {
+        match target {
+            AiTarget::ClaudeCode => {
+                guide.push_str(
+                    "  Claude Code: Add `@.claude/rules/mds.md` to your CLAUDE.md for auto-loading\n",
+                );
+            }
+            AiTarget::CodexCli => {
+                guide.push_str(
+                    "  Codex CLI: Add mds section to your AGENTS.md or reference .codex/instructions.md\n",
+                );
+            }
+            AiTarget::Opencode => {
+                guide.push_str(
+                    "  Opencode: Agents are auto-discovered from .opencode/agents/\n",
+                );
+            }
+            AiTarget::GithubCopilotCli => {
+                guide.push_str(
+                    "  GitHub Copilot: Instructions auto-apply to matching paths via applyTo frontmatter\n",
+                );
+            }
+        }
+    }
+    guide
 }
 
 fn write_planned_file(file: &PlannedFile, force: bool, state: &mut RunState) -> Result<(), String> {

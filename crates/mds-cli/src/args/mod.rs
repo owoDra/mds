@@ -224,7 +224,7 @@ fn parse_categories(value: &str) -> Result<Vec<AgentKitCategory>, String> {
         .map(|part| {
             AgentKitCategory::parse(part).ok_or_else(|| {
                 format!(
-                    "unknown init category `{part}`; expected all, instructions, skills, commands, workflows, or docs"
+                    "unknown init category `{part}`; expected all, instructions, skills, or commands"
                 )
             })
         })
