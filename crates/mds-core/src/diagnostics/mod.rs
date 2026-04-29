@@ -1,21 +1,21 @@
 use std::path::PathBuf;
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
-pub(crate) enum Severity {
+pub enum Severity {
     Warning,
     Error,
 }
 
 #[derive(Debug, Clone)]
-pub(crate) struct Diagnostic {
-    pub(crate) severity: Severity,
-    path: Option<PathBuf>,
-    line: Option<usize>,
-    message: String,
+pub struct Diagnostic {
+    pub severity: Severity,
+    pub path: Option<PathBuf>,
+    pub line: Option<usize>,
+    pub message: String,
 }
 
 impl Diagnostic {
-    pub(crate) fn warning(path: Option<PathBuf>, message: impl Into<String>) -> Self {
+    pub fn warning(path: Option<PathBuf>, message: impl Into<String>) -> Self {
         Self {
             severity: Severity::Warning,
             path,
@@ -24,7 +24,7 @@ impl Diagnostic {
         }
     }
 
-    pub(crate) fn error(path: Option<PathBuf>, message: impl Into<String>) -> Self {
+    pub fn error(path: Option<PathBuf>, message: impl Into<String>) -> Self {
         Self {
             severity: Severity::Error,
             path,
@@ -33,12 +33,12 @@ impl Diagnostic {
         }
     }
 
-    pub(crate) fn at_line(mut self, line: usize) -> Self {
+    pub fn at_line(mut self, line: usize) -> Self {
         self.line = Some(line);
         self
     }
 
-    pub(crate) fn render(&self) -> String {
+    pub fn render(&self) -> String {
         let level = match self.severity {
             Severity::Warning => "warning",
             Severity::Error => "error",
@@ -54,15 +54,15 @@ impl Diagnostic {
 }
 
 #[derive(Debug, Default)]
-pub(crate) struct RunState {
-    pub(crate) stdout: String,
-    pub(crate) diagnostics: Vec<Diagnostic>,
-    pub(crate) generated: Vec<PathBuf>,
-    pub(crate) environment_missing: bool,
+pub struct RunState {
+    pub stdout: String,
+    pub diagnostics: Vec<Diagnostic>,
+    pub generated: Vec<PathBuf>,
+    pub environment_missing: bool,
 }
 
 impl RunState {
-    pub(crate) fn has_errors(&self) -> bool {
+    pub fn has_errors(&self) -> bool {
         self.diagnostics
             .iter()
             .any(|diagnostic| diagnostic.severity == Severity::Error)

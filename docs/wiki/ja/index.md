@@ -28,6 +28,10 @@ mds は、Markdown を設計、実装、テストの正本として扱い、Mark
 
 1. [AI エージェント連携](ai-agent-integration.md) — 対応 CLI と設定生成
 
+### エディタで mds を使いたい
+
+1. [エディタ統合 (LSP)](editor-integration.md) — VSCode 拡張、Neovim、リアルタイム診断
+
 ### 問題を解決したい
 
 1. [トラブルシューティング](troubleshooting.md) — よくある問題と解決策
@@ -66,6 +70,7 @@ mds は、Markdown を設計、実装、テストの正本として扱い、Mark
 | [配布方針](distribution.md) | Cargo、npm、Python パッケージ、ネイティブ実行ファイルでの配布方針を説明します。 |
 | [トラブルシューティング](troubleshooting.md) | よくある問題と確認方法を説明します。 |
 | [AI エージェント連携](ai-agent-integration.md) | AI コーディングエージェント向け設定の生成と拡張方法を説明します。 |
+| [エディタ統合 (LSP)](editor-integration.md) | LSP サーバーによるリアルタイム診断、ナビゲーション、補完、VSCode 拡張を説明します。 |
 | [コントリビューション](contributing.md) | 開発参加時に確認することを説明します。 |
 | [開発ガイド](development.md) | 開発環境の構築、ビルド、テスト、デバッグの手順を説明します。 |
 | [ロードマップ](roadmap.md) | 現在の中心範囲と今後の予定を説明します。 |

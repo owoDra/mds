@@ -297,14 +297,14 @@ pub struct CliResult {
 }
 
 #[derive(Debug, Clone, Copy, Eq, Hash, PartialEq)]
-pub(crate) enum Lang {
+pub enum Lang {
     TypeScript,
     Python,
     Rust,
 }
 
 impl Lang {
-    pub(crate) fn from_path(path: &Path) -> Option<Self> {
+    pub fn from_path(path: &Path) -> Option<Self> {
         let name = path.file_name()?.to_string_lossy();
         if name.ends_with(".ts.md") {
             Some(Self::TypeScript)
@@ -317,7 +317,7 @@ impl Lang {
         }
     }
 
-    pub(crate) fn key(self) -> &'static str {
+    pub fn key(self) -> &'static str {
         match self {
             Self::TypeScript => "ts",
             Self::Python => "py",
@@ -325,7 +325,7 @@ impl Lang {
         }
     }
 
-    pub(crate) fn header_prefix(self) -> &'static str {
+    pub fn header_prefix(self) -> &'static str {
         match self {
             Self::Python => "#",
             Self::TypeScript | Self::Rust => "//",
@@ -334,11 +334,11 @@ impl Lang {
 }
 
 #[derive(Debug, Clone)]
-pub(crate) struct Roots {
-    pub(crate) markdown: PathBuf,
-    pub(crate) source: PathBuf,
-    pub(crate) types: PathBuf,
-    pub(crate) test: PathBuf,
+pub struct Roots {
+    pub markdown: PathBuf,
+    pub source: PathBuf,
+    pub types: PathBuf,
+    pub test: PathBuf,
 }
 
 impl Default for Roots {
@@ -353,16 +353,16 @@ impl Default for Roots {
 }
 
 #[derive(Debug, Clone)]
-pub(crate) struct Config {
-    pub(crate) enabled: bool,
-    pub(crate) allow_raw_source: bool,
-    pub(crate) roots: Roots,
-    pub(crate) adapters: HashMap<Lang, bool>,
-    pub(crate) quality: HashMap<Lang, QualityConfig>,
-    pub(crate) excludes: Vec<String>,
-    pub(crate) package_sync_hook_enabled: bool,
-    pub(crate) package_sync_hook: Option<String>,
-    pub(crate) label_overrides: HashMap<String, String>,
+pub struct Config {
+    pub enabled: bool,
+    pub allow_raw_source: bool,
+    pub roots: Roots,
+    pub adapters: HashMap<Lang, bool>,
+    pub quality: HashMap<Lang, QualityConfig>,
+    pub excludes: Vec<String>,
+    pub package_sync_hook_enabled: bool,
+    pub package_sync_hook: Option<String>,
+    pub label_overrides: HashMap<String, String>,
 }
 
 impl Default for Config {
@@ -390,12 +390,12 @@ impl Default for Config {
 }
 
 #[derive(Debug, Clone)]
-pub(crate) struct QualityConfig {
-    pub(crate) lint: Option<String>,
-    pub(crate) fix: Option<String>,
-    pub(crate) test: Option<String>,
-    pub(crate) required: Vec<String>,
-    pub(crate) optional: Vec<String>,
+pub struct QualityConfig {
+    pub lint: Option<String>,
+    pub fix: Option<String>,
+    pub test: Option<String>,
+    pub required: Vec<String>,
+    pub optional: Vec<String>,
 }
 
 impl QualityConfig {
@@ -426,48 +426,48 @@ impl QualityConfig {
     }
 }
 
-#[derive(Debug)]
-pub(crate) struct Package {
-    pub(crate) root: PathBuf,
-    pub(crate) config: Config,
-    pub(crate) metadata_kind: MetadataKind,
+#[derive(Debug, Clone)]
+pub struct Package {
+    pub root: PathBuf,
+    pub config: Config,
+    pub metadata_kind: MetadataKind,
 }
 
 #[derive(Debug, Clone)]
-pub(crate) struct PackageMetadata {
-    pub(crate) name: String,
-    pub(crate) version: String,
-    pub(crate) dependencies: HashMap<String, String>,
-    pub(crate) dev_dependencies: HashMap<String, String>,
+pub struct PackageMetadata {
+    pub name: String,
+    pub version: String,
+    pub dependencies: HashMap<String, String>,
+    pub dev_dependencies: HashMap<String, String>,
 }
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
-pub(crate) enum MetadataKind {
+pub enum MetadataKind {
     Node,
     Python,
     Rust,
 }
 
 #[derive(Debug, Clone)]
-pub(crate) struct ImplDoc {
-    pub(crate) lang: Lang,
-    pub(crate) path: PathBuf,
-    pub(crate) package_relative_path: PathBuf,
-    pub(crate) markdown_relative_path: PathBuf,
-    pub(crate) uses: HashMap<OutputKind, Vec<UseRow>>,
-    pub(crate) code: HashMap<OutputKind, String>,
-    pub(crate) normalized_input: String,
+pub struct ImplDoc {
+    pub lang: Lang,
+    pub path: PathBuf,
+    pub package_relative_path: PathBuf,
+    pub markdown_relative_path: PathBuf,
+    pub uses: HashMap<OutputKind, Vec<UseRow>>,
+    pub code: HashMap<OutputKind, String>,
+    pub normalized_input: String,
 }
 
 #[derive(Debug, Clone, Copy, Eq, Hash, Ord, PartialEq, PartialOrd)]
-pub(crate) enum OutputKind {
+pub enum OutputKind {
     Types,
     Source,
     Test,
 }
 
 impl OutputKind {
-    pub(crate) fn section(self) -> &'static str {
+    pub fn section(self) -> &'static str {
         match self {
             Self::Types => "Types",
             Self::Source => "Source",
@@ -475,7 +475,7 @@ impl OutputKind {
         }
     }
 
-    pub(crate) fn manifest_kind(self) -> &'static str {
+    pub fn manifest_kind(self) -> &'static str {
         match self {
             Self::Types => "types",
             Self::Source => "source",
@@ -485,21 +485,21 @@ impl OutputKind {
 }
 
 #[derive(Debug, Clone, Eq, Hash, PartialEq)]
-pub(crate) struct UseRow {
-    pub(crate) from: UseFrom,
-    pub(crate) target: String,
-    pub(crate) exposes: Vec<UseExpose>,
+pub struct UseRow {
+    pub from: UseFrom,
+    pub target: String,
+    pub exposes: Vec<UseExpose>,
 }
 
 #[derive(Debug, Clone, Eq, Hash, PartialEq)]
-pub(crate) enum UseExpose {
+pub enum UseExpose {
     Named { name: String, alias: Option<String> },
     Default { local: String },
     Namespace { local: String },
 }
 
 impl UseExpose {
-    pub(crate) fn render_key(&self) -> String {
+    pub fn render_key(&self) -> String {
         match self {
             Self::Named { name, alias: None } => name.clone(),
             Self::Named {
@@ -513,7 +513,7 @@ impl UseExpose {
 }
 
 #[derive(Debug, Clone, Copy, Eq, Hash, Ord, PartialEq, PartialOrd)]
-pub(crate) enum UseFrom {
+pub enum UseFrom {
     Builtin,
     Package,
     Workspace,
@@ -521,7 +521,7 @@ pub(crate) enum UseFrom {
 }
 
 impl UseFrom {
-    pub(crate) fn parse(value: &str) -> Option<Self> {
+    pub fn parse(value: &str) -> Option<Self> {
         match value {
             "builtin" => Some(Self::Builtin),
             "package" => Some(Self::Package),
@@ -533,15 +533,15 @@ impl UseFrom {
 }
 
 #[derive(Debug, Clone)]
-pub(crate) struct GeneratedFile {
-    pub(crate) path: PathBuf,
-    pub(crate) content: String,
-    pub(crate) kind: GeneratedKind,
-    pub(crate) source_path: Option<PathBuf>,
+pub struct GeneratedFile {
+    pub path: PathBuf,
+    pub content: String,
+    pub kind: GeneratedKind,
+    pub source_path: Option<PathBuf>,
 }
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
-pub(crate) enum GeneratedKind {
+pub enum GeneratedKind {
     Output(OutputKind),
     Manifest,
     RustModule,

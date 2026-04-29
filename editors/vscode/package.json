@@ -1,0 +1,102 @@
+{
+  "name": "mds-vscode",
+  "displayName": "mds - Markdown Design System",
+  "description": "Language support for mds (Markdown Design System) implementation files",
+  "version": "0.1.0",
+  "publisher": "mds",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Linters",
+    "Snippets"
+  ],
+  "activationEvents": [
+    "workspaceContains:**/mds.config.toml"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "mds-markdown",
+        "aliases": [
+          "mds Markdown"
+        ],
+        "extensions": [
+          ".ts.md",
+          ".py.md",
+          ".rs.md"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "mds-markdown",
+        "scopeName": "text.html.markdown.mds",
+        "path": "./syntaxes/mds-markdown.tmLanguage.json",
+        "embeddedLanguages": {
+          "source.ts": "typescript",
+          "source.py": "python",
+          "source.rs": "rust"
+        }
+      }
+    ],
+    "snippets": [
+      {
+        "language": "mds-markdown",
+        "path": "./snippets/mds.json"
+      }
+    ],
+    "configuration": {
+      "title": "mds",
+      "properties": {
+        "mds.lsp.path": {
+          "type": "string",
+          "default": "",
+          "description": "Path to the mds-lsp binary. If empty, uses the binary from PATH."
+        },
+        "mds.lsp.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable/disable the mds language server."
+        },
+        "mds.lsp.logLevel": {
+          "type": "string",
+          "default": "info",
+          "enum": [
+            "error",
+            "warn",
+            "info",
+            "debug",
+            "trace"
+          ],
+          "description": "Log level for the mds language server."
+        },
+        "mds.lsp.additionalLanguages": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "Additional language file extensions to activate (e.g., '.go.md', '.java.md')."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0",
+    "@types/node": "^20.11.0",
+    "typescript": "^5.3.3"
+  }
+}

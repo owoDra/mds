@@ -1,0 +1,159 @@
+{
+  "mds: New Implementation Document": {
+    "prefix": "mds-doc",
+    "body": [
+      "## Purpose",
+      "",
+      "${1:Describe the module purpose}",
+      "",
+      "## Contract",
+      "",
+      "${2:Define the public contract}",
+      "",
+      "## Types",
+      "",
+      "### Uses",
+      "",
+      "| From | Target | Expose | Summary |",
+      "| --- | --- | --- | --- |",
+      "| ${3:builtin} | ${4:target} | ${5:Name} | ${6:description} |",
+      "",
+      "```${7:typescript}",
+      "${8:// type definitions}",
+      "```",
+      "",
+      "## Source",
+      "",
+      "### Uses",
+      "",
+      "| From | Target | Expose | Summary |",
+      "| --- | --- | --- | --- |",
+      "| ${9:internal} | ${10:target} | ${11:Name} | ${12:description} |",
+      "",
+      "```${13:typescript}",
+      "${14:// implementation}",
+      "```",
+      "",
+      "## Cases",
+      "",
+      "${15:Describe use cases}",
+      "",
+      "## Test",
+      "",
+      "### Uses",
+      "",
+      "| From | Target | Expose | Summary |",
+      "| --- | --- | --- | --- |",
+      "| ${16:internal} | ${17:target} | ${18:Name} | ${19:description} |",
+      "",
+      "```${20:typescript}",
+      "${21:// test code}",
+      "```"
+    ],
+    "description": "Full mds implementation document template"
+  },
+  "mds: Uses Table": {
+    "prefix": "mds-uses",
+    "body": [
+      "### Uses",
+      "",
+      "| From | Target | Expose | Summary |",
+      "| --- | --- | --- | --- |",
+      "| ${1|builtin,package,workspace,internal|} | ${2:target} | ${3:Name} | ${4:description} |"
+    ],
+    "description": "Uses table with header"
+  },
+  "mds: Uses Row": {
+    "prefix": "mds-use-row",
+    "body": [
+      "| ${1|builtin,package,workspace,internal|} | ${2:target} | ${3:Name} | ${4:description} |"
+    ],
+    "description": "Single Uses table row"
+  },
+  "mds: Section": {
+    "prefix": "mds-section",
+    "body": [
+      "## ${1|Purpose,Contract,Types,Source,Cases,Test|}",
+      "",
+      "${2:content}",
+      ""
+    ],
+    "description": "mds section heading"
+  },
+  "mds: Code Section": {
+    "prefix": "mds-code-section",
+    "body": [
+      "## ${1|Types,Source,Test|}",
+      "",
+      "### Uses",
+      "",
+      "| From | Target | Expose | Summary |",
+      "| --- | --- | --- | --- |",
+      "| ${2|builtin,package,workspace,internal|} | ${3:target} | ${4:Name} | ${5:description} |",
+      "",
+      "```${6:typescript}",
+      "${7:// code}",
+      "```"
+    ],
+    "description": "mds code section with Uses table and code block"
+  },
+  "mds: Code Block": {
+    "prefix": "mds-code",
+    "body": [
+      "```${1|typescript,python,rust|}",
+      "${2:// code}",
+      "```"
+    ],
+    "description": "Code block with language label"
+  },
+  "mds.config.toml: Basic Config": {
+    "prefix": "mds-config",
+    "body": [
+      "[package]",
+      "enabled = true",
+      "",
+      "[roots]",
+      "markdown = \"src-md\"",
+      "source = \"src\"",
+      "types = \"src\"",
+      "test = \"tests\"",
+      "",
+      "[adapters.${1|ts,py,rs|}]",
+      "enabled = true"
+    ],
+    "description": "Basic mds.config.toml configuration"
+  },
+  "mds.config.toml: Full Config": {
+    "prefix": "mds-config-full",
+    "body": [
+      "[package]",
+      "enabled = true",
+      "allow_raw_source = false",
+      "",
+      "[roots]",
+      "markdown = \"src-md\"",
+      "source = \"src\"",
+      "types = \"src\"",
+      "test = \"tests\"",
+      "excludes = []",
+      "",
+      "[adapters.ts]",
+      "enabled = ${1:true}",
+      "",
+      "[adapters.py]",
+      "enabled = ${2:true}",
+      "",
+      "[adapters.rs]",
+      "enabled = ${3:true}",
+      "",
+      "[quality.ts]",
+      "lint = \"${4:eslint}\"",
+      "test = \"${5:vitest run}\"",
+      "",
+      "[labels]",
+      "# purpose = \"目的\"",
+      "# contract = \"契約\""
+    ],
+    "description": "Full mds.config.toml with all sections"
+  }
+}

@@ -1,6 +1,6 @@
 mod adapter;
-mod config;
-mod diagnostics;
+pub mod config;
+pub mod diagnostics;
 mod diff;
 mod doctor;
 mod fs_utils;
@@ -8,19 +8,21 @@ mod generation;
 mod hash;
 mod init;
 mod manifest;
-mod markdown;
-mod model;
+pub mod markdown;
+pub mod model;
 mod new;
-mod package;
+pub mod package;
 mod package_sync;
 mod quality;
 mod release_quality;
 mod runner;
-mod table;
+pub mod table;
 
 pub use model::{
-    AgentKitCategory, AiTarget, BuildMode, CliRequest, CliResult, Command, DoctorFormat,
-    InitOptions, LabelPreset, NewOptions, PythonTool, ReleaseQualityOptions, RustTool,
-    TypeScriptTool,
+    AgentKitCategory, AiTarget, BuildMode, CliRequest, CliResult, Command, Config, DoctorFormat,
+    GeneratedFile, GeneratedKind, ImplDoc, InitOptions, LabelPreset, Lang, MetadataKind,
+    NewOptions, OutputKind, Package, PackageMetadata, PythonTool, QualityConfig,
+    ReleaseQualityOptions, Roots, RustTool, TypeScriptTool, UseExpose, UseFrom, UseRow,
 };
+pub use diagnostics::{Diagnostic, RunState, Severity};
 pub use runner::execute;

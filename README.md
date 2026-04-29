@@ -47,6 +47,34 @@ cargo run -p mds-cli -- build --package ../path/to/package
 - [コマンド](docs/wiki/ja/commands.md) — 全コマンドの使い方
 - [開発ガイド](docs/wiki/ja/development.md) — ビルド、テスト、デバッグ
 - [AI エージェント連携](docs/wiki/ja/ai-agent-integration.md) — Claude Code、Codex、Opencode、GitHub Copilot
+- [エディタ統合 (LSP)](docs/wiki/ja/editor-integration.md) — VSCode 拡張、Neovim、リアルタイム診断
+
+## エディタ統合 (LSP)
+
+mds は Language Server Protocol (LSP) サーバーを同梱しており、エディタ上でリアルタイムな Markdown 検証、コード補完、ナビゲーションを提供します。
+
+```bash
+# LSP サーバーのビルド
+cd crates && cargo build -p mds-lsp --release
+
+# PATH に追加（任意）
+cp target/release/mds-lsp /usr/local/bin/
+```
+
+**主な機能:**
+
+| 機能 | 説明 |
+| --- | --- |
+| リアルタイム診断 | セクション構造、テーブル形式、言語一致、config 検証、リンク検証 |
+| Go to Definition | Uses テーブルの Target から参照先の実装 Markdown へジャンプ |
+| Find References | Expose された名前がどこで Uses されているか検索 |
+| Document Symbols | セクション見出しのアウトライン表示 |
+| Workspace Symbols | `src-md/` 全体のモジュール名検索 |
+| 補完 | セクション名、テーブルカラム名、コードブロック言語、スニペット |
+| Hover | セクション説明、参照先モジュールの Purpose 表示 |
+| Code Action | 欠損セクションの自動追加（Quick Fix） |
+
+詳細は [エディタ統合ガイド](docs/wiki/ja/editor-integration.md) を参照してください。
 
 ## コントリビューション
 

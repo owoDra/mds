@@ -1,0 +1,196 @@
+{
+  "scopeName": "text.html.markdown.mds",
+  "name": "mds Markdown",
+  "patterns": [
+    {
+      "include": "#mds-section-heading"
+    },
+    {
+      "include": "#mds-subsection-heading"
+    },
+    {
+      "include": "#mds-table"
+    },
+    {
+      "include": "#mds-code-block-typescript"
+    },
+    {
+      "include": "#mds-code-block-python"
+    },
+    {
+      "include": "#mds-code-block-rust"
+    },
+    {
+      "include": "#mds-code-block-generic"
+    },
+    {
+      "include": "text.html.markdown"
+    }
+  ],
+  "repository": {
+    "mds-section-heading": {
+      "match": "^(##)\\s+(Purpose|Contract|Types|Source|Cases|Test|Expose|Exposes|目的|契約|型定義|実装|ケース|テスト|公開|公開面)\\s*$",
+      "captures": {
+        "1": {
+          "name": "punctuation.definition.heading.markdown.mds"
+        },
+        "2": {
+          "name": "entity.name.section.mds"
+        }
+      },
+      "name": "markup.heading.2.mds"
+    },
+    "mds-subsection-heading": {
+      "match": "^(###)\\s+(Uses|使用)\\s*$",
+      "captures": {
+        "1": {
+          "name": "punctuation.definition.heading.markdown.mds"
+        },
+        "2": {
+          "name": "entity.name.section.uses.mds"
+        }
+      },
+      "name": "markup.heading.3.mds"
+    },
+    "mds-table": {
+      "begin": "^\\s*(\\|)",
+      "end": "(\\|)\\s*$",
+      "beginCaptures": {
+        "1": {
+          "name": "punctuation.separator.table.mds"
+        }
+      },
+      "endCaptures": {
+        "1": {
+          "name": "punctuation.separator.table.mds"
+        }
+      },
+      "patterns": [
+        {
+          "match": "\\b(builtin|package|workspace|internal)\\b",
+          "name": "constant.language.use-from.mds"
+        },
+        {
+          "match": "\\b(From|Target|Expose|Summary|Name|Version|取得元|対象|公開|概要|名前|バージョン)\\b",
+          "name": "support.type.table-header.mds"
+        },
+        {
+          "match": "(\\|)",
+          "name": "punctuation.separator.table.mds"
+        },
+        {
+          "match": "(---+)",
+          "name": "punctuation.separator.table-divider.mds"
+        },
+        {
+          "match": "\\b(default:\\s*\\w+)",
+          "name": "keyword.other.default-import.mds"
+        },
+        {
+          "match": "(\\*\\s+as\\s+\\w+)",
+          "name": "keyword.other.namespace-import.mds"
+        },
+        {
+          "match": "(\\w+)\\s+as\\s+(\\w+)",
+          "captures": {
+            "1": {
+              "name": "variable.other.original.mds"
+            },
+            "2": {
+              "name": "variable.other.alias.mds"
+            }
+          }
+        }
+      ],
+      "name": "meta.table.mds"
+    },
+    "mds-code-block-typescript": {
+      "begin": "^(\\s*```)(typescript|ts)\\s*$",
+      "end": "^(\\s*```\\s*)$",
+      "beginCaptures": {
+        "1": {
+          "name": "punctuation.definition.code.fenced.markdown.mds"
+        },
+        "2": {
+          "name": "fenced_code.block.language.mds"
+        }
+      },
+      "endCaptures": {
+        "1": {
+          "name": "punctuation.definition.code.fenced.markdown.mds"
+        }
+      },
+      "contentName": "meta.embedded.block.typescript",
+      "patterns": [
+        {
+          "include": "source.ts"
+        }
+      ]
+    },
+    "mds-code-block-python": {
+      "begin": "^(\\s*```)(python|py)\\s*$",
+      "end": "^(\\s*```\\s*)$",
+      "beginCaptures": {
+        "1": {
+          "name": "punctuation.definition.code.fenced.markdown.mds"
+        },
+        "2": {
+          "name": "fenced_code.block.language.mds"
+        }
+      },
+      "endCaptures": {
+        "1": {
+          "name": "punctuation.definition.code.fenced.markdown.mds"
+        }
+      },
+      "contentName": "meta.embedded.block.python",
+      "patterns": [
+        {
+          "include": "source.python"
+        }
+      ]
+    },
+    "mds-code-block-rust": {
+      "begin": "^(\\s*```)(rust|rs)\\s*$",
+      "end": "^(\\s*```\\s*)$",
+      "beginCaptures": {
+        "1": {
+          "name": "punctuation.definition.code.fenced.markdown.mds"
+        },
+        "2": {
+          "name": "fenced_code.block.language.mds"
+        }
+      },
+      "endCaptures": {
+        "1": {
+          "name": "punctuation.definition.code.fenced.markdown.mds"
+        }
+      },
+      "contentName": "meta.embedded.block.rust",
+      "patterns": [
+        {
+          "include": "source.rust"
+        }
+      ]
+    },
+    "mds-code-block-generic": {
+      "begin": "^(\\s*```)(\\w+)?\\s*$",
+      "end": "^(\\s*```\\s*)$",
+      "beginCaptures": {
+        "1": {
+          "name": "punctuation.definition.code.fenced.markdown.mds"
+        },
+        "2": {
+          "name": "fenced_code.block.language.mds"
+        }
+      },
+      "endCaptures": {
+        "1": {
+          "name": "punctuation.definition.code.fenced.markdown.mds"
+        }
+      },
+      "contentName": "meta.embedded.block",
+      "name": "markup.fenced_code.block.markdown.mds"
+    }
+  }
+}

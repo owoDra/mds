@@ -10,7 +10,7 @@ use crate::markdown::{sections_with_labels, validate_markdown_links};
 use crate::model::{MetadataKind, Package, PackageMetadata};
 use crate::table::parse_table_with_labels;
 
-pub(crate) fn discover_packages(
+pub fn discover_packages(
     cwd: &Path,
     package: Option<&Path>,
     state: &mut RunState,
@@ -46,7 +46,7 @@ pub(crate) fn discover_packages(
     Ok(packages)
 }
 
-pub(crate) fn load_package(
+pub fn load_package(
     root: &Path,
     base_config: &crate::model::Config,
     state: &mut RunState,
@@ -97,7 +97,7 @@ pub(crate) fn load_package(
     })
 }
 
-pub(crate) fn metadata_kind(root: &Path) -> Option<MetadataKind> {
+pub fn metadata_kind(root: &Path) -> Option<MetadataKind> {
     if root.join("package.json").exists() {
         Some(MetadataKind::Node)
     } else if root.join("pyproject.toml").exists() {
@@ -109,7 +109,7 @@ pub(crate) fn metadata_kind(root: &Path) -> Option<MetadataKind> {
     }
 }
 
-pub(crate) fn validate_package_md(package: &Package, state: &mut RunState) {
+pub fn validate_package_md(package: &Package, state: &mut RunState) {
     let path = package.root.join("package.md");
     let text = match fs::read_to_string(&path) {
         Ok(text) => text,
@@ -182,7 +182,7 @@ pub(crate) fn validate_package_md(package: &Package, state: &mut RunState) {
     validate_dependency_section(package, &sections, "Dev Dependencies", true, &path, state);
 }
 
-pub(crate) fn read_package_metadata(
+pub fn read_package_metadata(
     package: &Package,
     state: &mut RunState,
 ) -> Option<PackageMetadata> {
@@ -195,7 +195,7 @@ pub(crate) fn read_package_metadata(
     }
 }
 
-pub(crate) fn read_node_metadata(path: &Path, state: &mut RunState) -> Option<PackageMetadata> {
+pub fn read_node_metadata(path: &Path, state: &mut RunState) -> Option<PackageMetadata> {
     let text = match fs::read_to_string(path) {
         Ok(text) => text,
         Err(error) => {
@@ -259,7 +259,7 @@ fn json_dependency_version(value: &serde_json::Value) -> String {
     value.to_string()
 }
 
-pub(crate) fn read_toml_metadata(
+pub fn read_toml_metadata(
     path: &Path,
     table_path: &[&str],
     state: &mut RunState,
@@ -305,7 +305,7 @@ pub(crate) fn read_toml_metadata(
     }
 }
 
-pub(crate) fn read_python_metadata(path: &Path, state: &mut RunState) -> Option<PackageMetadata> {
+pub fn read_python_metadata(path: &Path, state: &mut RunState) -> Option<PackageMetadata> {
     let text = match fs::read_to_string(path) {
         Ok(text) => text,
         Err(error) => {
@@ -488,7 +488,7 @@ fn validate_dependency_section(
     }
 }
 
-pub(crate) fn rust_expose_modules(package: &Package, state: &mut RunState) -> Vec<Vec<String>> {
+pub fn rust_expose_modules(package: &Package, state: &mut RunState) -> Vec<Vec<String>> {
     let markdown_root = package.root.join(&package.config.roots.markdown);
     let Ok(files) = collect_files(&markdown_root, false) else {
         return Vec::new();
@@ -533,7 +533,7 @@ pub(crate) fn rust_expose_modules(package: &Package, state: &mut RunState) -> Ve
     modules
 }
 
-pub(crate) fn validate_index_docs(package: &Package, state: &mut RunState) {
+pub fn validate_index_docs(package: &Package, state: &mut RunState) {
     let markdown_root = package.root.join(&package.config.roots.markdown);
     if !markdown_root.exists() {
         return;
@@ -584,7 +584,7 @@ pub(crate) fn validate_index_docs(package: &Package, state: &mut RunState) {
     }
 }
 
-pub(crate) fn validate_expose_rows(
+pub fn validate_expose_rows(
     rows: &[HashMap<String, String>],
     path: &Path,
     state: &mut RunState,

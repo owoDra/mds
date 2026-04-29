@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 use crate::diagnostics::{Diagnostic, RunState};
 use crate::model::{Config, Lang};
 
-pub(crate) fn merge_config_file(
+pub fn merge_config_file(
     config: &mut Config,
     path: &Path,
     state: &mut RunState,

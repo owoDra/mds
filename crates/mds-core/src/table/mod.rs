@@ -3,7 +3,7 @@ use std::path::Path;
 
 use crate::diagnostics::{Diagnostic, RunState};
 
-pub(crate) fn parse_table_with_labels(
+pub fn parse_table_with_labels(
     section: &str,
     required: &[&str],
     path: &Path,
@@ -94,7 +94,7 @@ fn canonical_header(
     header
 }
 
-pub(crate) fn split_table_row(line: &str) -> Vec<String> {
+pub fn split_table_row(line: &str) -> Vec<String> {
     let line = line.trim().trim_matches('|');
     let mut cells = Vec::new();
     let mut cell = String::new();

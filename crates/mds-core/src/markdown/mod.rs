@@ -7,7 +7,7 @@ use crate::fs_utils::{collect_files, is_excluded};
 use crate::model::{ImplDoc, Lang, OutputKind, Package, UseExpose, UseFrom, UseRow};
 use crate::table::parse_table_with_labels;
 
-pub(crate) fn load_implementation_docs(
+pub fn load_implementation_docs(
     package: &Package,
     state: &mut RunState,
 ) -> Result<Vec<ImplDoc>, String> {
@@ -39,7 +39,7 @@ pub(crate) fn load_implementation_docs(
     Ok(docs)
 }
 
-pub(crate) fn parse_impl_doc(
+pub fn parse_impl_doc(
     package: &Package,
     lang: Lang,
     path: &Path,
@@ -122,7 +122,7 @@ pub(crate) fn parse_impl_doc(
     })
 }
 
-pub(crate) fn sections_with_labels(
+pub fn sections_with_labels(
     text: &str,
     label_overrides: &HashMap<String, String>,
 ) -> HashMap<String, String> {
@@ -165,7 +165,7 @@ fn canonical_section_title(title: &str, label_overrides: &HashMap<String, String
     title.to_string()
 }
 
-pub(crate) fn parse_uses(
+pub fn parse_uses(
     section: &str,
     path: &Path,
     label_overrides: &HashMap<String, String>,
@@ -237,7 +237,7 @@ pub(crate) fn parse_uses(
     uses
 }
 
-pub(crate) fn parse_use_exposes(value: &str, path: &Path, state: &mut RunState) -> Vec<UseExpose> {
+pub fn parse_use_exposes(value: &str, path: &Path, state: &mut RunState) -> Vec<UseExpose> {
     let mut exposes = Vec::new();
     let mut has_default = false;
     let mut has_namespace = false;
@@ -308,7 +308,7 @@ pub(crate) fn parse_use_exposes(value: &str, path: &Path, state: &mut RunState) 
     exposes
 }
 
-pub(crate) fn validate_target(from: UseFrom, target: &str, path: &Path, state: &mut RunState) {
+pub fn validate_target(from: UseFrom, target: &str, path: &Path, state: &mut RunState) {
     if target.is_empty() {
         state.diagnostics.push(Diagnostic::error(
             Some(path.to_path_buf()),
@@ -344,7 +344,7 @@ pub(crate) fn validate_target(from: UseFrom, target: &str, path: &Path, state: &
     }
 }
 
-pub(crate) fn code_blocks(section: &str, path: &Path, state: &mut RunState) -> String {
+pub fn code_blocks(section: &str, path: &Path, state: &mut RunState) -> String {
     let mut in_block = false;
     let mut current = String::new();
     let mut blocks = Vec::new();
@@ -386,7 +386,7 @@ pub(crate) fn code_blocks(section: &str, path: &Path, state: &mut RunState) -> S
     blocks.join("\n\n") + if blocks.is_empty() { "" } else { "\n" }
 }
 
-pub(crate) fn normalized_input(path: &Path, text: &str) -> String {
+pub fn normalized_input(path: &Path, text: &str) -> String {
     let mut normalized = path.display().to_string();
     normalized.push('\n');
     normalized.push_str(text.replace("\r\n", "\n").trim_end());
@@ -394,7 +394,7 @@ pub(crate) fn normalized_input(path: &Path, text: &str) -> String {
     normalized
 }
 
-pub(crate) fn validate_markdown_links(path: &Path, text: &str, state: &mut RunState) {
+pub fn validate_markdown_links(path: &Path, text: &str, state: &mut RunState) {
     for target in standard_markdown_links(text)
         .into_iter()
         .chain(wikilinks(text))
