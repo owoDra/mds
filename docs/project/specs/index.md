@@ -41,3 +41,9 @@
 - `packages-lang-rs/index.md`: `packages/lang-rs` 固有仕様の入口
 - `python-mds/index.md`: `python/mds` 固有仕様の入口
 - `python-mds-lang-py/index.md`: `python/mds_lang_py` 固有仕様の入口
+
+## 追加された共有仕様
+
+- `shared/SPEC-ai-agent-cli-initialization.md`: AI agent CLI 初期化仕様
+- `shared/SPEC-init-development-environment-setup.md`: 開発環境セットアップ初期化仕様
+- `shared/SPEC-release-prepublish-quality.md`: 公開前品質仕様

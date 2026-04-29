@@ -37,3 +37,6 @@
 - `SPEC-doctor-command.md`: `mds doctor` の環境診断仕様
 - `SPEC-package-sync.md`: `mds package sync` と任意 post hook 仕様
 - `SPEC-distribution-and-versions.md`: npm / Cargo / uv 配布と最低対応 version 仕様
+- `SPEC-ai-agent-cli-initialization.md`: Claude Code / Codex CLI / Opencode / GitHub Copilot CLI 向け AI agent kit 初期化仕様
+- `SPEC-init-development-environment-setup.md`: `mds init` による bootstrap と開発環境セットアップ仕様
+- `SPEC-release-prepublish-quality.md`: 全配布経路の公開前品質 gate 仕様

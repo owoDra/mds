@@ -30,4 +30,7 @@ monorepo
 - Python implementation team
 
 ## Integrations
-- none
+- Claude Code
+- Codex CLI
+- Opencode
+- GitHub Copilot CLI

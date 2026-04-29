@@ -40,3 +40,6 @@
 - `REQ-quality-md-state-validation.md`: Markdown 状態での check / lint / lint --fix / test 要求
 - `REQ-cli-command-surface.md`: CLI コマンド面の要求
 - `REQ-ux-obsidian-readable-markdown.md`: Obsidian で読める Markdown の要求
+- `REQ-ai-agent-cli-initialization.md`: AI agent CLI 向け instruction / skill / workflow 初期化要求
+- `REQ-init-development-environment-setup.md`: `mds init` による project 初期化と開発環境セットアップ要求
+- `REQ-release-prepublish-quality.md`: 全配布経路の公開前品質要求

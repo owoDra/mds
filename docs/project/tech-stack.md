@@ -23,3 +23,5 @@
 | clippy / rustfmt | Rust lint / format 接続 | Rust 1.86+ 同梱系列 | tbd |
 | ESLint / Prettier / Vitest | TypeScript lint / format / test 接続 | 最新安定系列 | tbd |
 | Ruff / Pytest | Python lint / format / test 接続 | 最新安定系列 | tbd |
+| Claude Code / Codex CLI / Opencode / GitHub Copilot CLI | AI agent kit 生成対象 CLI | 各 CLI の最新安定系列 | `adr/active/ADR-006-ai-agent-init-and-dev-setup.md` |
+| SBOM / provenance / artifact signing | 全配布経路の公開前品質 gate | format / provider は release 実装時に固定 | `adr/active/ADR-006-ai-agent-init-and-dev-setup.md` |

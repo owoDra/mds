@@ -26,6 +26,8 @@
 - CLI は native binary として mds の各コマンドを提供する。
 - language adapter は言語固有の import 生成、lint、lint --fix、test runner 接続、ファイル名規約、出力規則を担う。
 - npm wrapper は native CLI の配布と起動だけを担い、Markdown model や core の意味体系を変更しない。
+- `mds init` は project 初期化、AI agent kit 生成、開発環境セットアップの入口を担う。
+- AI CLI template plugin は AI CLI 固有の instruction、skill、command、workflow、docs 生成差分を担い、任意コマンド実行は行わない。
 - `index.md` は階層の設計、責務、公開面、ルールを説明する。
 - `package.md` は package metadata と package 単位のルールを説明する。
 - implementation md は `Purpose`、`Contract`、`Types`、`Source`、`Cases`、`Test` を持ち、`Types`、`Source`、`Test` には生成元となる実コードを置く 1 機能の正本とする。
@@ -46,9 +48,12 @@
 - package 単位で mds の有効 / 無効を切り替えられる monorepo 対応を前提にする。
 - lint / lint --fix / test は生成後コードだけでなく、md の状態にも適用できるようにする。
 - package manager hook や registry publish のような外部影響が大きい処理は、既定で暗黙実行せず明示有効化を前提にする。
+- 開発環境セットアップで project dependencies、toolchains、global AI CLI を導入する場合は interactive default とし、非対話実行では明示 option がある場合だけ変更する。
+- 公開前品質では全配布経路について checksum、署名、SBOM、provenance、install smoke test を release gate として扱う。
 
 ## 関連資料
 
 - `index.md`
 - `validation.md`
 - `tech-stack.md`
+- `adr/active/ADR-006-ai-agent-init-and-dev-setup.md`
