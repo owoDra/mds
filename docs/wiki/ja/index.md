@@ -43,5 +43,6 @@ mds の考え方を理解したい場合は、[基本概念](concepts.md)と[Mar
 | [パッケージ情報同期](package-sync.md) | パッケージ情報から `package.md` を同期する仕組みを説明します。 |
 | [配布方針](distribution.md) | Cargo、npm、Python パッケージ、ネイティブ実行ファイルでの配布方針を説明します。 |
 | [トラブルシューティング](troubleshooting.md) | よくある問題と確認方法を説明します。 |
+| [AI エージェント連携](ai-agent-integration.md) | AI コーディングエージェント向け設定の生成と拡張方法を説明します。 |
 | [コントリビューション](contributing.md) | 開発参加時に確認することを説明します。 |
 | [ロードマップ](roadmap.md) | 現在の中心範囲と今後の予定を説明します。 |

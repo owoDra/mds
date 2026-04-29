@@ -122,6 +122,38 @@ mds init --package path/to/package
 
 初期化では、プロジェクト構成、支援ツール向けの設定、開発環境の準備を扱います。外部コマンドの実行や環境変更は、利用者が明示した場合に行う方針です。
 
+### AI エージェント向け初期化
+
+`mds init --ai` は、AI コーディングエージェント向けの設定ファイル (agent kit) を生成します。
+
+```bash
+# 全 AI CLI 向けに全カテゴリを生成
+mds init --ai --target all --categories all --yes
+
+# Claude Code 向けのみ生成
+mds init --ai --target claude-code --yes
+
+# 特定のカテゴリのみ生成
+mds init --ai --target all --categories instructions,skills --yes
+```
+
+対応している AI CLI は次のとおりです。
+
+| AI CLI | 指定名 | 生成先 |
+| --- | --- | --- |
+| Claude Code | `claude-code`, `claude` | `.claude/rules/`, `.claude/skills/`, `.claude/commands/` |
+| Codex CLI | `codex-cli`, `codex` | `.codex/instructions.md`, `.codex/skills/` |
+| Opencode | `opencode` | `.opencode/agents/`, `.opencode/skills/` |
+| GitHub Copilot | `github-copilot-cli`, `copilot` | `.github/instructions/`, `.github/prompts/` |
+
+生成カテゴリは `instructions`、`skills`、`commands` です。
+
+CLAUDE.md、AGENTS.md、copilot-instructions.md などのメインファイルは生成しません。各 CLI のネイティブ参照パスに配置し、生成後に統合方法のガイドを表示します。
+
+生成ファイルには `mds-managed: true` の frontmatter が含まれ、再実行時に安全に更新できます。非管理ファイルの上書きは `--force` がない限り拒否されます。
+
+### 品質検査ツール選択
+
 品質検査で使うツールは、言語ごとに選択できます。
 
 ```bash
