@@ -1,11 +1,29 @@
 {
   "name": "@mds/core",
-  "version": "0.1.0",
-  "private": true,
-  "description": "Placeholder metadata for the future mds npm core API package.",
-  "files": [],
+  "version": "0.1.0-alpha.1",
+  "description": "Core API for mds — invoke mds commands programmatically from Node.js.",
+  "type": "module",
+  "main": "./src/index.js",
+  "types": "./src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "default": "./src/index.js"
+    }
+  },
+  "files": [
+    "src/"
+  ],
+  "scripts": {
+    "check": "node --check src/index.js"
+  },
   "engines": {
     "node": ">=24"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/owox/mds",
+    "directory": "packages/core"
+  }
 }

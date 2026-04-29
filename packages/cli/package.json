@@ -1,6 +1,6 @@
 {
   "name": "@mds/cli",
-  "version": "0.1.0",
+  "version": "0.1.0-alpha.1",
   "description": "npm wrapper for the native mds CLI.",
   "bin": {
     "mds": "bin/mds.js"
@@ -15,5 +15,10 @@
   "engines": {
     "node": ">=24"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/owox/mds",
+    "directory": "packages/cli"
+  }
 }

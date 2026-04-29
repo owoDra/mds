@@ -1,14 +1,32 @@
 {
   "name": "@mds/lang-rs",
-  "version": "0.1.0",
-  "private": true,
-  "description": "Placeholder metadata for the future Rust language adapter npm package.",
-  "files": [],
+  "version": "0.1.0-alpha.1",
+  "description": "Rust language adapter for mds — file naming, quality tools, and test runner integration.",
+  "type": "module",
+  "main": "./src/index.js",
+  "types": "./src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "default": "./src/index.js"
+    }
+  },
+  "files": [
+    "src/"
+  ],
+  "scripts": {
+    "check": "node --check src/index.js"
+  },
   "engines": {
     "node": ">=24"
   },
   "peerDependencies": {
-    "@mds/cli": "0.1.0"
+    "@mds/cli": ">=0.1.0-alpha.1"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/owox/mds",
+    "directory": "packages/lang-rs"
+  }
 }
