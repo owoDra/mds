@@ -82,9 +82,8 @@ where
                 let Some(value) = args.next() else {
                     return Err("--labels requires a value (en or ja)".to_string());
                 };
-                init_options.label_preset = LabelPreset::parse(&value).ok_or_else(|| {
-                    format!("unknown label preset `{value}`; expected en or ja")
-                })?;
+                init_options.label_preset = LabelPreset::parse(&value)
+                    .ok_or_else(|| format!("unknown label preset `{value}`; expected en or ja"))?;
             }
             "--ts-tools" if command_name == "init" => {
                 let Some(value) = args.next() else {
@@ -188,7 +187,9 @@ where
         }
         "new" => {
             if dry_run || fix || check || !matches!(format, DoctorFormat::Text) {
-                return Err("new only accepts <name>, --package, --force, and --verbose".to_string());
+                return Err(
+                    "new only accepts <name>, --package, --force, and --verbose".to_string()
+                );
             }
             let name = new_name.ok_or_else(|| {
                 "new requires a file name (e.g. `mds new greet.ts.md`)".to_string()
@@ -352,7 +353,9 @@ pub fn print_usage() {
     eprintln!("mds — Markdown-driven code generation toolchain");
     eprintln!();
     eprintln!("Commands:");
-    eprintln!("  mds init                                  Interactive project setup (wizard mode)");
+    eprintln!(
+        "  mds init                                  Interactive project setup (wizard mode)"
+    );
     eprintln!("  mds init [options] --yes                  Non-interactive project setup");
     eprintln!("  mds new <name.lang.md>                    Create new implementation Markdown");
     eprintln!("  mds check [--package <path>]              Validate Markdown structure");
@@ -366,9 +369,13 @@ pub fn print_usage() {
     eprintln!("Init options:");
     eprintln!("  --ai                      AI agent kit only (skip project files)");
     eprintln!("  --target <list>           AI targets: all, claude-code, codex-cli, opencode, github-copilot-cli");
-    eprintln!("  --categories <list>       Agent kit categories: all, instructions, skills, commands");
+    eprintln!(
+        "  --categories <list>       Agent kit categories: all, instructions, skills, commands"
+    );
     eprintln!("  --ts-tools <list>         TypeScript tools: eslint, prettier, biome, vitest, jest, default, none");
-    eprintln!("  --py-tools <list>         Python tools: ruff, black, pytest, unittest, default, none");
+    eprintln!(
+        "  --py-tools <list>         Python tools: ruff, black, pytest, unittest, default, none"
+    );
     eprintln!("  --rs-tools <list>         Rust tools: rustfmt, clippy, cargo-test, nextest, default, none");
     eprintln!("  --labels <preset>         Section label language: en (default), ja (Japanese)");
     eprintln!("  --yes                     Execute without confirmation");
@@ -380,6 +387,8 @@ pub fn print_usage() {
     eprintln!("Global options:");
     eprintln!("  --package <path>          Target package directory");
     eprintln!("  --verbose                 Show detailed output");
+    eprintln!("  --help, -h                Show this help message");
+    eprintln!("  --version, -V             Show version");
     eprintln!();
     eprintln!("Examples:");
     eprintln!("  mds init                                      # Interactive wizard");
@@ -390,5 +399,5 @@ pub fn print_usage() {
     eprintln!("  mds build --package ./my-pkg --dry-run         # Preview generation");
     eprintln!("  mds build --package ./my-pkg                   # Generate code");
     eprintln!();
-    eprintln!("Documentation: https://github.com/your-org/mds");
+    eprintln!("Documentation: https://github.com/owox/mds");
 }

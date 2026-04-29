@@ -2,6 +2,8 @@ use mds_cli::args::{parse_args, print_usage};
 use mds_cli::wizard::run_interactive_init;
 use mds_core::{execute, CliRequest, Command};
 
+const VERSION: &str = env!("CARGO_PKG_VERSION");
+
 fn main() {
     let cwd = match std::env::current_dir() {
         Ok(cwd) => cwd,
@@ -12,6 +14,16 @@ fn main() {
     };
 
     let args: Vec<String> = std::env::args().skip(1).collect();
+
+    // Handle --help and --version before any other processing
+    if args.is_empty() || args.iter().any(|a| a == "--help" || a == "-h") {
+        print_usage();
+        std::process::exit(0);
+    }
+    if args.iter().any(|a| a == "--version" || a == "-V") {
+        println!("mds {VERSION}");
+        std::process::exit(0);
+    }
 
     // Interactive wizard: `mds init` with no additional flags
     if args.len() == 1 && args[0] == "init"
@@ -54,7 +66,9 @@ fn main() {
             eprintln!();
             if message.contains("missing command") {
                 eprintln!("hint: Run `mds init` to set up a new project interactively.");
-                eprintln!("      Run `mds check --package <path>` to validate an existing project.");
+                eprintln!(
+                    "      Run `mds check --package <path>` to validate an existing project."
+                );
             } else if message.contains("unknown command") {
                 eprintln!("hint: Available commands: init, check, build, lint, test, doctor, package sync, release check");
             } else if message.contains("unknown option") {
