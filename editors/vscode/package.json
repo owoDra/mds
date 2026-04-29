@@ -5,6 +5,15 @@
   "version": "0.1.0",
   "publisher": "mds",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/owox/mds",
+    "directory": "editors/vscode"
+  },
+  "homepage": "https://github.com/owox/mds",
+  "bugs": {
+    "url": "https://github.com/owox/mds/issues"
+  },
   "engines": {
     "vscode": "^1.85.0"
   },
