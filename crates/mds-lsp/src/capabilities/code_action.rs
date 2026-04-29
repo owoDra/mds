@@ -1,14 +1,10 @@
+use crate::labels::resolve_label;
 use mds_core::markdown::sections_with_labels;
 use mds_core::model::Config;
 use tower_lsp::lsp_types::*;
-use crate::labels::resolve_label;
 
 /// Provide code actions (quick fixes) for mds Markdown files.
-pub fn provide_code_actions(
-    uri: &Url,
-    text: &str,
-    config: &Config,
-) -> CodeActionResponse {
+pub fn provide_code_actions(uri: &Url, text: &str, config: &Config) -> CodeActionResponse {
     let mut actions = Vec::new();
 
     let sections = sections_with_labels(text, &config.label_overrides);
@@ -151,4 +147,3 @@ pub fn provide_code_actions(
 
     actions
 }
-

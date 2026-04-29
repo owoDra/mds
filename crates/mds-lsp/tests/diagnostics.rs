@@ -61,10 +61,7 @@ test("it works", () => {});
     let path = fixture_path("valid.ts.md");
     let config = Config::default();
     let diags = diagnostics::validate_impl_md_text(&path, text, &config);
-    assert!(
-        diags.is_empty(),
-        "expected no diagnostics, got: {diags:?}"
-    );
+    assert!(diags.is_empty(), "expected no diagnostics, got: {diags:?}");
 }
 
 #[test]
@@ -148,10 +145,7 @@ fn test_config_validation_invalid_toml() {
     let text = "this is not valid toml [[[";
     let path = fixture_path("mds.config.toml");
     let diags = diagnostics::validate_config_text(&path, text);
-    assert!(
-        !diags.is_empty(),
-        "should report TOML parse error"
-    );
+    assert!(!diags.is_empty(), "should report TOML parse error");
 }
 
 #[test]
@@ -222,7 +216,9 @@ def test_it(): assert True
         .map(|d| d.message.as_str())
         .collect();
     assert!(
-        warnings.iter().any(|m| m.contains("python") && m.contains("ts")),
+        warnings
+            .iter()
+            .any(|m| m.contains("python") && m.contains("ts")),
         "should warn about language mismatch: {warnings:?}"
     );
 }

@@ -38,45 +38,35 @@ fn main() {
 
             println!("cargo:rerun-if-changed={}", manifest_path.display());
 
-            let manifest_content = fs::read_to_string(&manifest_path).unwrap_or_else(|e| {
-                panic!("failed to read {}: {e}", manifest_path.display())
-            });
+            let manifest_content = fs::read_to_string(&manifest_path)
+                .unwrap_or_else(|e| panic!("failed to read {}: {e}", manifest_path.display()));
 
-            let manifest: toml::Value = manifest_content.parse().unwrap_or_else(|e| {
-                panic!("failed to parse {}: {e}", manifest_path.display())
-            });
+            let manifest: toml::Value = manifest_content
+                .parse()
+                .unwrap_or_else(|e| panic!("failed to parse {}: {e}", manifest_path.display()));
 
             let files = manifest
                 .get("file")
                 .and_then(|v| v.as_array())
-                .unwrap_or_else(|| {
-                    panic!("no [[file]] entries in {}", manifest_path.display())
-                });
+                .unwrap_or_else(|| panic!("no [[file]] entries in {}", manifest_path.display()));
 
             code.push_str(&format!(
                 "pub(crate) const {const_name}: &[TemplateEntry] = &[\n"
             ));
 
             for file_entry in files {
-                let template = file_entry
-                    .get("template")
-                    .and_then(|v| v.as_str())
-                    .unwrap();
+                let template = file_entry.get("template").and_then(|v| v.as_str()).unwrap();
                 let output_path = file_entry
                     .get("output_path")
                     .and_then(|v| v.as_str())
                     .unwrap();
-                let category = file_entry
-                    .get("category")
-                    .and_then(|v| v.as_str())
-                    .unwrap();
+                let category = file_entry.get("category").and_then(|v| v.as_str()).unwrap();
 
                 let template_path = path.join(template);
                 println!("cargo:rerun-if-changed={}", template_path.display());
 
-                let content = fs::read_to_string(&template_path).unwrap_or_else(|e| {
-                    panic!("failed to read {}: {e}", template_path.display())
-                });
+                let content = fs::read_to_string(&template_path)
+                    .unwrap_or_else(|e| panic!("failed to read {}: {e}", template_path.display()));
 
                 code.push_str("    TemplateEntry {\n");
                 code.push_str(&format!("        output_path: {:?},\n", output_path));
@@ -91,7 +81,9 @@ fn main() {
     }
 
     // Generate a lookup function
-    code.push_str("pub(crate) fn templates_for_target(target: &str) -> &'static [TemplateEntry] {\n");
+    code.push_str(
+        "pub(crate) fn templates_for_target(target: &str) -> &'static [TemplateEntry] {\n",
+    );
     code.push_str("    match target {\n");
     for target in &targets {
         let const_name = target.replace('-', "_").to_uppercase();

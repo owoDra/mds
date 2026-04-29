@@ -65,9 +65,7 @@ pub(crate) fn run_init(
 
     if !state.has_errors() && !state.environment_missing {
         if !options.targets.is_empty() {
-            state
-                .stdout
-                .push_str(&ai_post_init_guide(&options.targets));
+            state.stdout.push_str(&ai_post_init_guide(&options.targets));
         }
         state.stdout.push_str("init ok\n");
     }
@@ -327,8 +325,7 @@ fn ai_target_files(
     entries
         .iter()
         .filter(|entry| {
-            AgentKitCategory::parse(entry.category)
-                .is_some_and(|cat| categories.contains(&cat))
+            AgentKitCategory::parse(entry.category).is_some_and(|cat| categories.contains(&cat))
         })
         .map(|entry| PlannedFile {
             path: root.join(entry.output_path),
@@ -353,9 +350,7 @@ fn ai_post_init_guide(targets: &[AiTarget]) -> String {
                 );
             }
             AiTarget::Opencode => {
-                guide.push_str(
-                    "  Opencode: Agents are auto-discovered from .opencode/agents/\n",
-                );
+                guide.push_str("  Opencode: Agents are auto-discovered from .opencode/agents/\n");
             }
             AiTarget::GithubCopilotCli => {
                 guide.push_str(

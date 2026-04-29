@@ -2,9 +2,7 @@ use std::path::Path;
 
 use mds_core::config::merge_config_file;
 use mds_core::diagnostics::RunState;
-use mds_core::markdown::{
-    code_blocks, parse_uses, sections_with_labels, validate_markdown_links,
-};
+use mds_core::markdown::{code_blocks, parse_uses, sections_with_labels, validate_markdown_links};
 use mds_core::model::{Config, Lang, OutputKind};
 use mds_core::table::parse_table_with_labels;
 use tower_lsp::lsp_types;
@@ -68,11 +66,7 @@ pub fn validate_impl_md_text(
         validate_code_block_languages(text, lang, path, &mut state);
     }
 
-    state
-        .diagnostics
-        .iter()
-        .map(to_lsp_diagnostic)
-        .collect()
+    state.diagnostics.iter().map(to_lsp_diagnostic).collect()
 }
 
 /// Validate mds.config.toml and return LSP diagnostics.
@@ -96,11 +90,7 @@ pub fn validate_config_text(path: &Path, text: &str) -> Vec<lsp_types::Diagnosti
         }
     }
 
-    state
-        .diagnostics
-        .iter()
-        .map(to_lsp_diagnostic)
-        .collect()
+    state.diagnostics.iter().map(to_lsp_diagnostic).collect()
 }
 
 /// Validate package.md and return LSP diagnostics.
@@ -140,11 +130,7 @@ pub fn validate_package_md_text(
         }
     }
 
-    state
-        .diagnostics
-        .iter()
-        .map(to_lsp_diagnostic)
-        .collect()
+    state.diagnostics.iter().map(to_lsp_diagnostic).collect()
 }
 
 /// Validate that code block language labels match the file's language.

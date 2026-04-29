@@ -4,11 +4,7 @@ use std::path::{Path, PathBuf};
 use crate::diagnostics::{Diagnostic, RunState};
 use crate::model::{Config, Lang};
 
-pub fn merge_config_file(
-    config: &mut Config,
-    path: &Path,
-    state: &mut RunState,
-) -> Option<()> {
+pub fn merge_config_file(config: &mut Config, path: &Path, state: &mut RunState) -> Option<()> {
     let text = match fs::read_to_string(path) {
         Ok(text) => text,
         Err(error) => {

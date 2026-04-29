@@ -15,10 +15,7 @@ pub fn to_lsp_diagnostic(diag: &Diagnostic) -> lsp_types::Diagnostic {
     lsp_types::Diagnostic {
         range: lsp_types::Range {
             start: lsp_types::Position { line, character: 0 },
-            end: lsp_types::Position {
-                line,
-                character: 0,
-            },
+            end: lsp_types::Position { line, character: 0 },
         },
         severity: Some(severity),
         source: Some("mds".to_string()),
@@ -32,10 +29,7 @@ pub fn line_range(line_1based: usize) -> lsp_types::Range {
     let line = line_1based.saturating_sub(1) as u32;
     lsp_types::Range {
         start: lsp_types::Position { line, character: 0 },
-        end: lsp_types::Position {
-            line,
-            character: 0,
-        },
+        end: lsp_types::Position { line, character: 0 },
     }
 }
 

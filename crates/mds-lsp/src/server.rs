@@ -38,10 +38,7 @@ impl MdsLanguageServer {
                 Ok(packages) => {
                     for package in packages {
                         let index = build_workspace_index(&package);
-                        state.packages.push(PackageState {
-                            package,
-                            index,
-                        });
+                        state.packages.push(PackageState { package, index });
                     }
                 }
                 Err(e) => {
@@ -114,10 +111,7 @@ fn build_workspace_index(package: &mds_core::Package) -> WorkspaceIndex {
             .entry(stem.clone())
             .or_default()
             .push(path.clone());
-        file_exposes
-            .entry(path.clone())
-            .or_default()
-            .push(stem);
+        file_exposes.entry(path.clone()).or_default().push(stem);
 
         docs.insert(path, doc);
     }
@@ -260,9 +254,7 @@ impl LanguageServer for MdsLanguageServer {
 
         // Clear diagnostics for closed file
         drop(state);
-        self.client
-            .publish_diagnostics(uri, vec![], None)
-            .await;
+        self.client.publish_diagnostics(uri, vec![], None).await;
     }
 
     async fn completion(&self, params: CompletionParams) -> Result<Option<CompletionResponse>> {
@@ -284,7 +276,10 @@ impl LanguageServer for MdsLanguageServer {
 
         if let Some(text) = text {
             let items = capabilities::completion::provide_completions(
-                &text, position, path.as_deref(), &config,
+                &text,
+                position,
+                path.as_deref(),
+                &config,
             );
             Ok(Some(CompletionResponse::Array(items)))
         } else {
@@ -404,8 +399,7 @@ impl LanguageServer for MdsLanguageServer {
         drop(state);
 
         if let Some(text) = text {
-            let actions =
-                capabilities::code_action::provide_code_actions(&uri, &text, &config);
+            let actions = capabilities::code_action::provide_code_actions(&uri, &text, &config);
             Ok(Some(actions))
         } else {
             Ok(None)

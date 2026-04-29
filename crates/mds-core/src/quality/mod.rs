@@ -69,7 +69,7 @@ fn run_doc_quality(
         QualityOperation::Fix { .. } => &[],
     };
     for kind in target_kinds {
-        let Some(code) = doc.code.get(&kind) else {
+        let Some(code) = doc.code.get(kind) else {
             continue;
         };
         let path = temp_code_path(package, doc.lang, *kind);

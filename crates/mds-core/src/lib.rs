@@ -18,11 +18,11 @@ mod release_quality;
 mod runner;
 pub mod table;
 
+pub use diagnostics::{Diagnostic, RunState, Severity};
 pub use model::{
     AgentKitCategory, AiTarget, BuildMode, CliRequest, CliResult, Command, Config, DoctorFormat,
     GeneratedFile, GeneratedKind, ImplDoc, InitOptions, LabelPreset, Lang, MetadataKind,
     NewOptions, OutputKind, Package, PackageMetadata, PythonTool, QualityConfig,
     ReleaseQualityOptions, Roots, RustTool, TypeScriptTool, UseExpose, UseFrom, UseRow,
 };
-pub use diagnostics::{Diagnostic, RunState, Severity};
 pub use runner::execute;

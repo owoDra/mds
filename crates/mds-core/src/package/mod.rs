@@ -182,10 +182,7 @@ pub fn validate_package_md(package: &Package, state: &mut RunState) {
     validate_dependency_section(package, &sections, "Dev Dependencies", true, &path, state);
 }
 
-pub fn read_package_metadata(
-    package: &Package,
-    state: &mut RunState,
-) -> Option<PackageMetadata> {
+pub fn read_package_metadata(package: &Package, state: &mut RunState) -> Option<PackageMetadata> {
     match package.metadata_kind {
         MetadataKind::Node => read_node_metadata(&package.root.join("package.json"), state),
         MetadataKind::Python => read_python_metadata(&package.root.join("pyproject.toml"), state),
@@ -584,11 +581,7 @@ pub fn validate_index_docs(package: &Package, state: &mut RunState) {
     }
 }
 
-pub fn validate_expose_rows(
-    rows: &[HashMap<String, String>],
-    path: &Path,
-    state: &mut RunState,
-) {
+pub fn validate_expose_rows(rows: &[HashMap<String, String>], path: &Path, state: &mut RunState) {
     let mut seen = HashSet::new();
     for row in rows {
         let kind = row.get("kind").map(String::as_str).unwrap_or_default();

@@ -3,8 +3,8 @@ use std::path::Path;
 use mds_core::model::{Config, Lang};
 use tower_lsp::lsp_types::*;
 
-use crate::labels::resolve_label;
 use crate::convert::line_at;
+use crate::labels::resolve_label;
 
 /// Provide completion items based on cursor position.
 pub fn provide_completions(
@@ -80,16 +80,16 @@ fn section_completions(config: &Config) -> Vec<CompletionItem> {
 /// Table column name completions.
 fn table_column_completions(config: &Config) -> Vec<CompletionItem> {
     let uses_columns = [
-        ("From", "Import source: builtin, package, workspace, internal"),
+        (
+            "From",
+            "Import source: builtin, package, workspace, internal",
+        ),
         ("Target", "Import target module or package"),
         ("Expose", "Exposed names from the target"),
         ("Summary", "Brief description of the import"),
     ];
 
-    let package_columns = [
-        ("Name", "Package name"),
-        ("Version", "Package version"),
-    ];
+    let package_columns = [("Name", "Package name"), ("Version", "Package version")];
 
     let mut items: Vec<CompletionItem> = uses_columns
         .iter()
@@ -222,9 +222,7 @@ fn snippet_completions(path: Option<&Path>, config: &Config) -> Vec<CompletionIt
         label: "mds: Code Block".to_string(),
         kind: Some(CompletionItemKind::SNIPPET),
         detail: Some("Add a new code block".to_string()),
-        insert_text: Some(format!(
-            "```{lang_label}\n${{1:// code}}\n```\n"
-        )),
+        insert_text: Some(format!("```{lang_label}\n${{1:// code}}\n```\n")),
         insert_text_format: Some(InsertTextFormat::SNIPPET),
         sort_text: Some("9_code_block".to_string()),
         ..Default::default()
@@ -260,4 +258,3 @@ fn snippet_completions(path: Option<&Path>, config: &Config) -> Vec<CompletionIt
 
     items
 }
-

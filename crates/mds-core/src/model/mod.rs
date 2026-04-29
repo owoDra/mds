@@ -245,11 +245,7 @@ pub enum AgentKitCategory {
 
 impl AgentKitCategory {
     pub fn all() -> &'static [Self] {
-        &[
-            Self::Instructions,
-            Self::Skills,
-            Self::Commands,
-        ]
+        &[Self::Instructions, Self::Skills, Self::Commands]
     }
 
     pub fn parse(value: &str) -> Option<Self> {

@@ -351,11 +351,7 @@ pub fn code_blocks(section: &str, path: &Path, state: &mut RunState) -> String {
     for (idx, line) in section.lines().enumerate() {
         if line.trim_start().starts_with("```") {
             if in_block {
-                blocks.push(
-                    current
-                        .trim_end_matches(|ch| ch == '\r' || ch == '\n')
-                        .to_string(),
-                );
+                blocks.push(current.trim_end_matches(['\r', '\n']).to_string());
                 current.clear();
                 in_block = false;
             } else {

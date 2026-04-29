@@ -393,7 +393,7 @@ pub(crate) fn run_toolchain_command(
     let Some((program, args)) = split_command(command) else {
         return Ok(Ok(()));
     };
-    if !tool_available(&program) {
+    if !tool_available(program) {
         state.environment_missing = true;
         state.diagnostics.push(Diagnostic::error(
             Some(diagnostic_path.to_path_buf()),

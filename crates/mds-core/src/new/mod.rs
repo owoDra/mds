@@ -121,7 +121,7 @@ fn extract_feature_name(name: &str) -> String {
 }
 
 fn to_title_case(s: &str) -> String {
-    s.split(|c: char| c == '-' || c == '_')
+    s.split(['-', '_'])
         .filter(|part| !part.is_empty())
         .map(|part| {
             let mut chars = part.chars();
@@ -167,7 +167,12 @@ fn generate_index_template(feature_name: &str, labels: &HashMap<String, String>)
     )
 }
 
-fn generate_impl_template(name: &str, feature_name: &str, lang: &str, labels: &HashMap<String, String>) -> String {
+fn generate_impl_template(
+    name: &str,
+    feature_name: &str,
+    lang: &str,
+    labels: &HashMap<String, String>,
+) -> String {
     let (types_block, source_block, test_block) = match lang {
         "ts" => (
             ts_types_template(name, feature_name),

@@ -28,7 +28,7 @@ pub(crate) fn run_doctor(packages: &[Package], format: DoctorFormat, state: &mut
                     if let Some(required) = minimum_version(command) {
                         match command_version(command) {
                             Some(version) if version_at_least(&version, required) => checks.push(
-                                DoctorCheck::ok(command, format!("{}", render_version(&version))),
+                                DoctorCheck::ok(command, render_version(&version).to_string()),
                             ),
                             Some(version) => {
                                 state.environment_missing = true;

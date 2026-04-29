@@ -1,9 +1,9 @@
 use tower_lsp::lsp_types::*;
 
-use mds_lsp::capabilities::symbols::document_symbols;
-use mds_lsp::capabilities::completion::provide_completions;
 use mds_lsp::capabilities::code_action::provide_code_actions;
-use mds_lsp::convert::{word_at_position, table_cell_at_position, line_at};
+use mds_lsp::capabilities::completion::provide_completions;
+use mds_lsp::capabilities::symbols::document_symbols;
+use mds_lsp::convert::{line_at, table_cell_at_position, word_at_position};
 
 #[test]
 fn test_document_symbols_extracts_headings() {
@@ -30,30 +30,54 @@ Uses content.
 
     let symbols = document_symbols(text);
     let names: Vec<&str> = symbols.iter().map(|s| s.name.as_str()).collect();
-    assert!(names.contains(&"Purpose"), "should contain Purpose: {names:?}");
-    assert!(names.contains(&"Contract"), "should contain Contract: {names:?}");
+    assert!(
+        names.contains(&"Purpose"),
+        "should contain Purpose: {names:?}"
+    );
+    assert!(
+        names.contains(&"Contract"),
+        "should contain Contract: {names:?}"
+    );
     assert!(names.contains(&"Types"), "should contain Types: {names:?}");
-    assert!(names.contains(&"Source"), "should contain Source: {names:?}");
+    assert!(
+        names.contains(&"Source"),
+        "should contain Source: {names:?}"
+    );
     assert!(names.contains(&"Uses"), "should contain Uses: {names:?}");
 }
 
 #[test]
 fn test_section_completion_on_heading_prefix() {
     let text = "## ";
-    let position = Position { line: 0, character: 3 };
+    let position = Position {
+        line: 0,
+        character: 3,
+    };
     let config = mds_core::Config::default();
     let items = provide_completions(text, position, None, &config);
     let labels: Vec<&str> = items.iter().map(|i| i.label.as_str()).collect();
-    assert!(labels.contains(&"Purpose"), "should offer Purpose: {labels:?}");
-    assert!(labels.contains(&"Contract"), "should offer Contract: {labels:?}");
+    assert!(
+        labels.contains(&"Purpose"),
+        "should offer Purpose: {labels:?}"
+    );
+    assert!(
+        labels.contains(&"Contract"),
+        "should offer Contract: {labels:?}"
+    );
     assert!(labels.contains(&"Types"), "should offer Types: {labels:?}");
-    assert!(labels.contains(&"Source"), "should offer Source: {labels:?}");
+    assert!(
+        labels.contains(&"Source"),
+        "should offer Source: {labels:?}"
+    );
 }
 
 #[test]
 fn test_code_block_language_completion() {
     let text = "```";
-    let position = Position { line: 0, character: 3 };
+    let position = Position {
+        line: 0,
+        character: 3,
+    };
     let config = mds_core::Config::default();
     let path = std::path::Path::new("/test/example.ts.md");
     let items = provide_completions(text, position, Some(path), &config);
@@ -73,27 +97,48 @@ A module.
     let uri = Url::parse("file:///test/example.ts.md").unwrap();
     let config = mds_core::Config::default();
     let actions = provide_code_actions(&uri, text, &config);
-    assert!(!actions.is_empty(), "should provide code actions for missing sections");
+    assert!(
+        !actions.is_empty(),
+        "should provide code actions for missing sections"
+    );
 }
 
 #[test]
 fn test_word_at_position() {
     let text = "hello world foo-bar";
-    let word = word_at_position(text, Position { line: 0, character: 7 });
+    let word = word_at_position(
+        text,
+        Position {
+            line: 0,
+            character: 7,
+        },
+    );
     assert_eq!(word, Some("world".to_string()));
 }
 
 #[test]
 fn test_word_at_position_with_path() {
     let text = "| internal | utils/helper | Name | desc |";
-    let word = word_at_position(text, Position { line: 0, character: 14 });
+    let word = word_at_position(
+        text,
+        Position {
+            line: 0,
+            character: 14,
+        },
+    );
     assert_eq!(word, Some("utils/helper".to_string()));
 }
 
 #[test]
 fn test_table_cell_at_position() {
     let text = "| internal | utils/helper | Name | desc |";
-    let cell = table_cell_at_position(text, Position { line: 0, character: 14 });
+    let cell = table_cell_at_position(
+        text,
+        Position {
+            line: 0,
+            character: 14,
+        },
+    );
     assert_eq!(cell, Some("utils/helper".to_string()));
 }
 
@@ -112,7 +157,10 @@ fn test_code_action_empty_document() {
     let uri = Url::parse("file:///test/empty.ts.md").unwrap();
     let config = mds_core::Config::default();
     let actions = provide_code_actions(&uri, text, &config);
-    assert!(!actions.is_empty(), "should offer to add all missing sections");
+    assert!(
+        !actions.is_empty(),
+        "should offer to add all missing sections"
+    );
 }
 
 #[test]
@@ -136,12 +184,24 @@ fn test_word_at_position_boundary() {
     let text = "hello";
     // At beginning
     assert_eq!(
-        word_at_position(text, Position { line: 0, character: 0 }),
+        word_at_position(
+            text,
+            Position {
+                line: 0,
+                character: 0
+            }
+        ),
         Some("hello".to_string())
     );
     // Beyond end
     assert_eq!(
-        word_at_position(text, Position { line: 0, character: 100 }),
+        word_at_position(
+            text,
+            Position {
+                line: 0,
+                character: 100
+            }
+        ),
         None
     );
 }
@@ -149,14 +209,23 @@ fn test_word_at_position_boundary() {
 #[test]
 fn test_table_cell_not_a_table() {
     let text = "This is not a table line";
-    let cell = table_cell_at_position(text, Position { line: 0, character: 5 });
+    let cell = table_cell_at_position(
+        text,
+        Position {
+            line: 0,
+            character: 5,
+        },
+    );
     assert_eq!(cell, None);
 }
 
 #[test]
 fn test_completion_snippet_provided() {
     let text = "## ";
-    let position = Position { line: 0, character: 3 };
+    let position = Position {
+        line: 0,
+        character: 3,
+    };
     let config = mds_core::Config::default();
     let items = provide_completions(text, position, None, &config);
     let labels: Vec<&str> = items.iter().map(|i| i.label.as_str()).collect();
