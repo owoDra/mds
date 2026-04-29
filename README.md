@@ -1,42 +1,122 @@
 # mds
 
-mds は、Markdown を設計、実装、テストの正本として扱い、Markdown 内に書かれた実装レベルのコードから言語ごとのコード、型、テストを生成する強規約ツールチェーンです。
+mds は、Markdown を設計、実装、テストの正本として扱い、Markdown に書かれた実装コードから言語ごとの派生コードを生成する開発ツールチェーンです。
 
-## 概要
+## mds とは
 
-mds は、人間と AI エージェントが同じ Markdown 文書を読んで作業するプロジェクトを対象にしています。Markdown は設計だけを書くプロンプトではなく、`Source`、`Types`、`Test` などに実際のコードブロックを含むソース正本です。生成された `.ts`、`.py`、`.rs` などのファイルは、そのコードブロックとメタ情報から作られる派生物です。
+mds は、設計文書とソースコードを別々に管理するのではなく、ひとつの Markdown 文書に目的、契約、依存関係、公開面、実装コード、テストコードをまとめます。
 
-## プロジェクト資料
+Markdown は単なる説明文ではありません。`Types`、`Source`、`Test` に書いたコードブロックが生成元になり、`.ts`、`.py`、`.rs` などのファイルが派生物として作られます。
 
-正本となるプロジェクト資料は `docs/project/` にあります。
+## 解決したい課題
 
-- `docs/project/index.md`: プロジェクト資料の入口
-- `docs/project/requirements/index.md`: 要求
-- `docs/project/specs/index.md`: 振る舞いと構造の仕様
-- `docs/project/adr/index.md`: 採用済みの判断
-- `docs/project/patterns/index.md`: 再利用するプロジェクトパターン
-- `docs/project/proposals/index.md`: 未確定の設計提案
-- `docs/project/validation.md`: 検証方針
-- `docs/project/tech-stack.md`: 採用技術
+- 設計書と実装が時間とともにずれる問題を減らします。
+- 実装の意図、依存関係、テスト観点をひとつの文書から確認できるようにします。
+- 生成コードを手で直す運用ではなく、Markdown の正本から再生成できる状態を保ちます。
+- 複数の言語や複数のパッケージを含むリポジトリでも、同じ考え方で生成と検証を扱えるようにします。
 
-## 現在の対象
+## 主な特徴
 
-mds は monorepo 構成を前提に、Rust core、native CLI、npm package、Cargo 配布、uv ベースの Python 配布、TypeScript / Python / Rust 向け language adapter を対象にしています。
+- Markdown を正本として扱います。
+- ひとつの実装 Markdown は、ひとつの機能だけを担当します。
+- `Expose` で公開面を明示し、`Uses` で依存関係を明示します。
+- TypeScript、Python、Rust の生成を対象にします。
+- `mds check` で Markdown の構造、表、生成先を検査します。
+- `mds build` で Markdown から派生コードを生成します。
+- `mds build --dry-run` で書き込み前に生成予定と差分を確認できます。
+- 生成ファイルには mds 管理ヘッダーを付け、管理対象ではない既存ファイルの上書きを防ぎます。
 
-## ソース構成
+## 現在の状態
 
-- `crates/Cargo.toml`: Rust workspace manifest。Rust crate を `crates/` 配下に閉じ、`crates/Cargo.lock` と `crates/target/` を共有します。
-- `packages/package.json`: npm workspace manifest。pnpm は使わず、npm 10+ の workspaces で `packages/*` を束ねます。
-- `crates/mds-core`: Rust core library。
-- `crates/mds-cli`: native CLI。
-- `crates/mds-lang-rs`: Rust language adapter crate。
-- `packages/cli`: npm wrapper。native `mds` binary を呼び出す entrypoint だけを持ちます。
-- `packages/core`, `packages/lang-ts`, `packages/lang-py`, `packages/lang-rs`: npm 配布名を予約する placeholder metadata。実装 entrypoint を持つまでは private package として扱います。
-- `python/mds_cli`: Python CLI wrapper distribution。
-- `python/mds_lang_py`: Python language adapter distribution。
-- `docs/project`: 人間向けのプロジェクト正本。
-- `.agents`: AI エージェント向けの制約、手順、task 文脈キャッシュ。
+このリポジトリは開発中です。
 
-## 状態
+現在の中心範囲は、Markdown の解析、構造検査、TypeScript、Python、Rust の派生コード生成です。公開パッケージとしての配布、品質検査、環境診断、パッケージ情報同期、公開前検査も設計と実装の対象に含まれています。
 
-この repository はプロジェクト定義の初期段階です。要求、仕様、判断、未確定の提案は `docs/project/index.md` を入口に確認してください。
+## 動作環境
+
+- Rust 1.86 以上
+- Node.js 24 以上
+- Python 3.13 以上
+- npm 10 以上
+
+利用する機能によって必要な実行環境は変わります。たとえば TypeScript の検査には Node.js 周辺のツール、Python の検査には Ruff と Pytest、Rust の検査には Cargo と rustfmt が必要です。
+
+## クイックスタート
+
+現時点では、リポジトリから Rust のコマンドとして実行する方法が最も確実です。
+
+```bash
+cd crates
+cargo run -p mds-cli -- check --package ../path/to/package
+```
+
+生成予定を確認する場合は、次のように実行します。
+
+```bash
+cd crates
+cargo run -p mds-cli -- build --package ../path/to/package --dry-run
+```
+
+生成ファイルを書き込む場合は、次のように実行します。
+
+```bash
+cd crates
+cargo run -p mds-cli -- build --package ../path/to/package
+```
+
+## 最小構成の考え方
+
+mds の対象パッケージには、少なくとも次の要素が必要です。
+
+- `mds.config.toml`
+- `package.md`
+- `src-md` 配下の実装 Markdown
+- 対象言語のパッケージ情報ファイル
+
+実装 Markdown は、たとえば `src-md/foo/bar.ts.md`、`src-md/pkg/foo.py.md`、`src-md/foo/bar.rs.md` のような名前にします。
+
+## コマンド概要
+
+| コマンド | 目的 |
+| --- | --- |
+| `mds check` | Markdown の構造、表、設定、生成先を検査します。 |
+| `mds build` | Markdown から派生コードを生成します。 |
+| `mds build --dry-run` | ファイルを書き込まず、生成予定と差分を表示します。 |
+| `mds lint` | Markdown 内のコードブロックを対象に検査を実行します。 |
+| `mds lint --fix` | Markdown 内のコードブロックに自動修正を適用します。 |
+| `mds test` | Markdown 内のテストコードを対象にテストを実行します。 |
+| `mds doctor` | 実行環境と必要なツールを診断します。 |
+| `mds package sync` | パッケージ情報から `package.md` の管理部分を同期します。 |
+| `mds init` | mds を使うための初期化を行います。 |
+| `mds release check` | 公開前の成果物検査を行います。 |
+
+## 対応する言語と配布形態
+
+mds は、Rust の中核処理とコマンドを中心に、複数の言語環境から利用できる形を目指しています。
+
+| 種別 | 対象 |
+| --- | --- |
+| 中核処理 | Rust |
+| コマンド | ネイティブ実行ファイル |
+| 生成対象 | TypeScript、Python、Rust |
+| 配布経路 | Cargo、npm、Python パッケージ、ネイティブ実行ファイル |
+
+## ドキュメント
+
+詳しい説明は日本語版の wiki にあります。
+
+- [wiki 入口](docs/wiki/ja/index.md)
+- [はじめに](docs/wiki/ja/getting-started.md)
+- [基本概念](docs/wiki/ja/concepts.md)
+- [Markdown 正本](docs/wiki/ja/markdown-source.md)
+- [コマンド](docs/wiki/ja/commands.md)
+- [設定](docs/wiki/ja/configuration.md)
+- [生成の仕組み](docs/wiki/ja/generation.md)
+
+## コントリビューション
+
+不具合報告、仕様の確認、ドキュメント改善、実装改善を歓迎します。
+
+## ライセンス
+
+MIT License です。詳しくは [LICENSE](LICENSE) を参照してください。
