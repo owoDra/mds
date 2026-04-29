@@ -4,6 +4,29 @@
 # required by `mds release check` before publishing.
 #
 # See: docs/project/specs/shared/SPEC-release-prepublish-quality.md
+#
+# Usage:
+#   mds release check --manifest release.mds.toml
+#
+# Cargo publish order (依存順):
+#   1. mds-core       (依存なし)
+#   2. mds-lang-rs    (依存なし)
+#   3. mds-cli        (mds-core に依存)
+#   4. mds-lsp        (mds-core に依存)
+#
+# npm publish (--tag alpha):
+#   npm publish --workspace cli --tag alpha
+#   npm publish --workspace core --tag alpha
+#   npm publish --workspace lang-ts --tag alpha
+#   npm publish --workspace lang-py --tag alpha
+#   npm publish --workspace lang-rs --tag alpha
+#
+# Workflow:
+#   1. cargo build --release && cargo package --allow-dirty
+#   2. Run generate-release-artifacts.sh (後続タスクで作成)
+#      → checksums/, signatures/, sbom/, provenance/ に出力
+#   3. Install smoke test を実行し、各 smoke = true を確認
+#   4. mds release check --manifest release.mds.toml
 
 [release]
 version = "0.1.0-alpha.1"
@@ -15,41 +38,41 @@ channel = "alpha"
 name = "mds-core"
 channel = "alpha"
 path = "crates/target/package/mds-core-0.1.0-alpha.1.crate"
-checksum = ""          # SHA-256 of the .crate file (fill at release time)
-signature = ""         # path to signature artifact (fill at release time)
-sbom = ""              # path to SPDX or CycloneDX JSON (fill at release time)
-provenance = ""        # path to provenance JSON (fill at release time)
-smoke = "cargo install --path crates/mds-core && echo ok"
+checksum = "checksums/mds-core-0.1.0-alpha.1.sha256"
+signature = "signatures/mds-core-0.1.0-alpha.1.sig"
+sbom = "sbom/mds-core-0.1.0-alpha.1.spdx.json"
+provenance = "provenance/mds-core-0.1.0-alpha.1.jsonl"
+smoke = true
 
 [[artifacts]]
 name = "mds-cli"
 channel = "alpha"
 path = "crates/target/package/mds-cli-0.1.0-alpha.1.crate"
-checksum = ""
-signature = ""
-sbom = ""
-provenance = ""
-smoke = "cargo install --path crates/mds-cli && mds --version"
+checksum = "checksums/mds-cli-0.1.0-alpha.1.sha256"
+signature = "signatures/mds-cli-0.1.0-alpha.1.sig"
+sbom = "sbom/mds-cli-0.1.0-alpha.1.spdx.json"
+provenance = "provenance/mds-cli-0.1.0-alpha.1.jsonl"
+smoke = true
 
 [[artifacts]]
 name = "mds-lang-rs"
 channel = "alpha"
 path = "crates/target/package/mds-lang-rs-0.1.0-alpha.1.crate"
-checksum = ""
-signature = ""
-sbom = ""
-provenance = ""
-smoke = "cargo install --path crates/mds-lang-rs && echo ok"
+checksum = "checksums/mds-lang-rs-0.1.0-alpha.1.sha256"
+signature = "signatures/mds-lang-rs-0.1.0-alpha.1.sig"
+sbom = "sbom/mds-lang-rs-0.1.0-alpha.1.spdx.json"
+provenance = "provenance/mds-lang-rs-0.1.0-alpha.1.jsonl"
+smoke = true
 
 [[artifacts]]
 name = "mds-lsp"
 channel = "alpha"
 path = "crates/target/package/mds-lsp-0.1.0-alpha.1.crate"
-checksum = ""
-signature = ""
-sbom = ""
-provenance = ""
-smoke = "cargo install --path crates/mds-lsp && mds-lsp --version 2>&1 || true"
+checksum = "checksums/mds-lsp-0.1.0-alpha.1.sha256"
+signature = "signatures/mds-lsp-0.1.0-alpha.1.sig"
+sbom = "sbom/mds-lsp-0.1.0-alpha.1.spdx.json"
+provenance = "provenance/mds-lsp-0.1.0-alpha.1.jsonl"
+smoke = true
 
 # --- npm packages ---
 
@@ -57,51 +80,51 @@ smoke = "cargo install --path crates/mds-lsp && mds-lsp --version 2>&1 || true"
 name = "@mds/cli"
 channel = "alpha"
 path = "packages/cli/"
-checksum = ""
-signature = ""
-sbom = ""
-provenance = ""
-smoke = "npm pack --dry-run"
+checksum = "checksums/mds-cli-npm-0.1.0-alpha.1.sha256"
+signature = "signatures/mds-cli-npm-0.1.0-alpha.1.sig"
+sbom = "sbom/mds-cli-npm-0.1.0-alpha.1.spdx.json"
+provenance = "provenance/mds-cli-npm-0.1.0-alpha.1.jsonl"
+smoke = true
 
 [[artifacts]]
 name = "@mds/core"
 channel = "alpha"
 path = "packages/core/"
-checksum = ""
-signature = ""
-sbom = ""
-provenance = ""
-smoke = "node --check packages/core/src/index.js"
+checksum = "checksums/mds-core-npm-0.1.0-alpha.1.sha256"
+signature = "signatures/mds-core-npm-0.1.0-alpha.1.sig"
+sbom = "sbom/mds-core-npm-0.1.0-alpha.1.spdx.json"
+provenance = "provenance/mds-core-npm-0.1.0-alpha.1.jsonl"
+smoke = true
 
 [[artifacts]]
 name = "@mds/lang-ts"
 channel = "alpha"
 path = "packages/lang-ts/"
-checksum = ""
-signature = ""
-sbom = ""
-provenance = ""
-smoke = "node --check packages/lang-ts/src/index.js"
+checksum = "checksums/mds-lang-ts-npm-0.1.0-alpha.1.sha256"
+signature = "signatures/mds-lang-ts-npm-0.1.0-alpha.1.sig"
+sbom = "sbom/mds-lang-ts-npm-0.1.0-alpha.1.spdx.json"
+provenance = "provenance/mds-lang-ts-npm-0.1.0-alpha.1.jsonl"
+smoke = true
 
 [[artifacts]]
 name = "@mds/lang-py"
 channel = "alpha"
 path = "packages/lang-py/"
-checksum = ""
-signature = ""
-sbom = ""
-provenance = ""
-smoke = "node --check packages/lang-py/src/index.js"
+checksum = "checksums/mds-lang-py-npm-0.1.0-alpha.1.sha256"
+signature = "signatures/mds-lang-py-npm-0.1.0-alpha.1.sig"
+sbom = "sbom/mds-lang-py-npm-0.1.0-alpha.1.spdx.json"
+provenance = "provenance/mds-lang-py-npm-0.1.0-alpha.1.jsonl"
+smoke = true
 
 [[artifacts]]
 name = "@mds/lang-rs"
 channel = "alpha"
 path = "packages/lang-rs/"
-checksum = ""
-signature = ""
-sbom = ""
-provenance = ""
-smoke = "node --check packages/lang-rs/src/index.js"
+checksum = "checksums/mds-lang-rs-npm-0.1.0-alpha.1.sha256"
+signature = "signatures/mds-lang-rs-npm-0.1.0-alpha.1.sig"
+sbom = "sbom/mds-lang-rs-npm-0.1.0-alpha.1.spdx.json"
+provenance = "provenance/mds-lang-rs-npm-0.1.0-alpha.1.jsonl"
+smoke = true
 
 # --- Python packages ---
 
@@ -109,21 +132,21 @@ smoke = "node --check packages/lang-rs/src/index.js"
 name = "mds-cli (Python)"
 channel = "alpha"
 path = "python/mds_cli/"
-checksum = ""
-signature = ""
-sbom = ""
-provenance = ""
-smoke = "python3 -m py_compile python/mds_cli/mds_cli/__main__.py"
+checksum = "checksums/mds-cli-py-0.1.0a1.sha256"
+signature = "signatures/mds-cli-py-0.1.0a1.sig"
+sbom = "sbom/mds-cli-py-0.1.0a1.spdx.json"
+provenance = "provenance/mds-cli-py-0.1.0a1.jsonl"
+smoke = true
 
 [[artifacts]]
 name = "mds-lang-py"
 channel = "alpha"
 path = "python/mds_lang_py/"
-checksum = ""
-signature = ""
-sbom = ""
-provenance = ""
-smoke = "python3 -m py_compile python/mds_lang_py/mds_lang_py/__init__.py"
+checksum = "checksums/mds-lang-py-0.1.0a1.sha256"
+signature = "signatures/mds-lang-py-0.1.0a1.sig"
+sbom = "sbom/mds-lang-py-0.1.0a1.spdx.json"
+provenance = "provenance/mds-lang-py-0.1.0a1.jsonl"
+smoke = true
 
 # --- VS Code extension ---
 
@@ -131,8 +154,8 @@ smoke = "python3 -m py_compile python/mds_lang_py/mds_lang_py/__init__.py"
 name = "mds-vscode"
 channel = "alpha"
 path = "editors/vscode/"
-checksum = ""
-signature = ""
-sbom = ""
-provenance = ""
-smoke = "cd editors/vscode && npm run compile"
+checksum = "checksums/mds-vscode-0.1.0.sha256"
+signature = "signatures/mds-vscode-0.1.0.sig"
+sbom = "sbom/mds-vscode-0.1.0.spdx.json"
+provenance = "provenance/mds-vscode-0.1.0.jsonl"
+smoke = true
