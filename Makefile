@@ -1,4 +1,4 @@
-.PHONY: build build-release test lint fmt check clean doc run-check run-build
+.PHONY: build build-release test lint fmt check clean doc run-check run-build vendor-npm vendor-python
 
 # --- Build ---
 build:
@@ -42,6 +42,16 @@ run-doctor:
 # --- Clean ---
 clean:
 	cd crates && cargo clean
+
+# --- Vendor native binary ---
+vendor-npm: build-release
+	node packages/scripts/vendor-binary.js
+
+vendor-python: build-release
+	python3 python/scripts/vendor_binary.py
+
+vendor: vendor-npm vendor-python
+	@echo "Vendored native binary into npm and Python packages."
 
 # --- Documentation ---
 doc:
