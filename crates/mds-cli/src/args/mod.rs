@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use mds_core::{
     AgentKitCategory, AiTarget, BuildMode, CliRequest, Command, DoctorFormat, InitOptions,
-    NewOptions, PythonTool, ReleaseQualityOptions, RustTool, TypeScriptTool,
+    LabelPreset, NewOptions, PythonTool, ReleaseQualityOptions, RustTool, TypeScriptTool,
 };
 
 pub fn parse_args(cwd: PathBuf) -> Result<CliRequest, String> {
@@ -77,6 +77,14 @@ where
             }
             "--install-ai-cli" if command_name == "init" => {
                 init_options.install_ai_cli = true;
+            }
+            "--labels" if command_name == "init" => {
+                let Some(value) = args.next() else {
+                    return Err("--labels requires a value (en or ja)".to_string());
+                };
+                init_options.label_preset = LabelPreset::parse(&value).ok_or_else(|| {
+                    format!("unknown label preset `{value}`; expected en or ja")
+                })?;
             }
             "--ts-tools" if command_name == "init" => {
                 let Some(value) = args.next() else {
@@ -362,6 +370,7 @@ pub fn print_usage() {
     eprintln!("  --ts-tools <list>         TypeScript tools: eslint, prettier, biome, vitest, jest, default, none");
     eprintln!("  --py-tools <list>         Python tools: ruff, black, pytest, unittest, default, none");
     eprintln!("  --rs-tools <list>         Rust tools: rustfmt, clippy, cargo-test, nextest, default, none");
+    eprintln!("  --labels <preset>         Section label language: en (default), ja (Japanese)");
     eprintln!("  --yes                     Execute without confirmation");
     eprintln!("  --force                   Overwrite non-managed files");
     eprintln!("  --install-project-deps    Run npm install / cargo fetch / uv sync");

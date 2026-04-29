@@ -1,6 +1,6 @@
 use dialoguer::{Confirm, MultiSelect, Select};
 use mds_core::{
-    AgentKitCategory, AiTarget, InitOptions, PythonTool, RustTool, TypeScriptTool,
+    AgentKitCategory, AiTarget, InitOptions, LabelPreset, PythonTool, RustTool, TypeScriptTool,
 };
 
 pub fn run_interactive_init() -> Result<InitOptions, String> {
@@ -13,6 +13,25 @@ pub fn run_interactive_init() -> Result<InitOptions, String> {
         .interact()
         .map_err(|e| format!("prompt error: {e}"))?
         == 1;
+
+    let label_preset = if !ai_only {
+        let preset_idx = Select::new()
+            .with_prompt("Section label language / セクションラベルの言語")
+            .items(&[
+                "English (Purpose, Types, Source, Test, ...)",
+                "日本語 (目的, 型定義, 実装, テスト, ...)",
+            ])
+            .default(0)
+            .interact()
+            .map_err(|e| format!("prompt error: {e}"))?;
+        if preset_idx == 1 {
+            LabelPreset::Japanese
+        } else {
+            LabelPreset::English
+        }
+    } else {
+        LabelPreset::English
+    };
 
     let ts_tools = if !ai_only {
         select_ts_tools()?
@@ -82,6 +101,7 @@ pub fn run_interactive_init() -> Result<InitOptions, String> {
         install_project_deps,
         install_toolchains,
         install_ai_cli,
+        label_preset,
     };
 
     println!();
@@ -277,6 +297,13 @@ fn print_summary(options: &InitOptions) {
         println!("Mode: AI agent kit only");
     } else {
         println!("Mode: Full project initialization");
+        println!(
+            "Label language: {}",
+            match options.label_preset {
+                LabelPreset::English => "English",
+                LabelPreset::Japanese => "日本語",
+            }
+        );
     }
 
     if !options.ai_only {

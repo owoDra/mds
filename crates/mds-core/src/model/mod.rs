@@ -33,6 +33,7 @@ pub struct InitOptions {
     pub install_project_deps: bool,
     pub install_toolchains: bool,
     pub install_ai_cli: bool,
+    pub label_preset: LabelPreset,
 }
 
 impl Default for InitOptions {
@@ -49,6 +50,69 @@ impl Default for InitOptions {
             install_project_deps: false,
             install_toolchains: false,
             install_ai_cli: false,
+            label_preset: LabelPreset::English,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+pub enum LabelPreset {
+    English,
+    Japanese,
+}
+
+impl LabelPreset {
+    pub fn parse(value: &str) -> Option<Self> {
+        match value {
+            "en" | "english" => Some(Self::English),
+            "ja" | "japanese" | "jp" => Some(Self::Japanese),
+            _ => None,
+        }
+    }
+
+    pub fn key(self) -> &'static str {
+        match self {
+            Self::English => "en",
+            Self::Japanese => "ja",
+        }
+    }
+
+    pub fn labels(self) -> &'static [(&'static str, &'static str)] {
+        match self {
+            Self::English => &[],
+            Self::Japanese => &[
+                ("purpose", "目的"),
+                ("contract", "契約"),
+                ("types", "型定義"),
+                ("source", "実装"),
+                ("cases", "ケース"),
+                ("test", "テスト"),
+                ("expose", "公開"),
+                ("exposes", "公開面"),
+                ("from", "取得元"),
+                ("target", "対象"),
+                ("summary", "概要"),
+                ("kind", "種別"),
+                ("name", "名前"),
+                ("version", "バージョン"),
+            ],
+        }
+    }
+
+    pub fn section_label(self, canonical: &str) -> String {
+        for (key, label) in self.labels() {
+            if *key == canonical {
+                return label.to_string();
+            }
+        }
+        // Capitalize first letter for default
+        let mut chars = canonical.chars();
+        match chars.next() {
+            Some(first) => {
+                let upper: String = first.to_uppercase().collect();
+                format!("{upper}{}", chars.as_str())
+            }
+            None => canonical.to_string(),
         }
     }
 }
