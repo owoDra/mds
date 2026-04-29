@@ -474,7 +474,7 @@ dependencies = [
 
 [[package]]
 name = "mds-cli"
-version = "0.1.0"
+version = "0.1.0-alpha.1"
 dependencies = [
  "dialoguer",
  "mds-core",
@@ -482,7 +482,7 @@ dependencies = [
 
 [[package]]
 name = "mds-core"
-version = "0.1.0"
+version = "0.1.0-alpha.1"
 dependencies = [
  "serde_json",
  "toml",
@@ -490,11 +490,11 @@ dependencies = [
 
 [[package]]
 name = "mds-lang-rs"
-version = "0.1.0"
+version = "0.1.0-alpha.1"
 
 [[package]]
 name = "mds-lsp"
-version = "0.1.0"
+version = "0.1.0-alpha.1"
 dependencies = [
  "mds-core",
  "serde",

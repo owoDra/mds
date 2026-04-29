@@ -1,8 +1,12 @@
 [package]
 name = "mds-cli"
+description = "CLI for mds — generate multi-language code from Markdown source of truth."
 edition.workspace = true
 license.workspace = true
 version.workspace = true
+repository.workspace = true
+homepage.workspace = true
+documentation.workspace = true
 
 [[bin]]
 name = "mds"
@@ -10,4 +14,4 @@ path = "src/main.rs"
 
 [dependencies]
 dialoguer = "0.11"
-mds-core = { path = "../mds-core" }
+mds-core = { path = "../mds-core", version = "0.1.0-alpha.1" }

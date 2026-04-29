@@ -1,7 +1,11 @@
 [package]
 name = "mds-lang-rs"
+description = "Rust language adapter for mds — module block generation for Rust projects."
 edition.workspace = true
 license.workspace = true
 version.workspace = true
+repository.workspace = true
+homepage.workspace = true
+documentation.workspace = true
 
 [dependencies]
