@@ -168,6 +168,41 @@ mds init --package path/to/package --ts-tools none --py-tools pytest --rs-tools 
 
 `default` を指定すると、mds の代表的な組み合わせを使います。選択内容は `mds.config.toml` の `[quality.ts]`、`[quality.py]`、`[quality.rs]` に書き込まれます。
 
+### 対話型モード
+
+`mds init` を引数なし（または `--package` のみ）で実行すると、対話型ウィザードが起動します。
+
+```bash
+mds init
+mds init --package path/to/package
+```
+
+ウィザードでは、初期化モード、言語ツール、AI ターゲット、セットアップオプションを順に選択し、プラン確認後に実行します。
+
+従来のフラグ指定方式も引き続き利用できます。
+
+## `mds new`
+
+`mds new` は、新しい実装 Markdown のスキャフォールドを生成します。
+
+```bash
+mds new greet.ts.md
+mds new utils/helper.py.md --package path/to/package
+mds new parser.rs.md --force
+```
+
+ファイル名の末尾で言語を判定します。
+
+| 末尾 | 言語 |
+| --- | --- |
+| `.ts.md` | TypeScript |
+| `.py.md` | Python |
+| `.rs.md` | Rust |
+
+生成されるテンプレートには、Purpose、Expose、Uses、Types、Source、Test の全セクションが含まれます。生成先は `src-md/` 配下です。
+
+既存ファイルがある場合は上書きしません。`--force` で強制上書きできます。
+
 ## `mds release check`
 
 `mds release check` は、公開前の成果物検査を行います。

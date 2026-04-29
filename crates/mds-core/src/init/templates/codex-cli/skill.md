@@ -11,18 +11,23 @@ Work with the mds (Markdown-Driven Specification) system where Markdown is the s
 ## Commands
 
 ```sh
-mds check           # Validate markdown structure
-mds build --dry-run # Preview generation output
-mds build           # Generate code from markdown
+mds new <name.lang.md>  # Create new implementation markdown from template
+mds new index.md        # Create new index markdown for a directory
+mds check               # Validate markdown structure
+mds build --dry-run     # Preview generation output
+mds build               # Generate code from markdown
 mds lint --fix --check  # Fix and validate formatting
-mds test            # Run tests on generated outputs
+mds test                # Run tests on generated outputs
 ```
 
 ## Workflow
 
 1. Read existing `src-md/` files to understand the current state
-2. Modify or create markdown source files following the format below
-3. Run `mds check` → `mds build --dry-run` → `mds build` → `mds test`
+2. Create new files with `mds new <name.lang.md>` (ensures correct template)
+3. Fill in Purpose, Expose, Uses, Types, Source, Test sections
+4. Run `mds check` → `mds build --dry-run` → `mds build` → `mds test`
+
+Always use `mds new` to scaffold new files. Example: `mds new greet.ts.md`, `mds new sub/index.md`
 
 ## mds Markdown Format
 

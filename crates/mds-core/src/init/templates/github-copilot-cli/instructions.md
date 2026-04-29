@@ -14,6 +14,8 @@ Markdown is the source of truth. Generated code must not be edited directly.
 
 ## Workflow
 
+- Use `mds new <name.lang.md>` to create new implementation markdown files (never create them manually)
+- Use `mds new index.md` to create new index files for directories
 - Run `mds check` before any generation-sensitive changes
 - Run `mds build --dry-run` before writing generated outputs
 - Run `mds lint --fix --check` to validate markdown quality

@@ -6,6 +6,7 @@ use crate::init::run_init;
 use crate::manifest::validate_manifest;
 use crate::markdown::load_implementation_docs;
 use crate::model::{BuildMode, CliRequest, CliResult, Command, Package};
+use crate::new::run_new;
 use crate::package::{discover_packages, validate_index_docs, validate_package_md};
 use crate::package_sync::sync_package_md;
 use crate::quality::{run_quality, QualityOperation};
@@ -27,6 +28,16 @@ fn execute_inner(request: CliRequest) -> Result<RunState, String> {
     match &request.command {
         Command::Init { options } => {
             run_init(
+                &request.cwd,
+                request.package.as_deref(),
+                options,
+                request.verbose,
+                &mut state,
+            )?;
+            return Ok(state);
+        }
+        Command::New { options } => {
+            run_new(
                 &request.cwd,
                 request.package.as_deref(),
                 options,
@@ -155,7 +166,7 @@ pub(crate) fn run_package(
         }
         Command::PackageSync { .. } => unreachable!(),
         Command::Doctor { .. } => {}
-        Command::Init { .. } | Command::ReleaseCheck { .. } => unreachable!(),
+        Command::Init { .. } | Command::New { .. } | Command::ReleaseCheck { .. } => unreachable!(),
     }
     Ok(())
 }

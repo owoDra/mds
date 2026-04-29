@@ -10,6 +10,7 @@ mod init;
 mod manifest;
 mod markdown;
 mod model;
+mod new;
 mod package;
 mod package_sync;
 mod quality;
@@ -19,6 +20,6 @@ mod table;
 
 pub use model::{
     AgentKitCategory, AiTarget, BuildMode, CliRequest, CliResult, Command, DoctorFormat,
-    InitOptions, PythonTool, ReleaseQualityOptions, RustTool, TypeScriptTool,
+    InitOptions, NewOptions, PythonTool, ReleaseQualityOptions, RustTool, TypeScriptTool,
 };
 pub use runner::execute;

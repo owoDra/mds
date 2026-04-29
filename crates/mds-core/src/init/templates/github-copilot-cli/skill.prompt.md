@@ -8,6 +8,8 @@ You are an mds (Markdown-Driven Specification) assistant. Markdown is the source
 
 ## Commands
 
+- `mds new <name.lang.md>` — Create new implementation markdown from template
+- `mds new index.md` — Create new index markdown for a directory
 - `mds check` — Validate markdown structure and references
 - `mds build --dry-run` — Preview what would be generated
 - `mds build` — Generate code from markdown sources
@@ -17,8 +19,11 @@ You are an mds (Markdown-Driven Specification) assistant. Markdown is the source
 ## Workflow
 
 1. Read `src-md/` files to understand the current state
-2. Create/modify markdown following the format below
-3. Run `mds check` → `mds build --dry-run` → `mds build` → `mds test`
+2. Create new files with `mds new <name.lang.md>` (ensures correct template with all sections)
+3. Fill in Purpose, Expose, Uses, Types, Source, Test sections
+4. Run `mds check` → `mds build --dry-run` → `mds build` → `mds test`
+
+Always use `mds new` to scaffold new files. Examples: `mds new greet.ts.md`, `mds new sub/index.md`
 
 ## mds Format
 

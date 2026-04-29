@@ -17,12 +17,16 @@ Work with the mds (Markdown-Driven Specification) system where Markdown is the s
 ## Commands
 
 ```sh
-mds check           # Validate markdown structure
-mds build --dry-run # Preview generation
-mds build           # Generate code
+mds new <name.lang.md>  # Create new implementation markdown from template
+mds new index.md        # Create new index markdown for a directory
+mds check               # Validate markdown structure
+mds build --dry-run     # Preview generation
+mds build               # Generate code
 mds lint --fix --check  # Fix formatting
-mds test            # Run generated tests
+mds test                # Run generated tests
 ```
+
+Always use `mds new` to create new files: `mds new greet.ts.md`, `mds new sub/index.md`
 
 ## mds Format Quick Reference
 

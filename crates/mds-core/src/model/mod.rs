@@ -16,6 +16,7 @@ pub enum Command {
     Doctor { format: DoctorFormat },
     PackageSync { check: bool },
     Init { options: InitOptions },
+    New { options: NewOptions },
     ReleaseCheck { options: ReleaseQualityOptions },
 }
 
@@ -50,6 +51,12 @@ impl Default for InitOptions {
             install_ai_cli: false,
         }
     }
+}
+
+#[derive(Debug, Clone, Eq, PartialEq)]
+pub struct NewOptions {
+    pub name: String,
+    pub force: bool,
 }
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]

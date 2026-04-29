@@ -15,12 +15,16 @@ Markdown is the source of truth. Generated code must not be edited directly.
 ## Dev Environment
 
 ```sh
-mds check           # Validate markdown structure
-mds build --dry-run # Preview generation output
-mds build           # Generate code from markdown
+mds new <name.lang.md>  # Create new implementation markdown from template
+mds new index.md        # Create new index markdown for a directory
+mds check               # Validate markdown structure
+mds build --dry-run     # Preview generation output
+mds build               # Generate code from markdown
 mds lint --fix --check  # Fix and validate formatting
-mds test            # Run tests on generated outputs
+mds test                # Run tests on generated outputs
 ```
+
+Always use `mds new` to create new `src-md/` files. Never create them manually.
 
 ## mds Markdown Format
 

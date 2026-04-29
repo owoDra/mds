@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use mds_core::{
     AgentKitCategory, AiTarget, BuildMode, CliRequest, Command, DoctorFormat, InitOptions,
-    PythonTool, ReleaseQualityOptions, RustTool, TypeScriptTool,
+    NewOptions, PythonTool, ReleaseQualityOptions, RustTool, TypeScriptTool,
 };
 
 pub fn parse_args(cwd: PathBuf) -> Result<CliRequest, String> {
@@ -30,6 +30,8 @@ where
     let mut init_targets: Option<Vec<AiTarget>> = None;
     let mut init_categories: Option<Vec<AgentKitCategory>> = None;
     let mut release_manifest = None;
+    let mut new_name: Option<String> = None;
+    let mut new_force = false;
     while let Some(arg) = args.next() {
         match arg.as_str() {
             "--package" => {
@@ -106,6 +108,12 @@ where
             "check" if command_name == "release" && release_subcommand.is_none() => {
                 release_subcommand = Some(arg);
             }
+            "--force" if command_name == "new" => {
+                new_force = true;
+            }
+            _ if command_name == "new" && !arg.starts_with('-') && new_name.is_none() => {
+                new_name = Some(arg);
+            }
             _ => return Err(format!("unknown option `{arg}`")),
         }
     }
@@ -168,6 +176,20 @@ where
             }
             Command::Init {
                 options: init_options,
+            }
+        }
+        "new" => {
+            if dry_run || fix || check || !matches!(format, DoctorFormat::Text) {
+                return Err("new only accepts <name>, --package, --force, and --verbose".to_string());
+            }
+            let name = new_name.ok_or_else(|| {
+                "new requires a file name (e.g. `mds new greet.ts.md`)".to_string()
+            })?;
+            Command::New {
+                options: NewOptions {
+                    name,
+                    force: new_force,
+                },
             }
         }
         "release" => {
@@ -324,6 +346,7 @@ pub fn print_usage() {
     eprintln!("Commands:");
     eprintln!("  mds init                                  Interactive project setup (wizard mode)");
     eprintln!("  mds init [options] --yes                  Non-interactive project setup");
+    eprintln!("  mds new <name.lang.md>                    Create new implementation Markdown");
     eprintln!("  mds check [--package <path>]              Validate Markdown structure");
     eprintln!("  mds build [--package <path>] [--dry-run]  Generate derived code");
     eprintln!("  mds lint [--package <path>] [--fix]       Run linters on code blocks");
@@ -352,6 +375,8 @@ pub fn print_usage() {
     eprintln!("Examples:");
     eprintln!("  mds init                                      # Interactive wizard");
     eprintln!("  mds init --package ./my-pkg --yes              # Quick setup with defaults");
+    eprintln!("  mds new greet.ts.md                            # New TypeScript implementation");
+    eprintln!("  mds new utils/helper.py.md --package ./my-pkg  # New Python implementation");
     eprintln!("  mds check --package ./my-pkg                   # Validate structure");
     eprintln!("  mds build --package ./my-pkg --dry-run         # Preview generation");
     eprintln!("  mds build --package ./my-pkg                   # Generate code");

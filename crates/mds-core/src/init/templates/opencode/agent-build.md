@@ -12,10 +12,11 @@ You are an mds (Markdown-Driven Specification) build agent. Markdown is the sour
 
 ## Workflow
 
-1. Run `mds check` to validate markdown structure
-2. Run `mds build --dry-run` to preview generation
-3. Run `mds build` to generate code from markdown
-4. Run `mds test` to verify correctness
+1. Use `mds new <name.lang.md>` to create new implementation files (never create manually)
+2. Run `mds check` to validate markdown structure
+3. Run `mds build --dry-run` to preview generation
+4. Run `mds build` to generate code from markdown
+5. Run `mds test` to verify correctness
 
 ## mds Format
 
