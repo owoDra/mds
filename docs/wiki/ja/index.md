@@ -41,6 +41,7 @@ mds は、Markdown を設計、実装、テストの正本として扱い、Mark
 
 1. [コントリビューション](contributing.md) — 報告と提案の方針
 2. [開発ガイド](development.md) — 環境構築、ビルド、テスト、デバッグ
+3. [LSP 開発ガイド](lsp-development.md) — mds-lsp の開発、デバッグ、機能追加
 
 ## 読む順序
 
@@ -73,4 +74,5 @@ mds は、Markdown を設計、実装、テストの正本として扱い、Mark
 | [エディタ統合 (LSP)](editor-integration.md) | LSP サーバーによるリアルタイム診断、ナビゲーション、補完、VSCode 拡張を説明します。 |
 | [コントリビューション](contributing.md) | 開発参加時に確認することを説明します。 |
 | [開発ガイド](development.md) | 開発環境の構築、ビルド、テスト、デバッグの手順を説明します。 |
+| [LSP 開発ガイド](lsp-development.md) | mds-lsp の開発、デバッグ、capability 追加の手順を説明します。 |
 | [ロードマップ](roadmap.md) | 現在の中心範囲と今後の予定を説明します。 |

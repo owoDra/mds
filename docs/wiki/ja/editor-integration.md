@@ -2,6 +2,19 @@
 
 mds は Language Server Protocol (LSP) に準拠したサーバー `mds-lsp` を提供しています。エディタ上で mds Markdown ファイルのリアルタイム検証、コードナビゲーション、補完、ホバー情報を利用できます。
 
+**主な機能:**
+
+| 機能 | 説明 |
+| --- | --- |
+| リアルタイム診断 | セクション構造、テーブル形式、言語一致、config 検証、リンク検証 |
+| Go to Definition | Uses テーブルの Target から参照先の実装 Markdown へジャンプ |
+| Find References | Expose された名前がどこで Uses されているか検索 |
+| Document Symbols | セクション見出しのアウトライン表示 |
+| Workspace Symbols | `src-md/` 全体のモジュール名検索 |
+| 補完 | セクション名、テーブルカラム名、コードブロック言語、スニペット |
+| Hover | セクション説明、参照先モジュールの Purpose 表示 |
+| Code Action | 欠損セクションの自動追加（Quick Fix） |
+
 ## インストール
 
 ### ソースからビルド
