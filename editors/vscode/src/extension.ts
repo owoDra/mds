@@ -28,6 +28,7 @@ interface LanguageInfo {
  * Add entries here to support new languages automatically.
  */
 const LANGUAGE_REGISTRY: Record<string, LanguageInfo> = {
+  // Core languages (supported by mds-core Lang enum)
   ts: {
     ext: '.ts.md',
     languageId: 'typescript',
@@ -46,42 +47,14 @@ const LANGUAGE_REGISTRY: Record<string, LanguageInfo> = {
     labels: ['rust', 'rs'],
     virtualExt: '.rs',
   },
-  go: {
-    ext: '.go.md',
-    languageId: 'go',
-    labels: ['go', 'golang'],
-    virtualExt: '.go',
-  },
-  java: {
-    ext: '.java.md',
-    languageId: 'java',
-    labels: ['java'],
-    virtualExt: '.java',
-  },
-  kt: {
-    ext: '.kt.md',
-    languageId: 'kotlin',
-    labels: ['kotlin', 'kt'],
-    virtualExt: '.kt',
-  },
-  cs: {
-    ext: '.cs.md',
-    languageId: 'csharp',
-    labels: ['csharp', 'cs'],
-    virtualExt: '.cs',
-  },
-  cpp: {
-    ext: '.cpp.md',
-    languageId: 'cpp',
-    labels: ['cpp', 'c++'],
-    virtualExt: '.cpp',
-  },
-  rb: {
-    ext: '.rb.md',
-    languageId: 'ruby',
-    labels: ['ruby', 'rb'],
-    virtualExt: '.rb',
-  },
+  // Add new languages here when mds-core gains support.
+  // Example:
+  // go: {
+  //   ext: '.go.md',
+  //   languageId: 'go',
+  //   labels: ['go', 'golang'],
+  //   virtualExt: '.go',
+  // },
 };
 
 /** Alias map for normalizing language keys */
@@ -89,10 +62,6 @@ const LANG_ALIASES: Record<string, string> = {
   typescript: 'ts',
   python: 'py',
   rust: 'rs',
-  golang: 'go',
-  kotlin: 'kt',
-  csharp: 'cs',
-  ruby: 'rb',
 };
 
 function normalizeLangKey(key: string): string {
@@ -182,7 +151,7 @@ interface CodeBlock {
 
 function parseCodeBlocks(document: vscode.TextDocument): CodeBlock[] {
   const blocks: CodeBlock[] = [];
-  const openRe = /^\s*```(\w+)\s*$/;
+  const openRe = /^\s*```(\w+)(?:\s.*)?$/;
   const closeRe = /^\s*```\s*$/;
   let inBlock = false;
   let langId = '';

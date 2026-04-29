@@ -14,7 +14,8 @@
     "Snippets"
   ],
   "activationEvents": [
-    "workspaceContains:**/mds.config.toml"
+    "workspaceContains:**/mds.config.toml",
+    "onLanguage:mds-markdown"
   ],
   "main": "./out/extension.js",
   "contributes": {

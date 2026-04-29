@@ -96,11 +96,19 @@ fn build_workspace_index(package: &mds_core::Package) -> WorkspaceIndex {
         let path = doc.path.clone();
         // We index the file path itself as a potential expose target
         let md_rel = doc.markdown_relative_path.clone();
-        let stem = md_rel
-            .to_string_lossy()
-            .replace(".ts.md", "")
-            .replace(".py.md", "")
-            .replace(".rs.md", "");
+        let name = md_rel.to_string_lossy();
+        // Strip any known `.<lang>.md` suffix to derive the module stem.
+        // This handles current and future language extensions generically.
+        let stem = if let Some(pos) = name.rfind('.') {
+            let before = &name[..pos]; // strip ".md"
+            if let Some(pos2) = before.rfind('.') {
+                before[..pos2].to_string() // strip ".<lang>"
+            } else {
+                before.to_string()
+            }
+        } else {
+            name.to_string()
+        };
 
         expose_index
             .entry(stem.clone())
