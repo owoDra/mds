@@ -10,6 +10,7 @@ from pathlib import Path
 def _candidates() -> list[str]:
     here = Path(__file__).resolve().parent
     values = [
+        str(here / "vendor" / "mds"),
         str(here / "mds"),
         str(here.parent / "vendor" / "mds"),
         os.environ.get("MDS_NATIVE_BIN"),
