@@ -37,7 +37,7 @@ mds は npm、Cargo、uv / uvx から導入でき、Rust core の言語横断契
 - Rust core は言語横断の中核契約を提供する。
 - native CLI は Cargo から導入できる。
 - npm package 名は `@mds/cli`、`@mds/core`、`@mds/lang-ts`、`@mds/lang-py`、`@mds/lang-rs` とする。
-- Cargo crate 名は `mds-cli`、`mds-core`、`mds-lang-rs` とする。
+- Cargo crate 名は `mds-cli`、`mds-core`、`mds-lang-rs`、`mds-lsp` とする。
 - Python package 名は `mds-cli`、`mds-lang-py` とする。
 - uv / uvx は Python 利用者向け CLI wrapper と Python language adapter を提供する。
 - wrapper は独自仕様を持たず、配布、起動、adapter 接続だけを担う。

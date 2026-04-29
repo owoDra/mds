@@ -229,8 +229,8 @@ cargo test -p mds-core -- --nocapture test_name
 
 ## 関連ドキュメント
 
-- [CONTRIBUTING.md](../../CONTRIBUTING.md) — 貢献方法の全体説明
-- [アーキテクチャ](../../docs/project/architecture.md) — 設計方針と不変条件
-- [用語集](../../docs/project/glossary/core.md) — プロジェクト共通の用語定義
-- [技術スタック](../../docs/project/tech-stack.md) — 採用技術とバージョン方針
+- [CONTRIBUTING.md](../../../CONTRIBUTING.md) — 貢献方法の全体説明
+- [アーキテクチャ](../../project/architecture.md) — 設計方針と不変条件
+- [用語集](../../project/glossary/core.md) — プロジェクト共通の用語定義
+- [技術スタック](../../project/tech-stack.md) — 採用技術とバージョン方針
 - [コントリビューション](contributing.md) — 報告と提案の方針

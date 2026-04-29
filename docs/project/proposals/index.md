@@ -31,7 +31,7 @@
 ## 参照
 
 - `active/`: 採否判断前の proposal の配置先
-- `active/`: 現在 active proposal はない
+- `active/PROP-mds-lsp.md`: mds-lsp (Language Server Protocol) に関する proposal
 - `archive/`: 参照優先度を落とした proposal の配置先
 - `archive/proposal-markdown-grammar-open-details.md`: Markdown grammar の未確定細部に関する採否判断済み proposal
 - `archive/proposal-post-mvp-generation-followups.md`: Post-MVP の残要件達成計画に関する採否判断済み proposal
