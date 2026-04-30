@@ -61,10 +61,11 @@ cargo clippy
 cargo fmt --check
 ```
 
-一括実行する場合は Makefile も利用できます:
+一括実行する場合は VSCode タスクも利用できます:
 
 ```bash
-make check   # fmt + clippy + test を一括実行
+cd crates
+cargo fmt --check && cargo clippy -- -D warnings && cargo test
 ```
 
 ### 5. Pull Request を作成する
@@ -93,8 +94,8 @@ crates/
   mds-core/     # コア処理ライブラリ（解析、検証、生成、init）
   mds-cli/      # CLI エントリポイントと引数解析
   mds-lang-rs/  # Rust 言語アダプター
-packages/        # npm パッケージ配布用
-python/          # Python パッケージ配布用
+  mds-lsp/      # Language Server Protocol 実装
+editors/vscode/  # VS Code 拡張機能
 docs/
   project/       # 設計正本（要件、仕様、ADR、アーキテクチャ）
   wiki/ja/       # 利用者向けドキュメント

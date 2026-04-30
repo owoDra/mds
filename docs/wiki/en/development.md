@@ -4,7 +4,7 @@
 
 This page explains the environment setup, build, test, and debug procedures for participating in mds development.
 
-If you are using mds to operate a project, refer to [Getting Started](getting-started.md). Installing via a package manager is the easiest (`cargo install mds-cli` / `npm install -g @owox-mds/cli` / `pip install mds-cli`).
+If you are using mds to operate a project, refer to [Getting Started](getting-started.md). The easiest installation is via `curl -fsSL https://raw.githubusercontent.com/owo-x-project/owox-mds/main/install.sh | sh` or `cargo install mds-cli`.
 
 The following are procedures for cloning the repository and developing.
 
@@ -13,12 +13,7 @@ The following are procedures for cloning the repository and developing.
 | Tool | Version | Purpose |
 | --- | --- | --- |
 | Rust | 1.86 or later | Building and testing core processing |
-| Node.js | 24 or later | Building and testing npm packages |
-| Python | 3.13 or later | Building and testing Python packages |
-| uv | Latest | Python dependency management |
 | Git | Latest | Version control |
-
-You do not need to set up all language environments at once. You can start with Rust only.
 
 ## Environment Setup
 
@@ -31,32 +26,11 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 # Add quality tools
 rustup component add rustfmt clippy
 
-# Verify build
-cd crates
-cargo build
-```
+# Install mds for development
+cargo install --path crates/mds-cli
 
-### Node.js environment (when working with TypeScript)
-
-```bash
-# Install Node.js 24+ (example using nvm)
-nvm install 24
-nvm use 24
-
-# Install npm package dependencies
-cd packages
-npm install
-```
-
-### Python environment (when working with Python)
-
-```bash
-# Install uv
-python3 -m pip install --user uv
-
-# Install Python package dependencies
-cd python/mds_cli
-uv sync
+# Verify
+mds --version
 ```
 
 ## Repository Structure
@@ -81,14 +55,12 @@ mds/
 │   │       ├── args/        # Argument parsing
 │   │       └── wizard.rs    # Interactive init wizard
 │   └── mds-lang-rs/         # Rust language adapter
-├── packages/                # npm package distribution
-├── python/                  # Python package distribution
+├── editors/vscode/          # VS Code extension
 ├── docs/
 │   ├── project/             # Design source of truth (requirements, specs, ADRs)
 │   └── wiki/ja/             # User-facing documentation
 ├── examples/                # Sample projects
-├── result/                  # Output for operation verification
-└── Makefile                 # Development task shortcuts
+└── .vscode/tasks.json       # Development task definitions
 ```
 
 ## Build
@@ -148,14 +120,14 @@ cargo clippy           # lint
 cargo clippy -- -D warnings   # Treat warnings as errors
 ```
 
-### Batch execution (Makefile)
+### Batch execution
 
 ```bash
-make check             # Run fmt --check + clippy + test in batch
-make fmt               # Auto-format
-make lint              # clippy only
-make test              # Tests only
+cd crates
+cargo fmt --check && cargo clippy -- -D warnings && cargo test
 ```
+
+In VSCode, you can run the "mds: Check All" task for the same checks.
 
 ## Running mds Commands for Verification
 

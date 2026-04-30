@@ -20,10 +20,10 @@ Write real code — TypeScript, Python, Rust — inside Markdown code blocks, th
 ## Quick Start
 
 ```bash
-# Install (pick one)
-cargo install mds-cli          # Rust
-npm install -g @owox-mds/cli   # Node.js
-pip install mds-cli            # Python
+# Install
+curl -fsSL https://raw.githubusercontent.com/owo-x-project/owox-mds/main/install.sh | sh
+# or
+cargo install mds-cli
 
 # Basic usage
 mds init --package ./path/to/package
@@ -35,11 +35,7 @@ VS Code extension: `code --install-extension owo-x-project.mds`
 
 See [examples/](examples/) for minimal working configurations.
 
-## Requirements
-
-- Rust 1.86+ (required)
-- Node.js 24+ (for TypeScript)
-- Python 3.13+ (for Python)
+## Requirements\n\nNo runtime dependencies — mds is a single static binary.\n\n- Rust 1.86+ (only if building from source with `cargo install`)
 
 ## Documentation
 

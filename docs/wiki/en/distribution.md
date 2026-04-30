@@ -1,60 +1,64 @@
-# Distribution Policy
+# Distribution
 
-> *This page was translated from [Japanese](../ja/distribution.md) by AI.*
+This page explains how mds is distributed.
 
-This page explains the distribution policy of mds.
+## Principle
 
-## Basic Policy
-
-mds aims to be usable from multiple environments, centered on core processing and commands implemented in Rust.
-
-To allow installation according to the user's language environment, distribution via Cargo, npm, Python packages, and native executables is targeted.
+mds is distributed as a single static binary built in Rust. No runtime dependencies required.
 
 ## Distribution Channels
 
-| Distribution Channel | Role |
+| Channel | Method |
 | --- | --- |
-| Cargo | A channel for installing mds from a Rust environment. |
-| npm | A channel for invoking mds from a Node.js environment. |
-| Python package | A channel for invoking mds from a Python environment. |
-| Native executable | A channel for running the mds command without depending on a language environment. |
+| GitHub Releases | Platform-specific binaries (recommended) |
+| install.sh | One-liner install via `curl -fsSL .../install.sh \| sh` |
+| Cargo | Build from source with `cargo install mds-cli` |
 
-## Core Processing
+## Installation
 
-Core processing is implemented in Rust.
+```bash
+# Recommended: install script
+curl -fsSL https://raw.githubusercontent.com/owo-x-project/owox-mds/main/install.sh | sh
 
-Rust handles Markdown parsing, configuration resolution, package discovery, generation planning, file generation, diagnostics, and more.
+# Specific version
+curl -fsSL .../install.sh | sh -s -- --version 0.3.0
 
-## Usage from npm
+# Via Cargo (requires Rust toolchain)
+cargo install mds-cli
+```
 
-The npm package is treated as an entry point for invoking native executables.
+## Self-Update
 
-Rather than changing mds semantics on the npm side, the same mds commands are made callable from a Node.js environment.
+```bash
+mds update              # Update to latest
+mds update --version 0.4.0  # Update to specific version
+```
 
-## Usage from Python
+## Version Pinning
 
-The Python package is also treated as an entry point for invoking native executables.
+Specify the mds version for a project in `mds.config.toml`:
 
-Rather than creating different semantics on the Python side, the same mds commands are made callable from a Python environment.
+```toml
+[package]
+enabled = true
+mds_version = "0.3.0"
+```
 
-## Pre-release Quality Verification
+`mds doctor` detects version mismatches and warns.
 
-Before publication, the quality of distribution artifacts is verified.
+## Included Binaries
 
-Verification targets include:
+| Binary | Purpose |
+| --- | --- |
+| `mds` | Main CLI command |
+| `mds-lsp` | Language Server (for editor integration) |
 
-- Existence of distribution artifacts
-- Checksums
+## Pre-Release Quality Checks
+
+Before release, the following are verified:
+
+- Artifact existence and checksums
 - Signatures
-- Software bill of materials
+- Software Bill of Materials (SBOM)
 - Provenance information
-- Basic post-install operation verification
-- Ability to launch native executables from wrapper packages
-
-These verifications are to prevent distributing artifacts that cannot be installed after publication.
-
-## Current Status
-
-This distribution policy is a target for implementation and release preparation.
-
-Available installation methods will change as releases progress. To try it reliably at this point, run it as a Rust command from the repository.
+- Post-install smoke tests
