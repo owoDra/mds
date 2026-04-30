@@ -2,7 +2,9 @@
 
 このページでは、mds 本体の開発に参加するための環境構築、ビルド、テスト、デバッグの手順を説明します。
 
-mds を利用してプロジェクトを運用する場合は、[はじめに](getting-started.md)を参照してください。
+mds を利用してプロジェクトを運用する場合は、[はじめに](getting-started.md)を参照してください。パッケージマネージャ経由のインストールが最も簡単です（`cargo install mds-cli` / `npm install -g @owox-mds/cli` / `pip install mds-cli`）。
+
+以下はリポジトリを clone して開発する場合の手順です。
 
 ## 前提条件
 

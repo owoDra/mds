@@ -1,58 +1,63 @@
 # mds
 
-mds は、Markdown を設計と実装の正本として扱う開発ツールチェーンです。
+> *This document was translated from [Japanese](README.ja.md) by AI.*
 
-Markdown 文書の中に TypeScript、Python、Rust などの実際のコードをコードブロックとして記述し、`mds build` でそれらを実行可能なソースファイルとして取り出します。Markdown 内のコードがそのまま動くコードになるため、設計の意図と実装が常に一致します。
+mds is a development toolchain that treats Markdown as the source of truth for both design and implementation.
 
-## 何ができるか
+Write real code — TypeScript, Python, Rust — inside Markdown code blocks, then extract them as executable source files with `mds build`. Because the code in Markdown is the actual running code, design intent and implementation always stay in sync.
 
-- Markdown 内の `Types`、`Source`、`Test` コードブロックに書いた実コードから `.ts`、`.py`、`.rs` ファイルを生成する
-- `mds check` で Markdown の構造と整合性を検査する
-- `mds lint` / `mds test` で Markdown 内のコードに対して検査・テストを実行する
-- `mds init` で対話型ウィザードによるプロジェクト初期化を行う
+## Features
 
-## クイックスタート
+- Generate `.ts`, `.py`, `.rs` files from `Types`, `Source`, `Test` code blocks in Markdown
+- `mds check` validates Markdown structure and consistency
+- `mds lint` / `mds test` runs linters and tests against code in Markdown
+- `mds init` initializes a project with an interactive wizard
+
+## Quick Start
 
 ```bash
-# ビルド
-cd crates && cargo build -p mds-cli
+# Install (pick one)
+cargo install mds-cli          # Rust
+npm install -g @owox-mds/cli   # Node.js
+pip install mds-cli            # Python
 
-# 対話型で初期化（推奨）
-cargo run -p mds-cli -- init --package ../path/to/package
-
-# 検査 → プレビュー → 生成
-cargo run -p mds-cli -- check --package ../path/to/package
-cargo run -p mds-cli -- build --package ../path/to/package --dry-run
-cargo run -p mds-cli -- build --package ../path/to/package
+# Basic usage
+mds init --package ./path/to/package
+mds check --package ./path/to/package
+mds build --package ./path/to/package
 ```
 
-動作する最小構成は [examples/](examples/) を参照してください。
+VS Code extension: `code --install-extension owo-x-project.mds`
 
-## 動作環境
+See [examples/](examples/) for minimal working configurations.
 
-- Rust 1.86 以上（必須）
-- Node.js 24 以上（TypeScript を扱う場合）
-- Python 3.13 以上（Python を扱う場合）
+## Requirements
 
-## ドキュメント
+- Rust 1.86+ (required)
+- Node.js 24+ (for TypeScript)
+- Python 3.13+ (for Python)
 
-| 対象 | 入口 |
+## Documentation
+
+| Audience | Entry point |
 | --- | --- |
-| **mds を使う人** | [wiki 入口](docs/wiki/ja/index.md) — はじめに、コマンド、設定、生成、トラブルシューティング |
-| **mds の開発に参加する人** | [CONTRIBUTING.md](CONTRIBUTING.md) — 環境構築、開発フロー、テスト |
+| **Users** | [Wiki (EN)](docs/wiki/en/index.md) — Getting started, commands, configuration, generation, troubleshooting |
+| **Contributors** | [CONTRIBUTING.md](CONTRIBUTING.md) — Setup, dev workflow, testing |
 
-### 主なリンク
+[日本語版 README](README.ja.md) | [日本語 Wiki](docs/wiki/ja/index.md)
 
-- [はじめに](docs/wiki/ja/getting-started.md) — 前提と最小構成
-- [コマンド](docs/wiki/ja/commands.md) — 全コマンドの使い方
-- [開発ガイド](docs/wiki/ja/development.md) — ビルド、テスト、デバッグ
-- [AI エージェント連携](docs/wiki/ja/ai-agent-integration.md) — Claude Code、Codex、Opencode、GitHub Copilot
-- [エディタ統合 (LSP)](docs/wiki/ja/editor-integration.md) — VSCode 拡張、Neovim、リアルタイム診断
+### Key links
 
-## コントリビューション
+- [Getting Started](docs/wiki/en/getting-started.md) — Prerequisites and minimal setup
+- [Commands](docs/wiki/en/commands.md) — Full command reference
+- [Development Guide](docs/wiki/en/development.md) — Build, test, debug
+- [AI Agent Integration](docs/wiki/en/ai-agent-integration.md) — Claude Code, Codex, Opencode, GitHub Copilot
+- [Editor Integration (LSP)](docs/wiki/en/editor-integration.md) — VS Code extension, Neovim, real-time diagnostics
 
-不具合報告、ドキュメント改善、実装改善を歓迎します。詳しくは [CONTRIBUTING.md](CONTRIBUTING.md) を参照してください。
+## Contributing
 
-## ライセンス
+Bug reports, documentation improvements, and implementation improvements are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
 
-MIT License です。詳しくは [LICENSE](LICENSE) を参照してください。
+## License
+
+MIT License. See [LICENSE](LICENSE) for details.

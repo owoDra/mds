@@ -2,9 +2,41 @@
 
 このページでは、mds を試すために必要な前提と、基本的な実行手順を説明します。
 
+## インストール
+
+お使いの言語エコシステムに合わせて選んでください。どれか1つを入れれば `mds` コマンドが使えるようになります。
+
+### Rust (cargo)
+
+```bash
+cargo install mds-cli
+```
+
+### Node.js (npm)
+
+```bash
+npm install -g @owox-mds/cli
+```
+
+### Python (pip / uv)
+
+```bash
+pip install mds-cli
+# または
+uvx mds-cli
+```
+
+### VSCode 拡張
+
+Marketplace で **"mds"** を検索するか、以下のコマンドでインストールできます。
+
+```bash
+code --install-extension owo-x-project.mds
+```
+
 ## 前提
 
-mds は開発中のツールです。公開パッケージとしての配布は準備中のため、現時点ではリポジトリから Rust のコマンドとして実行する方法が最も確実です。
+mds は開発中のツールです。現在アルファ版として公開されています。
 
 ## 必要な実行環境
 
@@ -39,22 +71,19 @@ mds の対象パッケージには、次のファイルを用意します。
 まず、対象パッケージの構造を検査します。
 
 ```bash
-cd crates
-cargo run -p mds-cli -- check --package ../path/to/package
+mds check --package ./path/to/package
 ```
 
 次に、生成予定と差分を確認します。
 
 ```bash
-cd crates
-cargo run -p mds-cli -- build --package ../path/to/package --dry-run
+mds build --package ./path/to/package --dry-run
 ```
 
 問題がなければ、派生コードを書き込みます。
 
 ```bash
-cd crates
-cargo run -p mds-cli -- build --package ../path/to/package
+mds build --package ./path/to/package
 ```
 
 ## 生成されるもの

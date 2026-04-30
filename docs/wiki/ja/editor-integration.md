@@ -17,7 +17,13 @@ mds は Language Server Protocol (LSP) に準拠したサーバー `mds-lsp` を
 
 ## インストール
 
-### ソースからビルド
+### cargo install（推奨）
+
+```bash
+cargo install mds-lsp
+```
+
+### ソースからビルド（開発者向け）
 
 ```bash
 cd crates
