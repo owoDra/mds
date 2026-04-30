@@ -85,7 +85,7 @@ jobs:
             local local_ver=$(cargo metadata --manifest-path crates/Cargo.toml --no-deps --format-version 1 \
               | jq -r ".packages[] | select(.name == \"$crate\") | .version")
             # Use crates.io API with required User-Agent header
-            local api_response=$(curl -s -H "User-Agent: mds-ci (https://github.com/owo-x-project/mds)" \
+            local api_response=$(curl -s -H "User-Agent: mds-ci (https://github.com/owo-x-project/owox-mds)" \
               "https://crates.io/api/v1/crates/$crate/versions")
             local found=$(echo "$api_response" | jq -r ".versions[]?.num // empty" 2>/dev/null | grep -Fx "$local_ver" || echo "")
             if [[ -z "$found" ]]; then

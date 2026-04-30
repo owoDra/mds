@@ -6,8 +6,8 @@ requires-python = ">=3.13"
 license = { text = "MIT" }
 
 [project.urls]
-Homepage = "https://github.com/owo-x-project/mds"
-Repository = "https://github.com/owo-x-project/mds"
+Homepage = "https://github.com/owo-x-project/owox-mds"
+Repository = "https://github.com/owo-x-project/owox-mds"
 
 [build-system]
 requires = ["hatchling"]

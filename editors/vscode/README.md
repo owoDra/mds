@@ -1,6 +1,6 @@
 # mds — Markdown Design System (VS Code Extension)
 
-Language support for [mds](https://github.com/owo-x-project/mds) implementation files (`.ts.md`, `.py.md`, `.rs.md`).
+Language support for [mds](https://github.com/owo-x-project/owox-mds) implementation files (`.ts.md`, `.py.md`, `.rs.md`).
 
 ## Features
 
@@ -12,8 +12,11 @@ Language support for [mds](https://github.com/owo-x-project/mds) implementation 
 ## Requirements
 
 - VS Code 1.85+
-- [mds CLI](https://github.com/owo-x-project/mds) installed (`cargo install mds-cli` or via npm `@owox-mds/cli`)
-- For LSP support: `mds-lsp` binary on PATH (installed via `cargo install mds-lsp`)
+- [mds CLI](https://github.com/owo-x-project/owox-mds) installed:
+  - `cargo install mds-cli`
+  - `npm install -g @owox-mds/cli`
+  - `pip install mds-cli`
+- For LSP support: `mds-lsp` binary on PATH (`cargo install mds-lsp`)
 
 ## Configuration
 

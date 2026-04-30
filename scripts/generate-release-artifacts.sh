@@ -107,7 +107,7 @@ generate_provenance() {
   local version="$2"
   local out="$3"
   cat > "$out" <<EOF
-{"_type":"https://in-toto.io/Statement/v0.1","subject":[{"name":"$name","digest":{"sha256":"pending"}}],"predicateType":"https://slsa.dev/provenance/v0.2","predicate":{"builder":{"id":"local"},"buildType":"https://github.com/owo-x-project/mds/build/v1","invocation":{"configSource":{"uri":"https://github.com/owo-x-project/mds","entryPoint":"scripts/generate-release-artifacts.sh"}},"metadata":{"buildStartedOn":"$(date -u +%Y-%m-%dT%H:%M:%SZ)","completeness":{"parameters":true,"environment":false,"materials":false}}}}
+{"_type":"https://in-toto.io/Statement/v0.1","subject":[{"name":"$name","digest":{"sha256":"pending"}}],"predicateType":"https://slsa.dev/provenance/v0.2","predicate":{"builder":{"id":"local"},"buildType":"https://github.com/owo-x-project/owox-mds/build/v1","invocation":{"configSource":{"uri":"https://github.com/owo-x-project/owox-mds","entryPoint":"scripts/generate-release-artifacts.sh"}},"metadata":{"buildStartedOn":"$(date -u +%Y-%m-%dT%H:%M:%SZ)","completeness":{"parameters":true,"environment":false,"materials":false}}}}
 EOF
   echo "  provenance: $out"
 }

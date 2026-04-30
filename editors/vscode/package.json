@@ -7,12 +7,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/owo-x-project/mds",
+    "url": "https://github.com/owo-x-project/owox-mds",
     "directory": "editors/vscode"
   },
-  "homepage": "https://github.com/owo-x-project/mds",
+  "homepage": "https://github.com/owo-x-project/owox-mds",
   "bugs": {
-    "url": "https://github.com/owo-x-project/mds/issues"
+    "url": "https://github.com/owo-x-project/owox-mds/issues"
   },
   "engines": {
     "vscode": "^1.85.0"
