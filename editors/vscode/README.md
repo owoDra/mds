@@ -17,7 +17,7 @@ Language support for [mds](https://github.com/owo-x-project/owox-mds) implementa
   ```bash
   curl -fsSL https://raw.githubusercontent.com/owo-x-project/owox-mds/main/install.sh | sh
   # or
-  cargo install --git https://github.com/owo-x-project/owox-mds mds-lsp
+  curl -fsSL https://raw.githubusercontent.com/owo-x-project/owox-mds/main/install.sh | sh
   ```
 
 ## Configuration

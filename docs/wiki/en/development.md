@@ -4,7 +4,7 @@
 
 This page explains the environment setup, build, test, and debug procedures for participating in mds development.
 
-If you are using mds to operate a project, refer to [Getting Started](getting-started.md). The easiest installation is via `curl -fsSL https://raw.githubusercontent.com/owo-x-project/owox-mds/main/install.sh | sh` or `cargo install mds-cli`.
+If you are using mds to operate a project, refer to [Getting Started](getting-started.md). The easiest installation is via `curl -fsSL https://raw.githubusercontent.com/owo-x-project/owox-mds/main/install.sh | sh`.
 
 The following are procedures for cloning the repository and developing.
 

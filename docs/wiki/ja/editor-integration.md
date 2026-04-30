@@ -17,10 +17,12 @@ mds は Language Server Protocol (LSP) に準拠したサーバー `mds-lsp` を
 
 ## インストール
 
-### cargo install（推奨）
+### install.sh（推奨）
+
+インストールスクリプトで `mds` と `mds-lsp` の両方がインストールされます:
 
 ```bash
-cargo install mds-lsp
+curl -fsSL https://raw.githubusercontent.com/owo-x-project/owox-mds/main/install.sh | sh
 ```
 
 ### ソースからビルド（開発者向け）

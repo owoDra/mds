@@ -12,7 +12,6 @@ mds is distributed as a single static binary built in Rust. No runtime dependenc
 | --- | --- |
 | GitHub Releases | Platform-specific binaries (recommended) |
 | install.sh | One-liner install via `curl -fsSL .../install.sh \| sh` |
-| Cargo | Build from source with `cargo install mds-cli` |
 
 ## Installation
 
@@ -22,9 +21,6 @@ curl -fsSL https://raw.githubusercontent.com/owo-x-project/owox-mds/main/install
 
 # Specific version
 curl -fsSL .../install.sh | sh -s -- --version 0.3.0
-
-# Via Cargo (requires Rust toolchain)
-cargo install mds-cli
 ```
 
 ## Self-Update

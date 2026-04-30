@@ -2,7 +2,7 @@
 
 このページでは、mds 本体の開発に参加するための環境構築、ビルド、テスト、デバッグの手順を説明します。
 
-mds を利用してプロジェクトを運用する場合は、[はじめに](getting-started.md)を参照してください。`curl -fsSL https://raw.githubusercontent.com/owo-x-project/owox-mds/main/install.sh | sh` または `cargo install mds-cli` でインストールできます。
+mds を利用してプロジェクトを運用する場合は、[はじめに](getting-started.md)を参照してください。`curl -fsSL https://raw.githubusercontent.com/owo-x-project/owox-mds/main/install.sh | sh` でインストールできます。
 
 以下はリポジトリを clone して開発する場合の手順です。
 

@@ -6,27 +6,13 @@ This page explains the prerequisites for trying mds and the basic execution step
 
 ## Installation
 
-Choose according to your language ecosystem. Installing any one of these will make the `mds` command available.
-
-### Rust (cargo)
+Install with the one-liner script (recommended):
 
 ```bash
-cargo install mds-cli
+curl -fsSL https://raw.githubusercontent.com/owo-x-project/owox-mds/main/install.sh | sh
 ```
 
-### Node.js (npm)
-
-```bash
-npm install -g @owox-mds/cli
-```
-
-### Python (pip / uv)
-
-```bash
-pip install mds-cli
-# or
-uvx mds-cli
-```
+This installs both `mds` and `mds-lsp` to `~/.local/bin`.
 
 ### VSCode Extension
 
@@ -42,11 +28,11 @@ mds is a tool under development. It is currently released as an alpha version.
 
 ## Required Runtime Environment
 
-Rust is required for basic checking and generation.
+No runtime dependencies — mds is a single static binary.
 
 | Purpose | Requirements |
 | --- | --- |
-| Running mds commands | Rust 1.86 or later |
+| Running mds commands | None (pre-built binary) |
 | TypeScript checking, fixing, testing | Node.js 24 or later, plus your chosen ESLint, Prettier, Biome, Vitest, Jest, etc. |
 | Python checking, fixing, testing | Python 3.13 or later, plus your chosen Ruff, Black, Pytest, unittest, etc. |
 | Rust checking, fixing, testing | Rust 1.86 or later, Cargo, plus your chosen rustfmt, Clippy, cargo-nextest, etc. |

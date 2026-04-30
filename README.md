@@ -22,8 +22,6 @@ Write real code — TypeScript, Python, Rust — inside Markdown code blocks, th
 ```bash
 # Install
 curl -fsSL https://raw.githubusercontent.com/owo-x-project/owox-mds/main/install.sh | sh
-# or
-cargo install mds-cli
 
 # Basic usage
 mds init --package ./path/to/package
@@ -35,7 +33,7 @@ VS Code extension: `code --install-extension owo-x-project.mds`
 
 See [examples/](examples/) for minimal working configurations.
 
-## Requirements\n\nNo runtime dependencies — mds is a single static binary.\n\n- Rust 1.86+ (only if building from source with `cargo install`)
+## Requirements\n\nNo runtime dependencies — mds is a single static binary.
 
 ## Documentation
 
