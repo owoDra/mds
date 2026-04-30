@@ -552,10 +552,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "mds-lang-rs"
-version = "0.1.0-alpha.1"
-
-[[package]]
 name = "mds-lsp"
 version = "0.1.0-alpha.1"
 dependencies = [

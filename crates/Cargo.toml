@@ -2,7 +2,6 @@
 members = [
   "mds-core",
   "mds-cli",
-  "mds-lang-rs",
   "mds-lsp",
 ]
 resolver = "2"
