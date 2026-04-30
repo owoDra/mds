@@ -49,6 +49,21 @@ impl MdsLanguageServer {
         info!("indexed {} packages", state.packages.len());
     }
 
+    /// Check if a path is within a src-md directory of any known package.
+    async fn is_in_src_md(&self, path: &std::path::Path) -> bool {
+        let state = self.state.read().await;
+        for pkg_state in &state.packages {
+            let md_root = pkg_state
+                .package
+                .root
+                .join(&pkg_state.package.config.roots.markdown);
+            if path.starts_with(&md_root) {
+                return true;
+            }
+        }
+        false
+    }
+
     /// Validate a single document and publish diagnostics.
     pub async fn validate_document(&self, uri: &Url, text: &str) {
         let path = match uri.to_file_path() {
@@ -67,7 +82,7 @@ impl MdsLanguageServer {
             capabilities::diagnostics::validate_config_text(&path, text)
         } else if path.ends_with("package.md") {
             capabilities::diagnostics::validate_package_md_text(&path, text, &config)
-        } else if Lang::from_path(&path).is_some() {
+        } else if Lang::from_path(&path).is_some() || self.is_in_src_md(&path).await {
             capabilities::diagnostics::validate_impl_md_text(&path, text, &config)
         } else {
             vec![]

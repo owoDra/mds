@@ -69,10 +69,11 @@ fn hover_uses_target(
 
     // Try to find the target file
     let lang = Lang::from_path(path)?;
-    let ext = match lang {
-        Lang::TypeScript => ".ts.md",
-        Lang::Python => ".py.md",
-        Lang::Rust => ".rs.md",
+    let ext = match &lang {
+        Lang::TypeScript => ".ts.md".to_string(),
+        Lang::Python => ".py.md".to_string(),
+        Lang::Rust => ".rs.md".to_string(),
+        Lang::Other(e) => format!(".{e}.md"),
     };
 
     let target_path = markdown_root.join(format!("{word}{ext}"));

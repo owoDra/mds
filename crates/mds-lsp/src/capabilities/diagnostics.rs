@@ -62,7 +62,7 @@ pub fn validate_impl_md_text(
     }
 
     // Check language matching with file extension
-    if let Some(lang) = Lang::from_path(path) {
+    if let Some(ref lang) = Lang::from_path(path) {
         validate_code_block_languages(text, lang, path, &mut state);
     }
 
@@ -136,14 +136,19 @@ pub fn validate_package_md_text(
 /// Validate that code block language labels match the file's language.
 fn validate_code_block_languages(
     text: &str,
-    expected_lang: Lang,
+    expected_lang: &Lang,
     path: &Path,
     state: &mut RunState,
 ) {
-    let expected_labels: &[&str] = match expected_lang {
-        Lang::TypeScript => &["typescript", "ts", "tsx"],
-        Lang::Python => &["python", "py"],
-        Lang::Rust => &["rust", "rs"],
+    let expected_labels: Vec<String> = match expected_lang {
+        Lang::TypeScript => vec![
+            "typescript".to_string(),
+            "ts".to_string(),
+            "tsx".to_string(),
+        ],
+        Lang::Python => vec!["python".to_string(), "py".to_string()],
+        Lang::Rust => vec!["rust".to_string(), "rs".to_string()],
+        Lang::Other(ext) => vec![ext.clone()],
     };
 
     for (idx, line) in text.lines().enumerate() {
@@ -151,7 +156,7 @@ fn validate_code_block_languages(
         if trimmed.starts_with("```") && trimmed.len() > 3 {
             let label = trimmed[3..].trim().to_lowercase();
             if !label.is_empty()
-                && !expected_labels.contains(&label.as_str())
+                && !expected_labels.contains(&label)
                 && label != "text"
                 && label != "txt"
                 && label != "markdown"

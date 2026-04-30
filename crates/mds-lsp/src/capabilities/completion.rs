@@ -131,10 +131,12 @@ fn code_block_language_completions(path: Option<&Path>) -> Vec<CompletionItem> {
         .iter()
         .map(|(label, detail)| {
             let is_recommended = detected
+                .as_ref()
                 .map(|lang| match lang {
                     Lang::TypeScript => *label == "typescript",
                     Lang::Python => *label == "python",
                     Lang::Rust => *label == "rust",
+                    Lang::Other(ext) => *label == ext.as_str(),
                 })
                 .unwrap_or(false);
 
@@ -160,10 +162,12 @@ fn snippet_completions(path: Option<&Path>, config: &Config) -> Vec<CompletionIt
     let lang = path.and_then(Lang::from_path);
 
     let lang_label = lang
+        .as_ref()
         .map(|l| match l {
             Lang::TypeScript => "typescript",
             Lang::Python => "python",
             Lang::Rust => "rust",
+            Lang::Other(ext) => ext.as_str(),
         })
         .unwrap_or("typescript");
 
