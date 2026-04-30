@@ -129,11 +129,13 @@ jobs:
         run: cd python/mds_lang_py && uv build
       - name: Publish mds-cli
         if: needs.check-versions.outputs.publish_cli == 'true' && (github.event_name == 'push' || inputs.dry_run == 'false')
+        continue-on-error: true
         run: cd python/mds_cli && uv publish
         env:
           UV_PUBLISH_TOKEN: ${{ secrets.PYPI_TOKEN }}
       - name: Publish mds-lang-py
         if: needs.check-versions.outputs.publish_lang_py == 'true' && (github.event_name == 'push' || inputs.dry_run == 'false')
+        continue-on-error: true
         run: cd python/mds_lang_py && uv publish
         env:
           UV_PUBLISH_TOKEN: ${{ secrets.PYPI_TOKEN }}
