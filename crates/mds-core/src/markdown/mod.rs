@@ -1,11 +1,10 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::fs;
-use std::path::{Component, Path};
+use std::path::Path;
 
 use crate::diagnostics::{Diagnostic, RunState};
 use crate::fs_utils::{collect_files, is_excluded};
-use crate::model::{ImplDoc, Lang, OutputKind, Package, UseExpose, UseFrom, UseRow};
-use crate::table::parse_table_with_labels;
+use crate::model::{ImplDoc, Lang, Package};
 
 pub fn load_implementation_docs(
     package: &Package,
@@ -56,48 +55,13 @@ pub fn parse_impl_doc(
         }
     };
     validate_markdown_links(path, &text, state);
-    for (idx, line) in text.lines().enumerate() {
-        if line.starts_with("#####") {
-            state.diagnostics.push(
-                Diagnostic::error(
-                    Some(path.to_path_buf()),
-                    "implementation md only allows H3-H4 helper headings",
-                )
-                .at_line(idx + 1),
-            );
-        }
-    }
 
-    let sections = sections_with_labels(&text, &package.config.label_overrides);
-    for required in ["Purpose", "Contract", "Types", "Source", "Cases", "Test"] {
-        if !sections.contains_key(required) {
-            state.diagnostics.push(Diagnostic::error(
-                Some(path.to_path_buf()),
-                format!("implementation md requires ## {required}"),
-            ));
-        }
-    }
-
-    let mut uses = HashMap::new();
-    let mut code = HashMap::new();
-    for kind in [OutputKind::Types, OutputKind::Source, OutputKind::Test] {
-        if let Some(section) = sections.get(kind.section()) {
-            uses.insert(
-                kind,
-                parse_uses(section, path, &package.config.label_overrides, state),
-            );
-            let joined = code_blocks(section, path, state);
-            if joined.trim().is_empty() {
-                state.diagnostics.push(Diagnostic::error(
-                    Some(path.to_path_buf()),
-                    format!(
-                        "{} section requires at least one code block",
-                        kind.section()
-                    ),
-                ));
-            }
-            code.insert(kind, joined);
-        }
+    let code = extract_all_code_blocks(&text);
+    if code.trim().is_empty() {
+        state.diagnostics.push(Diagnostic::error(
+            Some(path.to_path_buf()),
+            "implementation md requires at least one code block",
+        ));
     }
 
     let package_relative_path = match path.strip_prefix(&package.root) {
@@ -116,10 +80,38 @@ pub fn parse_impl_doc(
         path: path.to_path_buf(),
         package_relative_path,
         markdown_relative_path,
-        uses,
         code,
         normalized_input,
     })
+}
+
+/// Extract all code blocks from the entire markdown content.
+/// Code blocks are separated by `\n\n` in the output.
+pub fn extract_all_code_blocks(text: &str) -> String {
+    let mut in_block = false;
+    let mut current = String::new();
+    let mut blocks = Vec::new();
+    for line in text.lines() {
+        if line.trim_start().starts_with("```") {
+            if in_block {
+                blocks.push(current.trim_end_matches(['\r', '\n']).to_string());
+                current.clear();
+                in_block = false;
+            } else {
+                in_block = true;
+            }
+            continue;
+        }
+        if in_block {
+            current.push_str(line);
+            current.push('\n');
+        }
+    }
+    if blocks.is_empty() {
+        String::new()
+    } else {
+        blocks.join("\n\n") + "\n"
+    }
 }
 
 pub fn sections_with_labels(
@@ -163,223 +155,6 @@ fn canonical_section_title(title: &str, label_overrides: &HashMap<String, String
         }
     }
     title.to_string()
-}
-
-pub fn parse_uses(
-    section: &str,
-    path: &Path,
-    label_overrides: &HashMap<String, String>,
-    state: &mut RunState,
-) -> Vec<UseRow> {
-    let Some(rows) = parse_table_with_labels(
-        section,
-        &["From", "Target", "Expose", "Summary"],
-        path,
-        label_overrides,
-        state,
-    ) else {
-        state.diagnostics.push(Diagnostic::error(
-            Some(path.to_path_buf()),
-            "Uses table requires From, Target, Expose, and Summary columns",
-        ));
-        return Vec::new();
-    };
-    let mut seen = HashSet::new();
-    let mut uses = Vec::new();
-    for row in rows {
-        let from_text = row
-            .get("from")
-            .map(String::as_str)
-            .unwrap_or_default()
-            .trim();
-        let Some(from) = UseFrom::parse(from_text) else {
-            state.diagnostics.push(Diagnostic::error(
-                Some(path.to_path_buf()),
-                format!(
-                    "Uses.From must be one of builtin, package, workspace, internal: `{from_text}`"
-                ),
-            ));
-            continue;
-        };
-        let target = row
-            .get("target")
-            .map(String::as_str)
-            .unwrap_or_default()
-            .trim()
-            .to_string();
-        validate_target(from, &target, path, state);
-        let exposes = parse_use_exposes(
-            row.get("expose").map(String::as_str).unwrap_or_default(),
-            path,
-            state,
-        );
-        let key = (
-            from,
-            target.clone(),
-            exposes
-                .iter()
-                .map(UseExpose::render_key)
-                .collect::<Vec<_>>()
-                .join(","),
-        );
-        if !seen.insert(key) {
-            state.diagnostics.push(Diagnostic::error(
-                Some(path.to_path_buf()),
-                "duplicate Uses row with the same From, Target, and Expose",
-            ));
-        }
-        uses.push(UseRow {
-            from,
-            target,
-            exposes,
-        });
-    }
-    uses
-}
-
-pub fn parse_use_exposes(value: &str, path: &Path, state: &mut RunState) -> Vec<UseExpose> {
-    let mut exposes = Vec::new();
-    let mut has_default = false;
-    let mut has_namespace = false;
-    for token in value
-        .split(',')
-        .map(str::trim)
-        .filter(|token| !token.is_empty())
-    {
-        if let Some(local) = token.strip_prefix("default:") {
-            let local = local.trim();
-            if local.is_empty() {
-                state.diagnostics.push(Diagnostic::error(
-                    Some(path.to_path_buf()),
-                    "Uses.Expose default token requires a local name",
-                ));
-                continue;
-            }
-            has_default = true;
-            exposes.push(UseExpose::Default {
-                local: local.to_string(),
-            });
-        } else if let Some(local) = token.strip_prefix("* as ") {
-            let local = local.trim();
-            if local.is_empty() {
-                state.diagnostics.push(Diagnostic::error(
-                    Some(path.to_path_buf()),
-                    "Uses.Expose namespace token requires a local name",
-                ));
-                continue;
-            }
-            has_namespace = true;
-            exposes.push(UseExpose::Namespace {
-                local: local.to_string(),
-            });
-        } else if let Some((name, alias)) = token.split_once(" as ") {
-            let name = name.trim();
-            let alias = alias.trim();
-            if name.is_empty() || alias.is_empty() {
-                state.diagnostics.push(Diagnostic::error(
-                    Some(path.to_path_buf()),
-                    "Uses.Expose alias token requires both source and local names",
-                ));
-                continue;
-            }
-            exposes.push(UseExpose::Named {
-                name: name.to_string(),
-                alias: Some(alias.to_string()),
-            });
-        } else {
-            exposes.push(UseExpose::Named {
-                name: token.to_string(),
-                alias: None,
-            });
-        }
-    }
-    if has_default && has_namespace {
-        state.diagnostics.push(Diagnostic::error(
-            Some(path.to_path_buf()),
-            "Uses.Expose does not allow default and namespace imports in the same cell",
-        ));
-    }
-    if has_namespace && exposes.len() > 1 {
-        state.diagnostics.push(Diagnostic::error(
-            Some(path.to_path_buf()),
-            "Uses.Expose namespace import must be the only token in the cell",
-        ));
-    }
-    exposes
-}
-
-pub fn validate_target(from: UseFrom, target: &str, path: &Path, state: &mut RunState) {
-    if target.is_empty() {
-        state.diagnostics.push(Diagnostic::error(
-            Some(path.to_path_buf()),
-            "Uses.Target is required",
-        ));
-        return;
-    }
-    if target.contains(".md") || target.contains('\\') {
-        state.diagnostics.push(Diagnostic::error(
-            Some(path.to_path_buf()),
-            "Uses.Target must not contain .md or backslash separators",
-        ));
-    }
-    if from == UseFrom::Internal {
-        let invalid = target.starts_with("./")
-            || target.starts_with("../")
-            || target.starts_with('/')
-            || target.ends_with('/')
-            || Path::new(target)
-                .components()
-                .any(|component| matches!(component, Component::ParentDir | Component::RootDir));
-        if invalid
-            || target
-                .rsplit('/')
-                .next()
-                .is_some_and(|leaf| leaf.contains('.'))
-        {
-            state.diagnostics.push(Diagnostic::error(
-                Some(path.to_path_buf()),
-                "internal Uses.Target must be a markdown_root relative module path without ./, ../, extension, trailing slash, or absolute path",
-            ));
-        }
-    }
-}
-
-pub fn code_blocks(section: &str, path: &Path, state: &mut RunState) -> String {
-    let mut in_block = false;
-    let mut current = String::new();
-    let mut blocks = Vec::new();
-    for (idx, line) in section.lines().enumerate() {
-        if line.trim_start().starts_with("```") {
-            if in_block {
-                blocks.push(current.trim_end_matches(['\r', '\n']).to_string());
-                current.clear();
-                in_block = false;
-            } else {
-                in_block = true;
-            }
-            continue;
-        }
-        if in_block {
-            let trimmed = line.trim_start();
-            if trimmed.starts_with("import ")
-                || trimmed.starts_with("from ")
-                || trimmed.starts_with("use ")
-                || trimmed.starts_with("require(")
-                || trimmed.starts_with("const ") && trimmed.contains("require(")
-            {
-                state.diagnostics.push(
-                    Diagnostic::error(
-                        Some(path.to_path_buf()),
-                        "code blocks must not contain import/use/require; use the Uses table",
-                    )
-                    .at_line(idx + 1),
-                );
-            }
-            current.push_str(line);
-            current.push('\n');
-        }
-    }
-    blocks.join("\n\n") + if blocks.is_empty() { "" } else { "\n" }
 }
 
 pub fn normalized_input(path: &Path, text: &str) -> String {

@@ -1,11 +1,11 @@
 use std::fs;
 use std::path::PathBuf;
 
-use crate::adapter::{imports_for, run_toolchain_command};
+use crate::adapter::run_toolchain_command;
 use crate::diagnostics::{Diagnostic, RunState};
 use crate::diff::unified_diff;
 use crate::fs_utils::is_excluded;
-use crate::model::{ImplDoc, Lang, OutputKind, Package};
+use crate::model::{ImplDoc, Lang, Package};
 
 #[derive(Debug, Clone, Copy)]
 pub(crate) enum QualityOperation {
@@ -103,32 +103,21 @@ fn run_doc_quality(
     let Some(command) = command else {
         return Ok(());
     };
-    let target_kinds: &[OutputKind] = match operation {
-        QualityOperation::Lint => &[OutputKind::Types, OutputKind::Source, OutputKind::Test],
-        QualityOperation::Test => &[OutputKind::Test],
-        QualityOperation::Fix { .. } => &[],
-    };
-    for kind in target_kinds {
-        let Some(code) = doc.code.get(kind) else {
-            continue;
-        };
-        let path = temp_code_path(package, &doc.lang, *kind);
-        if let Some(parent) = path.parent() {
-            fs::create_dir_all(parent)
-                .map_err(|error| format!("failed to create {}: {error}", parent.display()))?;
-        }
-        let imports = imports_for(package, doc, *kind, &path, state);
-        fs::write(&path, format!("{imports}{code}"))
-            .map_err(|error| format!("failed to write {}: {error}", path.display()))?;
-        let _ = run_toolchain_command(
-            command,
-            Some(&path),
-            &package.root,
-            config,
-            &doc.path,
-            state,
-        )?;
+    let path = temp_code_path(package, &doc.lang);
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent)
+            .map_err(|error| format!("failed to create {}: {error}", parent.display()))?;
     }
+    fs::write(&path, &doc.code)
+        .map_err(|error| format!("failed to write {}: {error}", path.display()))?;
+    let _ = run_toolchain_command(
+        command,
+        Some(&path),
+        &package.root,
+        config,
+        &doc.path,
+        state,
+    )?;
     Ok(())
 }
 
@@ -147,8 +136,8 @@ fn fix_doc(
     let old = fs::read_to_string(&doc.path)
         .map_err(|error| format!("failed to read {}: {error}", doc.path.display()))?;
     let mut replacements = Vec::new();
-    for block in code_block_ranges(&old, &package.config.label_overrides) {
-        let path = temp_code_path(package, &doc.lang, OutputKind::Source);
+    for block in code_block_ranges(&old) {
+        let path = temp_code_path(package, &doc.lang);
         if let Some(parent) = path.parent() {
             fs::create_dir_all(parent)
                 .map_err(|error| format!("failed to create {}: {error}", parent.display()))?;
@@ -187,17 +176,9 @@ fn fix_doc(
     Ok(())
 }
 
-fn temp_code_path(package: &Package, lang: &Lang, kind: OutputKind) -> PathBuf {
-    let file_name = match (lang, kind) {
-        (Lang::TypeScript, OutputKind::Test) => "test.test.ts".to_string(),
-        (Lang::Python, OutputKind::Test) => "test_test.py".to_string(),
-        (Lang::Rust, OutputKind::Test) => "test.rs".to_string(),
-        (Lang::TypeScript, _) => format!("{}.ts", kind.manifest_kind()),
-        (Lang::Python, _) => format!("{}.py", kind.manifest_kind()),
-        (Lang::Rust, _) => format!("{}.rs", kind.manifest_kind()),
-        (Lang::Other(ext), OutputKind::Test) => format!("test.{ext}"),
-        (Lang::Other(ext), _) => format!("{}.{ext}", kind.manifest_kind()),
-    };
+fn temp_code_path(package: &Package, lang: &Lang) -> PathBuf {
+    let ext = lang.file_ext();
+    let file_name = format!("source.{ext}");
     let path = package.root.join(".mds/tmp").join(&file_name);
     if is_excluded(&package.root, &path, &package.config.excludes) {
         package.root.join(".mds-tmp").join(file_name)
@@ -213,33 +194,21 @@ struct CodeBlock<'a> {
     content: &'a str,
 }
 
-fn code_block_ranges<'a>(
-    text: &'a str,
-    label_overrides: &std::collections::HashMap<String, String>,
-) -> Vec<CodeBlock<'a>> {
+fn code_block_ranges(text: &str) -> Vec<CodeBlock<'_>> {
     let mut ranges = Vec::new();
     let mut in_block = false;
-    let mut in_quality_section = false;
     let mut content_start = 0;
     let mut cursor = 0;
     for line in text.split_inclusive('\n') {
         let line_start = cursor;
         cursor += line.len();
-        if !in_block {
-            if let Some(title) = line.trim_end().strip_prefix("## ") {
-                let title = canonical_quality_section(title.trim(), label_overrides);
-                in_quality_section = matches!(title.as_str(), "Types" | "Source" | "Test");
-            }
-        }
         if line.trim_start().starts_with("```") {
             if in_block {
-                if in_quality_section {
-                    ranges.push(CodeBlock {
-                        start: content_start,
-                        end: line_start,
-                        content: &text[content_start..line_start],
-                    });
-                }
+                ranges.push(CodeBlock {
+                    start: content_start,
+                    end: line_start,
+                    content: &text[content_start..line_start],
+                });
                 in_block = false;
             } else {
                 in_block = true;
@@ -248,24 +217,6 @@ fn code_block_ranges<'a>(
         }
     }
     ranges
-}
-
-fn canonical_quality_section(
-    title: &str,
-    label_overrides: &std::collections::HashMap<String, String>,
-) -> String {
-    for canonical in ["Types", "Source", "Test"] {
-        if title == canonical {
-            return canonical.to_string();
-        }
-        if label_overrides
-            .get(&canonical.to_ascii_lowercase())
-            .is_some_and(|override_label| override_label.trim() == title)
-        {
-            return canonical.to_string();
-        }
-    }
-    title.to_string()
 }
 
 fn apply_replacements(old: &str, replacements: &[(usize, usize, String)]) -> String {

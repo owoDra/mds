@@ -66,9 +66,10 @@ test("it works", () => {});
 
 #[test]
 fn test_missing_sections() {
+    // With the new format, the only requirement is at least one code block
     let text = r#"## Purpose
 
-A module with missing sections.
+A module with no code blocks.
 "#;
 
     let path = fixture_path("missing.ts.md");
@@ -77,55 +78,24 @@ A module with missing sections.
 
     let messages: Vec<&str> = diags.iter().map(|d| d.message.as_str()).collect();
     assert!(
-        messages.iter().any(|m| m.contains("Contract")),
-        "should report missing Contract: {messages:?}"
-    );
-    assert!(
-        messages.iter().any(|m| m.contains("Types")),
-        "should report missing Types: {messages:?}"
-    );
-    assert!(
-        messages.iter().any(|m| m.contains("Source")),
-        "should report missing Source: {messages:?}"
-    );
-    assert!(
-        messages.iter().any(|m| m.contains("Test")),
-        "should report missing Test: {messages:?}"
+        messages.iter().any(|m| m.contains("code block")),
+        "should report missing code block: {messages:?}"
     );
 }
 
 #[test]
 fn test_heading_depth_violation() {
+    // H5+ is no longer an error in the new format
     let text = r#"## Purpose
 
 A module.
 
-## Contract
-
-Contract.
-
-## Types
-
-```typescript
-type A = string;
-```
+##### Deep heading is allowed now
 
 ## Source
 
-##### Invalid deep heading
-
 ```typescript
 function main() {}
-```
-
-## Cases
-
-Cases.
-
-## Test
-
-```typescript
-test("x", () => {});
 ```
 "#;
 
@@ -133,10 +103,11 @@ test("x", () => {});
     let config = Config::default();
     let diags = diagnostics::validate_impl_md_text(&path, text, &config);
 
+    // No heading-depth errors anymore
     let messages: Vec<&str> = diags.iter().map(|d| d.message.as_str()).collect();
     assert!(
-        messages.iter().any(|m| m.contains("H3-H4")),
-        "should report deep heading: {messages:?}"
+        !messages.iter().any(|m| m.contains("H3-H4")),
+        "should not report deep heading: {messages:?}"
     );
 }
 
@@ -229,10 +200,14 @@ fn test_empty_document_diagnostics() {
     let path = fixture_path("empty.ts.md");
     let config = Config::default();
     let diags = diagnostics::validate_impl_md_text(&path, text, &config);
-    // Should report missing sections
+    // Should report missing code block
     assert!(
-        diags.len() >= 5,
-        "empty doc should report many missing sections: {diags:?}"
+        !diags.is_empty(),
+        "empty doc should report missing code block: {diags:?}"
+    );
+    assert!(
+        diags.iter().any(|d| d.message.contains("code block")),
+        "should mention code block requirement: {diags:?}"
     );
 }
 

@@ -2,8 +2,8 @@ use std::path::Path;
 
 use mds_core::config::merge_config_file;
 use mds_core::diagnostics::RunState;
-use mds_core::markdown::{code_blocks, parse_uses, sections_with_labels, validate_markdown_links};
-use mds_core::model::{Config, Lang, OutputKind};
+use mds_core::markdown::{extract_all_code_blocks, sections_with_labels, validate_markdown_links};
+use mds_core::model::{Config, Lang};
 use mds_core::table::parse_table_with_labels;
 use tower_lsp::lsp_types;
 
@@ -13,52 +13,20 @@ use crate::convert::to_lsp_diagnostic;
 pub fn validate_impl_md_text(
     path: &Path,
     text: &str,
-    config: &Config,
+    _config: &Config,
 ) -> Vec<lsp_types::Diagnostic> {
     let mut state = RunState::default();
 
     // Validate markdown links
     validate_markdown_links(path, text, &mut state);
 
-    // Check heading depth
-    for (idx, line) in text.lines().enumerate() {
-        if line.starts_with("#####") {
-            state.diagnostics.push(
-                mds_core::Diagnostic::error(
-                    Some(path.to_path_buf()),
-                    "implementation md only allows H3-H4 helper headings",
-                )
-                .at_line(idx + 1),
-            );
-        }
-    }
-
-    // Section structure validation
-    let sections = sections_with_labels(text, &config.label_overrides);
-    for required in ["Purpose", "Contract", "Types", "Source", "Cases", "Test"] {
-        if !sections.contains_key(required) {
-            state.diagnostics.push(mds_core::Diagnostic::error(
-                Some(path.to_path_buf()),
-                format!("implementation md requires ## {required}"),
-            ));
-        }
-    }
-
-    // Validate code sections
-    for kind in [OutputKind::Types, OutputKind::Source, OutputKind::Test] {
-        if let Some(section) = sections.get(kind.section()) {
-            parse_uses(section, path, &config.label_overrides, &mut state);
-            let joined = code_blocks(section, path, &mut state);
-            if joined.trim().is_empty() {
-                state.diagnostics.push(mds_core::Diagnostic::error(
-                    Some(path.to_path_buf()),
-                    format!(
-                        "{} section requires at least one code block",
-                        kind.section()
-                    ),
-                ));
-            }
-        }
+    // Validate that there is at least one code block
+    let code = extract_all_code_blocks(text);
+    if code.trim().is_empty() {
+        state.diagnostics.push(mds_core::Diagnostic::error(
+            Some(path.to_path_buf()),
+            "implementation md requires at least one code block",
+        ));
     }
 
     // Check language matching with file extension

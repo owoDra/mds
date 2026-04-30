@@ -83,7 +83,7 @@ pub fn goto_definition(
     None
 }
 
-/// Find References: find all Uses table entries that reference the expose at cursor.
+/// Find References: find all files that reference this module (by import path or file name).
 pub fn find_references(
     text: &str,
     position: Position,
@@ -97,51 +97,45 @@ pub fn find_references(
 
     let pkg_state = state.package_for_path(path)?;
 
-    // Get this file's module name (its expose stem)
+    // Get this file's module stem
     let doc = pkg_state.index.docs.get(path)?;
     let stem = doc
         .markdown_relative_path
         .to_string_lossy()
-        .replace(".ts.md", "")
-        .replace(".py.md", "")
-        .replace(".rs.md", "");
+        .replace(".md", "");
 
-    // Search all docs in this package for Uses rows targeting this stem
+    // Search all docs for textual references to this stem or the word
     let mut locations = Vec::new();
     let mut seen_files = std::collections::HashSet::new();
 
-    for (doc_path, doc) in &pkg_state.index.docs {
-        for uses in doc.uses.values() {
-            for use_row in uses {
-                if use_row.target == stem || use_row.target == word {
-                    // Only read each file once
-                    if !seen_files.insert(doc_path.clone()) {
-                        continue;
-                    }
-                    let file_text = match std::fs::read_to_string(doc_path) {
-                        Ok(t) => t,
-                        Err(_) => continue,
-                    };
-                    for (idx, line) in file_text.lines().enumerate() {
-                        if line.trim_start().starts_with('|') && line.contains(&use_row.target) {
-                            if let Ok(uri) = Url::from_file_path(doc_path) {
-                                let char_end = u32::try_from(line.len()).unwrap_or(u32::MAX);
-                                locations.push(Location {
-                                    uri,
-                                    range: Range {
-                                        start: Position {
-                                            line: idx as u32,
-                                            character: 0,
-                                        },
-                                        end: Position {
-                                            line: idx as u32,
-                                            character: char_end,
-                                        },
-                                    },
-                                });
-                            }
-                        }
-                    }
+    for doc_path in pkg_state.index.docs.keys() {
+        if doc_path == path {
+            continue;
+        }
+        let file_text = match std::fs::read_to_string(doc_path) {
+            Ok(t) => t,
+            Err(_) => continue,
+        };
+        for (idx, line) in file_text.lines().enumerate() {
+            if line.contains(&stem) || line.contains(&word) {
+                if !seen_files.insert((doc_path.clone(), idx)) {
+                    continue;
+                }
+                if let Ok(uri) = Url::from_file_path(doc_path) {
+                    let char_end = u32::try_from(line.len()).unwrap_or(u32::MAX);
+                    locations.push(Location {
+                        uri,
+                        range: Range {
+                            start: Position {
+                                line: idx as u32,
+                                character: 0,
+                            },
+                            end: Position {
+                                line: idx as u32,
+                                character: char_end,
+                            },
+                        },
+                    });
                 }
             }
         }

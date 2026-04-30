@@ -34,9 +34,7 @@ fn builds_three_language_fixture() {
     });
     assert_eq!(dry_run.exit_code, 0, "{}", dry_run.stderr);
     assert!(dry_run.stdout.contains("Build plan:"));
-    assert!(dry_run.stdout.contains("bar.types.ts"));
     assert!(dry_run.stdout.contains(".mds/manifest.toml"));
-    assert!(dry_run.stdout.contains("src/lib.rs"));
     assert!(dry_run.stdout.contains("--- /dev/null"));
     assert!(!temp.path().join("pkg/src/foo/bar.ts").exists());
 
@@ -53,9 +51,6 @@ fn builds_three_language_fixture() {
     assert!(temp.path().join("pkg/src/pkg/foo.py").exists());
     assert!(temp.path().join("pkg/src/foo/bar.rs").exists());
     assert!(temp.path().join("pkg/.mds/manifest.toml").exists());
-    assert!(fs::read_to_string(temp.path().join("pkg/src/lib.rs"))
-        .unwrap()
-        .contains("pub mod foo"));
 }
 
 #[test]
@@ -78,7 +73,6 @@ fn merges_root_and_package_config() {
     });
     assert_eq!(build.exit_code, 0, "{}", build.stderr);
     assert!(temp.path().join("pkg/generated/foo/bar.ts").exists());
-    assert!(temp.path().join("pkg/generated/foo/bar.types.ts").exists());
 }
 
 #[test]
@@ -135,138 +129,6 @@ fn package_sync_updates_managed_sections_and_preserves_rules() {
     assert!(package_md.contains("| left-pad | 1.3.0 |  |"));
     assert!(package_md.contains("| vitest | 2.0.0 |  |"));
     assert!(package_md.contains("## Rules\n\n- test fixture"));
-}
-
-#[test]
-fn rejects_table_missing_required_columns() {
-    let temp = TestDir::new();
-    write_fixture(temp.path());
-    let doc = temp.path().join("pkg/src-md/foo/bar.ts.md");
-    let text = fs::read_to_string(&doc).unwrap().replace(
-        "| From | Target | Expose | Summary |",
-        "| From | Expose | Summary |",
-    );
-    fs::write(doc, text).unwrap();
-
-    let check = execute(CliRequest {
-        cwd: temp.path().to_path_buf(),
-        package: None,
-        verbose: false,
-        command: Command::Check,
-    });
-    assert_eq!(check.exit_code, 1);
-    assert!(check.stderr.contains("missing required columns"));
-}
-
-#[test]
-fn rust_module_block_includes_index_exposes() {
-    let temp = TestDir::new();
-    write_fixture(temp.path());
-    fs::write(
-        temp.path().join("pkg/src-md/index.md"),
-        "# Index\n\n## Purpose\n\nFixture.\n\n## Architecture\n\nFixture.\n\n## Exposes\n\n| Kind | Name | Target | Summary |\n| --- | --- | --- | --- |\n| module | Extra | extra/baz | extra module |\n\n## Rules\n\n- Fixture.\n",
-    )
-    .unwrap();
-
-    let build = execute(CliRequest {
-        cwd: temp.path().to_path_buf(),
-        package: None,
-        verbose: false,
-        command: Command::Build {
-            mode: BuildMode::Write,
-        },
-    });
-    assert_eq!(build.exit_code, 0, "{}", build.stderr);
-    let lib = fs::read_to_string(temp.path().join("pkg/src/lib.rs")).unwrap();
-    assert!(lib.contains("pub mod extra"));
-    assert!(lib.contains("pub mod baz;"));
-}
-
-#[test]
-fn rejects_invalid_internal_target() {
-    let temp = TestDir::new();
-    write_fixture(temp.path());
-    let doc = temp.path().join("pkg/src-md/foo/bar.ts.md");
-    let text = fs::read_to_string(&doc).unwrap().replace(
-        "| internal | foo/util | Util | helper |",
-        "| internal | ./foo/util.ts | Util | helper |",
-    );
-    fs::write(doc, text).unwrap();
-
-    let check = execute(CliRequest {
-        cwd: temp.path().to_path_buf(),
-        package: None,
-        verbose: false,
-        command: Command::Check,
-    });
-    assert_eq!(check.exit_code, 1);
-    assert!(check.stderr.contains("internal Uses.Target must be"));
-}
-
-#[test]
-fn supports_typescript_extended_uses_expose_tokens() {
-    let temp = TestDir::new();
-    write_fixture(temp.path());
-    let doc = temp.path().join("pkg/src-md/foo/bar.ts.md");
-    let text = fs::read_to_string(&doc).unwrap().replace(
-        "| internal | foo/util | Util | helper |",
-        "| package | fixture-lib | default: Fixture, Util as Renamed | helper |",
-    );
-    fs::write(doc, text).unwrap();
-
-    let build = execute(CliRequest {
-        cwd: temp.path().to_path_buf(),
-        package: None,
-        verbose: false,
-        command: Command::Build {
-            mode: BuildMode::Write,
-        },
-    });
-    assert_eq!(build.exit_code, 0, "{}", build.stderr);
-    let types = fs::read_to_string(temp.path().join("pkg/src/foo/bar.types.ts")).unwrap();
-    assert!(types.contains("import type Fixture, { Util as Renamed } from \"fixture-lib\";"));
-}
-
-#[test]
-fn rejects_invalid_default_namespace_combination() {
-    let temp = TestDir::new();
-    write_fixture(temp.path());
-    let doc = temp.path().join("pkg/src-md/foo/bar.ts.md");
-    let text = fs::read_to_string(&doc).unwrap().replace(
-        "| internal | foo/util | Util | helper |",
-        "| package | fixture-lib | default: Fixture, * as ns | helper |",
-    );
-    fs::write(doc, text).unwrap();
-
-    let check = execute(CliRequest {
-        cwd: temp.path().to_path_buf(),
-        package: None,
-        verbose: false,
-        command: Command::Check,
-    });
-    assert_eq!(check.exit_code, 1);
-    assert!(check.stderr.contains("default and namespace"));
-}
-
-#[test]
-fn reports_adapter_unsupported_import_tokens() {
-    let temp = TestDir::new();
-    write_fixture(temp.path());
-    let doc = temp.path().join("pkg/src-md/pkg/foo.py.md");
-    let text = fs::read_to_string(&doc).unwrap().replace(
-        "## Types\n\n| From | Target | Expose | Summary |\n| --- | --- | --- | --- |",
-        "## Types\n\n| From | Target | Expose | Summary |\n| --- | --- | --- | --- |\n| package | fixture_py | default: Fixture | helper |",
-    );
-    fs::write(doc, text).unwrap();
-
-    let check = execute(CliRequest {
-        cwd: temp.path().to_path_buf(),
-        package: None,
-        verbose: false,
-        command: Command::Check,
-    });
-    assert_eq!(check.exit_code, 1);
-    assert!(check.stderr.contains("Python adapter does not support"));
 }
 
 #[test]
@@ -375,7 +237,7 @@ fn lint_fix_check_reports_diff_without_writing_and_fix_writes_code_blocks_only()
     let fixed = fs::read_to_string(&doc).unwrap();
     assert!(fixed.contains("formatted_code()"));
     assert!(fixed.contains("## Purpose"));
-    assert!(fixed.contains("| From | Target | Expose | Summary |"));
+    assert!(fixed.contains("## Source"));
 }
 
 #[test]
@@ -682,18 +544,15 @@ fn lint_fix_updates_successful_quality_blocks_only() {
     fs::write(
         temp.path().join("pkg/mds.config.toml"),
         format!(
-            "[package]\nenabled = true\nallow_raw_source = false\n\n[quality.ts]\nfixer = \"{}\"\nrequired = []\noptional = []\n\n[quality.py]\nfixer = false\nrequired = []\noptional = []\n\n[quality.rs]\nfixer = false\nrequired = []\noptional = []\n",
+            "[package]\nenabled = true\n\n[quality.ts]\nfixer = \"{}\"\nrequired = []\noptional = []\n\n[quality.py]\nfixer = false\nrequired = []\noptional = []\n\n[quality.rs]\nfixer = false\nrequired = []\noptional = []\n",
             fixer.display()
         ),
     )
     .unwrap();
     let doc = temp.path().join("pkg/src-md/foo/bar.ts.md");
+    // Replace the last code block content with DO_NOT_FIX to simulate partial failure
     let text = fs::read_to_string(&doc)
         .unwrap()
-        .replace(
-            "Fixture.\n\n## Contract",
-            "Fixture.\n\n```text\nnot_quality_block\n```\n\n## Contract",
-        )
         .replace("expect(bar).toBe(\"ok\");", "DO_NOT_FIX");
     fs::write(&doc, text).unwrap();
 
@@ -708,9 +567,9 @@ fn lint_fix_updates_successful_quality_blocks_only() {
     });
     assert_eq!(fix.exit_code, 1);
     let fixed = fs::read_to_string(&doc).unwrap();
+    // Successful blocks get fixed, failing block stays unchanged
     assert!(fixed.contains("fixed_code()"));
     assert!(fixed.contains("DO_NOT_FIX"));
-    assert!(fixed.contains("not_quality_block"));
 }
 
 #[test]
@@ -1121,14 +980,9 @@ fn impl_doc(
     types: &str,
     source: &str,
     test: &str,
-    uses_row: &str,
+    _uses_row: &str,
 ) -> String {
-    let uses = if uses_row.is_empty() {
-        "| From | Target | Expose | Summary |\n| --- | --- | --- | --- |\n".to_string()
-    } else {
-        format!("| From | Target | Expose | Summary |\n| --- | --- | --- | --- |\n{uses_row}\n")
-    };
     format!(
-        "# {name}\n\n## Purpose\n\nFixture.\n\n## Contract\n\nStable.\n\n## Types\n\n{uses}```{lang}\n{types}\n```\n\n## Source\n\n| From | Target | Expose | Summary |\n| --- | --- | --- | --- |\n\n```{lang}\n{source}\n```\n\n## Cases\n\n- Works.\n\n## Test\n\n| From | Target | Expose | Summary |\n| --- | --- | --- | --- |\n\n```{lang}\n{test}\n```\n"
+        "# {name}\n\n## Purpose\n\nFixture.\n\n## Source\n\n```{lang}\n{types}\n```\n\n```{lang}\n{source}\n```\n\n```{lang}\n{test}\n```\n"
     )
 }

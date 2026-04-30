@@ -470,80 +470,19 @@ pub struct ImplDoc {
     pub path: PathBuf,
     pub package_relative_path: PathBuf,
     pub markdown_relative_path: PathBuf,
-    pub uses: HashMap<OutputKind, Vec<UseRow>>,
-    pub code: HashMap<OutputKind, String>,
+    pub code: String,
     pub normalized_input: String,
 }
 
 #[derive(Debug, Clone, Copy, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum OutputKind {
-    Types,
     Source,
-    Test,
 }
 
 impl OutputKind {
-    pub fn section(self) -> &'static str {
-        match self {
-            Self::Types => "Types",
-            Self::Source => "Source",
-            Self::Test => "Test",
-        }
-    }
-
     pub fn manifest_kind(self) -> &'static str {
         match self {
-            Self::Types => "types",
             Self::Source => "source",
-            Self::Test => "test",
-        }
-    }
-}
-
-#[derive(Debug, Clone, Eq, Hash, PartialEq)]
-pub struct UseRow {
-    pub from: UseFrom,
-    pub target: String,
-    pub exposes: Vec<UseExpose>,
-}
-
-#[derive(Debug, Clone, Eq, Hash, PartialEq)]
-pub enum UseExpose {
-    Named { name: String, alias: Option<String> },
-    Default { local: String },
-    Namespace { local: String },
-}
-
-impl UseExpose {
-    pub fn render_key(&self) -> String {
-        match self {
-            Self::Named { name, alias: None } => name.clone(),
-            Self::Named {
-                name,
-                alias: Some(alias),
-            } => format!("{name} as {alias}"),
-            Self::Default { local } => format!("default: {local}"),
-            Self::Namespace { local } => format!("* as {local}"),
-        }
-    }
-}
-
-#[derive(Debug, Clone, Copy, Eq, Hash, Ord, PartialEq, PartialOrd)]
-pub enum UseFrom {
-    Builtin,
-    Package,
-    Workspace,
-    Internal,
-}
-
-impl UseFrom {
-    pub fn parse(value: &str) -> Option<Self> {
-        match value {
-            "builtin" => Some(Self::Builtin),
-            "package" => Some(Self::Package),
-            "workspace" => Some(Self::Workspace),
-            "internal" => Some(Self::Internal),
-            _ => None,
         }
     }
 }
@@ -560,5 +499,4 @@ pub struct GeneratedFile {
 pub enum GeneratedKind {
     Output(OutputKind),
     Manifest,
-    RustModule,
 }
