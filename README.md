@@ -1,3 +1,7 @@
+<p align="center">
+	<img src=".github/assets/readme-header.png" alt="markdown source" width="720">
+</p>
+
 # mds
 
 > *This document was translated from [Japanese](README.ja.md) by AI.*
