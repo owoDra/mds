@@ -4,7 +4,7 @@ mds-managed: true
 
 # mds Skill
 
-## Purpose
+## {{PURPOSE}}
 
 Work with the mds (Markdown Source) system where Markdown is the single source of truth for code generation.
 
@@ -24,7 +24,7 @@ mds test                # Run tests on generated outputs
 
 1. Read existing `src-md/` files to understand the current state
 2. Create new files with `mds new <name.lang.md>` (ensures correct template)
-3. Fill in Purpose, Expose, Uses, Types, Source, Test sections
+3. Fill in {{PURPOSE}}, {{EXPOSE}}, Uses, {{TYPES}}, {{SOURCE}}, {{TEST}} sections
 4. Run `mds check` → `mds build --dry-run` → `mds build` → `mds test`
 
 Always use `mds new` to scaffold new files. Example: `mds new greet.ts.md`, `mds new sub/index.md`
@@ -35,16 +35,16 @@ Files: `src-md/name.{lang}.md` → generates `src/name.{lang}`
 
 ### Sections (all H2, in order)
 
-- `## Purpose` — Feature description
-- `## Contract` — Behavior guarantees
-- `## Types` — Types + Uses table
-- `## Source` — Implementation + Uses table
-- `## Cases` — Example behaviors
-- `## Test` — Tests + Uses table
+- `## {{PURPOSE}}` — Feature description
+- `## {{CONTRACT}}` — Behavior guarantees
+- `## {{TYPES}}` — Types + Uses table
+- `## {{SOURCE}}` — Implementation + Uses table
+- `## {{CASES}}` — Example behaviors
+- `## {{TEST}}` — Tests + Uses table
 
 ### Uses Table (NEVER put imports in code blocks)
 
-| From | Target | Expose | Summary |
+| From | Target | {{EXPOSE}} | Summary |
 | --- | --- | --- | --- |
 | internal | foo/util | Util | same package |
 | package | lodash | debounce | external dep |

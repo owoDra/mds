@@ -30,7 +30,7 @@ mds test                # Run tests on generated outputs
 
 1. Read existing `src-md/` files to understand the current state
 2. Create new markdown files with `mds new <name.lang.md>` (generates correct template with all required sections)
-3. Fill in Purpose, Expose, Uses, Types, Source, Test sections
+3. Fill in {{PURPOSE}}, {{EXPOSE}}, Uses, {{TYPES}}, {{SOURCE}}, {{TEST}} sections
 4. Run `mds check` to validate structure
 5. Run `mds build --dry-run` to preview generation
 6. Run `mds build` to generate code
@@ -54,18 +54,18 @@ Implementation files: `src-md/name.{lang}.md` → generates `src/name.{lang}`
 
 ### Required Sections (all H2, in order)
 
-- `## Purpose` — Feature description
-- `## Contract` — Behavior guarantees
-- `## Types` — Type definitions + Uses table
-- `## Source` — Implementation + Uses table
-- `## Cases` — Example behaviors (human reference)
-- `## Test` — Test code + Uses table
+- `## {{PURPOSE}}` — Feature description
+- `## {{CONTRACT}}` — Behavior guarantees
+- `## {{TYPES}}` — Type definitions + Uses table
+- `## {{SOURCE}}` — Implementation + Uses table
+- `## {{CASES}}` — Example behaviors (human reference)
+- `## {{TEST}}` — Test code + Uses table
 
 ### Uses Table (declares imports)
 
 CRITICAL: Never put import/use/require statements in code blocks. Use this table instead:
 
-| From | Target | Expose | Summary |
+| From | Target | {{EXPOSE}} | Summary |
 | --- | --- | --- | --- |
 | internal | foo/util | Util, helper | same package |
 | package | lodash | debounce | external dep |

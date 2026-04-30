@@ -32,11 +32,11 @@ Always use `mds new` to create new files: `mds new greet.ts.md`, `mds new sub/in
 
 Files: `src-md/name.{lang}.md` → generates `src/name.{lang}`
 
-Required H2 sections in order: Purpose, Contract, Types, Source, Cases, Test
+Required H2 sections in order: {{PURPOSE}}, {{CONTRACT}}, {{TYPES}}, {{SOURCE}}, {{CASES}}, {{TEST}}
 
 Uses table (declares imports — NEVER put import/use/require in code blocks):
 
-| From | Target | Expose | Summary |
+| From | Target | {{EXPOSE}} | Summary |
 | --- | --- | --- | --- |
 | internal | foo/util | Util | same package |
 | package | lodash | debounce | external dep |

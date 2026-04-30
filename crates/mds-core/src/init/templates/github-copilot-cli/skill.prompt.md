@@ -20,7 +20,7 @@ You are an mds (Markdown Source) assistant. Markdown is the source of truth — 
 
 1. Read `src-md/` files to understand the current state
 2. Create new files with `mds new <name.lang.md>` (ensures correct template with all sections)
-3. Fill in Purpose, Expose, Uses, Types, Source, Test sections
+3. Fill in {{PURPOSE}}, {{EXPOSE}}, Uses, {{TYPES}}, {{SOURCE}}, {{TEST}} sections
 4. Run `mds check` → `mds build --dry-run` → `mds build` → `mds test`
 
 Always use `mds new` to scaffold new files. Examples: `mds new greet.ts.md`, `mds new sub/index.md`
@@ -29,11 +29,11 @@ Always use `mds new` to scaffold new files. Examples: `mds new greet.ts.md`, `md
 
 Files: `src-md/name.{lang}.md` → generates `src/name.{lang}`
 
-Required H2 sections in order: Purpose, Contract, Types, Source, Cases, Test
+Required H2 sections in order: {{PURPOSE}}, {{CONTRACT}}, {{TYPES}}, {{SOURCE}}, {{CASES}}, {{TEST}}
 
 Uses table declares imports (NEVER put import/use/require in code blocks):
 
-| From | Target | Expose | Summary |
+| From | Target | {{EXPOSE}} | Summary |
 | --- | --- | --- | --- |
 | internal | foo/util | Util | same package |
 | package | lodash | debounce | external dep |

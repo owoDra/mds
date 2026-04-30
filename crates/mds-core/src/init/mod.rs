@@ -343,39 +343,21 @@ fn ai_target_files(
         .collect()
 }
 
-/// Replace English section labels in skill templates with the chosen preset labels.
+/// Replace {{PLACEHOLDER}} tokens in skill templates with the chosen preset labels.
 fn apply_label_preset(content: &str, preset: LabelPreset) -> String {
-    if preset.labels().is_empty() {
-        return content.to_string();
-    }
     let mut result = content.to_string();
-    // Replace common section references in skill templates
     let replacements: &[(&str, &str)] = &[
-        ("Purpose", "purpose"),
-        ("Contract", "contract"),
-        ("Types", "types"),
-        ("Source", "source"),
-        ("Cases", "cases"),
-        ("Test", "test"),
-        ("Expose", "expose"),
+        ("{{PURPOSE}}", "purpose"),
+        ("{{CONTRACT}}", "contract"),
+        ("{{TYPES}}", "types"),
+        ("{{SOURCE}}", "source"),
+        ("{{CASES}}", "cases"),
+        ("{{TEST}}", "test"),
+        ("{{EXPOSE}}", "expose"),
     ];
-    for (english, key) in replacements {
-        let localized = preset.section_label(key);
-        if localized != *english {
-            // Replace in markdown context: "## Purpose" and "`Purpose`" and "Purpose,"
-            result = result.replace(
-                "Purpose, Expose, Uses, Types, Source, Test",
-                &format!(
-                    "{}, {}, Uses, {}, {}, {}",
-                    preset.section_label("purpose"),
-                    preset.section_label("expose"),
-                    preset.section_label("types"),
-                    preset.section_label("source"),
-                    preset.section_label("test"),
-                ),
-            );
-            result = result.replace(&format!("`{english}`"), &format!("`{localized}`"));
-        }
+    for (placeholder, key) in replacements {
+        let label = preset.section_label(key);
+        result = result.replace(placeholder, &label);
     }
     result
 }

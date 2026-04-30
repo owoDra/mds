@@ -26,16 +26,16 @@ Implementation files: `src-md/name.{lang}.md` → generates `src/name.{lang}`
 
 ### Required Sections (all H2, in order)
 
-- `## Purpose` — Feature description
-- `## Contract` — Behavior guarantees
-- `## Types` — Type definitions + Uses table
-- `## Source` — Implementation + Uses table
-- `## Cases` — Example behaviors (human reference)
-- `## Test` — Test code + Uses table
+- `## {{PURPOSE}}` — Feature description
+- `## {{CONTRACT}}` — Behavior guarantees
+- `## {{TYPES}}` — Type definitions + Uses table
+- `## {{SOURCE}}` — Implementation + Uses table
+- `## {{CASES}}` — Example behaviors (human reference)
+- `## {{TEST}}` — Test code + Uses table
 
 ### Uses Table (declares imports — NEVER put import/use/require in code blocks)
 
-| From | Target | Expose | Summary |
+| From | Target | {{EXPOSE}} | Summary |
 | --- | --- | --- | --- |
 | internal | foo/util | Util | same package module |
 | package | lodash | debounce | external dependency |

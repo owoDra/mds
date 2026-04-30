@@ -30,17 +30,17 @@ Implementation files live in `src-md/` as `name.{lang}.md` (e.g., `helper.ts.md`
 ### Required Sections (all H2, in order)
 
 ```
-## Purpose    — Feature description
-## Contract   — Expected behavior and guarantees
-## Types      — Type definitions + Uses table
-## Source     — Implementation code + Uses table
-## Cases      — Expected behavior examples (human reference)
-## Test       — Test code + Uses table
+## {{PURPOSE}}    — Feature description
+## {{CONTRACT}}   — Expected behavior and guarantees
+## {{TYPES}}      — Type definitions + Uses table
+## {{SOURCE}}     — Implementation code + Uses table
+## {{CASES}}      — Expected behavior examples (human reference)
+## {{TEST}}       — Test code + Uses table
 ```
 
 ### Uses Table (declares imports — NEVER put import/use/require in code blocks)
 
-| From | Target | Expose | Summary |
+| From | Target | {{EXPOSE}} | Summary |
 | --- | --- | --- | --- |
 | internal | foo/util | Util | same package module |
 | package | lodash | debounce | npm/PyPI/crates dependency |
