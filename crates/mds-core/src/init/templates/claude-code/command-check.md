@@ -9,6 +9,6 @@ mds check
 ```
 
 If errors are found, read the diagnostic output and fix the referenced markdown files. Common issues:
-- Missing `Uses` table entries for imports
+- Missing code blocks in implementation markdown
 - Broken cross-references between markdown files
-- Schema violations in frontmatter or tables
+- Code fence language not matching file extension

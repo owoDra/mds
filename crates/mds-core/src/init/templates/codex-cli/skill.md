@@ -24,8 +24,8 @@ mds test                # Run tests on generated outputs
 
 1. Read existing `src-md/` files to understand the current state
 2. Create new files with `mds new <name.lang.md>` (ensures correct template)
-3. Fill in {{PURPOSE}}, {{EXPOSE}}, Uses, {{TYPES}}, {{SOURCE}}, {{TEST}} sections
-4. Run `mds check` → `mds build --dry-run` → `mds build` → `mds test`
+3. Write import statements and implementation in code blocks
+4. Run `mds check` → `mds build --dry-run` → `mds build`
 
 Always use `mds new` to scaffold new files. Example: `mds new greet.ts.md`, `mds new sub/index.md`
 
@@ -33,27 +33,41 @@ Always use `mds new` to scaffold new files. Example: `mds new greet.ts.md`, `mds
 
 Files: `src-md/name.{lang}.md` → generates `src/name.{lang}`
 
-### Sections (all H2, in order)
+### Structure
 
-- `## {{PURPOSE}}` — Feature description
-- `## {{CONTRACT}}` — Behavior guarantees
-- `## {{TYPES}}` — Types + Uses table
-- `## {{SOURCE}}` — Implementation + Uses table
-- `## {{CASES}}` — Example behaviors
-- `## {{TEST}}` — Tests + Uses table
+- One `.{lang}.md` file = one generated source file
+- All code blocks in the file are concatenated (separated by blank lines) to produce the output
+- Import statements go in their own code block at the top
+- Each logical unit (type, function, class) should be its own code block
+- Sections (## headings) are optional and for documentation only
 
-### Uses Table (NEVER put imports in code blocks)
+### Example
 
-| From | Target | {{EXPOSE}} | Summary |
-| --- | --- | --- | --- |
-| internal | foo/util | Util | same package |
-| package | lodash | debounce | external dep |
-| builtin | node:fs | readFileSync | std lib |
-| workspace | @scope/lib | Config | monorepo |
+```markdown
+## {{PURPOSE}}
+Description of the feature.
+
+## {{SOURCE}}
+
+\`\`\`ts
+import { Config } from './config';
+\`\`\`
+
+\`\`\`ts
+export function greet(config: Config): string {
+  return \`Hello, ${config.name}!\`;
+}
+\`\`\`
+
+### Dependencies
+| Target | Summary |
+| --- | --- |
+| ./config | Configuration module |
+```
 
 ### Rules
 
 - One `.{lang}.md` per feature
-- No H1 in implementation md; no H5+
-- Code fence language = file extension
-- Target paths: no `.md`, no `./`
+- Code fence language must match file extension
+- Imports go directly in code blocks (first block)
+- Dependencies table is optional documentation

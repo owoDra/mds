@@ -22,21 +22,15 @@ You are an mds (Markdown Source) build agent. Markdown is the source of truth â€
 
 Files: `src-md/name.{lang}.md` â†’ generates `src/name.{lang}`
 
-Required H2 sections in order: {{PURPOSE}}, {{CONTRACT}}, {{TYPES}}, {{SOURCE}}, {{CASES}}, {{TEST}}
-
-Uses table declares imports (NEVER put import/use/require in code blocks):
-
-| From | Target | {{EXPOSE}} | Summary |
-| --- | --- | --- | --- |
-| internal | foo/util | Util | same package |
-| package | lodash | debounce | external dep |
-| builtin | node:fs | readFileSync | std lib |
-| workspace | @scope/lib | Config | monorepo |
+- One file = one generated source file
+- All code blocks are concatenated (separated by blank lines) to produce output
+- Import statements go in their own code block at the top
+- Each logical unit should be its own code block
+- Sections (## headings) are optional documentation
 
 ## Rules
 
 - One implementation md per feature
-- No H1 in implementation md; no H5+ headings
 - Code fence language must match file extension
-- Target paths: no `.md`, no `./` prefix
+- Imports go directly in code blocks
 - Read `docs/project/index.md` for project structure

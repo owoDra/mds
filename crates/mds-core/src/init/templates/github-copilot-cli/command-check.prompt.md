@@ -9,5 +9,5 @@ Run `mds check` to validate the markdown structure. Report any errors found and 
 If errors are found:
 1. Read the diagnostic output
 2. Identify the referenced markdown files
-3. Fix missing `Uses` table entries, broken cross-references, or schema violations
+3. Fix missing code blocks, language mismatches, or broken references
 4. Re-run `mds check` to confirm the fix

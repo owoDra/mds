@@ -24,30 +24,23 @@ Markdown is the source of truth. Generated code must not be edited directly.
 
 Implementation files: `src-md/name.{lang}.md` → generates `src/name.{lang}`
 
-### Required Sections (all H2, in order)
+### Generation Rules
 
-- `## {{PURPOSE}}` — Feature description
-- `## {{CONTRACT}}` — Behavior guarantees
-- `## {{TYPES}}` — Type definitions + Uses table
-- `## {{SOURCE}}` — Implementation + Uses table
-- `## {{CASES}}` — Example behaviors (human reference)
-- `## {{TEST}}` — Test code + Uses table
+- One `.{lang}.md` file = one generated source file
+- All code blocks are concatenated (separated by blank lines) to produce the output
+- Imports go directly in code blocks (first block)
+- Each logical unit should be its own code block
+- Sections (## headings) are optional documentation
 
-### Uses Table (declares imports — NEVER put import/use/require in code blocks)
+### Dependencies Table (optional, documentation only)
 
-| From | Target | {{EXPOSE}} | Summary |
-| --- | --- | --- | --- |
-| internal | foo/util | Util | same package module |
-| package | lodash | debounce | external dependency |
-| builtin | node:fs | readFileSync | language built-in |
-| workspace | @scope/lib | Config | monorepo package |
-
-Expose tokens: `Name`, `Name as Alias`, `default: Name` (TS only), `* as ns`
+| Target | Summary |
+| --- | --- |
+| ./config | Configuration module |
+| lodash | Utility library |
 
 ### Constraints
 
 - One implementation md per feature
-- No H1 in implementation md; no H5+ headings
 - Code fence language must match file extension
-- Target paths: no `.md`, no `./` prefix
 - Project-specific rules override mds rules when they conflict

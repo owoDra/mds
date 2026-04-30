@@ -29,8 +29,8 @@ mds test                # Run tests on generated outputs
 ## Workflow
 
 1. Read existing `src-md/` files to understand the current state
-2. Create new markdown files with `mds new <name.lang.md>` (generates correct template with all required sections)
-3. Fill in {{PURPOSE}}, {{EXPOSE}}, Uses, {{TYPES}}, {{SOURCE}}, {{TEST}} sections
+2. Create new markdown files with `mds new <name.lang.md>` (generates correct template)
+3. Write imports in the first code block, then implementation in subsequent blocks
 4. Run `mds check` to validate structure
 5. Run `mds build --dry-run` to preview generation
 6. Run `mds build` to generate code
@@ -38,7 +38,7 @@ mds test                # Run tests on generated outputs
 
 ## Creating New Files
 
-Always use `mds new` to create implementation markdown files. This ensures the correct format:
+Always use `mds new` to create implementation markdown files:
 
 ```sh
 mds new greet.ts.md                    # New TypeScript feature
@@ -52,32 +52,32 @@ mds new greet.ts.md --package ./my-pkg # Specify target package
 
 Implementation files: `src-md/name.{lang}.md` → generates `src/name.{lang}`
 
-### Required Sections (all H2, in order)
+### Generation Rules
 
-- `## {{PURPOSE}}` — Feature description
-- `## {{CONTRACT}}` — Behavior guarantees
-- `## {{TYPES}}` — Type definitions + Uses table
-- `## {{SOURCE}}` — Implementation + Uses table
-- `## {{CASES}}` — Example behaviors (human reference)
-- `## {{TEST}}` — Test code + Uses table
+- One `.{lang}.md` file = one generated source file
+- All code blocks in the file are concatenated (separated by blank lines) to produce the output
+- Import statements go in their own code block at the top
+- Each logical unit (type, function, class) should be its own code block
 
-### Uses Table (declares imports)
+### Sections
 
-CRITICAL: Never put import/use/require statements in code blocks. Use this table instead:
+All sections are optional. Recommended structure:
 
-| From | Target | {{EXPOSE}} | Summary |
-| --- | --- | --- | --- |
-| internal | foo/util | Util, helper | same package |
-| package | lodash | debounce | external dep |
-| builtin | node:fs | readFileSync | std lib |
-| workspace | @scope/lib | Config | monorepo |
+- `## Purpose` — Feature description (documentation only)
+- `## Contract` — Behavior guarantees (documentation only)
+- `## Source` — Implementation code blocks
+- `## Cases` — Example behaviors (documentation only)
 
-Expose tokens: `Name`, `Name as Alias`, `default: Name` (TS), `* as ns`
+### Dependencies Table (optional, documentation only)
+
+| Target | Summary |
+| --- | --- |
+| ./config | Configuration module |
+| lodash | Utility library |
 
 ### Constraints
 
 - One `.{lang}.md` per feature (one file = one generated source)
-- No H1 in implementation md; no H5+ headings
 - Code fence language must match file extension
-- Target paths: no `.md`, no `./` prefix
-- Multiple code blocks in one section → concatenated
+- Imports go directly in code blocks (first block)
+- Multiple code blocks per section → concatenated with blank lines

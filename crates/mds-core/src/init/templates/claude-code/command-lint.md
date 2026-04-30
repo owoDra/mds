@@ -9,6 +9,6 @@ mds lint --fix --check
 ```
 
 This command:
-- Fixes auto-correctable formatting issues
+- Fixes auto-correctable formatting issues in code blocks
 - Reports remaining violations that need manual attention
-- Validates table structure, heading hierarchy, and cross-references
+- Validates code block structure and cross-references

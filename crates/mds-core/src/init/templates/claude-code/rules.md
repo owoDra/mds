@@ -27,45 +27,29 @@ Markdown is the source of truth. Generated code must not be edited directly.
 
 Implementation files live in `src-md/` as `name.{lang}.md` (e.g., `helper.ts.md` → generates `src/helper.ts`).
 
-### Required Sections (all H2, in order)
+### Generation Rules
 
-```
-## {{PURPOSE}}    — Feature description
-## {{CONTRACT}}   — Expected behavior and guarantees
-## {{TYPES}}      — Type definitions + Uses table
-## {{SOURCE}}     — Implementation code + Uses table
-## {{CASES}}      — Expected behavior examples (human reference)
-## {{TEST}}       — Test code + Uses table
-```
-
-### Uses Table (declares imports — NEVER put import/use/require in code blocks)
-
-| From | Target | {{EXPOSE}} | Summary |
-| --- | --- | --- | --- |
-| internal | foo/util | Util | same package module |
-| package | lodash | debounce | npm/PyPI/crates dependency |
-| builtin | node:fs | readFileSync | language built-in |
-| workspace | @scope/lib | Config | monorepo package |
-
-**Expose syntax**: `Name`, `Name as Alias`, `default: Name` (TS only), `* as ns`
+- One `.{lang}.md` file = one generated source file
+- All code blocks are concatenated (separated by blank lines) to produce the output
+- Import statements go in their own code block at the top
+- Each logical unit (type, function, class) should be its own code block
+- Sections (## headings) are optional documentation
 
 ### Code Blocks
 
 - Fenced with language matching file extension (ts.md → ```ts)
-- Multiple blocks per section are concatenated with blank lines
-- NEVER include import/use/require/from statements
+- Multiple blocks are concatenated with blank lines
+- Imports go directly in code blocks (first block)
 
-### index.md (per-directory, Exposes table)
+### Dependencies Table (optional, documentation only)
 
-| Kind | Name | Target | Summary |
-| --- | --- | --- | --- |
-| function | normalize | helper | string normalization |
-
-**Kind values**: `type`, `value`, `function`, `class`, `module`
+| Target | Summary |
+| --- | --- |
+| ./config | Configuration module |
+| lodash | npm/PyPI/crates dependency |
 
 ### Constraints
 
 - One implementation md per feature
-- No H1 in implementation md, no H5+ headings
-- Target paths: no `.md` extension, no `./` prefix
+- Code fence language must match file extension
 - Project-specific rules override mds rules when they conflict

@@ -32,15 +32,10 @@ Always use `mds new` to create new files: `mds new greet.ts.md`, `mds new sub/in
 
 Files: `src-md/name.{lang}.md` → generates `src/name.{lang}`
 
-Required H2 sections in order: {{PURPOSE}}, {{CONTRACT}}, {{TYPES}}, {{SOURCE}}, {{CASES}}, {{TEST}}
+- One file = one generated source file
+- All code blocks are concatenated (separated by blank lines) to produce output
+- Imports go directly in code blocks (first block)
+- Sections (## headings) are optional, for documentation
+- Dependencies table is optional documentation
 
-Uses table (declares imports — NEVER put import/use/require in code blocks):
-
-| From | Target | {{EXPOSE}} | Summary |
-| --- | --- | --- | --- |
-| internal | foo/util | Util | same package |
-| package | lodash | debounce | external dep |
-| builtin | node:fs | readFileSync | std lib |
-| workspace | @scope/lib | Config | monorepo |
-
-Rules: one md per feature, no H1 in impl md, no H5+, code fence = file extension
+Rules: one md per feature, code fence language = file extension

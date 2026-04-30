@@ -22,7 +22,7 @@ mds test
 
 ## What to look for
 
-- Missing `Uses` table entries for imports
+- Missing code blocks in implementation markdown files
+- Code fence language not matching file extension
 - Broken cross-references between markdown files
-- Schema violations in frontmatter or tables
 - Generated code that is out of sync with markdown sources
