@@ -1,5 +1,5 @@
 {
-  "name": "mds-core",
+  "name": "@owox-mds/core",
   "version": "0.1.0-alpha.1",
   "description": "Core API for mds — invoke mds commands programmatically from Node.js.",
   "type": "module",

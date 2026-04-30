@@ -115,7 +115,7 @@ cargo install mds-cli --version 0.1.0-alpha.1
 mds --version
 
 # npm install smoke test
-npm install -g mds-cli@alpha
+npm install -g @owox-mds/cli@alpha
 mds --version
 
 # Python install smoke test

@@ -1,5 +1,5 @@
 {
-  "name": "mds-lang-py",
+  "name": "@owox-mds/lang-py",
   "version": "0.1.0-alpha.1",
   "description": "Python language adapter for mds — file naming, quality tools, and test runner integration.",
   "type": "module",
@@ -21,7 +21,7 @@
     "node": ">=24"
   },
   "peerDependencies": {
-    "mds-cli": ">=0.1.0-alpha.1"
+    "@owox-mds/cli": ">=0.1.0-alpha.1"
   },
   "license": "MIT",
   "repository": {

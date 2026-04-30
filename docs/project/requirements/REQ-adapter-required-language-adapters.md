@@ -19,7 +19,7 @@ mds の価値は Markdown 正本から複数言語のコード、型、テスト
 ## 対象範囲
 
 - `mds core`、`mds cli`、language adapter を必須概念として扱うこと
-- npm 側で `mds-core`、`mds-cli`、`mds-lang-ts`、`mds-lang-py`、`mds-lang-rs` を扱うこと
+- npm 側で `@owox-mds/core`、`@owox-mds/cli`、`@owox-mds/lang-ts`、`@owox-mds/lang-py`、`@owox-mds/lang-rs` を扱うこと
 - Cargo / uv 側で Rust / Python 向け adapter 配布を扱うこと
 - adapter が import 生成、lint、lint --fix、test runner 接続、ファイル名規約、出力規則を担うこと
 

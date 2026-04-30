@@ -157,11 +157,11 @@ echo ""
 echo "=== npm packages ==="
 
 declare -A NPM_PACKAGES=(
-  ["mds-cli"]="cli"
-  ["mds-core"]="core"
-  ["mds-lang-ts"]="lang-ts"
-  ["mds-lang-py"]="lang-py"
-  ["mds-lang-rs"]="lang-rs"
+  ["@owox-mds/cli"]="cli"
+  ["@owox-mds/core"]="core"
+  ["@owox-mds/lang-ts"]="lang-ts"
+  ["@owox-mds/lang-py"]="lang-py"
+  ["@owox-mds/lang-rs"]="lang-rs"
 )
 
 for pkg in "${!NPM_PACKAGES[@]}"; do

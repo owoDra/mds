@@ -84,10 +84,13 @@ jobs:
             local output_key=$2
             local local_ver=$(cargo metadata --manifest-path crates/Cargo.toml --no-deps --format-version 1 \
               | jq -r ".packages[] | select(.name == \"$crate\") | .version")
-            local published_ver=$(cargo search "$crate" --limit 1 2>/dev/null | grep "^$crate " | sed 's/.*= "\(.*\)".*/\1/' || echo "")
-            if [[ "$local_ver" != "$published_ver" ]]; then
+            # Use crates.io API for reliable version check (handles pre-release)
+            local published_ver=$(curl -s "https://crates.io/api/v1/crates/$crate" \
+              | jq -r '.versions[]?.num' 2>/dev/null \
+              | grep -F "$local_ver" || echo "")
+            if [[ -z "$published_ver" ]]; then
               echo "${output_key}=true" >> "$GITHUB_OUTPUT"
-              echo "$crate: $published_ver -> $local_ver (will publish)"
+              echo "$crate: $local_ver (not yet published, will publish)"
             else
               echo "${output_key}=false" >> "$GITHUB_OUTPUT"
               echo "$crate: $local_ver (already published)"
