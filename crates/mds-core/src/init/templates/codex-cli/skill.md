@@ -6,7 +6,7 @@ mds-managed: true
 
 ## Purpose
 
-Work with the mds (Markdown-Driven Specification) system where Markdown is the single source of truth for code generation.
+Work with the mds (Markdown Source) system where Markdown is the single source of truth for code generation.
 
 ## Commands
 

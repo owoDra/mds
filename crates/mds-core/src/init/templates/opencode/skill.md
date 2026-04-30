@@ -1,12 +1,12 @@
 ---
 name: mds
-description: Generate code from markdown sources, validate document structure, and synchronize markdown-driven specifications with implementation
+description: Generate code from markdown sources, validate document structure, and synchronize markdown sources with implementation
 mds-managed: true
 ---
 
 ## What this skill does
 
-Work with the mds (Markdown-Driven Specification) system where Markdown is the single source of truth for code generation.
+Work with the mds (Markdown Source) system where Markdown is the single source of truth for code generation.
 
 ## When to use
 

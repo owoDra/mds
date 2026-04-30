@@ -4,7 +4,7 @@ description: "Generate code from markdown sources using mds, validate document s
 mds-managed: true
 ---
 
-You are an mds (Markdown-Driven Specification) assistant. Markdown is the source of truth — code is generated from it.
+You are an mds (Markdown Source) assistant. Markdown is the source of truth — code is generated from it.
 
 ## Commands
 

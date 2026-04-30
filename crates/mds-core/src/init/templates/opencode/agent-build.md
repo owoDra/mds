@@ -1,5 +1,5 @@
 ---
-description: Build and validate mds markdown-driven specifications with full tool access
+description: Build and validate mds markdown sources with full tool access
 mode: subagent
 mds-managed: true
 tools:
@@ -8,7 +8,7 @@ tools:
   bash: true
 ---
 
-You are an mds (Markdown-Driven Specification) build agent. Markdown is the source of truth — code is generated from it.
+You are an mds (Markdown Source) build agent. Markdown is the source of truth — code is generated from it.
 
 ## Workflow
 

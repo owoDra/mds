@@ -4,7 +4,9 @@ use std::process::Command as ProcessCommand;
 
 use crate::diagnostics::{Diagnostic, RunState};
 use crate::fs_utils::is_mds_managed_file;
-use crate::model::{AgentKitCategory, AiTarget, InitOptions, PythonTool, RustTool, TypeScriptTool};
+use crate::model::{
+    AgentKitCategory, AiTarget, InitOptions, LabelPreset, PythonTool, RustTool, TypeScriptTool,
+};
 
 mod template_registry {
     include!(concat!(env!("OUT_DIR"), "/template_registry.rs"));
@@ -23,7 +25,12 @@ pub(crate) fn run_init(
     if !options.ai_only {
         files.extend(project_files(&root, options));
     }
-    files.extend(ai_files(&root, &options.targets, &options.categories));
+    files.extend(ai_files(
+        &root,
+        &options.targets,
+        &options.categories,
+        options.label_preset,
+    ));
 
     state.stdout.push_str("Init plan:\n");
     for file in &files {
@@ -306,10 +313,11 @@ fn ai_files(
     root: &Path,
     targets: &[AiTarget],
     categories: &[AgentKitCategory],
+    label_preset: LabelPreset,
 ) -> Vec<PlannedFile> {
     let mut files = Vec::new();
     for target in targets {
-        for file in ai_target_files(root, *target, categories) {
+        for file in ai_target_files(root, *target, categories, label_preset) {
             files.push(file);
         }
     }
@@ -320,6 +328,7 @@ fn ai_target_files(
     root: &Path,
     target: AiTarget,
     categories: &[AgentKitCategory],
+    label_preset: LabelPreset,
 ) -> Vec<PlannedFile> {
     let entries = template_registry::templates_for_target(target.key());
     entries
@@ -329,9 +338,46 @@ fn ai_target_files(
         })
         .map(|entry| PlannedFile {
             path: root.join(entry.output_path),
-            content: entry.content.to_string(),
+            content: apply_label_preset(entry.content, label_preset),
         })
         .collect()
+}
+
+/// Replace English section labels in skill templates with the chosen preset labels.
+fn apply_label_preset(content: &str, preset: LabelPreset) -> String {
+    if preset.labels().is_empty() {
+        return content.to_string();
+    }
+    let mut result = content.to_string();
+    // Replace common section references in skill templates
+    let replacements: &[(&str, &str)] = &[
+        ("Purpose", "purpose"),
+        ("Contract", "contract"),
+        ("Types", "types"),
+        ("Source", "source"),
+        ("Cases", "cases"),
+        ("Test", "test"),
+        ("Expose", "expose"),
+    ];
+    for (english, key) in replacements {
+        let localized = preset.section_label(key);
+        if localized != *english {
+            // Replace in markdown context: "## Purpose" and "`Purpose`" and "Purpose,"
+            result = result.replace(
+                "Purpose, Expose, Uses, Types, Source, Test",
+                &format!(
+                    "{}, {}, Uses, {}, {}, {}",
+                    preset.section_label("purpose"),
+                    preset.section_label("expose"),
+                    preset.section_label("types"),
+                    preset.section_label("source"),
+                    preset.section_label("test"),
+                ),
+            );
+            result = result.replace(&format!("`{english}`"), &format!("`{localized}`"));
+        }
+    }
+    result
 }
 
 fn ai_post_init_guide(targets: &[AiTarget]) -> String {
