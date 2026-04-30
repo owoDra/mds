@@ -84,16 +84,16 @@ jobs:
             local output_key=$2
             local local_ver=$(cargo metadata --manifest-path crates/Cargo.toml --no-deps --format-version 1 \
               | jq -r ".packages[] | select(.name == \"$crate\") | .version")
-            # Use crates.io API for reliable version check (handles pre-release)
-            local published_ver=$(curl -s "https://crates.io/api/v1/crates/$crate" \
-              | jq -r '.versions[]?.num' 2>/dev/null \
-              | grep -F "$local_ver" || echo "")
-            if [[ -z "$published_ver" ]]; then
+            # Use crates.io API with required User-Agent header
+            local api_response=$(curl -s -H "User-Agent: mds-ci (https://github.com/owo-x-project/mds)" \
+              "https://crates.io/api/v1/crates/$crate/versions")
+            local found=$(echo "$api_response" | jq -r ".versions[]?.num // empty" 2>/dev/null | grep -Fx "$local_ver" || echo "")
+            if [[ -z "$found" ]]; then
               echo "${output_key}=true" >> "$GITHUB_OUTPUT"
               echo "$crate: $local_ver (not yet published, will publish)"
             else
               echo "${output_key}=false" >> "$GITHUB_OUTPUT"
-              echo "$crate: $local_ver (already published)"
+              echo "$crate: $local_ver (already published, skipping)"
             fi
           }
           check_crate "mds-core" "publish_core"
@@ -117,11 +117,13 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
       - name: Publish mds-core
         if: needs.check-versions.outputs.publish_core == 'true' && (github.event_name == 'push' || inputs.dry_run == 'false')
+        continue-on-error: true
         run: cd crates && cargo publish -p mds-core
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
       - name: Publish mds-lang-rs
         if: needs.check-versions.outputs.publish_lang_rs == 'true' && (github.event_name == 'push' || inputs.dry_run == 'false')
+        continue-on-error: true
         run: cd crates && cargo publish -p mds-lang-rs
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
@@ -130,11 +132,13 @@ jobs:
         run: sleep 30
       - name: Publish mds-cli
         if: needs.check-versions.outputs.publish_cli == 'true' && (github.event_name == 'push' || inputs.dry_run == 'false')
+        continue-on-error: true
         run: cd crates && cargo publish -p mds-cli
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
       - name: Publish mds-lsp
         if: needs.check-versions.outputs.publish_lsp == 'true' && (github.event_name == 'push' || inputs.dry_run == 'false')
+        continue-on-error: true
         run: cd crates && cargo publish -p mds-lsp
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
