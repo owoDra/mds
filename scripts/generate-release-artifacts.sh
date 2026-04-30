@@ -119,20 +119,33 @@ echo "=== Cargo crates ==="
 CRATE_DIR="$ROOT/crates/target/package"
 DEFERRED_CRATES=()
 
+is_deferred_crate() {
+  local crate="$1"
+  case "$crate" in
+    mds-cli|mds-lsp) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
 for crate in mds-core mds-cli mds-lang-rs mds-lsp; do
   echo "[$crate]"
   CRATE_FILE="$CRATE_DIR/${crate}-${VERSION}.crate"
 
-  # Try to package if not already present
-  if [[ ! -f "$CRATE_FILE" ]]; then
+  if [[ ! -f "$CRATE_FILE" ]] && is_deferred_crate "$crate"; then
+    echo "  deferred: $crate requires mds-core on crates.io before local packaging"
+    DEFERRED_CRATES+=("$crate")
+  elif [[ ! -f "$CRATE_FILE" ]]; then
+    # Try to package if not already present.
     echo "  packaging $crate..."
-    if ! (cd "$ROOT/crates" && cargo package --allow-dirty --no-verify -p "$crate" 2>&1 | tail -3); then
-      echo "  DEFERRED: $crate cannot be packaged locally (requires dependency on crates.io)"
+    if ! (cd "$ROOT/crates" && cargo package --allow-dirty --no-verify -p "$crate" >/dev/null); then
+      echo "  deferred: $crate cannot be packaged locally until publish ordering completes"
       DEFERRED_CRATES+=("$crate")
     fi
   fi
 
-  generate_checksum "$CRATE_FILE" "$ROOT/.release/checksums/${crate}-${VERSION}.sha256"
+  if [[ -f "$CRATE_FILE" ]]; then
+    generate_checksum "$CRATE_FILE" "$ROOT/.release/checksums/${crate}-${VERSION}.sha256"
+  fi
   generate_signature "$CRATE_FILE" "$ROOT/.release/signatures/${crate}-${VERSION}.sig"
   generate_sbom "$crate" "$VERSION" "$ROOT/.release/sbom/${crate}-${VERSION}.spdx.json" "library"
   generate_provenance "$crate" "$VERSION" "$ROOT/.release/provenance/${crate}-${VERSION}.jsonl"

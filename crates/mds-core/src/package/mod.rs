@@ -1,7 +1,7 @@
 use std::collections::{HashMap, HashSet};
 use std::ffi::OsStr;
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 use crate::config::merge_config_file;
 use crate::diagnostics::{Diagnostic, RunState};
@@ -85,10 +85,6 @@ pub fn load_package(
             return None;
         }
     };
-
-    if metadata_kind == MetadataKind::Python && config.roots.source == PathBuf::from("src") {
-        config.roots.source = PathBuf::from("src");
-    }
 
     Some(Package {
         root: root.to_path_buf(),
