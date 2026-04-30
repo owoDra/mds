@@ -1,5 +1,5 @@
 /**
- * @mds/core — programmatic access to mds CLI commands.
+ * mds-core — programmatic access to mds CLI commands.
  *
  * This module wraps the native mds binary and exposes a JS API for
  * check, build, lint, test, doctor, and package-sync operations.
@@ -14,7 +14,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 /**
  * Resolve the native mds binary path.
- * Search order: sibling vendor, @mds/cli vendor, MDS_NATIVE_BIN env, PATH.
+ * Search order: sibling vendor, mds-cli vendor, MDS_NATIVE_BIN env, PATH.
  * @returns {string} Resolved binary path or "mds" for PATH lookup.
  */
 function resolveBinary() {

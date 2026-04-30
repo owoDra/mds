@@ -94,7 +94,7 @@ requires_published = "mds-core"
 # --- npm packages ---
 
 [[artifacts]]
-name = "@mds/cli"
+name = "mds-cli"
 channel = "alpha"
 path = "packages/cli/"
 checksum = ".release/checksums/mds-cli-npm-0.1.0-alpha.1.sha256"
@@ -104,7 +104,7 @@ provenance = ".release/provenance/mds-cli-npm-0.1.0-alpha.1.jsonl"
 smoke = true
 
 [[artifacts]]
-name = "@mds/core"
+name = "mds-core"
 channel = "alpha"
 path = "packages/core/"
 checksum = ".release/checksums/mds-core-npm-0.1.0-alpha.1.sha256"
@@ -114,7 +114,7 @@ provenance = ".release/provenance/mds-core-npm-0.1.0-alpha.1.jsonl"
 smoke = true
 
 [[artifacts]]
-name = "@mds/lang-ts"
+name = "mds-lang-ts"
 channel = "alpha"
 path = "packages/lang-ts/"
 checksum = ".release/checksums/mds-lang-ts-npm-0.1.0-alpha.1.sha256"
@@ -124,7 +124,7 @@ provenance = ".release/provenance/mds-lang-ts-npm-0.1.0-alpha.1.jsonl"
 smoke = true
 
 [[artifacts]]
-name = "@mds/lang-py"
+name = "mds-lang-py"
 channel = "alpha"
 path = "packages/lang-py/"
 checksum = ".release/checksums/mds-lang-py-npm-0.1.0-alpha.1.sha256"
@@ -134,7 +134,7 @@ provenance = ".release/provenance/mds-lang-py-npm-0.1.0-alpha.1.jsonl"
 smoke = true
 
 [[artifacts]]
-name = "@mds/lang-rs"
+name = "mds-lang-rs"
 channel = "alpha"
 path = "packages/lang-rs/"
 checksum = ".release/checksums/mds-lang-rs-npm-0.1.0-alpha.1.sha256"
@@ -168,7 +168,7 @@ smoke = true
 # --- VS Code extension ---
 
 [[artifacts]]
-name = "mds-vscode"
+name = "owo-x-project.mds"
 channel = "alpha"
 path = "editors/vscode/"
 checksum = ".release/checksums/mds-vscode-0.1.0.sha256"

@@ -1,0 +1,140 @@
+# Python Packages Release
+#
+# Triggers on:
+#   - Push to latest with changes in python/
+#   - Manual dispatch
+#
+# Publishes to PyPI only when version differs from published version.
+
+name: Release Python Packages
+
+on:
+  push:
+    branches: [latest]
+    paths:
+      - 'python/**'
+      - '.github/workflows/release-python.yml'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run (skip actual publishing)'
+        required: true
+        default: 'true'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+
+permissions:
+  contents: read
+
+jobs:
+  build-binary:
+    name: Build Native Binary
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+      - name: Cache Cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            crates/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('crates/Cargo.lock') }}
+      - name: Build release binary
+        run: cd crates && cargo build --release -p mds-cli
+      - name: Upload binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: mds-binary-linux
+          path: crates/target/release/mds
+
+  check-versions:
+    name: Check Published Versions
+    runs-on: ubuntu-latest
+    outputs:
+      publish_cli: ${{ steps.check.outputs.publish_cli }}
+      publish_lang_py: ${{ steps.check.outputs.publish_lang_py }}
+      any_publish: ${{ steps.check.outputs.any_publish }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install uv
+        run: pip install uv
+      - name: Check version changes
+        id: check
+        run: |
+          any=false
+          check_pkg() {
+            local pkg_dir=$1
+            local pypi_name=$2
+            local output_key=$3
+            local local_ver=$(python3 -c "
+          import tomllib
+          with open('python/${pkg_dir}/pyproject.toml', 'rb') as f:
+              data = tomllib.load(f)
+          print(data['project']['version'])
+          ")
+            local published_ver=$(pip index versions "$pypi_name" 2>/dev/null | grep -oP '(?<=\().*?(?=\))' | head -1 || echo "")
+            if [[ "$local_ver" != "$published_ver" ]]; then
+              echo "${output_key}=true" >> "$GITHUB_OUTPUT"
+              echo "$pypi_name: $published_ver -> $local_ver (will publish)"
+              any=true
+            else
+              echo "${output_key}=false" >> "$GITHUB_OUTPUT"
+              echo "$pypi_name: $local_ver (already published)"
+            fi
+          }
+          check_pkg "mds_cli" "mds-cli" "publish_cli"
+          check_pkg "mds_lang_py" "mds-lang-py" "publish_lang_py"
+          echo "any_publish=$any" >> "$GITHUB_OUTPUT"
+
+  publish:
+    name: Publish Python Packages
+    needs: [build-binary, check-versions]
+    if: needs.check-versions.outputs.any_publish == 'true'
+    runs-on: ubuntu-latest
+    environment: release
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install uv
+        run: pip install uv
+      - name: Download binary
+        uses: actions/download-artifact@v4
+        with:
+          name: mds-binary-linux
+          path: ./binaries
+      - name: Vendor native binary
+        run: |
+          chmod +x ./binaries/mds
+          python3 python/scripts/vendor_binary.py --source ./binaries/mds
+      - name: Build mds-cli
+        if: needs.check-versions.outputs.publish_cli == 'true'
+        run: cd python/mds_cli && uv build
+      - name: Build mds-lang-py
+        if: needs.check-versions.outputs.publish_lang_py == 'true'
+        run: cd python/mds_lang_py && uv build
+      - name: Publish mds-cli
+        if: needs.check-versions.outputs.publish_cli == 'true' && (github.event_name == 'push' || inputs.dry_run == 'false')
+        run: cd python/mds_cli && uv publish
+        env:
+          UV_PUBLISH_TOKEN: ${{ secrets.PYPI_TOKEN }}
+      - name: Publish mds-lang-py
+        if: needs.check-versions.outputs.publish_lang_py == 'true' && (github.event_name == 'push' || inputs.dry_run == 'false')
+        run: cd python/mds_lang_py && uv publish
+        env:
+          UV_PUBLISH_TOKEN: ${{ secrets.PYPI_TOKEN }}
+      - name: Dry run - build verification
+        if: github.event_name == 'workflow_dispatch' && inputs.dry_run == 'true'
+        run: |
+          cd python/mds_cli && uv build
+          cd ../mds_lang_py && uv build
+          echo "Dry run complete — packages built but not published"

@@ -1,0 +1,158 @@
+# npm Packages Release
+#
+# Triggers on:
+#   - Push to latest with changes in packages/
+#   - Manual dispatch
+#
+# Publishes to npmjs.org only when version differs from published version.
+
+name: Release npm Packages
+
+on:
+  push:
+    branches: [latest]
+    paths:
+      - 'packages/**'
+      - '.github/workflows/release-npm.yml'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run (skip actual publishing)'
+        required: true
+        default: 'true'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+
+permissions:
+  contents: read
+
+jobs:
+  build-binary:
+    name: Build Native Binary
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+      - name: Cache Cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            crates/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('crates/Cargo.lock') }}
+      - name: Build release binary
+        run: cd crates && cargo build --release -p mds-cli
+      - name: Upload binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: mds-binary-linux
+          path: crates/target/release/mds
+
+  check-versions:
+    name: Check Published Versions
+    runs-on: ubuntu-latest
+    outputs:
+      publish_cli: ${{ steps.check.outputs.publish_cli }}
+      publish_core: ${{ steps.check.outputs.publish_core }}
+      publish_lang_ts: ${{ steps.check.outputs.publish_lang_ts }}
+      publish_lang_py: ${{ steps.check.outputs.publish_lang_py }}
+      publish_lang_rs: ${{ steps.check.outputs.publish_lang_rs }}
+      any_publish: ${{ steps.check.outputs.any_publish }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+      - name: Check version changes
+        id: check
+        run: |
+          any=false
+          check_pkg() {
+            local pkg_dir=$1
+            local pkg_name=$2
+            local output_key=$3
+            local local_ver=$(node -e "console.log(require('./packages/${pkg_dir}/package.json').version)")
+            local published_ver=$(npm view "$pkg_name" version 2>/dev/null || echo "")
+            if [[ "$local_ver" != "$published_ver" ]]; then
+              echo "${output_key}=true" >> "$GITHUB_OUTPUT"
+              echo "$pkg_name: $published_ver -> $local_ver (will publish)"
+              any=true
+            else
+              echo "${output_key}=false" >> "$GITHUB_OUTPUT"
+              echo "$pkg_name: $local_ver (already published)"
+            fi
+          }
+          check_pkg "cli" "mds-cli" "publish_cli"
+          check_pkg "core" "mds-core" "publish_core"
+          check_pkg "lang-ts" "mds-lang-ts" "publish_lang_ts"
+          check_pkg "lang-py" "mds-lang-py" "publish_lang_py"
+          check_pkg "lang-rs" "mds-lang-rs" "publish_lang_rs"
+          echo "any_publish=$any" >> "$GITHUB_OUTPUT"
+
+  publish:
+    name: Publish npm Packages
+    needs: [build-binary, check-versions]
+    if: needs.check-versions.outputs.any_publish == 'true'
+    runs-on: ubuntu-latest
+    environment: release
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+      - name: Download binary
+        uses: actions/download-artifact@v4
+        with:
+          name: mds-binary-linux
+          path: ./binaries
+      - name: Vendor native binary
+        run: |
+          chmod +x ./binaries/mds
+          node packages/scripts/vendor-binary.js --source ./binaries/mds
+      - name: Detect channel from version
+        id: channel
+        run: |
+          ver=$(node -e "console.log(require('./packages/cli/package.json').version)")
+          if [[ "$ver" == *"-alpha"* ]]; then
+            echo "tag=alpha" >> "$GITHUB_OUTPUT"
+          elif [[ "$ver" == *"-beta"* ]]; then
+            echo "tag=beta" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=latest" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Check packages
+        run: cd packages && npm run check:npm
+      - name: Publish mds-cli
+        if: needs.check-versions.outputs.publish_cli == 'true' && (github.event_name == 'push' || inputs.dry_run == 'false')
+        run: cd packages/cli && npm publish --tag ${{ steps.channel.outputs.tag }} --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Publish mds-core
+        if: needs.check-versions.outputs.publish_core == 'true' && (github.event_name == 'push' || inputs.dry_run == 'false')
+        run: cd packages/core && npm publish --tag ${{ steps.channel.outputs.tag }} --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Publish mds-lang-ts
+        if: needs.check-versions.outputs.publish_lang_ts == 'true' && (github.event_name == 'push' || inputs.dry_run == 'false')
+        run: cd packages/lang-ts && npm publish --tag ${{ steps.channel.outputs.tag }} --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Publish mds-lang-py
+        if: needs.check-versions.outputs.publish_lang_py == 'true' && (github.event_name == 'push' || inputs.dry_run == 'false')
+        run: cd packages/lang-py && npm publish --tag ${{ steps.channel.outputs.tag }} --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Publish mds-lang-rs
+        if: needs.check-versions.outputs.publish_lang_rs == 'true' && (github.event_name == 'push' || inputs.dry_run == 'false')
+        run: cd packages/lang-rs && npm publish --tag ${{ steps.channel.outputs.tag }} --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Dry run - pack check
+        if: github.event_name == 'workflow_dispatch' && inputs.dry_run == 'true'
+        run: cd packages && npm pack --workspaces --dry-run

@@ -115,7 +115,7 @@ cargo install mds-cli --version 0.1.0-alpha.1
 mds --version
 
 # npm install smoke test
-npm install -g @mds/cli@alpha
+npm install -g mds-cli@alpha
 mds --version
 
 # Python install smoke test
@@ -136,5 +136,5 @@ cargo yank mds-lsp --version 0.1.0-alpha.1
 cd packages && npm unpublish --workspaces
 
 # VS Code: unpublish
-npx @vscode/vsce unpublish mds.mds-vscode
+npx @vscode/vsce unpublish owo-x-project.mds
 ```

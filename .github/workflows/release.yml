@@ -1,5 +1,14 @@
-# Release Workflow
+# [DEPRECATED] Unified Release Workflow
 #
+# This workflow has been replaced by per-group workflows:
+#   - release-rust.yml   (crates/)
+#   - release-npm.yml    (packages/)
+#   - release-python.yml (python/)
+#   - release-vscode.yml (editors/vscode/)
+#
+# Kept for reference only. Will be removed in a future cleanup.
+#
+# Original description:
 # Performs the full release pipeline:
 #   1. Quality gate (fmt + clippy + test + examples)
 #   2. Build release binaries
@@ -9,8 +18,9 @@
 # Trigger: manual dispatch only (workflow_dispatch)
 # Supports: alpha, beta, stable channels via version input
 
-name: Release
+name: "[DEPRECATED] Release (unified)"
 
+# Disabled — replaced by per-group workflows
 on:
   workflow_dispatch:
     inputs:

@@ -1,5 +1,5 @@
 /**
- * @mds/lang-ts — TypeScript language adapter for mds.
+ * mds-lang-ts — TypeScript language adapter for mds.
  *
  * Provides TypeScript-specific file naming conventions, quality tool
  * defaults, and test runner integration metadata.
