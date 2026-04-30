@@ -26,13 +26,6 @@
 # The CI workflow handles this sequential ordering automatically,
 # including a dry-run verification step after mds-core is published.
 #
-# npm publish (--tag alpha):
-#   cd packages && npm publish --workspaces --tag alpha
-#
-# Python publish (--index testpypi):
-#   cd python/mds_cli && uv publish --index testpypi
-#   cd python/mds_lang_py && uv publish --index testpypi
-#
 # VS Code extension:
 #   cd editors/vscode && npx @vscode/vsce package
 #   npx @vscode/vsce publish --pre-release
@@ -90,80 +83,6 @@ sbom = ".release/sbom/mds-lsp-0.1.0-alpha.1.spdx.json"
 provenance = ".release/provenance/mds-lsp-0.1.0-alpha.1.jsonl"
 smoke = true
 requires_published = "mds-core"
-
-# --- npm packages ---
-
-[[artifacts]]
-name = "@owox-mds/cli"
-channel = "alpha"
-path = "packages/cli/"
-checksum = ".release/checksums/mds-cli-npm-0.1.0-alpha.1.sha256"
-signature = ".release/signatures/mds-cli-npm-0.1.0-alpha.1.sig"
-sbom = ".release/sbom/mds-cli-npm-0.1.0-alpha.1.spdx.json"
-provenance = ".release/provenance/mds-cli-npm-0.1.0-alpha.1.jsonl"
-smoke = true
-
-[[artifacts]]
-name = "@owox-mds/core"
-channel = "alpha"
-path = "packages/core/"
-checksum = ".release/checksums/mds-core-npm-0.1.0-alpha.1.sha256"
-signature = ".release/signatures/mds-core-npm-0.1.0-alpha.1.sig"
-sbom = ".release/sbom/mds-core-npm-0.1.0-alpha.1.spdx.json"
-provenance = ".release/provenance/mds-core-npm-0.1.0-alpha.1.jsonl"
-smoke = true
-
-[[artifacts]]
-name = "@owox-mds/lang-ts"
-channel = "alpha"
-path = "packages/lang-ts/"
-checksum = ".release/checksums/mds-lang-ts-npm-0.1.0-alpha.1.sha256"
-signature = ".release/signatures/mds-lang-ts-npm-0.1.0-alpha.1.sig"
-sbom = ".release/sbom/mds-lang-ts-npm-0.1.0-alpha.1.spdx.json"
-provenance = ".release/provenance/mds-lang-ts-npm-0.1.0-alpha.1.jsonl"
-smoke = true
-
-[[artifacts]]
-name = "@owox-mds/lang-py"
-channel = "alpha"
-path = "packages/lang-py/"
-checksum = ".release/checksums/mds-lang-py-npm-0.1.0-alpha.1.sha256"
-signature = ".release/signatures/mds-lang-py-npm-0.1.0-alpha.1.sig"
-sbom = ".release/sbom/mds-lang-py-npm-0.1.0-alpha.1.spdx.json"
-provenance = ".release/provenance/mds-lang-py-npm-0.1.0-alpha.1.jsonl"
-smoke = true
-
-[[artifacts]]
-name = "@owox-mds/lang-rs"
-channel = "alpha"
-path = "packages/lang-rs/"
-checksum = ".release/checksums/mds-lang-rs-npm-0.1.0-alpha.1.sha256"
-signature = ".release/signatures/mds-lang-rs-npm-0.1.0-alpha.1.sig"
-sbom = ".release/sbom/mds-lang-rs-npm-0.1.0-alpha.1.spdx.json"
-provenance = ".release/provenance/mds-lang-rs-npm-0.1.0-alpha.1.jsonl"
-smoke = true
-
-# --- Python packages ---
-
-[[artifacts]]
-name = "mds-cli (Python)"
-channel = "alpha"
-path = "python/mds_cli/"
-checksum = ".release/checksums/mds-cli-py-0.1.0a1.sha256"
-signature = ".release/signatures/mds-cli-py-0.1.0a1.sig"
-sbom = ".release/sbom/mds-cli-py-0.1.0a1.spdx.json"
-provenance = ".release/provenance/mds-cli-py-0.1.0a1.jsonl"
-smoke = true
-
-[[artifacts]]
-name = "mds-lang-py"
-channel = "alpha"
-path = "python/mds_lang_py/"
-checksum = ".release/checksums/mds-lang-py-0.1.0a1.sha256"
-signature = ".release/signatures/mds-lang-py-0.1.0a1.sig"
-sbom = ".release/sbom/mds-lang-py-0.1.0a1.spdx.json"
-provenance = ".release/provenance/mds-lang-py-0.1.0a1.jsonl"
-smoke = true
 
 # --- VS Code extension ---
 

@@ -18,7 +18,6 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 VERSION="0.1.0-alpha.1"
-PY_VERSION="0.1.0a1"
 SIGN=false
 
 for arg in "$@"; do
@@ -149,48 +148,6 @@ for crate in mds-core mds-cli mds-lang-rs mds-lsp; do
   generate_signature "$CRATE_FILE" "$ROOT/.release/signatures/${crate}-${VERSION}.sig"
   generate_sbom "$crate" "$VERSION" "$ROOT/.release/sbom/${crate}-${VERSION}.spdx.json" "library"
   generate_provenance "$crate" "$VERSION" "$ROOT/.release/provenance/${crate}-${VERSION}.jsonl"
-done
-
-# ---------- npm packages ----------
-
-echo ""
-echo "=== npm packages ==="
-
-declare -A NPM_PACKAGES=(
-  ["@owox-mds/cli"]="cli"
-  ["@owox-mds/core"]="core"
-  ["@owox-mds/lang-ts"]="lang-ts"
-  ["@owox-mds/lang-py"]="lang-py"
-  ["@owox-mds/lang-rs"]="lang-rs"
-)
-
-for pkg in "${!NPM_PACKAGES[@]}"; do
-  dir="${NPM_PACKAGES[$pkg]}"
-  echo "[$pkg]"
-  slug="${dir//\//-}"
-  generate_checksum "$ROOT/packages/$dir" "$ROOT/.release/checksums/mds-${slug}-npm-${VERSION}.sha256"
-  generate_signature "$ROOT/packages/$dir" "$ROOT/.release/signatures/mds-${slug}-npm-${VERSION}.sig"
-  generate_sbom "$pkg" "$VERSION" "$ROOT/.release/sbom/mds-${slug}-npm-${VERSION}.spdx.json" "application"
-  generate_provenance "$pkg" "$VERSION" "$ROOT/.release/provenance/mds-${slug}-npm-${VERSION}.jsonl"
-done
-
-# ---------- Python packages ----------
-
-echo ""
-echo "=== Python packages ==="
-
-declare -A PY_PACKAGES=(
-  ["mds_cli"]="mds-cli-py"
-  ["mds_lang_py"]="mds-lang-py"
-)
-
-for pkg in "${!PY_PACKAGES[@]}"; do
-  slug="${PY_PACKAGES[$pkg]}"
-  echo "[$pkg]"
-  generate_checksum "$ROOT/python/$pkg" "$ROOT/.release/checksums/${slug}-${PY_VERSION}.sha256"
-  generate_signature "$ROOT/python/$pkg" "$ROOT/.release/signatures/${slug}-${PY_VERSION}.sig"
-  generate_sbom "$pkg" "$PY_VERSION" "$ROOT/.release/sbom/${slug}-${PY_VERSION}.spdx.json" "application"
-  generate_provenance "$pkg" "$PY_VERSION" "$ROOT/.release/provenance/${slug}-${PY_VERSION}.jsonl"
 done
 
 # ---------- VS Code extension ----------
