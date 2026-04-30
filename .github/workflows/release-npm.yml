@@ -28,6 +28,9 @@ on:
 permissions:
   contents: read
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   build-binary:
     name: Build Native Binary
@@ -87,11 +90,11 @@ jobs:
               echo "$pkg_name: $local_ver (already published)"
             fi
           }
-          check_pkg "cli" "mds-cli" "publish_cli"
-          check_pkg "core" "mds-core" "publish_core"
-          check_pkg "lang-ts" "mds-lang-ts" "publish_lang_ts"
-          check_pkg "lang-py" "mds-lang-py" "publish_lang_py"
-          check_pkg "lang-rs" "mds-lang-rs" "publish_lang_rs"
+          check_pkg "cli" "@owox-mds/cli" "publish_cli"
+          check_pkg "core" "@owox-mds/core" "publish_core"
+          check_pkg "lang-ts" "@owox-mds/lang-ts" "publish_lang_ts"
+          check_pkg "lang-py" "@owox-mds/lang-py" "publish_lang_py"
+          check_pkg "lang-rs" "@owox-mds/lang-rs" "publish_lang_rs"
           echo "any_publish=$any" >> "$GITHUB_OUTPUT"
 
   publish:
@@ -128,27 +131,27 @@ jobs:
           fi
       - name: Check packages
         run: cd packages && npm run check:npm
-      - name: Publish mds-cli
+      - name: Publish @owox-mds/cli
         if: needs.check-versions.outputs.publish_cli == 'true' && (github.event_name == 'push' || inputs.dry_run == 'false')
         run: cd packages/cli && npm publish --tag ${{ steps.channel.outputs.tag }} --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-      - name: Publish mds-core
+      - name: Publish @owox-mds/core
         if: needs.check-versions.outputs.publish_core == 'true' && (github.event_name == 'push' || inputs.dry_run == 'false')
         run: cd packages/core && npm publish --tag ${{ steps.channel.outputs.tag }} --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-      - name: Publish mds-lang-ts
+      - name: Publish @owox-mds/lang-ts
         if: needs.check-versions.outputs.publish_lang_ts == 'true' && (github.event_name == 'push' || inputs.dry_run == 'false')
         run: cd packages/lang-ts && npm publish --tag ${{ steps.channel.outputs.tag }} --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-      - name: Publish mds-lang-py
+      - name: Publish @owox-mds/lang-py
         if: needs.check-versions.outputs.publish_lang_py == 'true' && (github.event_name == 'push' || inputs.dry_run == 'false')
         run: cd packages/lang-py && npm publish --tag ${{ steps.channel.outputs.tag }} --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-      - name: Publish mds-lang-rs
+      - name: Publish @owox-mds/lang-rs
         if: needs.check-versions.outputs.publish_lang_rs == 'true' && (github.event_name == 'push' || inputs.dry_run == 'false')
         run: cd packages/lang-rs && npm publish --tag ${{ steps.channel.outputs.tag }} --access public
         env:

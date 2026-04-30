@@ -1,5 +1,5 @@
 {
-  "name": "mds-cli",
+  "name": "@owox-mds/cli",
   "version": "0.1.0-alpha.1",
   "description": "npm wrapper for the native mds CLI.",
   "bin": {
