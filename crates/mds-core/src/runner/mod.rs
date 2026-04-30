@@ -50,6 +50,10 @@ fn execute_inner(request: CliRequest) -> Result<RunState, String> {
             run_release_check(&request.cwd, options, &mut state)?;
             return Ok(state);
         }
+        Command::Update { .. } => {
+            // Handled by CLI directly, should not reach here
+            return Ok(state);
+        }
         _ => {}
     }
     let packages = discover_packages(&request.cwd, request.package.as_deref(), &mut state)?;
@@ -166,7 +170,10 @@ pub(crate) fn run_package(
         }
         Command::PackageSync { .. } => unreachable!(),
         Command::Doctor { .. } => {}
-        Command::Init { .. } | Command::New { .. } | Command::ReleaseCheck { .. } => unreachable!(),
+        Command::Init { .. }
+        | Command::New { .. }
+        | Command::ReleaseCheck { .. }
+        | Command::Update { .. } => unreachable!(),
     }
     Ok(())
 }

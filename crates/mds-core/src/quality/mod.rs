@@ -22,8 +22,22 @@ pub(crate) fn run_quality(
 ) -> Result<(), String> {
     match operation {
         QualityOperation::Lint | QualityOperation::Test => {
+            let mut any_configured = false;
             for doc in docs {
+                if has_quality_config(package, doc, operation) {
+                    any_configured = true;
+                }
                 run_doc_quality(package, doc, operation, state)?;
+            }
+            if !any_configured && !docs.is_empty() {
+                let name = match operation {
+                    QualityOperation::Lint => "lint",
+                    QualityOperation::Test => "test",
+                    QualityOperation::Fix { .. } => unreachable!(),
+                };
+                state.stdout.push_str(&format!(
+                    "warning: no {name} tool configured in mds.config.toml [quality.*]; skipping\n"
+                ));
             }
             if !state.has_errors() && !state.environment_missing {
                 let name = match operation {
@@ -35,8 +49,23 @@ pub(crate) fn run_quality(
             }
         }
         QualityOperation::Fix { check } => {
+            let mut any_configured = false;
             for doc in docs {
+                if package
+                    .config
+                    .quality
+                    .get(&doc.lang)
+                    .and_then(|c| c.fix.as_ref())
+                    .is_some()
+                {
+                    any_configured = true;
+                }
                 fix_doc(package, doc, check, state)?;
+            }
+            if !any_configured && !docs.is_empty() {
+                state.stdout.push_str(
+                    "warning: no fix tool configured in mds.config.toml [quality.*]; skipping\n",
+                );
             }
             if !state.has_errors() && !state.environment_missing {
                 state.stdout.push_str("lint --fix ok\n");
@@ -44,6 +73,17 @@ pub(crate) fn run_quality(
         }
     }
     Ok(())
+}
+
+fn has_quality_config(package: &Package, doc: &ImplDoc, operation: QualityOperation) -> bool {
+    let Some(config) = package.config.quality.get(&doc.lang) else {
+        return false;
+    };
+    match operation {
+        QualityOperation::Lint => config.lint.is_some(),
+        QualityOperation::Test => config.test.is_some(),
+        QualityOperation::Fix { .. } => config.fix.is_some(),
+    }
 }
 
 fn run_doc_quality(
@@ -72,7 +112,7 @@ fn run_doc_quality(
         let Some(code) = doc.code.get(kind) else {
             continue;
         };
-        let path = temp_code_path(package, doc.lang, *kind);
+        let path = temp_code_path(package, &doc.lang, *kind);
         if let Some(parent) = path.parent() {
             fs::create_dir_all(parent)
                 .map_err(|error| format!("failed to create {}: {error}", parent.display()))?;
@@ -108,7 +148,7 @@ fn fix_doc(
         .map_err(|error| format!("failed to read {}: {error}", doc.path.display()))?;
     let mut replacements = Vec::new();
     for block in code_block_ranges(&old, &package.config.label_overrides) {
-        let path = temp_code_path(package, doc.lang, OutputKind::Source);
+        let path = temp_code_path(package, &doc.lang, OutputKind::Source);
         if let Some(parent) = path.parent() {
             fs::create_dir_all(parent)
                 .map_err(|error| format!("failed to create {}: {error}", parent.display()))?;
@@ -147,7 +187,7 @@ fn fix_doc(
     Ok(())
 }
 
-fn temp_code_path(package: &Package, lang: Lang, kind: OutputKind) -> PathBuf {
+fn temp_code_path(package: &Package, lang: &Lang, kind: OutputKind) -> PathBuf {
     let file_name = match (lang, kind) {
         (Lang::TypeScript, OutputKind::Test) => "test.test.ts".to_string(),
         (Lang::Python, OutputKind::Test) => "test_test.py".to_string(),
@@ -155,6 +195,8 @@ fn temp_code_path(package: &Package, lang: Lang, kind: OutputKind) -> PathBuf {
         (Lang::TypeScript, _) => format!("{}.ts", kind.manifest_kind()),
         (Lang::Python, _) => format!("{}.py", kind.manifest_kind()),
         (Lang::Rust, _) => format!("{}.rs", kind.manifest_kind()),
+        (Lang::Other(ext), OutputKind::Test) => format!("test.{ext}"),
+        (Lang::Other(ext), _) => format!("{}.{ext}", kind.manifest_kind()),
     };
     let path = package.root.join(".mds/tmp").join(&file_name);
     if is_excluded(&package.root, &path, &package.config.excludes) {

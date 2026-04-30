@@ -2,25 +2,34 @@ use std::process::Command as ProcessCommand;
 
 use crate::adapter::tool_available;
 use crate::diagnostics::{Diagnostic, RunState};
-use crate::model::{DoctorFormat, Lang, Package};
+use crate::model::{DoctorFormat, Package};
 
 pub(crate) fn run_doctor(packages: &[Package], format: DoctorFormat, state: &mut RunState) {
     let mut checks = Vec::new();
-    checks.push(DoctorCheck::ok(
-        "mds",
-        env!("CARGO_PKG_VERSION").to_string(),
-    ));
+    let current_version = env!("CARGO_PKG_VERSION");
+    checks.push(DoctorCheck::ok("mds", current_version.to_string()));
     checks.push(DoctorCheck::ok("packages", packages.len().to_string()));
     for package in packages {
+        // Check mds_version compatibility
+        if let Some(ref expected_version) = package.config.mds_version {
+            if expected_version != current_version {
+                checks.push(DoctorCheck::warning(
+                    "mds_version",
+                    format!(
+                        "project expects mds {expected_version}, but running {current_version}. Run `mds update --version {expected_version}` to match."
+                    ),
+                ));
+            }
+        }
         checks.push(DoctorCheck::ok(
             "package",
             package.root.display().to_string(),
         ));
-        for lang in [Lang::TypeScript, Lang::Python, Lang::Rust] {
-            if !package.config.adapters.get(&lang).copied().unwrap_or(true) {
+        for lang in package.config.quality.keys() {
+            if !package.config.adapters.get(lang).copied().unwrap_or(true) {
                 continue;
             }
-            let Some(config) = package.config.quality.get(&lang) else {
+            let Some(config) = package.config.quality.get(lang) else {
                 continue;
             };
             for command in &config.required {

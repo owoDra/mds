@@ -13,7 +13,7 @@ use crate::model::{
 
 pub(crate) fn output_relative_path(doc: &ImplDoc, kind: OutputKind) -> PathBuf {
     let rel = strip_md_extension(&doc.markdown_relative_path);
-    match (doc.lang, kind) {
+    match (&doc.lang, kind) {
         (Lang::TypeScript, OutputKind::Types) => with_suffix(&rel, ".types.ts"),
         (Lang::TypeScript, OutputKind::Test) => with_suffix(&rel, ".test.ts"),
         (Lang::TypeScript, OutputKind::Source) => rel,
@@ -23,6 +23,9 @@ pub(crate) fn output_relative_path(doc: &ImplDoc, kind: OutputKind) -> PathBuf {
         (Lang::Rust, OutputKind::Types) => with_suffix(&rel, "_types.rs"),
         (Lang::Rust, OutputKind::Test) => PathBuf::from(flattened_test_name(&rel)),
         (Lang::Rust, OutputKind::Source) => rel,
+        (Lang::Other(ext), OutputKind::Types) => with_suffix(&rel, &format!(".types.{ext}")),
+        (Lang::Other(ext), OutputKind::Test) => with_suffix(&rel, &format!(".test.{ext}")),
+        (Lang::Other(_), OutputKind::Source) => rel,
     }
 }
 
@@ -96,10 +99,11 @@ pub(crate) fn imports_for(
 
     grouped
         .iter()
-        .map(|row| match doc.lang {
+        .map(|row| match &doc.lang {
             Lang::TypeScript => ts_import(package, row, kind, output_path),
             Lang::Python => py_import(row, &doc.path, state),
             Lang::Rust => rs_import(row, &doc.path, state),
+            Lang::Other(_) => generic_import(row),
         })
         .collect::<Vec<_>>()
         .join("\n")
@@ -227,6 +231,25 @@ fn rs_names(row: &UseRow) -> Vec<String> {
             _ => None,
         })
         .collect()
+}
+
+/// Generic import for languages without a specific adapter.
+/// Produces a comment-style pseudo-import for documentation purposes.
+fn generic_import(row: &UseRow) -> String {
+    let names: Vec<String> = row
+        .exposes
+        .iter()
+        .map(|expose| match expose {
+            UseExpose::Named { name, .. } => name.clone(),
+            UseExpose::Default { local } => local.clone(),
+            UseExpose::Namespace { local } => local.clone(),
+        })
+        .collect();
+    if names.is_empty() {
+        format!("// import {}", row.target)
+    } else {
+        format!("// import {{ {} }} from {}", names.join(", "), row.target)
+    }
 }
 
 pub(crate) fn relative_module(from_dir: &Path, to_file: &Path) -> String {

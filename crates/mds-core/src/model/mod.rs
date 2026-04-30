@@ -18,6 +18,7 @@ pub enum Command {
     Init { options: InitOptions },
     New { options: NewOptions },
     ReleaseCheck { options: ReleaseQualityOptions },
+    Update { version: Option<String> },
 }
 
 #[derive(Debug, Clone, Eq, PartialEq)]
@@ -292,11 +293,13 @@ pub struct CliResult {
     pub exit_code: i32,
 }
 
-#[derive(Debug, Clone, Copy, Eq, Hash, PartialEq)]
+#[derive(Debug, Clone, Eq, Hash, PartialEq)]
 pub enum Lang {
     TypeScript,
     Python,
     Rust,
+    /// Any language detected from `.{ext}.md` pattern (e.g. "go", "java", "swift")
+    Other(String),
 }
 
 impl Lang {
@@ -309,23 +312,54 @@ impl Lang {
         } else if name.ends_with(".rs.md") {
             Some(Self::Rust)
         } else {
-            None
+            // Match any .{ext}.md pattern
+            let name_str = name.as_ref();
+            let without_md = name_str.strip_suffix(".md")?;
+            let dot_pos = without_md.rfind('.')?;
+            let ext = &without_md[dot_pos + 1..];
+            if !ext.is_empty() && ext.chars().all(|c| c.is_ascii_alphanumeric()) {
+                Some(Self::Other(ext.to_string()))
+            } else {
+                None
+            }
         }
     }
 
-    pub fn key(self) -> &'static str {
+    pub fn key(&self) -> &str {
         match self {
             Self::TypeScript => "ts",
             Self::Python => "py",
             Self::Rust => "rs",
+            Self::Other(ext) => ext.as_str(),
         }
     }
 
-    pub fn header_prefix(self) -> &'static str {
+    pub fn header_prefix(&self) -> &str {
         match self {
             Self::Python => "#",
             Self::TypeScript | Self::Rust => "//",
+            Self::Other(ext) => match ext.as_str() {
+                "rb" | "sh" | "bash" | "zsh" | "pl" | "pm" => "#",
+                "hs" | "lua" => "--",
+                "html" | "xml" => "<!--",
+                _ => "//",
+            },
         }
+    }
+
+    /// File extension for generated output (without dot)
+    pub fn file_ext(&self) -> &str {
+        match self {
+            Self::TypeScript => "ts",
+            Self::Python => "py",
+            Self::Rust => "rs",
+            Self::Other(ext) => ext.as_str(),
+        }
+    }
+
+    /// Returns all built-in languages
+    pub fn builtins() -> &'static [Lang] {
+        &[Self::TypeScript, Self::Python, Self::Rust]
     }
 }
 
@@ -352,6 +386,7 @@ impl Default for Roots {
 pub struct Config {
     pub enabled: bool,
     pub allow_raw_source: bool,
+    pub mds_version: Option<String>,
     pub roots: Roots,
     pub adapters: HashMap<Lang, bool>,
     pub quality: HashMap<Lang, QualityConfig>,
@@ -366,6 +401,7 @@ impl Default for Config {
         Self {
             enabled: false,
             allow_raw_source: false,
+            mds_version: None,
             roots: Roots::default(),
             adapters: HashMap::from([
                 (Lang::TypeScript, true),
@@ -373,9 +409,9 @@ impl Default for Config {
                 (Lang::Rust, true),
             ]),
             quality: HashMap::from([
-                (Lang::TypeScript, QualityConfig::for_lang(Lang::TypeScript)),
-                (Lang::Python, QualityConfig::for_lang(Lang::Python)),
-                (Lang::Rust, QualityConfig::for_lang(Lang::Rust)),
+                (Lang::TypeScript, QualityConfig::for_lang(&Lang::TypeScript)),
+                (Lang::Python, QualityConfig::for_lang(&Lang::Python)),
+                (Lang::Rust, QualityConfig::for_lang(&Lang::Rust)),
             ]),
             excludes: Vec::new(),
             package_sync_hook_enabled: false,
@@ -395,29 +431,13 @@ pub struct QualityConfig {
 }
 
 impl QualityConfig {
-    fn for_lang(lang: Lang) -> Self {
-        match lang {
-            Lang::TypeScript => Self {
-                lint: None,
-                fix: None,
-                test: None,
-                required: Vec::new(),
-                optional: Vec::new(),
-            },
-            Lang::Python => Self {
-                lint: None,
-                fix: None,
-                test: None,
-                required: Vec::new(),
-                optional: Vec::new(),
-            },
-            Lang::Rust => Self {
-                lint: None,
-                fix: None,
-                test: None,
-                required: Vec::new(),
-                optional: Vec::new(),
-            },
+    fn for_lang(_lang: &Lang) -> Self {
+        Self {
+            lint: None,
+            fix: None,
+            test: None,
+            required: Vec::new(),
+            optional: Vec::new(),
         }
     }
 }

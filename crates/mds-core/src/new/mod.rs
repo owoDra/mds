@@ -23,7 +23,7 @@ pub(crate) fn run_new(
         let lang = detect_lang(name);
         if lang.is_none() {
             return Err(format!(
-                "cannot detect language from `{name}`; expected index.md or a name ending in .ts.md, .py.md, or .rs.md"
+                "cannot detect language from `{name}`; expected index.md or a name ending in .{{lang}}.md (e.g. greet.ts.md, utils.go.md)"
             ));
         }
     }
@@ -83,13 +83,12 @@ fn label<'a>(labels: &'a HashMap<String, String>, canonical: &str, default: &'a 
     labels.get(canonical).map(|s| s.as_str()).unwrap_or(default)
 }
 
-fn detect_lang(name: &str) -> Option<&'static str> {
-    if name.ends_with(".ts.md") {
-        Some("ts")
-    } else if name.ends_with(".py.md") {
-        Some("py")
-    } else if name.ends_with(".rs.md") {
-        Some("rs")
+fn detect_lang(name: &str) -> Option<&str> {
+    let without_md = name.strip_suffix(".md")?;
+    let dot_pos = without_md.rfind('.')?;
+    let ext = &without_md[dot_pos + 1..];
+    if !ext.is_empty() && ext.chars().all(|c| c.is_ascii_alphanumeric()) {
+        Some(ext)
     } else {
         None
     }
@@ -189,7 +188,11 @@ fn generate_impl_template(
             rs_source_template(feature_name),
             rs_test_template(feature_name),
         ),
-        _ => unreachable!(),
+        _ => (
+            generic_types_template(lang, feature_name),
+            generic_source_template(lang, feature_name),
+            generic_test_template(lang, feature_name),
+        ),
     };
 
     let l_purpose = label(labels, "purpose", "Purpose");
@@ -268,4 +271,16 @@ fn rs_source_template(_feature_name: &str) -> String {
 
 fn rs_test_template(_feature_name: &str) -> String {
     "```rs\n#[cfg(test)]\nmod tests {\n    #[test]\n    fn test_todo() {\n        assert!(true);\n    }\n}\n```".to_string()
+}
+
+fn generic_types_template(lang: &str, _feature_name: &str) -> String {
+    format!("```{lang}\n// Define your types here.\n```")
+}
+
+fn generic_source_template(lang: &str, _feature_name: &str) -> String {
+    format!("```{lang}\n// Implement your feature here.\n```")
+}
+
+fn generic_test_template(lang: &str, _feature_name: &str) -> String {
+    format!("```{lang}\n// Write your tests here.\n```")
 }

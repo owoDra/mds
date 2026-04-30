@@ -47,6 +47,9 @@ pub fn merge_config_file(config: &mut Config, path: &Path, state: &mut RunState)
             match key.as_str() {
                 "enabled" => config.enabled = bool_value(value, path, key, state),
                 "allow_raw_source" => config.allow_raw_source = bool_value(value, path, key, state),
+                "mds_version" | "mds-version" => {
+                    config.mds_version = Some(string_value(value, path, key, state));
+                }
                 _ => warn_unsupported(path, state, "package config", key),
             }
         }
@@ -90,7 +93,7 @@ pub fn merge_config_file(config: &mut Config, path: &Path, state: &mut RunState)
                 if key == "enabled" {
                     config
                         .adapters
-                        .insert(lang, bool_value(value, path, key, state));
+                        .insert(lang.clone(), bool_value(value, path, key, state));
                 } else {
                     warn_unsupported(path, state, &format!("adapter config `{adapter}`"), key);
                 }
@@ -246,6 +249,14 @@ fn lang_from_key(key: &str) -> Option<Lang> {
         "ts" | "typescript" => Some(Lang::TypeScript),
         "py" | "python" => Some(Lang::Python),
         "rs" | "rust" => Some(Lang::Rust),
+        other
+            if !other.is_empty()
+                && other
+                    .chars()
+                    .all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_') =>
+        {
+            Some(Lang::Other(other.to_string()))
+        }
         _ => None,
     }
 }
