@@ -1,3 +1,7 @@
+<p align="center">
+	<img src=".github/assets/readme-header.png" alt="markdown source" width="720">
+</p>
+
 # mds
 
 mds は、Markdown を設計と実装の正本として扱う開発ツールチェーンです。
