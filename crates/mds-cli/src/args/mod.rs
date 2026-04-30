@@ -32,6 +32,7 @@ where
     let mut release_manifest = None;
     let mut new_name: Option<String> = None;
     let mut new_force = false;
+    let mut update_version: Option<String> = None;
     while let Some(arg) = args.next() {
         match arg.as_str() {
             "--package" => {
@@ -117,6 +118,12 @@ where
             }
             "--force" if command_name == "new" => {
                 new_force = true;
+            }
+            "--version" if command_name == "update" => {
+                let Some(value) = args.next() else {
+                    return Err("--version requires a value".to_string());
+                };
+                update_version = Some(value);
             }
             _ if command_name == "new" && !arg.starts_with('-') && new_name.is_none() => {
                 new_name = Some(arg);
@@ -213,6 +220,12 @@ where
                     },
                 },
                 _ => return Err("release requires subcommand check".to_string()),
+            }
+        }
+        "update" => {
+            // mds update [--version X.Y.Z]
+            Command::Update {
+                version: update_version,
             }
         }
         _ => return Err(format!("unknown command `{command_name}`")),

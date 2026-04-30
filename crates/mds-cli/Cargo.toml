@@ -13,5 +13,6 @@ name = "mds"
 path = "src/main.rs"
 
 [dependencies]
-dialoguer = "0.11"
+crossterm = "0.27"
 mds-core = { path = "../mds-core", version = "0.1.0-alpha.1" }
+ratatui = "0.26"

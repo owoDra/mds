@@ -2,6 +2,8 @@ use mds_cli::args::{parse_args, print_usage};
 use mds_cli::wizard::run_interactive_init;
 use mds_core::{execute, CliRequest, Command};
 
+use std::process::Command as ProcessCommand;
+
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 fn main() {
@@ -79,6 +81,12 @@ fn main() {
         }
     };
 
+    // Handle update command directly (it replaces the current binary)
+    if let Command::Update { ref version } = request.command {
+        run_self_update(version.as_deref());
+        return;
+    }
+
     let result = execute(request);
     if !result.stdout.is_empty() {
         print!("{}", result.stdout);
@@ -87,4 +95,78 @@ fn main() {
         eprint!("{}", result.stderr);
     }
     std::process::exit(result.exit_code);
+}
+
+fn run_self_update(version: Option<&str>) {
+    let repo = "owo-x-project/owox-mds";
+    let target_version = match version {
+        Some(v) => v.to_string(),
+        None => {
+            eprintln!("Checking for latest version...");
+            match fetch_latest_version(repo) {
+                Some(v) => v,
+                None => {
+                    eprintln!("error: failed to fetch latest version from GitHub");
+                    std::process::exit(1);
+                }
+            }
+        }
+    };
+
+    if target_version == VERSION {
+        println!("mds is already at version {VERSION}");
+        std::process::exit(0);
+    }
+
+    println!("Updating mds from {VERSION} to {target_version}...");
+
+    let install_script = format!("https://raw.githubusercontent.com/{repo}/main/install.sh");
+
+    let status = ProcessCommand::new("sh")
+        .arg("-c")
+        .arg(format!(
+            "curl -fsSL {install_script} | sh -s -- --version {target_version}"
+        ))
+        .status();
+
+    match status {
+        Ok(s) if s.success() => {
+            println!("Successfully updated to mds {target_version}");
+        }
+        Ok(s) => {
+            eprintln!("Update failed with exit code: {}", s.code().unwrap_or(1));
+            std::process::exit(1);
+        }
+        Err(e) => {
+            eprintln!("error: failed to run update: {e}");
+            eprintln!("hint: You can manually update with:");
+            eprintln!("  curl -fsSL https://raw.githubusercontent.com/{repo}/main/install.sh | sh");
+            std::process::exit(1);
+        }
+    }
+}
+
+fn fetch_latest_version(repo: &str) -> Option<String> {
+    let output = ProcessCommand::new("curl")
+        .args([
+            "-fsSL",
+            &format!("https://api.github.com/repos/{repo}/releases/latest"),
+        ])
+        .output()
+        .ok()?;
+
+    if !output.status.success() {
+        return None;
+    }
+
+    let body = String::from_utf8(output.stdout).ok()?;
+    // Simple JSON parsing for "tag_name": "vX.Y.Z"
+    let tag_start = body.find("\"tag_name\"")?;
+    let value_start = body[tag_start..].find('"').and_then(|i| {
+        let rest = &body[tag_start + i + 1..];
+        rest.find('"').map(|j| tag_start + i + 1 + j + 1)
+    })?;
+    let value_end = body[value_start..].find('"')?;
+    let tag = &body[value_start..value_start + value_end];
+    Some(tag.strip_prefix('v').unwrap_or(tag).to_string())
 }
