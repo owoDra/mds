@@ -38,7 +38,22 @@
         "extensions": [
           ".ts.md",
           ".py.md",
-          ".rs.md"
+          ".rs.md",
+          ".go.md",
+          ".java.md",
+          ".kt.md",
+          ".swift.md",
+          ".rb.md",
+          ".cs.md",
+          ".cpp.md",
+          ".c.md",
+          ".zig.md",
+          ".lua.md",
+          ".sh.md",
+          ".php.md",
+          ".dart.md",
+          ".ex.md",
+          ".scala.md"
         ],
         "configuration": "./language-configuration.json"
       }

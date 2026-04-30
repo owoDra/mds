@@ -25,10 +25,9 @@ interface LanguageInfo {
 
 /**
  * Registry of known languages.
- * Add entries here to support new languages automatically.
+ * Core languages are always available; additional languages are added dynamically.
  */
 const LANGUAGE_REGISTRY: Record<string, LanguageInfo> = {
-  // Core languages (supported by mds-core Lang enum)
   ts: {
     ext: '.ts.md',
     languageId: 'typescript',
@@ -47,21 +46,121 @@ const LANGUAGE_REGISTRY: Record<string, LanguageInfo> = {
     labels: ['rust', 'rs'],
     virtualExt: '.rs',
   },
-  // Add new languages here when mds-core gains support.
-  // Example:
-  // go: {
-  //   ext: '.go.md',
-  //   languageId: 'go',
-  //   labels: ['go', 'golang'],
-  //   virtualExt: '.go',
-  // },
+  go: {
+    ext: '.go.md',
+    languageId: 'go',
+    labels: ['go', 'golang'],
+    virtualExt: '.go',
+  },
+  java: {
+    ext: '.java.md',
+    languageId: 'java',
+    labels: ['java'],
+    virtualExt: '.java',
+  },
+  kt: {
+    ext: '.kt.md',
+    languageId: 'kotlin',
+    labels: ['kotlin', 'kt'],
+    virtualExt: '.kt',
+  },
+  swift: {
+    ext: '.swift.md',
+    languageId: 'swift',
+    labels: ['swift'],
+    virtualExt: '.swift',
+  },
+  rb: {
+    ext: '.rb.md',
+    languageId: 'ruby',
+    labels: ['ruby', 'rb'],
+    virtualExt: '.rb',
+  },
+  cs: {
+    ext: '.cs.md',
+    languageId: 'csharp',
+    labels: ['csharp', 'cs', 'c#'],
+    virtualExt: '.cs',
+  },
+  cpp: {
+    ext: '.cpp.md',
+    languageId: 'cpp',
+    labels: ['cpp', 'c++'],
+    virtualExt: '.cpp',
+  },
+  c: {
+    ext: '.c.md',
+    languageId: 'c',
+    labels: ['c'],
+    virtualExt: '.c',
+  },
+  zig: {
+    ext: '.zig.md',
+    languageId: 'zig',
+    labels: ['zig'],
+    virtualExt: '.zig',
+  },
+  lua: {
+    ext: '.lua.md',
+    languageId: 'lua',
+    labels: ['lua'],
+    virtualExt: '.lua',
+  },
+  sh: {
+    ext: '.sh.md',
+    languageId: 'shellscript',
+    labels: ['bash', 'sh', 'shell'],
+    virtualExt: '.sh',
+  },
+  php: {
+    ext: '.php.md',
+    languageId: 'php',
+    labels: ['php'],
+    virtualExt: '.php',
+  },
+  dart: {
+    ext: '.dart.md',
+    languageId: 'dart',
+    labels: ['dart'],
+    virtualExt: '.dart',
+  },
+  elixir: {
+    ext: '.ex.md',
+    languageId: 'elixir',
+    labels: ['elixir', 'ex'],
+    virtualExt: '.ex',
+  },
+  scala: {
+    ext: '.scala.md',
+    languageId: 'scala',
+    labels: ['scala'],
+    virtualExt: '.scala',
+  },
 };
+
+/** Dynamically create a LanguageInfo for any unknown extension */
+function createDynamicLanguageInfo(key: string): LanguageInfo {
+  return {
+    ext: `.${key}.md`,
+    languageId: key,
+    labels: [key],
+    virtualExt: `.${key}`,
+  };
+}
 
 /** Alias map for normalizing language keys */
 const LANG_ALIASES: Record<string, string> = {
   typescript: 'ts',
   python: 'py',
   rust: 'rs',
+  golang: 'go',
+  kotlin: 'kt',
+  csharp: 'cs',
+  'c++': 'cpp',
+  ruby: 'rb',
+  bash: 'sh',
+  shell: 'sh',
+  elixir: 'elixir',
 };
 
 function normalizeLangKey(key: string): string {
@@ -127,9 +226,25 @@ async function discoverLanguages(
     // Workspace search not available
   }
 
+  // From actual .{ext}.md files in src-md directories
+  try {
+    const mdFiles = await vscode.workspace.findFiles(
+      '**/src-md/**/*.md',
+      '{**/node_modules/**,**/target/**}'
+    );
+    for (const uri of mdFiles) {
+      const fileName = uri.path.split('/').pop() || '';
+      const m = fileName.match(/\.(\w+)\.md$/);
+      if (m) {
+        langKeys.add(normalizeLangKey(m[1]));
+      }
+    }
+  } catch {
+    // Workspace search not available
+  }
+
   return [...langKeys]
-    .map((k) => LANGUAGE_REGISTRY[k])
-    .filter((info): info is LanguageInfo => !!info);
+    .map((k) => LANGUAGE_REGISTRY[k] || createDynamicLanguageInfo(k));
 }
 
 // ============================================================
@@ -437,6 +552,30 @@ function registerVirtualDocumentProvider(
 }
 
 // ============================================================
+// mds File Detection
+// ============================================================
+
+/**
+ * Determine if a file URI is an mds-managed file.
+ * True if: in a src-md/ directory, or matches a known .{ext}.md pattern.
+ */
+function isMdsFile(uri: vscode.Uri, extPattern: string): boolean {
+  const path = uri.fsPath;
+  // Files in src-md/ directories
+  if (/[/\\]src-md[/\\]/.test(path)) {
+    return true;
+  }
+  // Files matching known mds extension patterns (e.g., .ts.md, .go.md)
+  if (extPattern) {
+    const re = new RegExp(`(?:${extPattern})$`);
+    if (re.test(path)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+// ============================================================
 // Activation
 // ============================================================
 
@@ -555,6 +694,23 @@ export async function activate(context: vscode.ExtensionContext) {
       }
     })
   );
+
+  // Auto-associate .md files in src-md/ directories with mds-markdown language
+  const mdsExtPattern = activeLanguages.map((l) => l.ext).join('|').replace(/\./g, '\\.');
+  context.subscriptions.push(
+    vscode.workspace.onDidOpenTextDocument((doc) => {
+      if (doc.languageId === 'markdown' && isMdsFile(doc.uri, mdsExtPattern)) {
+        vscode.languages.setTextDocumentLanguage(doc, 'mds-markdown');
+      }
+    })
+  );
+
+  // Set language for already-open documents
+  for (const doc of vscode.workspace.textDocuments) {
+    if (doc.languageId === 'markdown' && isMdsFile(doc.uri, mdsExtPattern)) {
+      vscode.languages.setTextDocumentLanguage(doc, 'mds-markdown');
+    }
+  }
 
   await client.start();
 }
