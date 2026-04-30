@@ -449,7 +449,7 @@ export async function activate(context: vscode.ExtensionContext) {
   const serverPath = resolveServerPath(config);
   if (!serverPath) {
     vscode.window.showWarningMessage(
-      'mds-lsp binary not found. Install it or set mds.lsp.path in settings.'
+      'mds-lsp binary not found. Install with: cargo install --git https://github.com/owo-x-project/owox-mds mds-lsp, or set mds.lsp.path in settings.'
     );
     return;
   }
@@ -480,6 +480,7 @@ export async function activate(context: vscode.ExtensionContext) {
       { scheme: 'file', language: 'mds-markdown' },
       { scheme: 'file', pattern: '**/mds.config.toml' },
       { scheme: 'file', pattern: '**/package.md' },
+      { scheme: 'file', pattern: '**/src-md/**/*.md' },
     ];
   for (const lang of activeLanguages) {
     documentSelector.push({ scheme: 'file', pattern: `**/*${lang.ext}` });
@@ -489,6 +490,7 @@ export async function activate(context: vscode.ExtensionContext) {
   const fileEvents = [
     vscode.workspace.createFileSystemWatcher('**/mds.config.toml'),
     vscode.workspace.createFileSystemWatcher('**/package.md'),
+    vscode.workspace.createFileSystemWatcher('**/src-md/**/*.md'),
   ];
   for (const lang of activeLanguages) {
     fileEvents.push(
@@ -571,8 +573,11 @@ function resolveServerPath(
     return configPath;
   }
 
-  // Try to find mds-lsp in PATH
   const { execFileSync } = require('child_process');
+  const path = require('path');
+  const fs = require('fs');
+
+  // Try to find mds-lsp in PATH
   try {
     const cmd = process.platform === 'win32' ? 'where' : 'which';
     const result = execFileSync(cmd, ['mds-lsp'], {
@@ -580,11 +585,38 @@ function resolveServerPath(
       timeout: 5000,
     }).trim();
     if (result) {
-      // Return the first line (which/where may return multiple)
       return result.split('\n')[0].trim();
     }
   } catch {
     // Not found in PATH
+  }
+
+  // Try to find mds-lsp next to the mds binary
+  try {
+    const cmd = process.platform === 'win32' ? 'where' : 'which';
+    const mdsPath = execFileSync(cmd, ['mds'], {
+      encoding: 'utf-8',
+      timeout: 5000,
+    }).trim().split('\n')[0].trim();
+    if (mdsPath) {
+      const lspPath = path.join(path.dirname(mdsPath), 'mds-lsp');
+      const lspPathExt = process.platform === 'win32' ? lspPath + '.exe' : lspPath;
+      if (fs.existsSync(lspPathExt)) {
+        return lspPathExt;
+      }
+    }
+  } catch {
+    // mds not found in PATH either
+  }
+
+  // Try common cargo install location
+  const home = process.env.HOME || process.env.USERPROFILE || '';
+  if (home) {
+    const cargoLsp = path.join(home, '.cargo', 'bin', 'mds-lsp');
+    const cargoLspExt = process.platform === 'win32' ? cargoLsp + '.exe' : cargoLsp;
+    if (fs.existsSync(cargoLspExt)) {
+      return cargoLspExt;
+    }
   }
 
   return undefined;
