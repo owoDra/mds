@@ -1,5 +1,5 @@
 /**
- * @mds/lang-py — Python language adapter for mds.
+ * mds-lang-py — Python language adapter for mds.
  *
  * Provides Python-specific file naming conventions, quality tool
  * defaults, and test runner integration metadata.

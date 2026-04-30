@@ -1,0 +1,143 @@
+# Rust Crates Release
+#
+# Triggers on:
+#   - Push to latest with changes in crates/
+#   - Manual dispatch
+#
+# Publishes to crates.io only when version differs from published version.
+
+name: Release Rust Crates
+
+on:
+  push:
+    branches: [latest]
+    paths:
+      - 'crates/**'
+      - '.github/workflows/release-rust.yml'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run (skip actual publishing)'
+        required: true
+        default: 'true'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  quality:
+    name: Quality Gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+      - name: Cache Cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            crates/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('crates/Cargo.lock') }}
+      - name: Format check
+        run: cd crates && cargo fmt --check
+      - name: Clippy
+        run: cd crates && cargo clippy -- -D warnings
+      - name: Test
+        run: cd crates && cargo test
+      - name: Examples smoke test
+        run: |
+          cd crates && cargo build
+          cargo run -p mds-cli -- check --package ../examples/minimal-ts
+          cargo run -p mds-cli -- check --package ../examples/minimal-py
+          cargo run -p mds-cli -- check --package ../examples/minimal-rs
+
+  check-versions:
+    name: Check Published Versions
+    needs: quality
+    runs-on: ubuntu-latest
+    outputs:
+      publish_core: ${{ steps.check.outputs.publish_core }}
+      publish_lang_rs: ${{ steps.check.outputs.publish_lang_rs }}
+      publish_cli: ${{ steps.check.outputs.publish_cli }}
+      publish_lsp: ${{ steps.check.outputs.publish_lsp }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+      - name: Check version changes
+        id: check
+        run: |
+          check_crate() {
+            local crate=$1
+            local output_key=$2
+            local local_ver=$(cargo metadata --manifest-path crates/Cargo.toml --no-deps --format-version 1 \
+              | jq -r ".packages[] | select(.name == \"$crate\") | .version")
+            local published_ver=$(cargo search "$crate" --limit 1 2>/dev/null | grep "^$crate " | sed 's/.*= "\(.*\)".*/\1/' || echo "")
+            if [[ "$local_ver" != "$published_ver" ]]; then
+              echo "${output_key}=true" >> "$GITHUB_OUTPUT"
+              echo "$crate: $published_ver -> $local_ver (will publish)"
+            else
+              echo "${output_key}=false" >> "$GITHUB_OUTPUT"
+              echo "$crate: $local_ver (already published)"
+            fi
+          }
+          check_crate "mds-core" "publish_core"
+          check_crate "mds-lang-rs" "publish_lang_rs"
+          check_crate "mds-cli" "publish_cli"
+          check_crate "mds-lsp" "publish_lsp"
+
+  publish:
+    name: Publish Crates
+    needs: check-versions
+    if: |
+      needs.check-versions.outputs.publish_core == 'true' ||
+      needs.check-versions.outputs.publish_lang_rs == 'true' ||
+      needs.check-versions.outputs.publish_cli == 'true' ||
+      needs.check-versions.outputs.publish_lsp == 'true'
+    runs-on: ubuntu-latest
+    environment: release
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+      - name: Publish mds-core
+        if: needs.check-versions.outputs.publish_core == 'true' && (github.event_name == 'push' || inputs.dry_run == 'false')
+        run: cd crates && cargo publish -p mds-core
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+      - name: Publish mds-lang-rs
+        if: needs.check-versions.outputs.publish_lang_rs == 'true' && (github.event_name == 'push' || inputs.dry_run == 'false')
+        run: cd crates && cargo publish -p mds-lang-rs
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+      - name: Wait for crates.io index
+        if: needs.check-versions.outputs.publish_core == 'true' && (needs.check-versions.outputs.publish_cli == 'true' || needs.check-versions.outputs.publish_lsp == 'true')
+        run: sleep 30
+      - name: Publish mds-cli
+        if: needs.check-versions.outputs.publish_cli == 'true' && (github.event_name == 'push' || inputs.dry_run == 'false')
+        run: cd crates && cargo publish -p mds-cli
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+      - name: Publish mds-lsp
+        if: needs.check-versions.outputs.publish_lsp == 'true' && (github.event_name == 'push' || inputs.dry_run == 'false')
+        run: cd crates && cargo publish -p mds-lsp
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+      - name: Dry run - package verification
+        if: github.event_name == 'workflow_dispatch' && inputs.dry_run == 'true'
+        run: |
+          cd crates
+          cargo package --allow-dirty -p mds-core
+          cargo package --allow-dirty -p mds-lang-rs
+          echo "Note: mds-cli and mds-lsp require mds-core on crates.io for packaging"

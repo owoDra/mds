@@ -1,0 +1,110 @@
+# VS Code Extension Release
+#
+# Triggers on:
+#   - Push to latest with changes in editors/vscode/
+#   - Manual dispatch
+#
+# Publishes to VS Code Marketplace only when version differs from published.
+
+name: Release VS Code Extension
+
+on:
+  push:
+    branches: [latest]
+    paths:
+      - 'editors/vscode/**'
+      - '.github/workflows/release-vscode.yml'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run (skip actual publishing)'
+        required: true
+        default: 'true'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+
+permissions:
+  contents: read
+
+jobs:
+  check-version:
+    name: Check Published Version
+    runs-on: ubuntu-latest
+    outputs:
+      should_publish: ${{ steps.check.outputs.should_publish }}
+      is_prerelease: ${{ steps.check.outputs.is_prerelease }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Check version
+        id: check
+        run: |
+          local_ver=$(node -e "console.log(require('./editors/vscode/package.json').version)")
+          # Try to get published version from Marketplace
+          published_ver=$(npx @vscode/vsce show owo-x-project.mds --json 2>/dev/null | node -e "
+            let data=''; process.stdin.on('data',c=>data+=c); process.stdin.on('end',()=>{
+              try { console.log(JSON.parse(data).versions[0].version) } catch(e) { console.log('') }
+            })
+          " || echo "")
+          if [[ "$local_ver" != "$published_ver" ]]; then
+            echo "should_publish=true" >> "$GITHUB_OUTPUT"
+            echo "Extension: $published_ver -> $local_ver (will publish)"
+          else
+            echo "should_publish=false" >> "$GITHUB_OUTPUT"
+            echo "Extension: $local_ver (already published)"
+          fi
+          # Detect pre-release
+          if [[ "$local_ver" == *"-"* ]] || [[ "$local_ver" == "0."* ]]; then
+            echo "is_prerelease=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "is_prerelease=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  build-and-publish:
+    name: Build & Publish Extension
+    needs: check-version
+    if: needs.check-version.outputs.should_publish == 'true'
+    runs-on: ubuntu-latest
+    environment: release
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install dependencies
+        run: cd editors/vscode && npm install
+      - name: Compile
+        run: cd editors/vscode && npm run compile
+      - name: Package VSIX
+        run: |
+          cd editors/vscode
+          if [[ "${{ needs.check-version.outputs.is_prerelease }}" == "true" ]]; then
+            npx @vscode/vsce package --pre-release
+          else
+            npx @vscode/vsce package
+          fi
+      - name: Upload VSIX artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vscode-extension
+          path: editors/vscode/*.vsix
+      - name: Publish
+        if: github.event_name == 'push' || inputs.dry_run == 'false'
+        run: |
+          cd editors/vscode
+          if [[ "${{ needs.check-version.outputs.is_prerelease }}" == "true" ]]; then
+            npx @vscode/vsce publish --pre-release
+          else
+            npx @vscode/vsce publish
+          fi
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+      - name: Dry run summary
+        if: github.event_name == 'workflow_dispatch' && inputs.dry_run == 'true'
+        run: |
+          echo "Dry run complete — VSIX packaged but not published"
+          ls -la editors/vscode/*.vsix

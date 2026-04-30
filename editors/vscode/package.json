@@ -1,9 +1,9 @@
 {
-  "name": "mds-vscode",
+  "name": "mds",
   "displayName": "mds - Markdown Design System",
   "description": "Language support for mds (Markdown Design System) implementation files",
   "version": "0.1.0",
-  "publisher": "mds",
+  "publisher": "owo-x-project",
   "license": "MIT",
   "repository": {
     "type": "git",

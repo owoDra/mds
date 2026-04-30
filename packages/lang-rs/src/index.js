@@ -1,5 +1,5 @@
 /**
- * @mds/lang-rs — Rust language adapter for mds.
+ * mds-lang-rs — Rust language adapter for mds.
  *
  * Provides Rust-specific file naming conventions, quality tool
  * defaults, and test runner integration metadata.

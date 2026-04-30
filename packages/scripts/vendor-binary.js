@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * vendor-binary.js — Copy the native mds binary into the vendor/ directory
- * for packaging with @mds/cli.
+ * for packaging with mds-cli.
  *
  * Usage:
  *   node scripts/vendor-binary.js [--target <triple>] [--source <path>]

@@ -12,7 +12,7 @@ archived: 2026-04-26 に採用し、`docs/project/specs/shared/SPEC-distribution
 
 - 最低対応 version は最新寄せで固定する。
 - Rust は 1.86+、Node.js は 24+、Python は 3.13+ を最低対応候補とする。
-- npm は `@mds/cli`、`@mds/core`、`@mds/lang-ts`、`@mds/lang-py`、`@mds/lang-rs` を配布単位候補とする。
+- npm は `mds-cli`、`mds-core`、`mds-lang-ts`、`mds-lang-py`、`mds-lang-rs` を配布単位候補とする。
 - Cargo は native CLI と Rust language adapter を Rust crate として扱う。
 - uv / uvx は Python 利用者向け CLI wrapper と Python language adapter を扱う。
 - Rust core の言語横断契約を正とし、npm / Python wrapper は同じ CLI / core 契約を呼び出す。
