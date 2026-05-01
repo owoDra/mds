@@ -4,13 +4,13 @@ set -euo pipefail
 # generate-release-artifacts.sh
 #
 # Generates release quality gate artifacts for all distribution targets.
-# Run after `cargo build --release && cargo package --allow-dirty`.
+# Run after `./scripts/sync-build.sh && cd .build/rust && cargo build --release && cargo package --allow-dirty`.
 #
 # Outputs:
-#   .release/checksums/   — SHA-256 digests
-#   .release/signatures/  — GPG detached signatures (or placeholder if no key)
-#   .release/sbom/        — CycloneDX JSON SBOM
-#   .release/provenance/  — Build provenance attestation (JSONL)
+#   .build/release/checksums/   — SHA-256 digests
+#   .build/release/signatures/  — GPG detached signatures (or placeholder if no key)
+#   .build/release/sbom/        — CycloneDX JSON SBOM
+#   .build/release/provenance/  — Build provenance attestation (JSONL)
 #
 # Usage:
 #   ./.github/scripts/generate-release-artifacts.sh [--sign]
@@ -31,7 +31,8 @@ for arg in "$@"; do
   esac
 done
 
-mkdir -p "$ROOT"/.release/{checksums,signatures,sbom,provenance}
+RELEASE_DIR="$ROOT/.build/release"
+mkdir -p "$RELEASE_DIR"/{checksums,signatures,sbom,provenance}
 
 # ---------- Helper functions ----------
 
@@ -119,39 +120,27 @@ EOF
 
 echo "=== Cargo crates ==="
 
-CRATE_DIR="$ROOT/crates/target/package"
-DEFERRED_CRATES=()
-
-is_deferred_crate() {
-  local crate="$1"
-  case "$crate" in
-    mds-cli|mds-lsp) return 0 ;;
-    *) return 1 ;;
-  esac
-}
-
+"$ROOT/scripts/sync-build.sh"
+CRATE_DIR="$ROOT/.build/rust/target/package"
 for crate in mds-core mds-cli mds-lsp; do
   echo "[$crate]"
   CRATE_FILE="$CRATE_DIR/${crate}-${VERSION}.crate"
 
-  if [[ ! -f "$CRATE_FILE" ]] && is_deferred_crate "$crate"; then
-    echo "  deferred: $crate requires mds-core on crates.io before local packaging"
-    DEFERRED_CRATES+=("$crate")
-  elif [[ ! -f "$CRATE_FILE" ]]; then
+  if [[ ! -f "$CRATE_FILE" ]]; then
     # Try to package if not already present.
     echo "  packaging $crate..."
-    if ! (cd "$ROOT/crates" && cargo package --allow-dirty --no-verify -p "$crate" >/dev/null); then
-      echo "  deferred: $crate cannot be packaged locally until publish ordering completes"
-      DEFERRED_CRATES+=("$crate")
+    if ! (cd "$ROOT/.build/rust" && cargo package --allow-dirty --no-verify -p "$crate" >/dev/null); then
+      echo "  ERROR: failed to package $crate" >&2
+      exit 1
     fi
   fi
 
   if [[ -f "$CRATE_FILE" ]]; then
-    generate_checksum "$CRATE_FILE" "$ROOT/.release/checksums/${crate}-${VERSION}.sha256"
+    generate_checksum "$CRATE_FILE" "$RELEASE_DIR/checksums/${crate}-${VERSION}.sha256"
   fi
-  generate_signature "$CRATE_FILE" "$ROOT/.release/signatures/${crate}-${VERSION}.sig"
-  generate_sbom "$crate" "$VERSION" "$ROOT/.release/sbom/${crate}-${VERSION}.spdx.json" "library"
-  generate_provenance "$crate" "$VERSION" "$ROOT/.release/provenance/${crate}-${VERSION}.jsonl"
+  generate_signature "$CRATE_FILE" "$RELEASE_DIR/signatures/${crate}-${VERSION}.sig"
+  generate_sbom "$crate" "$VERSION" "$RELEASE_DIR/sbom/${crate}-${VERSION}.spdx.json" "library"
+  generate_provenance "$crate" "$VERSION" "$RELEASE_DIR/provenance/${crate}-${VERSION}.jsonl"
 done
 
 # ---------- VS Code extension ----------
@@ -160,25 +149,16 @@ echo ""
 echo "=== VS Code extension ==="
 
 echo "[mds-vscode]"
-VSCODE_DIR="$ROOT/editors/vscode"
-generate_checksum "$VSCODE_DIR" "$ROOT/.release/checksums/mds-vscode-0.1.0.sha256"
-generate_signature "$VSCODE_DIR" "$ROOT/.release/signatures/mds-vscode-0.1.0.sig"
-generate_sbom "mds-vscode" "0.1.0" "$ROOT/.release/sbom/mds-vscode-0.1.0.spdx.json" "application"
-generate_provenance "mds-vscode" "0.1.0" "$ROOT/.release/provenance/mds-vscode-0.1.0.jsonl"
+"$ROOT/scripts/package-vscode.sh" --pre-release
+VSCODE_DIR="$ROOT/.build/node/vscode"
+generate_checksum "$VSCODE_DIR" "$RELEASE_DIR/checksums/mds-vscode-0.1.0.sha256"
+generate_signature "$VSCODE_DIR" "$RELEASE_DIR/signatures/mds-vscode-0.1.0.sig"
+generate_sbom "mds-vscode" "0.1.0" "$RELEASE_DIR/sbom/mds-vscode-0.1.0.spdx.json" "application"
+generate_provenance "mds-vscode" "0.1.0" "$RELEASE_DIR/provenance/mds-vscode-0.1.0.jsonl"
 
 echo ""
 echo "=== Done ==="
-echo "Artifacts generated in: .release/{checksums,signatures,sbom,provenance}/"
-
-if [[ ${#DEFERRED_CRATES[@]} -gt 0 ]]; then
-  echo ""
-  echo "=== Deferred crates (require publish ordering) ==="
-  for crate in "${DEFERRED_CRATES[@]}"; do
-    echo "  - $crate (requires dependency to be published on crates.io first)"
-  done
-  echo ""
-  echo "These crates will be packaged during CI after their dependencies are published."
-fi
+echo "Artifacts generated in: .build/release/{checksums,signatures,sbom,provenance}/"
 
 echo ""
 echo "Next steps:"
