@@ -11,25 +11,25 @@ For usage instructions of mds-lsp, see [Editor Integration (LSP)](editor-integra
 mds-lsp is composed of the following components.
 
 ```
-crates/mds-lsp/
+src-md/mds-lsp/
 ├── src/
-│   ├── main.rs           # Entry point (stdio transport startup)
-│   ├── lib.rs            # Library root
-│   ├── server.rs         # LanguageServer trait implementation
-│   ├── state.rs          # Workspace state management
-│   ├── convert.rs        # Type conversion utilities
-│   ├── labels.rs         # Section name and table header definitions
+│   ├── main.rs.md        # Entry point (stdio transport startup)
+│   ├── lib.rs.md         # Library root
+│   ├── server.rs.md      # LanguageServer trait implementation
+│   ├── state.rs.md       # Workspace state management
+│   ├── convert.rs.md     # Type conversion utilities
+│   ├── labels.rs.md      # Section name and table header definitions
 │   └── capabilities/
-│       ├── mod.rs         # Capability module re-exports
-│       ├── diagnostics.rs # Diagnostic (error/warning) generation
-│       ├── completion.rs  # Completion candidate provision
-│       ├── hover.rs       # Hover information provision
-│       ├── navigation.rs  # Go to definition / Find references
-│       ├── symbols.rs     # Document/workspace symbols
-│       └── code_action.rs # Code actions (Quick Fix)
+│       ├── mod.rs.md         # Capability module re-exports
+│       ├── diagnostics.rs.md # Diagnostic (error/warning) generation
+│       ├── completion.rs.md  # Completion candidate provision
+│       ├── hover.rs.md       # Hover information provision
+│       ├── navigation.rs.md  # Go to definition / Find references
+│       ├── symbols.rs.md     # Document/workspace symbols
+│       └── code_action.rs.md # Code actions (Quick Fix)
 └── tests/
-    ├── capabilities.rs    # Capability unit tests
-    └── diagnostics.rs     # Diagnostic integration tests
+    ├── capabilities.rs.md # Capability unit tests
+    └── diagnostics.rs.md  # Diagnostic integration tests
 ```
 
 ### Key dependency crates
@@ -79,7 +79,8 @@ The workspace state defined in `state.rs` is the foundation for all capabilities
 ### Build
 
 ```bash
-cd crates
+./scripts/sync-build.sh
+cd .build/rust
 cargo build -p mds-lsp
 ```
 
@@ -150,7 +151,7 @@ Content-Length: {length}\r\n
 
 To debug the LSP server (Rust side):
 
-1. Set `mds.lsp.path` to the debug build path (e.g., `crates/target/debug/mds-lsp`)
+1. Set `mds.lsp.path` to the debug build path (e.g., `.build/rust/target/debug/mds-lsp`)
 2. Restart the VSCode extension
 3. Debug the Rust side using `tracing` logs, or separately using `rust-lldb`/`rust-gdb`
 
@@ -158,7 +159,7 @@ To debug the LSP server (Rust side):
 
 ### 1. Create the capability module
 
-Create a new file in `crates/mds-lsp/src/capabilities/`.
+Create a new implementation md in `src-md/mds-lsp/src/capabilities/`.
 
 ```rust
 // capabilities/my_feature.rs

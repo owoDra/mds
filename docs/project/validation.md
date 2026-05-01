@@ -31,6 +31,13 @@
 - 期待する結果: `.md` 内のコードブロックから生成される Source、Types、Test が命名規約と出力先規則に従う。
 - 問題があった際にどうするか: 生成物を手修正せず、正本または generator を修正する。
 
+## Self-hosted Build 同期
+
+- いつ行うか: `src-md/`、`scripts/sync-build.sh`、Rust package metadata、`.build/` 配置を変更するとき。
+- 何で検証するか: `scripts/sync-build.sh` を実行し、`.build/rust/` で `cargo fmt --check` と `cargo test` を実行する。
+- 期待する結果: `src-md/` の implementation md と package metadata から `.build/rust/` の Cargo workspace が再生成され、生成物を手編集せずに build / test できる。
+- 問題があった際にどうするか: `.build/` を直接修正せず、`src-md/` または同期処理を修正する。
+
 ## Language Adapter 動作
 
 - いつ行うか: language adapter、lint、lint --fix、test runner 接続、import / use / require 生成を変更するとき。
@@ -98,7 +105,7 @@
 
 - いつ行うか: Cargo、native binary、VS Code extension の packaging、release metadata、publish 前検証を変更するとき。
 - 何で検証するか: 現行配布経路の artifact fixture、checksum、署名、SBOM、provenance / attestations、install smoke test を使う。
-- 期待する結果: 全 artifact に supply-chain 成果物が紐づき、install 後に `mds --version` 相当と代表 command が動き、欠落や互換性不一致は publish 前 gate を失敗させる。
+- 期待する結果: 全 artifact に `.build/release/` 配下の supply-chain 成果物が紐づき、install 後に `mds --version` 相当と代表 command が動き、欠落や互換性不一致は publish 前 gate を失敗させる。
 - 問題があった際にどうするか: publish を止め、artifact、wrapper、release metadata、署名または provenance の不足を修正する。
 
 ## ドキュメント同期

@@ -32,8 +32,8 @@
 
 - `active/`: 採否判断前の proposal の配置先
 - `active/PROP-mds-lsp.md`: mds-lsp (Language Server Protocol) に関する proposal
-- `active/proposal-self-hosted-source-layout.md`: mds 自身の mds 化、`.build/` 生成物集約、`crates/` 廃止に関する proposal
 - `archive/`: 参照優先度を落とした proposal の配置先
+- `archive/proposal-self-hosted-source-layout.md`: mds 自身の mds 化、`.build/` 生成物集約、`crates/` 廃止に関する採用済み proposal。ADR-007 に昇格済み
 - `archive/proposal-markdown-grammar-open-details.md`: Markdown grammar の未確定細部に関する採否判断済み proposal
 - `archive/proposal-post-mvp-generation-followups.md`: Post-MVP の残要件達成計画に関する採否判断済み proposal
 - `archive/proposal-md-state-quality-operations.md`: Markdown 状態の lint / lint --fix / test に関する採否判断済み proposal

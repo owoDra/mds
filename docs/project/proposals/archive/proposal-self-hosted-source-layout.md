@@ -1,5 +1,7 @@
 # mds 自身の mds 化と生成物配置の再編案
 
+Status: 採用済み。`docs/project/adr/active/ADR-007-self-hosted-src-md-build.md` に昇格。
+
 ## 背景
 
 mds は Markdown を設計書兼ソースの正本として扱い、生成コードを派生物とするツールチェーンである。一方で、現在の mds 自身の実装は `crates/` 配下の Rust workspace を中心に管理されており、mds の規定する `index.md`、`package.md`、implementation md を mds 自身の開発入口として十分に使えていない。

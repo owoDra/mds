@@ -14,6 +14,7 @@
 
 - `.md` が設計書兼ソースの正本であり、implementation md には実装レベルのコードを含め、生成コードはその派生物とする。
 - mds は設計説明から AI にコードを書かせる仕組みではなく、Markdown 内のコードブロックとメタ情報を generator / language adapter が処理する仕組みとする。
+- mds 自身の編集入口は `src-md/` とし、`.build/` は生成物置き場として Git 管理しない。
 - 1 つの implementation md は 1 機能だけを扱う。
 - import / use / require はコードブロック外の `Uses` に記録し、language adapter が生成する。
 - 設定ファイルは `mds.config.toml` 固定とし、セクションの意味や必須構造は設定で変更しない。
@@ -34,8 +35,10 @@
 
 ## Workspace 構成
 
-- `crates/Cargo.toml` は Rust workspace manifest とし、現在は `crates/mds-core`、`crates/mds-cli`、`crates/mds-lsp` を束ねる。
-- TypeScript / Python / Rust の language adapter 規則は現時点では Rust core 側の生成処理と共有仕様で管理し、独立した `packages/`、`python/`、`crates/mds-lang-rs` 配布単位は置かない。
+- `src-md/` は mds 自身の source root とし、`src-md/index.md` が全体設計、各 package の `index.md` が package / directory 単位の設計を担う。
+- `src-md/mds-core`、`src-md/mds-cli`、`src-md/mds-lsp` は Rust 実装の Markdown 正本であり、`scripts/sync-build.sh` により `.build/rust/` の Cargo workspace へ同期する。
+- `.build/rust/Cargo.toml` は生成された Rust workspace manifest とし、`.build/rust/mds-core`、`.build/rust/mds-cli`、`.build/rust/mds-lsp` を束ねる。
+- TypeScript / Python / Rust の language adapter 規則は現時点では Rust core 側の生成処理と共有仕様で管理し、独立した `packages/`、`python/`、`src-md/mds-lang-rs` 配布単位は置かない。
 - `editors/vscode` は VS Code 拡張とし、syntax highlighting、LSP 連携、snippets を提供する。
 - `.agents/` は AI 専用の制約、作業手順、skill、task 文脈キャッシュを置き、`docs/project/` は人間向け正本を置く。
 
@@ -49,10 +52,12 @@
 - package manager hook や registry publish のような外部影響が大きい処理は、既定で暗黙実行せず明示有効化を前提にする。
 - 開発環境セットアップで project dependencies、toolchains、global AI CLI を導入する場合は interactive default とし、非対話実行では明示 option がある場合だけ変更する。
 - 公開前品質では全配布経路について checksum、署名、SBOM、provenance、install smoke test を release gate として扱う。
+- ビルド、テスト、release の派生物は `.build/` 配下に集約し、正本と生成物の境界を保つ。
 
 ## 関連資料
 
 - `index.md`
 - `validation.md`
 - `tech-stack.md`
+- `adr/active/ADR-007-self-hosted-src-md-build.md`
 - `adr/active/ADR-006-ai-agent-init-and-dev-setup.md`

@@ -13,7 +13,8 @@ cd mds
 git config core.hooksPath .githooks
 
 # 3. Rust のビルドと確認
-cd crates
+./scripts/sync-build.sh
+cd .build/rust
 cargo build
 cargo test
 
@@ -55,7 +56,8 @@ git checkout -b feature/your-feature-name
 ### 4. テストを実行する
 
 ```bash
-cd crates
+./scripts/sync-build.sh
+cd .build/rust
 cargo test
 cargo clippy
 cargo fmt --check
@@ -64,7 +66,8 @@ cargo fmt --check
 一括実行する場合は VSCode タスクも利用できます:
 
 ```bash
-cd crates
+./scripts/sync-build.sh
+cd .build/rust
 cargo fmt --check && cargo clippy -- -D warnings && cargo test
 ```
 
@@ -90,11 +93,13 @@ cargo fmt --check && cargo clippy -- -D warnings && cargo test
 ## プロジェクト構造
 
 ```
-crates/
-  mds-core/     # コア処理ライブラリ（解析、検証、生成、init）
-  mds-cli/      # CLI エントリポイントと引数解析
-  mds-lang-rs/  # Rust 言語アダプター
-  mds-lsp/      # Language Server Protocol 実装
+src-md/
+  index.md      # mds 自身の source root 設計
+  mds-core/     # コア処理ライブラリの Markdown 正本
+  mds-cli/      # CLI エントリポイントの Markdown 正本
+  mds-lsp/      # Language Server Protocol 実装の Markdown 正本
+.build/
+  rust/         # 生成された Cargo workspace（Git 管理しない）
 editors/vscode/  # VS Code 拡張機能
 docs/
   project/       # 設計正本（要件、仕様、ADR、アーキテクチャ）

@@ -1,8 +1,8 @@
-# crates/mds-cli Specs
+# mds-cli Specs
 
 ## 役割
 
-`crates/mds-cli` 固有仕様の入口です。
+移行前の `mds-cli` 固有仕様の入口です。新しい設計は `src-md/mds-cli/index.md` または該当 implementation md に置きます。
 
 ## 参照
 

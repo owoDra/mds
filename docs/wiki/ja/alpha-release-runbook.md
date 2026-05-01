@@ -58,7 +58,7 @@ cargo publish -p mds-lsp
 cd editors/vscode
 npm install
 npm run compile
-npx @vscode/vsce package --pre-release
+npx @vscode/vsce package --pre-release --out ../../.build/node/vscode
 npx @vscode/vsce publish --pre-release
 ```
 
@@ -66,12 +66,13 @@ npx @vscode/vsce publish --pre-release
 
 ```bash
 # Build platform binaries
-cargo build --release
+./scripts/sync-build.sh
+cargo --manifest-path .build/rust/Cargo.toml build --release
 
 # Create GitHub Release with binaries
 gh release create v0.1.0-alpha.1 \
-  target/release/mds \
-  target/release/mds-lsp \
+  .build/rust/target/release/mds \
+  .build/rust/target/release/mds-lsp \
   --title "v0.1.0-alpha.1" \
   --prerelease
 ```

@@ -83,7 +83,7 @@ mds adopts a data-driven template system. To add support for a new AI CLI, follo
 ### 1. Create template directory
 
 ```
-crates/mds-core/src/init/templates/<target-key>/
+src-md/mds-core/src/init/templates/<target-key>/
 ├── manifest.toml       ← File mapping definition
 ├── instructions.md     ← Template for instructions category
 ├── skill.md            ← Template for skills category
@@ -119,7 +119,7 @@ Templates should include:
 
 ### 4. Add a variant to the AiTarget enum
 
-In `crates/mds-core/src/model/mod.rs`, add to the `AiTarget` enum:
+In `src-md/mds-core/src/model/mod.rs.md`, add to the `AiTarget` enum:
 
 ```rust
 pub enum AiTarget {
@@ -133,7 +133,7 @@ Make `key()` return `"new-cli"` and define accepted aliases in `parse()`.
 ### 5. Build and verify
 
 ```bash
-cd crates && cargo build && cargo test
+./scripts/sync-build.sh && cd .build/rust && cargo build && cargo test
 ```
 
 build.rs automatically detects manifest.toml and registers it in the template registry. No changes to the init logic are needed.

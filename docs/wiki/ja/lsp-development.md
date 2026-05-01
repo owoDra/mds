@@ -9,25 +9,25 @@ mds-lsp の利用方法については [エディタ統合 (LSP)](editor-integra
 mds-lsp は以下のコンポーネントで構成されています。
 
 ```
-crates/mds-lsp/
+src-md/mds-lsp/
 ├── src/
-│   ├── main.rs           # エントリポイント（stdio トランスポート起動）
-│   ├── lib.rs            # ライブラリルート
-│   ├── server.rs         # LanguageServer トレイト実装
-│   ├── state.rs          # ワークスペース状態管理
-│   ├── convert.rs        # 型変換ユーティリティ
-│   ├── labels.rs         # セクション名・テーブルヘッダー定義
+│   ├── main.rs.md        # エントリポイント（stdio トランスポート起動）
+│   ├── lib.rs.md         # ライブラリルート
+│   ├── server.rs.md      # LanguageServer トレイト実装
+│   ├── state.rs.md       # ワークスペース状態管理
+│   ├── convert.rs.md     # 型変換ユーティリティ
+│   ├── labels.rs.md      # セクション名・テーブルヘッダー定義
 │   └── capabilities/
-│       ├── mod.rs         # capability モジュールの再エクスポート
-│       ├── diagnostics.rs # 診断（エラー・警告）生成
-│       ├── completion.rs  # 補完候補の提供
-│       ├── hover.rs       # ホバー情報の提供
-│       ├── navigation.rs  # 定義ジャンプ・参照検索
-│       ├── symbols.rs     # ドキュメント/ワークスペースシンボル
-│       └── code_action.rs # コードアクション（Quick Fix）
+│       ├── mod.rs.md         # capability モジュールの再エクスポート
+│       ├── diagnostics.rs.md # 診断（エラー・警告）生成
+│       ├── completion.rs.md  # 補完候補の提供
+│       ├── hover.rs.md       # ホバー情報の提供
+│       ├── navigation.rs.md  # 定義ジャンプ・参照検索
+│       ├── symbols.rs.md     # ドキュメント/ワークスペースシンボル
+│       └── code_action.rs.md # コードアクション（Quick Fix）
 └── tests/
-    ├── capabilities.rs    # capability の単体テスト
-    └── diagnostics.rs     # 診断の統合テスト
+    ├── capabilities.rs.md # capability の単体テスト
+    └── diagnostics.rs.md  # 診断の統合テスト
 ```
 
 ### 主要な依存クレート
@@ -77,7 +77,8 @@ crates/mds-lsp/
 ### ビルド
 
 ```bash
-cd crates
+./scripts/sync-build.sh
+cd .build/rust
 cargo build -p mds-lsp
 ```
 
@@ -148,7 +149,7 @@ Content-Length: {length}\r\n
 
 LSP サーバー（Rust 側）をデバッグする場合:
 
-1. `mds.lsp.path` に debug ビルドのパスを設定（例: `crates/target/debug/mds-lsp`）
+1. `mds.lsp.path` に debug ビルドのパスを設定（例: `.build/rust/target/debug/mds-lsp`）
 2. VSCode 拡張を再起動
 3. Rust 側のデバッグは `tracing` ログで行うか、別途 `rust-lldb`/`rust-gdb` を使用
 
@@ -156,7 +157,7 @@ LSP サーバー（Rust 側）をデバッグする場合:
 
 ### 1. capability モジュールの作成
 
-`crates/mds-lsp/src/capabilities/` に新しいファイルを作成します。
+`src-md/mds-lsp/src/capabilities/` に新しい implementation md を作成します。
 
 ```rust
 // capabilities/my_feature.rs
