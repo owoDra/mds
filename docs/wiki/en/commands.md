@@ -179,7 +179,9 @@ mds init
 mds init --package path/to/package
 ```
 
-The wizard guides you through selecting initialization mode, language tools, AI targets, and setup options, then executes after plan confirmation.
+The wizard starts in English. After choosing the label language, subsequent titles, descriptions, options, and command-input help are displayed in the selected language.
+
+The wizard guides you through label language, toolchain commands, and AI Kit generation items. For toolchains, it detects `package.json`, `pyproject.toml`, and `Cargo.toml`, then asks for type check, lint check, and test check commands for each detected metadata file. For AI Kit generation, it asks whether AI Kit files are needed, which AI CLIs to initialize, and which items to generate for each CLI.
 
 The traditional flag-based approach remains available.
 

@@ -33,4 +33,3 @@ Files: `src-md/name.{lang}.md` → generates `src/name.{lang}`
 - One implementation md per feature
 - Code fence language must match file extension
 - Imports go directly in code blocks
-- Read `docs/project/index.md` for project structure

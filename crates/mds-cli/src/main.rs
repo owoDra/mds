@@ -37,7 +37,7 @@ fn main() {
             None
         };
 
-        match run_interactive_init() {
+        match run_interactive_init(&cwd, package.as_deref()) {
             Ok(options) => {
                 let request = CliRequest {
                     cwd,

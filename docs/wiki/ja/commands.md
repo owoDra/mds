@@ -177,7 +177,9 @@ mds init
 mds init --package path/to/package
 ```
 
-ウィザードでは、初期化モード、言語ツール、AI ターゲット、セットアップオプションを順に選択し、プラン確認後に実行します。
+ウィザードは英語表示で開始します。Label 言語を選択した後は、以降のタイトル、説明文、選択項目、コマンド入力の補足が選択した言語で表示されます。
+
+ウィザードでは、Label 言語、ツールチェーン、AI Kit 生成項目を順に選択します。ツールチェーンでは `package.json`、`pyproject.toml`、`Cargo.toml` を自動検知し、検知された metadata ごとに type check、lint check、test check command の候補を表示して入力を受け付けます。AI Kit では生成が必要かを選び、必要な場合は AI CLI と各 CLI の生成項目を選択します。
 
 従来のフラグ指定方式も引き続き利用できます。
 

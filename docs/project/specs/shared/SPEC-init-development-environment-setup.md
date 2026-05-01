@@ -22,7 +22,7 @@ related:
 - bootstrap entrypoint from `npx`
 - bootstrap entrypoint from Cargo
 - bootstrap entrypoint from `uvx`
-- interactive answers
+- interactive answers for label language, detected toolchain commands, and AI kit generation items
 - explicit noninteractive options
 - `--ts-tools <list|default|none>`、`--py-tools <list|default|none>`、`--rs-tools <list|default|none>`
 
@@ -43,9 +43,11 @@ related:
 - bootstrap 導線は `npx`、Cargo、`uvx` の 3 経路を正式対応にする。
 - 既定動作は interactive default とし、外部コマンド実行前に確認する。
 - 自動導入対象は project dependencies、toolchains、global AI CLI とする。
-- language quality tool は言語別に選択可能とし、TypeScript は `eslint`、`prettier`、`biome`、`vitest`、`jest`、Python は `ruff`、`black`、`pytest`、`unittest`、Rust は `rustfmt`、`clippy`、`cargo-test`、`nextest` を選択候補にする。
+- interactive `mds init` は Label 言語、toolchain command、AI kit 生成項目の順に確認する。
+- interactive toolchain command 入力は `package.json`、`pyproject.toml`、`Cargo.toml` を自動検知し、検知された package manager metadata ごとに type check、lint check、test check command の候補を提示して入力を受ける。
+- 非対話 init の language quality tool は言語別に選択可能とし、TypeScript は `eslint`、`prettier`、`biome`、`vitest`、`jest`、Python は `ruff`、`black`、`pytest`、`unittest`、Rust は `rustfmt`、`clippy`、`cargo-test`、`nextest` を選択候補にする。
 - `default` は代表 toolchain を選択し、`none` はその言語の lint / fix / test runner と required tool を生成 config 上で無効化する。
-- `mds init` が生成する `mds.config.toml` は `[quality.ts]`、`[quality.py]`、`[quality.rs]` に選択結果を明示し、未選択 tool を暗黙必須にしない。
+- `mds init` が生成する `mds.config.toml` は `[quality.ts]`、`[quality.py]`、`[quality.rs]` に選択結果または入力 command を明示し、未選択 tool を暗黙必須にしない。
 - 非対話実行では `--yes`、`--ai`、`--install-toolchains`、`--install-ai-cli` などの明示 option がない限り変更しない。
 - global toolchain / AI CLI の導入に失敗した場合、成功済み項目は保持し、失敗項目を診断する。
 - 選択済み toolchain / AI CLI が不足する場合は、次に実行すべき install hint を診断または setup plan に含める。
@@ -77,7 +79,7 @@ related:
 - `npx`、Cargo、`uvx` の bootstrap smoke test を確認する。
 - 対話実行、非対話実行、明示 option、部分失敗、再実行の fixture を確認する。
 - project dependencies、toolchains、global AI CLI の導入 plan と診断を確認する。
-- TypeScript / Python / Rust の quality tool 選択、代替 runner、`none` 指定を fixture で確認する。
+- TypeScript / Python / Rust の quality tool 選択、interactive command 入力、代替 runner、`none` 指定を fixture で確認する。
 - setup 後の `mds doctor` と `mds check` への導線を確認する。
 
 ## 関連資料

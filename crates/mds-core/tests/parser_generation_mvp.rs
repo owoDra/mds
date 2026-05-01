@@ -4,8 +4,9 @@ use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 use mds_core::{
-    execute, AgentKitCategory, AiTarget, BuildMode, CliRequest, Command, InitOptions, PythonTool,
-    ReleaseQualityOptions, RustTool, TypeScriptTool,
+    execute, AgentKitCategory, AiTarget, BuildMode, CliRequest, Command, InitOptions,
+    InitQualityCommands, InitTargetCategories, Lang, PythonTool, ReleaseQualityOptions, RustTool,
+    TypeScriptTool,
 };
 
 static TEMP_COUNTER: AtomicUsize = AtomicUsize::new(0);
@@ -275,6 +276,39 @@ fn lint_and_test_use_configured_toolchain_commands() {
     });
     assert_eq!(test.exit_code, 0, "{}", test.stderr);
     assert!(test.stdout.contains("test ok"));
+}
+
+#[test]
+fn lint_reports_markdown_path_and_preserved_line_numbers() {
+    let temp = TestDir::new();
+    write_fixture(temp.path());
+    let tool = write_tool(
+        temp.path(),
+        "line-reporting-linter",
+        "#!/bin/sh\nprintf '%s:9:1: lint failed\n' \"$1\" >&2\nexit 1\n",
+    );
+    fs::write(
+        temp.path().join("pkg/mds.config.toml"),
+        format!(
+            "[package]\nenabled = true\nallow_raw_source = false\n\n[quality.ts]\nlinter = \"{}\"\nrequired = []\noptional = []\n\n[quality.py]\nlinter = false\nrequired = []\noptional = []\n\n[quality.rs]\nlinter = false\nrequired = []\noptional = []\n",
+            tool.display()
+        ),
+    )
+    .unwrap();
+
+    let lint = execute(CliRequest {
+        cwd: temp.path().to_path_buf(),
+        package: None,
+        verbose: false,
+        command: Command::Lint {
+            fix: false,
+            check: false,
+        },
+    });
+    let md_path = temp.path().join("pkg/src-md/foo/bar.ts.md");
+    assert_eq!(lint.exit_code, 1);
+    assert!(lint.stderr.contains(&format!("{}:9:1", md_path.display())));
+    assert!(!lint.stderr.contains(".mds/tmp/source.ts"));
 }
 
 #[test]
@@ -688,6 +722,68 @@ fn init_writes_selected_quality_tool_config() {
     assert!(config.contains("fixer = false"));
     assert!(config.contains("test_runner = \"cargo nextest run\""));
     assert!(config.contains("optional = [\"clippy-driver\", \"cargo-nextest\"]"));
+}
+
+#[test]
+fn init_writes_custom_quality_commands() {
+    let temp = TestDir::new();
+    let result = execute(CliRequest {
+        cwd: temp.path().to_path_buf(),
+        package: None,
+        verbose: false,
+        command: Command::Init {
+            options: InitOptions {
+                yes: true,
+                targets: Vec::new(),
+                categories: Vec::new(),
+                quality_commands: vec![InitQualityCommands {
+                    lang: Lang::TypeScript,
+                    type_check: Some("npm run typecheck".to_string()),
+                    lint: Some("npm run lint".to_string()),
+                    test: Some("npm test".to_string()),
+                }],
+                ..InitOptions::default()
+            },
+        },
+    });
+    assert_eq!(result.exit_code, 0, "{}", result.stderr);
+    let config = fs::read_to_string(temp.path().join("mds.config.toml")).unwrap();
+    assert!(config.contains("type_checker = \"npm run typecheck\""));
+    assert!(config.contains("linter = \"npm run lint\""));
+    assert!(config.contains("test_runner = \"npm test\""));
+}
+
+#[test]
+fn init_generates_ai_categories_per_target() {
+    let temp = TestDir::new();
+    let result = execute(CliRequest {
+        cwd: temp.path().to_path_buf(),
+        package: None,
+        verbose: false,
+        command: Command::Init {
+            options: InitOptions {
+                yes: true,
+                targets: vec![AiTarget::ClaudeCode, AiTarget::Opencode],
+                categories: Vec::new(),
+                target_categories: vec![
+                    InitTargetCategories {
+                        target: AiTarget::ClaudeCode,
+                        categories: vec![AgentKitCategory::Instructions],
+                    },
+                    InitTargetCategories {
+                        target: AiTarget::Opencode,
+                        categories: vec![AgentKitCategory::Skills],
+                    },
+                ],
+                ..InitOptions::default()
+            },
+        },
+    });
+    assert_eq!(result.exit_code, 0, "{}", result.stderr);
+    assert!(temp.path().join(".claude/rules/mds.md").exists());
+    assert!(!temp.path().join(".claude/skills/mds/SKILL.md").exists());
+    assert!(temp.path().join(".opencode/skills/mds/SKILL.md").exists());
+    assert!(!temp.path().join(".opencode/agents/mds-check.md").exists());
 }
 
 #[test]

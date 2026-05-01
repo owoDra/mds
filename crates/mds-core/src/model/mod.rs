@@ -35,6 +35,8 @@ pub struct InitOptions {
     pub install_toolchains: bool,
     pub install_ai_cli: bool,
     pub label_preset: LabelPreset,
+    pub quality_commands: Vec<InitQualityCommands>,
+    pub target_categories: Vec<InitTargetCategories>,
 }
 
 impl Default for InitOptions {
@@ -52,8 +54,24 @@ impl Default for InitOptions {
             install_toolchains: false,
             install_ai_cli: false,
             label_preset: LabelPreset::English,
+            quality_commands: Vec::new(),
+            target_categories: Vec::new(),
         }
     }
+}
+
+#[derive(Debug, Clone, Eq, PartialEq)]
+pub struct InitQualityCommands {
+    pub lang: Lang,
+    pub type_check: Option<String>,
+    pub lint: Option<String>,
+    pub test: Option<String>,
+}
+
+#[derive(Debug, Clone, Eq, PartialEq)]
+pub struct InitTargetCategories {
+    pub target: AiTarget,
+    pub categories: Vec<AgentKitCategory>,
 }
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
@@ -198,7 +216,7 @@ impl RustTool {
     }
 }
 
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[derive(Debug, Clone, Copy, Eq, Hash, PartialEq)]
 pub enum AiTarget {
     ClaudeCode,
     CodexCli,
@@ -423,6 +441,7 @@ impl Default for Config {
 
 #[derive(Debug, Clone)]
 pub struct QualityConfig {
+    pub type_check: Option<String>,
     pub lint: Option<String>,
     pub fix: Option<String>,
     pub test: Option<String>,
@@ -433,6 +452,7 @@ pub struct QualityConfig {
 impl QualityConfig {
     fn for_lang(_lang: &Lang) -> Self {
         Self {
+            type_check: None,
             lint: None,
             fix: None,
             test: None,

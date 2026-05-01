@@ -34,13 +34,13 @@ related:
 
 ## 挙動
 
-- `mds init` は初期化フロー内で AI 初期化を選択できる。
+- `mds init` は初期化フロー内で AI kit が必要かを確認し、必要な場合だけ AI 初期化を選択できる。
 - `mds init --ai` は AI 初期化だけを開始する。
 - 初期対応対象は Claude Code、Codex CLI、Opencode、GitHub Copilot CLI とする。
 - 標準 template plugin は mds 本体に同梱し、mds 本体 version と同期する。
 - plugin は template、置換変数、対応 CLI metadata だけを持ち、任意コマンドを実行しない。
 - agent kit は対象 CLI が対応する範囲で instructions、skills、commands を生成できる。
-- ユーザーは instructions、skills、commands のカテゴリ単位で生成項目を選択できる。
+- ユーザーは AI CLI ごとに instructions、skills、commands のカテゴリ単位で生成項目を選択できる。
 - 各 AI CLI のメインファイル (CLAUDE.md, AGENTS.md, copilot-instructions.md) は生成しない。
 - 各 AI CLI のネイティブ参照パスにファイルを生成する (例: .claude/rules/, .github/instructions/)。
 - 生成後、メインファイルへの統合方法を stdout にガイド表示する。

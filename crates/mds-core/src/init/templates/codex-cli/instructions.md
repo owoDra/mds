@@ -6,12 +6,6 @@ mds-managed: true
 
 Markdown is the source of truth. Generated code must not be edited directly.
 
-## Reading Order
-
-1. Read `docs/project/index.md` for project structure
-2. Read requirements and specs before modifying generated behavior
-3. Read `docs/project/architecture.md` for invariants
-
 ## Dev Environment
 
 ```sh

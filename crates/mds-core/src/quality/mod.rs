@@ -108,7 +108,8 @@ fn run_doc_quality(
         fs::create_dir_all(parent)
             .map_err(|error| format!("failed to create {}: {error}", parent.display()))?;
     }
-    fs::write(&path, &doc.code)
+    let source = padded_code_from_markdown(doc)?;
+    fs::write(&path, source)
         .map_err(|error| format!("failed to write {}: {error}", path.display()))?;
     let _ = run_toolchain_command(
         command,
@@ -192,13 +193,16 @@ struct CodeBlock<'a> {
     start: usize,
     end: usize,
     content: &'a str,
+    content_start_line: usize,
 }
 
 fn code_block_ranges(text: &str) -> Vec<CodeBlock<'_>> {
     let mut ranges = Vec::new();
     let mut in_block = false;
     let mut content_start = 0;
+    let mut content_start_line = 1;
     let mut cursor = 0;
+    let mut line_number = 1;
     for line in text.split_inclusive('\n') {
         let line_start = cursor;
         cursor += line.len();
@@ -208,15 +212,37 @@ fn code_block_ranges(text: &str) -> Vec<CodeBlock<'_>> {
                     start: content_start,
                     end: line_start,
                     content: &text[content_start..line_start],
+                    content_start_line,
                 });
                 in_block = false;
             } else {
                 in_block = true;
                 content_start = cursor;
+                content_start_line = line_number + 1;
             }
         }
+        line_number += 1;
     }
     ranges
+}
+
+fn padded_code_from_markdown(doc: &ImplDoc) -> Result<String, String> {
+    let text = fs::read_to_string(&doc.path)
+        .map_err(|error| format!("failed to read {}: {error}", doc.path.display()))?;
+    let mut output = String::new();
+    let mut output_line = 1;
+    for block in code_block_ranges(&text) {
+        while output_line < block.content_start_line {
+            output.push('\n');
+            output_line += 1;
+        }
+        output.push_str(block.content);
+        output_line += block.content.bytes().filter(|byte| *byte == b'\n').count();
+    }
+    if output.is_empty() {
+        output.push_str(&doc.code);
+    }
+    Ok(output)
 }
 
 fn apply_replacements(old: &str, replacements: &[(usize, usize, String)]) -> String {

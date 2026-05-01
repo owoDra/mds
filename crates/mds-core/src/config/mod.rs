@@ -118,6 +118,7 @@ pub fn merge_config_file(config: &mut Config, path: &Path, state: &mut RunState)
                 .quality
                 .entry(lang)
                 .or_insert_with(|| crate::model::QualityConfig {
+                    type_check: None,
                     lint: None,
                     fix: None,
                     test: None,
@@ -126,6 +127,9 @@ pub fn merge_config_file(config: &mut Config, path: &Path, state: &mut RunState)
                 });
             for (key, value) in table {
                 match key.as_str() {
+                    "type_check" | "type_checker" => {
+                        entry.type_check = optional_command_value(value, path, key, state)
+                    }
                     "lint" | "linter" => {
                         entry.lint = optional_command_value(value, path, key, state)
                     }
