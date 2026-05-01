@@ -1,0 +1,17 @@
+[package]
+enabled = true
+allow_raw_source = false
+
+[roots]
+markdown = "src-md"
+source = ".build/rust"
+types = ".build/rust"
+test = ".build/rust"
+excludes = ["src-md/vscode/**", "src-md/mds-core/src/init/templates/**"]
+
+[quality.rs]
+linter = "cargo clippy -- -D warnings"
+fixer = "cargo fmt"
+test_runner = "cargo test"
+required = ["rustc", "cargo", "rustfmt"]
+optional = ["clippy-driver"]

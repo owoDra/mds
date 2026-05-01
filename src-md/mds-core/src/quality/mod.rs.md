@@ -1,0 +1,273 @@
+# src/quality/mod.rs
+
+## Purpose
+
+Migrated implementation source for `src/quality/mod.rs`.
+
+## Contract
+
+- Preserve the behavior of the pre-migration Rust source.
+- This file is synchronized into `.build/rust/mds-core/src/quality/mod.rs`.
+
+## Source
+
+````rs
+use std::fs;
+use std::path::PathBuf;
+
+use crate::adapter::run_toolchain_command;
+use crate::diagnostics::{Diagnostic, RunState};
+use crate::diff::unified_diff;
+use crate::fs_utils::is_excluded;
+use crate::model::{ImplDoc, Lang, Package};
+
+#[derive(Debug, Clone, Copy)]
+pub(crate) enum QualityOperation {
+    Lint,
+    Fix { check: bool },
+    Test,
+}
+
+pub(crate) fn run_quality(
+    package: &Package,
+    docs: &[ImplDoc],
+    operation: QualityOperation,
+    state: &mut RunState,
+) -> Result<(), String> {
+    match operation {
+        QualityOperation::Lint | QualityOperation::Test => {
+            let mut any_configured = false;
+            for doc in docs {
+                if has_quality_config(package, doc, operation) {
+                    any_configured = true;
+                }
+                run_doc_quality(package, doc, operation, state)?;
+            }
+            if !any_configured && !docs.is_empty() {
+                let name = match operation {
+                    QualityOperation::Lint => "lint",
+                    QualityOperation::Test => "test",
+                    QualityOperation::Fix { .. } => unreachable!(),
+                };
+                state.stdout.push_str(&format!(
+                    "warning: no {name} tool configured in mds.config.toml [quality.*]; skipping\n"
+                ));
+            }
+            if !state.has_errors() && !state.environment_missing {
+                let name = match operation {
+                    QualityOperation::Lint => "lint",
+                    QualityOperation::Test => "test",
+                    QualityOperation::Fix { .. } => unreachable!(),
+                };
+                state.stdout.push_str(&format!("{name} ok\n"));
+            }
+        }
+        QualityOperation::Fix { check } => {
+            let mut any_configured = false;
+            for doc in docs {
+                if package
+                    .config
+                    .quality
+                    .get(&doc.lang)
+                    .and_then(|c| c.fix.as_ref())
+                    .is_some()
+                {
+                    any_configured = true;
+                }
+                fix_doc(package, doc, check, state)?;
+            }
+            if !any_configured && !docs.is_empty() {
+                state.stdout.push_str(
+                    "warning: no fix tool configured in mds.config.toml [quality.*]; skipping\n",
+                );
+            }
+            if !state.has_errors() && !state.environment_missing {
+                state.stdout.push_str("lint --fix ok\n");
+            }
+        }
+    }
+    Ok(())
+}
+
+fn has_quality_config(package: &Package, doc: &ImplDoc, operation: QualityOperation) -> bool {
+    let Some(config) = package.config.quality.get(&doc.lang) else {
+        return false;
+    };
+    match operation {
+        QualityOperation::Lint => config.lint.is_some(),
+        QualityOperation::Test => config.test.is_some(),
+        QualityOperation::Fix { .. } => config.fix.is_some(),
+    }
+}
+
+fn run_doc_quality(
+    package: &Package,
+    doc: &ImplDoc,
+    operation: QualityOperation,
+    state: &mut RunState,
+) -> Result<(), String> {
+    let Some(config) = package.config.quality.get(&doc.lang) else {
+        return Ok(());
+    };
+    let command = match operation {
+        QualityOperation::Lint => config.lint.as_deref(),
+        QualityOperation::Test => config.test.as_deref(),
+        QualityOperation::Fix { .. } => None,
+    };
+    let Some(command) = command else {
+        return Ok(());
+    };
+    let path = temp_code_path(package, &doc.lang);
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent)
+            .map_err(|error| format!("failed to create {}: {error}", parent.display()))?;
+    }
+    let source = padded_code_from_markdown(doc)?;
+    fs::write(&path, source)
+        .map_err(|error| format!("failed to write {}: {error}", path.display()))?;
+    let _ = run_toolchain_command(
+        command,
+        Some(&path),
+        &package.root,
+        config,
+        &doc.path,
+        state,
+    )?;
+    Ok(())
+}
+
+fn fix_doc(
+    package: &Package,
+    doc: &ImplDoc,
+    check: bool,
+    state: &mut RunState,
+) -> Result<(), String> {
+    let Some(config) = package.config.quality.get(&doc.lang) else {
+        return Ok(());
+    };
+    let Some(command) = config.fix.as_deref() else {
+        return Ok(());
+    };
+    let old = fs::read_to_string(&doc.path)
+        .map_err(|error| format!("failed to read {}: {error}", doc.path.display()))?;
+    let mut replacements = Vec::new();
+    for block in code_block_ranges(&old) {
+        let path = temp_code_path(package, &doc.lang);
+        if let Some(parent) = path.parent() {
+            fs::create_dir_all(parent)
+                .map_err(|error| format!("failed to create {}: {error}", parent.display()))?;
+        }
+        fs::write(&path, block.content)
+            .map_err(|error| format!("failed to write {}: {error}", path.display()))?;
+        if run_toolchain_command(
+            command,
+            Some(&path),
+            &package.root,
+            config,
+            &doc.path,
+            state,
+        )?
+        .is_ok()
+        {
+            let fixed = fs::read_to_string(&path)
+                .map_err(|error| format!("failed to read {}: {error}", path.display()))?;
+            replacements.push((block.start, block.end, fixed));
+        }
+    }
+    let new = apply_replacements(&old, &replacements);
+    if old != new {
+        state.stdout.push_str(&unified_diff(&doc.path, &old, &new));
+        if check {
+            state.diagnostics.push(Diagnostic::error(
+                Some(doc.path.clone()),
+                "lint --fix --check found code block changes",
+            ));
+        } else {
+            fs::write(&doc.path, new)
+                .map_err(|error| format!("failed to write {}: {error}", doc.path.display()))?;
+            state.generated.push(doc.path.clone());
+        }
+    }
+    Ok(())
+}
+
+fn temp_code_path(package: &Package, lang: &Lang) -> PathBuf {
+    let ext = lang.file_ext();
+    let file_name = format!("source.{ext}");
+    let path = package.root.join(".build/mds/tmp").join(&file_name);
+    if is_excluded(&package.root, &path, &package.config.excludes) {
+        package.root.join(".build/mds-tmp").join(file_name)
+    } else {
+        path
+    }
+}
+
+#[derive(Debug)]
+struct CodeBlock<'a> {
+    start: usize,
+    end: usize,
+    content: &'a str,
+    content_start_line: usize,
+}
+
+fn code_block_ranges(text: &str) -> Vec<CodeBlock<'_>> {
+    let mut ranges = Vec::new();
+    let mut in_block = false;
+    let mut content_start = 0;
+    let mut content_start_line = 1;
+    let mut cursor = 0;
+    let mut line_number = 1;
+    for line in text.split_inclusive('\n') {
+        let line_start = cursor;
+        cursor += line.len();
+        if line.trim_start().starts_with("```") {
+            if in_block {
+                ranges.push(CodeBlock {
+                    start: content_start,
+                    end: line_start,
+                    content: &text[content_start..line_start],
+                    content_start_line,
+                });
+                in_block = false;
+            } else {
+                in_block = true;
+                content_start = cursor;
+                content_start_line = line_number + 1;
+            }
+        }
+        line_number += 1;
+    }
+    ranges
+}
+
+fn padded_code_from_markdown(doc: &ImplDoc) -> Result<String, String> {
+    let text = fs::read_to_string(&doc.path)
+        .map_err(|error| format!("failed to read {}: {error}", doc.path.display()))?;
+    let mut output = String::new();
+    let mut output_line = 1;
+    for block in code_block_ranges(&text) {
+        while output_line < block.content_start_line {
+            output.push('\n');
+            output_line += 1;
+        }
+        output.push_str(block.content);
+        output_line += block.content.bytes().filter(|byte| *byte == b'\n').count();
+    }
+    if output.is_empty() {
+        output.push_str(&doc.code);
+    }
+    Ok(output)
+}
+
+fn apply_replacements(old: &str, replacements: &[(usize, usize, String)]) -> String {
+    let mut output = String::new();
+    let mut cursor = 0;
+    for (start, end, replacement) in replacements {
+        output.push_str(&old[cursor..*start]);
+        output.push_str(replacement);
+        cursor = *end;
+    }
+    output.push_str(&old[cursor..]);
+    output
+}
+````

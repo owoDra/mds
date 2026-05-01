@@ -13,9 +13,10 @@ Rust, TypeScript, Python
 monorepo
 
 ## Subprojects
-- `crates/mds-core`: Rust core library
-- `crates/mds-cli`: native CLI
-- `crates/mds-lsp`: Language Server Protocol implementation
+- `src-md/mds-core`: Rust core library source of truth
+- `src-md/mds-cli`: native CLI source of truth
+- `src-md/mds-lsp`: Language Server Protocol source of truth
+- `src-md/vscode`: VS Code extension source context
 - `editors/vscode`: VS Code extension
 
 ## Teams
