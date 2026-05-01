@@ -21,7 +21,7 @@ cargo run -p mds-cli -- check --package ../examples/minimal-ts --verbose
 
 # 3. Release dry run
 cargo build --release
-./scripts/generate-release-artifacts.sh
+./.github/scripts/generate-release-artifacts.sh
 ```
 
 ## Automated Release (recommended)
@@ -80,7 +80,7 @@ gh release create v0.1.0-alpha.1 \
 
 ```bash
 # Generate checksums, SBOM, provenance
-./scripts/generate-release-artifacts.sh
+./.github/scripts/generate-release-artifacts.sh
 
 # Verify release gate
 mds release check --manifest release.mds.toml --verbose

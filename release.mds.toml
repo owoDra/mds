@@ -10,7 +10,7 @@
 #
 # Prerequisites:
 #   cd crates && cargo build --release
-#   ./scripts/generate-release-artifacts.sh
+#   ./.github/scripts/generate-release-artifacts.sh
 #
 # Cargo publish order (依存順):
 #   1. mds-core       (依存なし)
@@ -31,7 +31,7 @@
 #
 # Full workflow:
 #   1. cargo build --release
-#   2. ./scripts/generate-release-artifacts.sh [--sign]
+#   2. ./.github/scripts/generate-release-artifacts.sh [--sign]
 #   3. mds release check --manifest release.mds.toml --verbose
 #   4. Publish in order (CI handles automatically)
 

@@ -13,10 +13,14 @@ set -euo pipefail
 #   .release/provenance/  — Build provenance attestation (JSONL)
 #
 # Usage:
-#   ./scripts/generate-release-artifacts.sh [--sign]
+#   ./.github/scripts/generate-release-artifacts.sh [--sign]
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+if ROOT="$(git -C "$SCRIPT_DIR" rev-parse --show-toplevel 2>/dev/null)"; then
+  :
+else
+  ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+fi
 VERSION="0.1.0-alpha.1"
 SIGN=false
 
@@ -38,7 +42,7 @@ generate_checksum() {
     sha256sum "$file" > "$out"
     echo "  checksum: $out"
   elif [[ -d "$file" ]]; then
-    # For directory-based artifacts (npm/python/vscode), tar and hash
+    # For directory-based artifacts (VS Code), tar and hash
     tar -cf - -C "$(dirname "$file")" "$(basename "$file")" | sha256sum | sed "s|-|${file}|" > "$out"
     echo "  checksum (dir): $out"
   else
@@ -106,7 +110,7 @@ generate_provenance() {
   local version="$2"
   local out="$3"
   cat > "$out" <<EOF
-{"_type":"https://in-toto.io/Statement/v0.1","subject":[{"name":"$name","digest":{"sha256":"pending"}}],"predicateType":"https://slsa.dev/provenance/v0.2","predicate":{"builder":{"id":"local"},"buildType":"https://github.com/owo-x-project/owox-mds/build/v1","invocation":{"configSource":{"uri":"https://github.com/owo-x-project/owox-mds","entryPoint":"scripts/generate-release-artifacts.sh"}},"metadata":{"buildStartedOn":"$(date -u +%Y-%m-%dT%H:%M:%SZ)","completeness":{"parameters":true,"environment":false,"materials":false}}}}
+{"_type":"https://in-toto.io/Statement/v0.1","subject":[{"name":"$name","digest":{"sha256":"pending"}}],"predicateType":"https://slsa.dev/provenance/v0.2","predicate":{"builder":{"id":"local"},"buildType":"https://github.com/owo-x-project/owox-mds/build/v1","invocation":{"configSource":{"uri":"https://github.com/owo-x-project/owox-mds","entryPoint":".github/scripts/generate-release-artifacts.sh"}},"metadata":{"buildStartedOn":"$(date -u +%Y-%m-%dT%H:%M:%SZ)","completeness":{"parameters":true,"environment":false,"materials":false}}}}
 EOF
   echo "  provenance: $out"
 }
