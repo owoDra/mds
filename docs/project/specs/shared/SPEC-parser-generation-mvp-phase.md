@@ -119,7 +119,7 @@ related:
 - `SPEC-expose-uses-tables.md`
 - `SPEC-package-boundary-detection.md`
 - `SPEC-config-toml-resolution.md`
-- `../packages-lang-ts/SPEC-adapter-typescript-generation.md`
-- `../packages-lang-py/SPEC-adapter-python-generation.md`
-- `../crates-mds-lang-rs/SPEC-adapter-rust-generation.md`
+- `SPEC-adapter-typescript-generation.md`
+- `SPEC-adapter-python-generation.md`
+- `SPEC-adapter-rust-generation.md`
 - `../../validation.md`

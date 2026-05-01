@@ -126,7 +126,7 @@ is_deferred_crate() {
   esac
 }
 
-for crate in mds-core mds-cli mds-lang-rs mds-lsp; do
+for crate in mds-core mds-cli mds-lsp; do
   echo "[$crate]"
   CRATE_FILE="$CRATE_DIR/${crate}-${VERSION}.crate"
 

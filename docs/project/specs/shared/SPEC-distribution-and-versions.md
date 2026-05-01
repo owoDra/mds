@@ -10,7 +10,7 @@ related:
 
 ## 概要
 
-mds は npm、Cargo、uv / uvx から導入でき、Rust core の言語横断契約を各 wrapper が共有する。
+mds は Cargo / native binary と VS Code 拡張を中心に配布し、Rust core の言語横断契約を共有する。
 
 ## 関連要求
 
@@ -19,34 +19,26 @@ mds は npm、Cargo、uv / uvx から導入でき、Rust core の言語横断契
 
 ## 入力
 
-- npm package
 - Cargo crate
-- Python package / uvx entrypoint
 - language adapter package
 - runtime / toolchain version
 
 ## 出力
 
 - native CLI `mds`
-- npm wrapper CLI
-- Python wrapper CLI
 - adapter package
 
 ## 挙動
 
 - Rust core は言語横断の中核契約を提供する。
 - native CLI は Cargo から導入できる。
-- npm package 名は `@owox-mds/cli`、`@owox-mds/core`、`@owox-mds/lang-ts`、`@owox-mds/lang-py`、`@owox-mds/lang-rs` とする。
-- Cargo crate 名は `mds-cli`、`mds-core`、`mds-lang-rs`、`mds-lsp` とする。
-- Python package 名は `mds-cli`、`mds-lang-py` とする。
-- uv / uvx は Python 利用者向け CLI wrapper と Python language adapter を提供する。
+- Cargo crate 名は現在の workspace では `mds-cli`、`mds-core`、`mds-lsp` とする。
 - wrapper は独自仕様を持たず、配布、起動、adapter 接続だけを担う。
-- npm / Python wrapper は同梱 binary を優先して native CLI を呼び出し、利用できない場合は environment / wrapper 診断を返す。
 - CLI binary name は原則 `mds` とする。
 - 最低対応 version は Rust 1.86+、Node.js 24+、Python 3.13+ とする。
 - language quality toolchain は利用者選択式とし、Prettier、ESLint、Biome、Vitest、Jest、Ruff、Black、Pytest、unittest、rustfmt、clippy、cargo test、cargo-nextest の最新安定系列を候補にする。
-- bootstrap 導線は `npx`、Cargo、`uvx` を正式対応にする。
-- 公開前品質では npm、Cargo、Python / uvx、native binary の全配布経路に checksum、署名、SBOM、provenance、install smoke test を要求する。
+- bootstrap 導線は Cargo / native binary を対象にする。
+- 公開前品質では現在の配布経路に checksum、署名、SBOM、provenance、install smoke test を要求する。
 
 ## 状態遷移 / 不変条件
 
@@ -71,8 +63,7 @@ mds は npm、Cargo、uv / uvx から導入でき、Rust core の言語横断契
 
 ## 検証観点
 
-- Cargo / npm / uvx 経由で `mds --version` 相当が動くことを確認する。
-- wrapper 経由でも同じ CLI exit code と stdout / stderr 規則になることを確認する。
+- Cargo / native binary 経由で `mds --version` 相当が動くことを確認する。
 - 最低対応 version 未満が doctor で exit code 4 になることを確認する。
 - TypeScript / Python / Rust adapter が同じ core 概念を扱うことを確認する。
 - 全配布経路で公開前品質 gate が成功することを確認する。

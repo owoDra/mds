@@ -11,7 +11,7 @@ related:
 
 ## 概要
 
-`crates/mds-lang-rs` は Rust の生成 file pattern、`mod` 管理、`use` 生成を担う。
+Rust adapter 境界は Rust の生成 file pattern、`mod` 管理、`use` 生成を担う。
 
 ## 関連要求
 
@@ -70,7 +70,7 @@ related:
 
 ## 関連資料
 
-- `../shared/SPEC-code-generation-output.md`
-- `../shared/SPEC-expose-uses-tables.md`
-- `../shared/SPEC-md-state-quality-operations.md`
+- `SPEC-code-generation-output.md`
+- `SPEC-expose-uses-tables.md`
+- `SPEC-md-state-quality-operations.md`
 - `../../patterns/impl-adapter-boundary.md`

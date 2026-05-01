@@ -2,13 +2,10 @@
 
 ## 役割
 
-Python implementation team は、Python 配布、Python language adapter、Python 生成規則、uv / Pytest / Ruff 導線の実装品質を保つ責任を持つ。
+Python implementation team は、Python 生成規則、uv / Pytest / Ruff 導線の実装品質を保つ責任を持つ。
 
 ## 担当範囲
 
-- `python/mds_cli`: Python CLI wrapper distribution。
-- `python/mds_lang_py`: Python language adapter distribution。
-- `packages/lang-py`: npm distribution 向け Python adapter 境界。
 - Python の `.py` / `.pyi` / `test_*.py` 生成規則、import 生成、fixture。
 
 ## ルール
@@ -31,6 +28,6 @@ Python implementation team は、Python 配布、Python language adapter、Pytho
 
 - `../architecture.md`
 - `../patterns/impl-adapter-boundary.md`
-- `../specs/packages-lang-py/SPEC-adapter-python-generation.md`
+- `../specs/shared/SPEC-adapter-python-generation.md`
 - `../specs/shared/SPEC-parser-generation-mvp-phase.md`
 - `../validation.md`

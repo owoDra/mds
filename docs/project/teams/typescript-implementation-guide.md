@@ -2,19 +2,17 @@
 
 ## 役割
 
-TypeScript implementation team は、npm 配布、TypeScript language adapter、TypeScript 生成規則、Node.js 向け CLI wrapper の実装品質を保つ責任を持つ。
+TypeScript implementation team は、VS Code extension と TypeScript 生成規則の実装品質を保つ責任を持つ。
 
 ## 担当範囲
 
-- `packages/core`: npm から利用する core API 境界。
-- `packages/cli`: Node.js / npm 向け CLI entrypoint。
-- `packages/lang-ts`: TypeScript の file pattern、import 生成、型 import、test file 生成。
+- `editors/vscode`: VS Code extension の TypeScript 実装。
+- TypeScript の file pattern、import 生成、型 import、test file 生成仕様。
 - TypeScript fixture、Vitest / ESLint / Prettier 導線。
 
 ## ルール
 
-- npm workspace は `packages/package.json` を入口にし、pnpm は導入しない。
-- TypeScript 固有の import 形式、拡張子有無、type-only import は `packages/lang-ts` に閉じ込める。
+- TypeScript 固有の import 形式、拡張子有無、type-only import は TypeScript adapter 境界に閉じ込める。
 - core の Markdown model、`Expose` / `Uses` schema、config の意味を TypeScript 側で変更しない。
 - package の public API は `src/index.ts` から明示的に export し、内部 module を barrel export で無制限に公開しない。
 - test は production source から分離し、unit test は repository の test convention に合わせた `tests/` または `*.test.ts` に置く。
@@ -33,6 +31,6 @@ TypeScript implementation team は、npm 配布、TypeScript language adapter、
 
 - `../architecture.md`
 - `../patterns/impl-adapter-boundary.md`
-- `../specs/packages-lang-ts/SPEC-adapter-typescript-generation.md`
+- `../specs/shared/SPEC-adapter-typescript-generation.md`
 - `../specs/shared/SPEC-parser-generation-mvp-phase.md`
 - `../validation.md`

@@ -33,17 +33,12 @@
 - `shared/index.md`: 複数 subproject にまたがる共有仕様の入口
 - `crates-mds-core/index.md`: `crates/mds-core` 固有仕様の入口
 - `crates-mds-cli/index.md`: `crates/mds-cli` 固有仕様の入口
-- `crates-mds-lang-rs/index.md`: `crates/mds-lang-rs` 固有仕様の入口
-- `packages-core/index.md`: `packages/core` 固有仕様の入口
-- `packages-cli/index.md`: `packages/cli` 固有仕様の入口
-- `packages-lang-ts/index.md`: `packages/lang-ts` 固有仕様の入口
-- `packages-lang-py/index.md`: `packages/lang-py` 固有仕様の入口
-- `packages-lang-rs/index.md`: `packages/lang-rs` 固有仕様の入口
-- `python-mds/index.md`: `python/mds` 固有仕様の入口
-- `python-mds-lang-py/index.md`: `python/mds_lang_py` 固有仕様の入口
 
 ## 追加された共有仕様
 
 - `shared/SPEC-ai-agent-cli-initialization.md`: AI agent CLI 初期化仕様
+- `shared/SPEC-adapter-rust-generation.md`: Rust adapter 生成仕様
+- `shared/SPEC-adapter-typescript-generation.md`: TypeScript adapter 生成仕様
+- `shared/SPEC-adapter-python-generation.md`: Python adapter 生成仕様
 - `shared/SPEC-init-development-environment-setup.md`: 開発環境セットアップ初期化仕様
 - `shared/SPEC-release-prepublish-quality.md`: 公開前品質仕様

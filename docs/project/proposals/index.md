@@ -39,4 +39,4 @@
 - `archive/proposal-graph-doctor-commands.md`: 旧 `mds graph` / `mds doctor` に関する採否判断済み proposal。`mds graph` は後続判断で削除済み
 - `archive/proposal-package-sync-hooks.md`: `mds package sync` と任意 post hook に関する採否判断済み proposal
 - `archive/proposal-import-expression-extensions.md`: `Uses` import 表現拡張に関する採否判断済み proposal
-- `archive/proposal-distribution-version-policy.md`: npm / Cargo / uv 配布と version 方針に関する採否判断済み proposal
+- `archive/proposal-distribution-version-policy.md`: 配布と version 方針に関する採否判断済み proposal

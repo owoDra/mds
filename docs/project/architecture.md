@@ -34,10 +34,8 @@
 
 ## Workspace 構成
 
-- `crates/Cargo.toml` は Rust workspace manifest とし、`crates/mds-core`、`crates/mds-cli`、`crates/mds-lang-rs`、`crates/mds-lsp` を束ねる。
-- `packages/package.json` は npm workspace manifest とし、pnpm ではなく npm 10+ workspaces で `packages/*` を束ねる。
-- `packages/cli` は npm wrapper package とし、`packages/core` は mds core の JS API を提供し、`packages/lang-*` は各言語の adapter metadata と naming convention を提供する。
-- `python/mds_cli` は Python CLI wrapper distribution、`python/mds_lang_py` は Python language adapter distribution とする。
+- `crates/Cargo.toml` は Rust workspace manifest とし、現在は `crates/mds-core`、`crates/mds-cli`、`crates/mds-lsp` を束ねる。
+- TypeScript / Python / Rust の language adapter 規則は現時点では Rust core 側の生成処理と共有仕様で管理し、独立した `packages/`、`python/`、`crates/mds-lang-rs` 配布単位は置かない。
 - `editors/vscode` は VS Code 拡張とし、syntax highlighting、LSP 連携、snippets を提供する。
 - `.agents/` は AI 専用の制約、作業手順、skill、task 文脈キャッシュを置き、`docs/project/` は人間向け正本を置く。
 

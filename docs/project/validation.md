@@ -89,15 +89,15 @@
 
 ## Doctor / Package Sync
 
-- いつ行うか: `mds doctor`、`mds package sync`、package manager hook、配布 wrapper を変更するとき。
-- 何で検証するか: toolchain 有無と最低 version の doctor fixture、npm / Cargo / uv metadata sync fixture、package sync hook fixture、npm / Python wrapper E2E smoke test を使う。
+- いつ行うか: `mds doctor`、`mds package sync`、package manager hook を変更するとき。
+- 何で検証するか: toolchain 有無と最低 version の doctor fixture、Cargo / package metadata sync fixture、package sync hook fixture を使う。
 - 期待する結果: doctor は有効 adapter 分の runtime / toolchain を検出し、environment 不足または最低 version 未満を exit code 4 にし、package sync は手書き領域を壊さず package metadata 由来の管理部分だけを更新し、hook は明示有効化時だけ既定 command `mds package sync --check` を使う。
 - 問題があった際にどうするか: 破壊的な自動更新を止め、`--check` や診断で利用者が次に取るべき対応を示す。
 
 ## 公開前品質
 
-- いつ行うか: npm、Cargo、Python / uvx、native binary の packaging、wrapper、release metadata、publish 前検証を変更するとき。
-- 何で検証するか: 全配布経路の artifact fixture、checksum、署名、SBOM、provenance / attestations、install smoke test、wrapper E2E を使う。
+- いつ行うか: Cargo、native binary、VS Code extension の packaging、release metadata、publish 前検証を変更するとき。
+- 何で検証するか: 現行配布経路の artifact fixture、checksum、署名、SBOM、provenance / attestations、install smoke test を使う。
 - 期待する結果: 全 artifact に supply-chain 成果物が紐づき、install 後に `mds --version` 相当と代表 command が動き、欠落や互換性不一致は publish 前 gate を失敗させる。
 - 問題があった際にどうするか: publish を止め、artifact、wrapper、release metadata、署名または provenance の不足を修正する。
 

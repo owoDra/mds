@@ -15,7 +15,6 @@ monorepo
 ## Subprojects
 - `crates/mds-core`: Rust core library
 - `crates/mds-cli`: native CLI
-- `crates/mds-lang-rs`: Rust language adapter
 - `crates/mds-lsp`: Language Server Protocol implementation
 - `editors/vscode`: VS Code extension
 

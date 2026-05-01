@@ -14,12 +14,11 @@
 #
 # Cargo publish order (依存順):
 #   1. mds-core       (依存なし)
-#   2. mds-lang-rs    (依存なし)
-#   3. crates.io index 更新を待つ (30秒以上)
-#   4. cargo publish --dry-run -p mds-cli && cargo publish --dry-run -p mds-lsp
+#   2. crates.io index 更新を待つ (30秒以上)
+#   3. cargo publish --dry-run -p mds-cli && cargo publish --dry-run -p mds-lsp
 #      ↑ ここで mds-core が resolve できなければ中止
-#   5. mds-cli        (mds-core に依存)
-#   6. mds-lsp        (mds-core に依存)
+#   4. mds-cli        (mds-core に依存)
+#   5. mds-lsp        (mds-core に依存)
 #
 # Note: mds-cli and mds-lsp require mds-core to be published on crates.io
 # before their .crate files can be produced via `cargo package`.
@@ -50,16 +49,6 @@ checksum = ".release/checksums/mds-core-0.1.0-alpha.1.sha256"
 signature = ".release/signatures/mds-core-0.1.0-alpha.1.sig"
 sbom = ".release/sbom/mds-core-0.1.0-alpha.1.spdx.json"
 provenance = ".release/provenance/mds-core-0.1.0-alpha.1.jsonl"
-smoke = true
-
-[[artifacts]]
-name = "mds-lang-rs"
-channel = "alpha"
-path = "crates/target/package/mds-lang-rs-0.1.0-alpha.1.crate"
-checksum = ".release/checksums/mds-lang-rs-0.1.0-alpha.1.sha256"
-signature = ".release/signatures/mds-lang-rs-0.1.0-alpha.1.sig"
-sbom = ".release/sbom/mds-lang-rs-0.1.0-alpha.1.spdx.json"
-provenance = ".release/provenance/mds-lang-rs-0.1.0-alpha.1.jsonl"
 smoke = true
 
 [[artifacts]]

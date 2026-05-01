@@ -50,9 +50,9 @@ archived: 2026-04-26 に採用し、`docs/project/specs/shared/SPEC-md-state-qua
 - `../specs/shared/SPEC-md-state-quality-operations.md`
 - `../specs/shared/SPEC-cli-commands.md`
 - `../specs/shared/SPEC-config-toml-resolution.md`
-- `../specs/packages-lang-ts/SPEC-adapter-typescript-generation.md`
-- `../specs/packages-lang-py/SPEC-adapter-python-generation.md`
-- `../specs/crates-mds-lang-rs/SPEC-adapter-rust-generation.md`
+- `../specs/shared/SPEC-adapter-typescript-generation.md`
+- `../specs/shared/SPEC-adapter-python-generation.md`
+- `../specs/shared/SPEC-adapter-rust-generation.md`
 - `../validation.md`
 
 ## 関連資料

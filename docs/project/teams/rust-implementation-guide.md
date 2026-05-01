@@ -2,13 +2,13 @@
 
 ## 役割
 
-Rust implementation team は、`crates/mds-core`、`crates/mds-cli`、`crates/mds-lang-rs` の構造、module 境界、公開 API、検証導線を保つ責任を持つ。
+Rust implementation team は、`crates/mds-core`、`crates/mds-cli`、`crates/mds-lsp` の構造、module 境界、公開 API、検証導線を保つ責任を持つ。
 
 ## 担当範囲
 
 - `crates/mds-core`: 言語横断の document model、config、package boundary、Markdown parsing、generation planning、manifest、diagnostics。
 - `crates/mds-cli`: native CLI の argument parsing、stdout / stderr、exit code、core 呼び出し。
-- `crates/mds-lang-rs`: Rust 固有の use / module block / file pattern 生成。
+- Rust 固有の use / module block / file pattern 生成は、現在は `crates/mds-core` の adapter / generation 境界で扱う。
 - Rust workspace の `crates/Cargo.toml`、`crates/Cargo.lock`、format、test 実行導線。
 
 ## ルール

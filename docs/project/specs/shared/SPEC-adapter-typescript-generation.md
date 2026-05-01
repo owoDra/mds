@@ -11,7 +11,7 @@ related:
 
 ## 概要
 
-`packages/lang-ts` は TypeScript の生成 file pattern と import 生成を担う。
+TypeScript adapter 境界は TypeScript の生成 file pattern と import 生成を担う。
 
 ## 関連要求
 
@@ -65,7 +65,7 @@ related:
 
 ## 関連資料
 
-- `../shared/SPEC-code-generation-output.md`
-- `../shared/SPEC-expose-uses-tables.md`
-- `../shared/SPEC-md-state-quality-operations.md`
+- `SPEC-code-generation-output.md`
+- `SPEC-expose-uses-tables.md`
+- `SPEC-md-state-quality-operations.md`
 - `../../patterns/impl-adapter-boundary.md`
