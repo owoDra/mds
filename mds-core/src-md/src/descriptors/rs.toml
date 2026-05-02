@@ -1,0 +1,34 @@
+id = "rs"
+
+[language]
+primary_ext = "rs"
+
+[files.source]
+strip_lang_ext = false
+prefix = ""
+suffix = ""
+extension = "rs"
+
+[files.types]
+strip_lang_ext = true
+prefix = ""
+suffix = "_types"
+extension = "rs"
+
+[files.test]
+strip_lang_ext = true
+prefix = ""
+suffix = "_test"
+extension = "rs"
+
+[imports]
+style = "rust"
+allow_default = false
+allow_namespace = false
+allow_alias = true
+allow_type_only = false
+
+[quality_defaults]
+lint = "cargo clippy"
+fix = "cargo fmt"
+test = "cargo test"

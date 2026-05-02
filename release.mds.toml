@@ -9,8 +9,8 @@
 #   mds release check --manifest release.mds.toml --verbose
 #
 # Prerequisites:
-#   ./scripts/sync-build.sh && cd .build/rust && cargo build --release
-#   ./.github/scripts/generate-release-artifacts.sh
+#   ./.github/script/sync-build.sh && cd .build/rust && cargo build --release
+#   ./.github/script/generate-release-artifacts.sh
 #
 # Cargo publish order (依存順):
 #   1. mds-core       (依存なし)
@@ -30,8 +30,8 @@
 #   npx @vscode/vsce publish --pre-release
 #
 # Full workflow:
-#   1. ./scripts/sync-build.sh && cd .build/rust && cargo build --release
-#   2. ./.github/scripts/generate-release-artifacts.sh [--sign]
+#   1. ./.github/script/sync-build.sh && cd .build/rust && cargo build --release
+#   2. ./.github/script/generate-release-artifacts.sh [--sign]
 #   3. mds release check --manifest release.mds.toml --verbose
 #   4. Publish in order (CI handles automatically)
 

@@ -1,0 +1,167 @@
+# src/capabilities/code_action.rs
+
+## Purpose
+
+Migrated implementation source for `src/capabilities/code_action.rs`.
+
+## Contract
+
+- Preserve the behavior of the pre-migration Rust source.
+- This file is synchronized into `.build/rust/mds-lsp/src/capabilities/code_action.rs`.
+
+## Source
+
+````rs
+use crate::labels::resolve_label;
+use mds_core::markdown::sections_with_labels;
+use mds_core::model::Config;
+use tower_lsp::lsp_types::*;
+````
+
+````rs
+/// Provide code actions (quick fixes) for mds Markdown files.
+
+pub fn provide_code_actions(uri: &Url, text: &str, config: &Config) -> CodeActionResponse {
+    let mut actions = Vec::new();
+
+    let sections = sections_with_labels(text, &config.label_overrides);
+
+    // Check for missing required sections and offer to add them
+    let required_sections = ["Purpose", "Contract", "Types", "Source", "Cases", "Test"];
+    let mut missing: Vec<&str> = Vec::new();
+
+    for section in &required_sections {
+        if !sections.contains_key(*section) {
+            missing.push(section);
+        }
+    }
+
+    if !missing.is_empty() {
+        // Find the end of the document
+        let line_count = text.lines().count() as u32;
+
+        // Create a single action that adds all missing sections
+        let mut new_text = String::new();
+        if !text.ends_with('\n') {
+            new_text.push('\n');
+        }
+        new_text.push('\n');
+
+        for section in &missing {
+            let label = resolve_label(&section.to_lowercase(), config);
+            new_text.push_str(&format!("## {label}\n\n"));
+
+            match *section {
+                "Purpose" | "Contract" | "Cases" => {
+                    new_text.push_str("<!-- TODO: fill in -->\n\n");
+                }
+                "Types" | "Source" | "Test" => {
+                    let from_label = resolve_label("from", config);
+                    let target_label = resolve_label("target", config);
+                    let expose_label = resolve_label("expose", config);
+                    let summary_label = resolve_label("summary", config);
+                    new_text.push_str(&format!(
+                        "### Uses\n\n\
+                         | {from_label} | {target_label} | {expose_label} | {summary_label} |\n\
+                         | --- | --- | --- | --- |\n\n\
+                         ```\n// TODO: implementation\n```\n\n"
+                    ));
+                }
+                _ => {
+                    new_text.push_str("<!-- TODO: fill in -->\n\n");
+                }
+            }
+        }
+
+        let edit = TextEdit {
+            range: Range {
+                start: Position {
+                    line: line_count,
+                    character: 0,
+                },
+                end: Position {
+                    line: line_count,
+                    character: 0,
+                },
+            },
+            new_text,
+        };
+
+        let mut changes = std::collections::HashMap::new();
+        changes.insert(uri.clone(), vec![edit]);
+
+        actions.push(CodeActionOrCommand::CodeAction(CodeAction {
+            title: format!("Add missing sections: {}", missing.join(", ")),
+            kind: Some(CodeActionKind::QUICKFIX),
+            diagnostics: None,
+            edit: Some(WorkspaceEdit {
+                changes: Some(changes),
+                ..Default::default()
+            }),
+            ..Default::default()
+        }));
+
+        // Also offer individual section additions
+        for section in &missing {
+            let label = resolve_label(&section.to_lowercase(), config);
+            let mut section_text = String::new();
+            if !text.ends_with('\n') {
+                section_text.push('\n');
+            }
+            section_text.push('\n');
+            section_text.push_str(&format!("## {label}\n\n"));
+
+            match *section {
+                "Purpose" | "Contract" | "Cases" => {
+                    section_text.push_str("<!-- TODO: fill in -->\n\n");
+                }
+                "Types" | "Source" | "Test" => {
+                    let from_label = resolve_label("from", config);
+                    let target_label = resolve_label("target", config);
+                    let expose_label = resolve_label("expose", config);
+                    let summary_label = resolve_label("summary", config);
+                    section_text.push_str(&format!(
+                        "### Uses\n\n\
+                         | {from_label} | {target_label} | {expose_label} | {summary_label} |\n\
+                         | --- | --- | --- | --- |\n\n\
+                         ```\n// TODO: implementation\n```\n\n"
+                    ));
+                }
+                _ => {
+                    section_text.push_str("<!-- TODO: fill in -->\n\n");
+                }
+            }
+
+            let edit = TextEdit {
+                range: Range {
+                    start: Position {
+                        line: line_count,
+                        character: 0,
+                    },
+                    end: Position {
+                        line: line_count,
+                        character: 0,
+                    },
+                },
+                new_text: section_text,
+            };
+
+            let mut changes = std::collections::HashMap::new();
+            changes.insert(uri.clone(), vec![edit]);
+
+            actions.push(CodeActionOrCommand::CodeAction(CodeAction {
+                title: format!("Add missing ## {section} section"),
+                kind: Some(CodeActionKind::QUICKFIX),
+                diagnostics: None,
+                edit: Some(WorkspaceEdit {
+                    changes: Some(changes),
+                    ..Default::default()
+                }),
+                ..Default::default()
+            }));
+        }
+    }
+
+    actions
+}
+````

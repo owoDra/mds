@@ -8,7 +8,7 @@ Language support for [mds](https://github.com/owo-x-project/owox-mds) implementa
 - **Language Server** integration via `mds-lsp` for real-time diagnostics
 - **Snippets** for common mds section structures
 - **Code block detection** with proper embedded language support
-- **Any language** — automatically detects all `.{ext}.md` files in `src-md/`
+- **Any language** — automatically detects all `.{ext}.md` files in `src-md/` and `.mds/source/`, plus test docs under `.mds/test/`
 
 ## Requirements
 

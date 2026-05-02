@@ -226,17 +226,23 @@ async function discoverLanguages(
     // Workspace search not available
   }
 
-  // From actual .{ext}.md files in src-md directories
+  // From actual .{ext}.md files in mds authoring roots
   try {
-    const mdFiles = await vscode.workspace.findFiles(
+    for (const pattern of [
       '**/src-md/**/*.md',
-      '{**/node_modules/**,**/target/**}'
-    );
-    for (const uri of mdFiles) {
-      const fileName = uri.path.split('/').pop() || '';
-      const m = fileName.match(/\.(\w+)\.md$/);
-      if (m) {
-        langKeys.add(normalizeLangKey(m[1]));
+      '**/.mds/source/**/*.md',
+      '**/.mds/test/**/*.md',
+    ]) {
+      const mdFiles = await vscode.workspace.findFiles(
+        pattern,
+        '{**/node_modules/**,**/target/**}'
+      );
+      for (const uri of mdFiles) {
+        const fileName = uri.path.split('/').pop() || '';
+        const m = fileName.match(/\.(\w+)\.md$/);
+        if (m) {
+          langKeys.add(normalizeLangKey(m[1]));
+        }
       }
     }
   } catch {
@@ -557,12 +563,12 @@ function registerVirtualDocumentProvider(
 
 /**
  * Determine if a file URI is an mds-managed file.
- * True if: in a src-md/ directory, or matches a known .{ext}.md pattern.
+ * True if: in an mds authoring root, or matches a known .{ext}.md pattern.
  */
 function isMdsFile(uri: vscode.Uri, extPattern: string): boolean {
   const path = uri.fsPath;
-  // Files in src-md/ directories
-  if (/[/\\]src-md[/\\]/.test(path)) {
+  // Files in legacy src-md/ or fixed .mds/source/.mds/test directories
+  if (/[/\\](?:src-md|\.mds[/\\](?:source|test))[/\\]/.test(path)) {
     return true;
   }
   // Files matching known mds extension patterns (e.g., .ts.md, .go.md)
@@ -620,6 +626,8 @@ export async function activate(context: vscode.ExtensionContext) {
       { scheme: 'file', pattern: '**/mds.config.toml' },
       { scheme: 'file', pattern: '**/package.md' },
       { scheme: 'file', pattern: '**/src-md/**/*.md' },
+      { scheme: 'file', pattern: '**/.mds/source/**/*.md' },
+      { scheme: 'file', pattern: '**/.mds/test/**/*.md' },
     ];
   for (const lang of activeLanguages) {
     documentSelector.push({ scheme: 'file', pattern: `**/*${lang.ext}` });
@@ -630,6 +638,8 @@ export async function activate(context: vscode.ExtensionContext) {
     vscode.workspace.createFileSystemWatcher('**/mds.config.toml'),
     vscode.workspace.createFileSystemWatcher('**/package.md'),
     vscode.workspace.createFileSystemWatcher('**/src-md/**/*.md'),
+    vscode.workspace.createFileSystemWatcher('**/.mds/source/**/*.md'),
+    vscode.workspace.createFileSystemWatcher('**/.mds/test/**/*.md'),
   ];
   for (const lang of activeLanguages) {
     fileEvents.push(
@@ -695,7 +705,7 @@ export async function activate(context: vscode.ExtensionContext) {
     })
   );
 
-  // Auto-associate .md files in src-md/ directories with mds-markdown language
+  // Auto-associate .md files in mds authoring roots with mds-markdown language
   const mdsExtPattern = activeLanguages.map((l) => l.ext).join('|').replace(/\./g, '\\.');
   context.subscriptions.push(
     vscode.workspace.onDidOpenTextDocument((doc) => {

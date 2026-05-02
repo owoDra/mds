@@ -1,0 +1,34 @@
+id = "ts"
+
+[language]
+primary_ext = "ts"
+
+[files.source]
+strip_lang_ext = false
+prefix = ""
+suffix = ""
+extension = "ts"
+
+[files.types]
+strip_lang_ext = true
+prefix = ""
+suffix = ".types"
+extension = "ts"
+
+[files.test]
+strip_lang_ext = true
+prefix = ""
+suffix = ".test"
+extension = "ts"
+
+[imports]
+style = "typescript"
+allow_default = true
+allow_namespace = true
+allow_alias = true
+allow_type_only = true
+
+[quality_defaults]
+lint = "eslint"
+fix = "prettier --write"
+test = "vitest run"

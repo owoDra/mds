@@ -115,7 +115,7 @@
   "scripts": {
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
-    "package:build": "../../scripts/package-vscode.sh --pre-release",
+    "package:build": "../../.github/script/package-vscode.sh --pre-release",
     "watch": "tsc -watch -p ./"
   },
   "dependencies": {

@@ -13,7 +13,7 @@ on:
     branches: [latest]
     paths:
       - 'editors/vscode/**'
-      - 'src-md/vscode/**'
+      - 'editors/vscode/src-md/**'
       - '.github/workflows/release-vscode.yml'
   workflow_dispatch:
     inputs:
@@ -86,9 +86,9 @@ jobs:
       - name: Package VSIX
         run: |
           if [[ "${{ needs.check-version.outputs.is_prerelease }}" == "true" ]]; then
-            ./scripts/package-vscode.sh --pre-release
+            ./.github/script/package-vscode.sh --pre-release
           else
-            ./scripts/package-vscode.sh
+            ./.github/script/package-vscode.sh
           fi
       - name: Upload VSIX artifact
         uses: actions/upload-artifact@v4

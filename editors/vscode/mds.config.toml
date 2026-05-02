@@ -1,0 +1,10 @@
+[package]
+enabled = true
+allow_raw_source = false
+
+[roots]
+markdown = "src-md"
+source = "src"
+types = "src"
+test = "src"
+excludes = []

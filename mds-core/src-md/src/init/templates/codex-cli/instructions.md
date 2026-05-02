@@ -1,0 +1,55 @@
+---
+mds-managed: true
+---
+
+# mds Project Rules
+
+Markdown is the source of truth. Generated code must not be edited directly.
+
+## Dev Environment
+
+```sh
+mds new <name.lang.md>  # Create new implementation markdown from template
+mds new overview.md        # Create new overview markdown for a directory
+mds check               # Validate markdown structure
+mds build --dry-run     # Preview generation output
+mds build               # Generate code from markdown
+mds lint --fix --check  # Fix and validate formatting
+mds test                # Run tests on generated outputs
+```
+
+Always use `mds new` to create new `.mds/source/` files and add matching `.mds/test/` files when behavior needs executable verification. Never create managed scaffolding manually.
+
+## mds Markdown Format
+
+Source files live in `.mds/source/` as `name.{lang}.md` (e.g., `helper.ts.md` → generates `src/helper.ts`). Test docs live in `.mds/test/` as Markdown files with `Covers` and `Test` sections.
+
+### Generation Rules
+
+- One `.{lang}.md` file = one generated source file
+- All code blocks are concatenated (separated by blank lines) to produce the output
+- Import/use/require statements are forbidden in code blocks; record dependencies in Uses
+- Each code block must contain exactly one logical unit (type, function, class, impl, etc.)
+- Sections (## headings) are optional documentation
+
+### Uses Table
+
+| Target | Summary |
+| --- | --- |
+| ./config | Configuration module |
+| lodash | Utility library |
+
+### Constraints
+
+- One source md per feature
+- Keep executable test intent in `.mds/test/` with `Covers`
+- Generated output naming follows built-in language descriptors
+- Code fence language must match file extension
+- Imports/use/require are forbidden in code blocks; record dependencies in Uses
+- Project-specific rules override mds rules when they conflict
+
+## Testing
+
+- Run `mds check` to validate structure before committing
+- Run `mds test` to run all generated tests
+- Fix any errors before creating PRs

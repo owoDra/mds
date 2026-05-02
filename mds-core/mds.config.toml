@@ -1,0 +1,17 @@
+[package]
+enabled = true
+allow_raw_source = false
+
+[roots]
+markdown = "src-md"
+source = "../.build/rust/mds-core"
+types = "../.build/rust/mds-core"
+test = "../.build/rust/mds-core"
+excludes = ["src-md/src/init/templates/**"]
+
+[quality.rs]
+linter = "cargo clippy -- -D warnings"
+fixer = "cargo fmt"
+test_runner = "cargo test"
+required = ["rustc", "cargo", "rustfmt"]
+optional = ["clippy-driver"]
