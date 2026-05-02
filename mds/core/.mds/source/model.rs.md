@@ -488,6 +488,7 @@ impl Default for Roots {
 pub struct Config {
     pub enabled: bool,
     pub allow_raw_source: bool,
+    pub copy_source_assets: bool,
     pub mds_version: Option<String>,
     pub roots: Roots,
     pub adapters: HashMap<Lang, bool>,
@@ -505,6 +506,7 @@ impl Default for Config {
         Self {
             enabled: false,
             allow_raw_source: false,
+            copy_source_assets: true,
             mds_version: None,
             roots: Roots::default(),
             adapters: HashMap::from([
@@ -633,6 +635,7 @@ pub struct GeneratedFile {
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub enum GeneratedKind {
     Output(OutputKind),
+    Asset,
     Manifest,
 }
 ````

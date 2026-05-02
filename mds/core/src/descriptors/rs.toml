@@ -21,6 +21,12 @@ prefix = ""
 suffix = "_test"
 extension = "rs"
 
+[[special_files]]
+match = "build.rs.md"
+kind = "source"
+output = "build.rs"
+root = "package"
+
 [imports]
 style = "rust"
 allow_default = false

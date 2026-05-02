@@ -63,6 +63,9 @@ pub fn merge_config_file(config: &mut Config, path: &Path, state: &mut RunState)
             match key.as_str() {
                 "enabled" => config.enabled = bool_value(value, path, key, state),
                 "allow_raw_source" => config.allow_raw_source = bool_value(value, path, key, state),
+                "copy_source_assets" | "copy-source-assets" => {
+                    config.copy_source_assets = bool_value(value, path, key, state)
+                }
                 "mds_version" | "mds-version" => {
                     config.mds_version = Some(string_value(value, path, key, state));
                 }

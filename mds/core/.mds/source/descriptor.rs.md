@@ -20,12 +20,36 @@ use crate::model::{Lang, OutputKind};
 ````
 
 ````rs
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+pub(crate) enum OutputRoot {
+    Package,
+    Source,
+    Types,
+    Test,
+}
+````
+
+````rs
 #[derive(Debug, Clone, Deserialize)]
 pub(crate) struct Descriptor {
     #[allow(dead_code)]
     pub id: String,
     pub language: LanguageSection,
     pub files: FileRules,
+    #[serde(default)]
+    pub special_files: Vec<SpecialFileRule>,
+}
+````
+
+````rs
+#[derive(Debug, Clone, Deserialize)]
+pub(crate) struct SpecialFileRule {
+    #[serde(rename = "match")]
+    pub match_path: String,
+    pub kind: String,
+    pub output: String,
+    #[serde(default)]
+    pub root: Option<String>,
 }
 ````
 
@@ -67,6 +91,32 @@ impl Descriptor {
             OutputKind::Test => &self.files.test,
         }
     }
+
+    pub fn special_file_rule(&self, relative: &Path, kind: OutputKind) -> Option<&SpecialFileRule> {
+        let relative = relative.to_string_lossy().replace('\\', "/");
+        let kind = kind.manifest_kind();
+        self.special_files
+            .iter()
+            .find(|rule| rule.match_path == relative && rule.kind == kind)
+    }
+}
+````
+
+````rs
+impl SpecialFileRule {
+    fn output_root(&self, kind: OutputKind) -> OutputRoot {
+        match self.root.as_deref() {
+            Some("package") => OutputRoot::Package,
+            Some("source") => OutputRoot::Source,
+            Some("types") => OutputRoot::Types,
+            Some("test") => OutputRoot::Test,
+            _ => match kind {
+                OutputKind::Source => OutputRoot::Source,
+                OutputKind::Types => OutputRoot::Types,
+                OutputKind::Test => OutputRoot::Test,
+            },
+        }
+    }
 }
 ````
 
@@ -84,12 +134,26 @@ pub(crate) fn builtin_descriptor(lang: &Lang) -> Descriptor {
 
 ````rs
 pub(crate) fn output_relative_path(relative: &Path, lang: &Lang, kind: OutputKind) -> PathBuf {
-    if matches!((lang, kind), (Lang::Rust, OutputKind::Source)) && relative == Path::new("build.rs.md") {
-        return PathBuf::from("build.rs");
-    }
     let descriptor = builtin_descriptor(lang);
+    if let Some(rule) = descriptor.special_file_rule(relative, kind) {
+        return PathBuf::from(&rule.output);
+    }
     let rule = descriptor.file_rule(kind);
     apply_file_rule(relative, &descriptor.language.primary_ext, rule)
+}
+````
+
+````rs
+pub(crate) fn output_root(relative: &Path, lang: &Lang, kind: OutputKind) -> OutputRoot {
+    let descriptor = builtin_descriptor(lang);
+    if let Some(rule) = descriptor.special_file_rule(relative, kind) {
+        return rule.output_root(kind);
+    }
+    match kind {
+        OutputKind::Source => OutputRoot::Source,
+        OutputKind::Types => OutputRoot::Types,
+        OutputKind::Test => OutputRoot::Test,
+    }
 }
 ````
 

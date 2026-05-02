@@ -77,6 +77,21 @@ pub(crate) fn plan_manifest(
         }
         content.push('\n');
     }
+    for asset in generated
+        .iter()
+        .filter(|file| matches!(file.kind, GeneratedKind::Asset))
+    {
+        let Some(source_path) = asset.source_path.as_ref() else {
+            continue;
+        };
+        content.push_str("[[assets]]\n");
+        content.push_str(&format!("path = \"{}\"\n", toml_path(source_path)));
+        content.push_str(&format!("hash = \"{}\"\n", sha256(&asset.content)));
+        let path = asset.path.strip_prefix(&package.root).unwrap_or(&asset.path);
+        content.push_str("[[assets.outputs]]\n");
+        content.push_str(&format!("path = \"{}\"\n", toml_path(path)));
+        content.push_str(&format!("hash = \"{}\"\n\n", sha256(&asset.content)));
+    }
     GeneratedFile {
         path: package.root.join(".mds/manifest.toml"),
         content,
