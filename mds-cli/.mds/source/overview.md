@@ -8,24 +8,24 @@ Native CLI package for mds commands, including argument parsing, wizard flow, an
 
 This package is authored under `mds-cli/.mds/source/` and synchronized into package `src/` / `tests/` and `.build/rust/mds-cli/` before Cargo commands. Package metadata is read from `../Cargo.toml`; mds does not use a package root `index.md`.
 
-<!-- mds:begin package-summary -->
+### Package Summary
+
 | Name | Version |
 | --- | --- |
 | mds-cli | 0.1.0-alpha.1 |
-<!-- mds:end package-summary -->
 
-<!-- mds:begin dependencies -->
+### Dependencies
+
 | Name | Version | Summary |
 | --- | --- | --- |
 | crossterm | 0.27 |  |
 | mds-core | 0.1.0-alpha.1 |  |
 | ratatui | 0.26 |  |
-<!-- mds:end dependencies -->
 
-<!-- mds:begin dev-dependencies -->
+### Dev Dependencies
+
 | Name | Version | Summary |
 | --- | --- | --- |
-<!-- mds:end dev-dependencies -->
 
 ## Exposes
 

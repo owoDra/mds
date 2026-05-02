@@ -8,13 +8,14 @@ Language Server Protocol package for mds editor integration.
 
 This package is authored under `mds-lsp/.mds/source/` and synchronized into package `src/` / `tests/` and `.build/rust/mds-lsp/` before Cargo commands. Package metadata is read from `../Cargo.toml`; mds does not use a package root `index.md`.
 
-<!-- mds:begin package-summary -->
+### Package Summary
+
 | Name | Version |
 | --- | --- |
 | mds-lsp | 0.1.0-alpha.1 |
-<!-- mds:end package-summary -->
 
-<!-- mds:begin dependencies -->
+### Dependencies
+
 | Name | Version | Summary |
 | --- | --- | --- |
 | mds-core | 0.1.0-alpha.1 |  |
@@ -25,13 +26,12 @@ This package is authored under `mds-lsp/.mds/source/` and synchronized into pack
 | tower-lsp | 0.20 |  |
 | tracing | 0.1 |  |
 | tracing-subscriber | 0.3 |  |
-<!-- mds:end dependencies -->
 
-<!-- mds:begin dev-dependencies -->
+### Dev Dependencies
+
 | Name | Version | Summary |
 | --- | --- | --- |
 | tempfile | 3 |  |
-<!-- mds:end dev-dependencies -->
 
 ## Exposes
 

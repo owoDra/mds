@@ -82,7 +82,7 @@ pub(crate) fn planned_package_overview(
         }
     };
     let metadata = read_package_metadata(package, state)?;
-    let new = replace_managed_block(
+    let new = replace_managed_region(
         &old,
         "package-summary",
         &package_summary_table(&metadata.name, &metadata.version),
@@ -90,7 +90,7 @@ pub(crate) fn planned_package_overview(
         state,
     )
     .and_then(|text| {
-        replace_managed_block(
+        replace_managed_region(
             &text,
             "dependencies",
             &dependency_table(&metadata.dependencies),
@@ -99,7 +99,7 @@ pub(crate) fn planned_package_overview(
         )
     })
     .and_then(|text| {
-        replace_managed_block(
+        replace_managed_region(
             &text,
             "dev-dependencies",
             &dependency_table(&metadata.dev_dependencies),
@@ -108,6 +108,74 @@ pub(crate) fn planned_package_overview(
         )
     })?;
     Some((path, old, new))
+}
+````
+
+````rs
+fn replace_managed_region(
+    text: &str,
+    name: &str,
+    replacement: &str,
+    path: &Path,
+    state: &mut RunState,
+) -> Option<String> {
+    if has_managed_section(text, name) {
+        return replace_managed_section(text, name, replacement, path, state);
+    }
+    if text.contains(&format!("<!-- mds:begin {name} -->")) {
+        return replace_managed_block(text, name, replacement, path, state);
+    }
+    state.diagnostics.push(Diagnostic::error(
+        Some(path.to_path_buf()),
+        format!("source overview is missing managed section `{}`", managed_section_heading(name)),
+    ));
+    None
+}
+````
+
+````rs
+fn has_managed_section(text: &str, name: &str) -> bool {
+    let heading = format!("### {}", managed_section_heading(name));
+    text.lines().any(|line| line.trim() == heading)
+}
+````
+
+````rs
+fn replace_managed_section(
+    text: &str,
+    name: &str,
+    replacement: &str,
+    path: &Path,
+    state: &mut RunState,
+) -> Option<String> {
+    let heading = format!("### {}", managed_section_heading(name));
+    let lines = text.lines().collect::<Vec<_>>();
+    let Some(start) = lines.iter().position(|line| line.trim() == heading) else {
+        state.diagnostics.push(Diagnostic::error(
+            Some(path.to_path_buf()),
+            format!("source overview is missing managed section `{}`", managed_section_heading(name)),
+        ));
+        return None;
+    };
+    let mut end = start + 1;
+    while end < lines.len() {
+        let trimmed = lines[end].trim();
+        if trimmed.starts_with("### ") || trimmed.starts_with("## ") {
+            break;
+        }
+        end += 1;
+    }
+
+    let mut output = String::new();
+    output.push_str(&lines[..=start].join("\n"));
+    output.push_str("\n\n");
+    output.push_str(replacement.trim_end());
+    output.push('\n');
+    if end < lines.len() {
+        output.push('\n');
+        output.push_str(&lines[end..].join("\n"));
+    }
+    Some(output)
 }
 ````
 
@@ -122,10 +190,6 @@ fn replace_managed_block(
     let begin = format!("<!-- mds:begin {name} -->");
     let end = format!("<!-- mds:end {name} -->");
     let Some(start) = text.find(&begin) else {
-        state.diagnostics.push(Diagnostic::error(
-            Some(path.to_path_buf()),
-            format!("source overview is missing managed block `{name}`"),
-        ));
         return None;
     };
     let search_from = start + begin.len();
@@ -145,6 +209,17 @@ fn replace_managed_block(
     output.push('\n');
     output.push_str(&text[end_index..]);
     Some(output)
+}
+````
+
+````rs
+fn managed_section_heading(name: &str) -> &'static str {
+    match name {
+        "package-summary" => "Package Summary",
+        "dependencies" => "Dependencies",
+        "dev-dependencies" => "Dev Dependencies",
+        _ => "Managed Section",
+    }
 }
 ````
 

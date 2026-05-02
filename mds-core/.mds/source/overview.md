@@ -8,24 +8,24 @@ Rust core library for parsing, validating, generating, and initializing mds proj
 
 This package is authored under `mds-core/.mds/source/` and synchronized into package `src/` / `tests/` and `.build/rust/mds-core/` before Cargo commands. Package metadata is read from `../Cargo.toml`; mds does not use a package root `index.md`.
 
-<!-- mds:begin package-summary -->
+### Package Summary
+
 | Name | Version |
 | --- | --- |
 | mds-core | 0.1.0-alpha.1 |
-<!-- mds:end package-summary -->
 
-<!-- mds:begin dependencies -->
+### Dependencies
+
 | Name | Version | Summary |
 | --- | --- | --- |
 | serde | 1 |  |
 | serde_json | 1 |  |
 | toml | 0.8 |  |
-<!-- mds:end dependencies -->
 
-<!-- mds:begin dev-dependencies -->
+### Dev Dependencies
+
 | Name | Version | Summary |
 | --- | --- | --- |
-<!-- mds:end dev-dependencies -->
 
 ## Exposes
 

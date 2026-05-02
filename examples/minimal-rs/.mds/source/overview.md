@@ -9,21 +9,21 @@ Rust の最小構成サンプルです。
 
 `.mds/source/` 内の Markdown が正本です。
 
-<!-- mds:begin package-summary -->
+### Package Summary
+
 | Name | Version |
 | --- | --- |
 | minimal-rs | 0.1.0 |
-<!-- mds:end package-summary -->
 
-<!-- mds:begin dependencies -->
+### Dependencies
+
 | Name | Version | Summary |
 | --- | --- | --- |
-<!-- mds:end dependencies -->
 
-<!-- mds:begin dev-dependencies -->
+### Dev Dependencies
+
 | Name | Version | Summary |
 | --- | --- | --- |
-<!-- mds:end dev-dependencies -->
 
 ## Exposes
 
