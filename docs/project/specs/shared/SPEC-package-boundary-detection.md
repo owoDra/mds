@@ -18,7 +18,7 @@ mds は monorepo 内で package 単位に対象範囲を決め、mds 対象 pack
 ## 入力
 
 - `mds.config.toml` の package 設定
-- package root の `package.md`
+- language package metadata
 - 実体の package 定義
 - `allow_raw_source`
 
@@ -30,11 +30,11 @@ mds は monorepo 内で package 単位に対象範囲を決め、mds 対象 pack
 
 ## 挙動
 
-- `enabled = true`、`package.md`、実体の package 定義が揃う package を mds 対象とみなす。
+- `[package] enabled = true` と実体の package 定義が揃う package を mds 対象とみなす。
 - JS / TS は `package.json`、Python は `pyproject.toml`、Rust は `Cargo.toml` を実体の package 定義とする。
 - `enabled = false` の package は mds 対象外とする。
 - `allow_raw_source = true` の場合、mds 非対象 package や直書きソースとの混在を許可する。
-- package 情報は実体 package metadata を正とし、`package.md` の生成管理部分が違う場合は `mds check` で診断する。
+- package 情報は実体 package metadata を正とし、Markdown へ package metadata を複製しない。
 
 ## 状態遷移 / 不変条件
 
@@ -43,9 +43,9 @@ mds は monorepo 内で package 単位に対象範囲を決め、mds 対象 pack
 
 ## エラー / 例外
 
-- `enabled = true` だが `package.md` または package 定義がない場合は対象 package として扱わず、設定または構造の不備として報告する。
+- `enabled = true` だが package 定義がない場合は対象 package として扱わず、設定または構造の不備として報告する。
 - package 定義がない任意ディレクトリは暗黙に mds package とみなさない。
-- `package.md` と実体 package metadata が矛盾する場合は package metadata を正として診断する。
+- 実体 package metadata を parse できない場合は診断する。
 
 ## 横断ルール
 

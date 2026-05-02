@@ -131,7 +131,7 @@ pub enum AiTarget {
 ### 5. ビルドして確認
 
 ```bash
-./scripts/sync-build.sh && cd .build/rust && cargo build && cargo test
+./.github/script/sync-build.sh && cd .build/rust && cargo build && cargo test
 ```
 
 build.rs が manifest.toml を自動検出し、テンプレートレジストリに登録します。init ロジックの変更は不要です。

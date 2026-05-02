@@ -10,8 +10,8 @@
 | 正本 | 人間と AI エージェントが参照する一次情報。mds では実コードを含む `.md` を正本とする。 |
 | 生成コード | `.md` 内の `Types`、`Source`、`Test` などのコードブロックとメタ情報から生成される `.ts`、`.py`、`.rs` などの派生物。 |
 | language adapter | 言語ごとの import 生成、lint、lint --fix、test runner 接続、出力規則を担う部品。 |
-| `index.md` | ディレクトリ以下の overview、architecture、navigation を担当する文書。 |
-| `package.md` | project または subproject 単位の package 情報を説明する文書。 |
+| `index.md` | package root の package metadata、overview、architecture、navigation を担当する文書。 |
+| `overview.md` | `src-md/` など source root の overview、architecture、navigation を担当する文書。 |
 | implementation md | 1 機能 1 実装を表す `*.{lang-ext}.md` 形式の文書。設計説明だけでなく、実装レベルの `Types`、`Source`、`Test` コードを含む。 |
 | Expose | 実装 md または index が公開面を表すための表形式メタ情報。 |
 | Uses | `Types`、`Source`、`Test` ごとの依存を表す表形式メタ情報。 |

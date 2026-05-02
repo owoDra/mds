@@ -11,20 +11,20 @@
 
 ## Source
 
-```rs
+````rs
 /// greet 関数のオプション
 pub struct GreetOptions {
     pub name: String,
 }
-```
 
-```rs
 /// 名前を受け取り、挨拶メッセージを返します。
+````
+
+````rs
 pub fn greet(options: &GreetOptions) -> String {
     format!("Hello, {}!", options.name)
 }
-```
-
+````
 ### Dependencies
 
 | Target | Summary |

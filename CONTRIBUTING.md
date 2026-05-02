@@ -13,7 +13,7 @@ cd mds
 git config core.hooksPath .githooks
 
 # 3. Rust のビルドと確認
-./scripts/sync-build.sh
+./.github/script/sync-build.sh
 cd .build/rust
 cargo build
 cargo test
@@ -56,7 +56,7 @@ git checkout -b feature/your-feature-name
 ### 4. テストを実行する
 
 ```bash
-./scripts/sync-build.sh
+./.github/script/sync-build.sh
 cd .build/rust
 cargo test
 cargo clippy
@@ -66,7 +66,7 @@ cargo fmt --check
 一括実行する場合は VSCode タスクも利用できます:
 
 ```bash
-./scripts/sync-build.sh
+./.github/script/sync-build.sh
 cd .build/rust
 cargo fmt --check && cargo clippy -- -D warnings && cargo test
 ```

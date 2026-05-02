@@ -23,7 +23,7 @@ Markdown 正本からの派生コード生成、検査、品質確認、package 
 - `mds check` で構造、参照、表を検証すること
 - `mds lint`、`mds lint --fix`、`mds test` で adapter 経由の品質確認と自動修正を行うこと
 - `mds doctor` で環境を確認すること
-- `mds package sync` で package metadata から `package.md` を更新すること
+- `mds package sync` は package metadata が正であることを示し、Markdown package metadata を生成しないこと
 - `mds release check` で公開前品質 gate を確認すること
 
 ## 対象外
@@ -37,7 +37,7 @@ Markdown 正本からの派生コード生成、検査、品質確認、package 
 
 - 各コマンドの正常系、入力不備、対象なし、部分失敗の挙動が仕様化される
 - 失敗時に終了コードとエラー出力から次の対応が分かる
-- `package sync` が package metadata と `package.md` の整合性を保てる
+- `package sync` が Markdown package metadata を正本として扱わない
 
 ## 制約 / 品質条件
 

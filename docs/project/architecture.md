@@ -14,9 +14,10 @@
 
 - `.md` が設計書兼ソースの正本であり、implementation md には実装レベルのコードを含め、生成コードはその派生物とする。
 - mds は設計説明から AI にコードを書かせる仕組みではなく、Markdown 内のコードブロックとメタ情報を generator / language adapter が処理する仕組みとする。
-- mds 自身の編集入口は `src-md/` とし、`.build/` は生成物置き場として Git 管理しない。
+- mds 自身の package 編集入口は各 package の `src-md/` とし、`.build/` は生成物置き場として Git 管理しない。
 - 1 つの implementation md は 1 機能だけを扱う。
 - import / use / require はコードブロック外の `Uses` に記録し、language adapter が生成する。
+- implementation md の code block は import / use / require を含めず、1 code block につき 1 top-level logical unit だけを含める。
 - 設定ファイルは `mds.config.toml` 固定とし、セクションの意味や必須構造は設定で変更しない。
 - `Expose` は公開面を示し、`Uses` は依存を示す。
 
@@ -29,16 +30,16 @@
 - npm wrapper は native CLI の配布と起動だけを担い、Markdown model や core の意味体系を変更しない。
 - `mds init` は project 初期化、AI agent kit 生成、開発環境セットアップの入口を担う。
 - AI CLI template plugin は AI CLI 固有の instruction、skill、command、workflow、docs 生成差分を担い、任意コマンド実行は行わない。
-- `index.md` は階層の設計、責務、公開面、ルールを説明する。
-- `package.md` は package metadata と package 単位のルールを説明する。
+- package root に mds 用の `index.md` は置かず、package metadata は `Cargo.toml`、`package.json`、`pyproject.toml` などの実体 metadata を正とする。
+- source root の `overview.md` は source hierarchy と package 単位の設計、責務、公開面、ルールを説明する。
 - implementation md は `Purpose`、`Contract`、`Types`、`Source`、`Cases`、`Test` を持ち、`Types`、`Source`、`Test` には生成元となる実コードを置く 1 機能の正本とする。
 
 ## Workspace 構成
 
-- `src-md/` は mds 自身の source root とし、`src-md/index.md` が全体設計、各 package の `index.md` が package / directory 単位の設計を担う。
-- `src-md/mds-core`、`src-md/mds-cli`、`src-md/mds-lsp` は Rust 実装の Markdown 正本であり、`scripts/sync-build.sh` により `.build/rust/` の Cargo workspace へ同期する。
+- root 直下に mds 自身の `src-md/` は置かず、各 package の `src-md/overview.md` が package 単位の source overview を担う。
+- `mds-core/src-md`、`mds-cli/src-md`、`mds-lsp/src-md` は Rust 実装の Markdown 正本であり、`.github/script/sync-build.sh` により package 内の生成 `src/` / `tests/` と `.build/rust/` の Cargo workspace へ同期する。
 - `.build/rust/Cargo.toml` は生成された Rust workspace manifest とし、`.build/rust/mds-core`、`.build/rust/mds-cli`、`.build/rust/mds-lsp` を束ねる。
-- TypeScript / Python / Rust の language adapter 規則は現時点では Rust core 側の生成処理と共有仕様で管理し、独立した `packages/`、`python/`、`src-md/mds-lang-rs` 配布単位は置かない。
+- TypeScript / Python / Rust の language adapter 規則は現時点では Rust core 側の生成処理と共有仕様で管理し、独立した `packages/`、`python/`、`mds-lang-rs` 配布単位は置かない。
 - `editors/vscode` は VS Code 拡張とし、syntax highlighting、LSP 連携、snippets を提供する。
 - `.agents/` は AI 専用の制約、作業手順、skill、task 文脈キャッシュを置き、`docs/project/` は人間向け正本を置く。
 

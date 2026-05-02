@@ -21,7 +21,7 @@ cargo run -p mds-cli -- check --package ../examples/minimal-ts --verbose
 
 # 3. Release dry run
 cargo build --release
-./.github/scripts/generate-release-artifacts.sh
+./.github/script/generate-release-artifacts.sh
 ```
 
 ## Automated Release (recommended)
@@ -66,7 +66,7 @@ npx @vscode/vsce publish --pre-release
 
 ```bash
 # Build platform binaries
-./scripts/sync-build.sh
+./.github/script/sync-build.sh
 cargo --manifest-path .build/rust/Cargo.toml build --release
 
 # Create GitHub Release with binaries
@@ -81,7 +81,7 @@ gh release create v0.1.0-alpha.1 \
 
 ```bash
 # Generate checksums, SBOM, provenance
-./.github/scripts/generate-release-artifacts.sh
+./.github/script/generate-release-artifacts.sh
 
 # Verify release gate
 mds release check --manifest release.mds.toml --verbose

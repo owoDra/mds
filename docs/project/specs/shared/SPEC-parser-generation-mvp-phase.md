@@ -30,7 +30,7 @@ related:
 ## 入力
 
 - `mds.config.toml`
-- package root の `package.md`
+- language package metadata
 - package metadata: `package.json`、`pyproject.toml`、`Cargo.toml`
 - `src-md` 配下の implementation md
 - `index.md` の `Exposes`
@@ -50,9 +50,9 @@ related:
 - 今フェーズの CLI は `mds check`、`mds build --dry-run`、`mds build` に限定する。
 - `mds.config.toml` の MVP 対象 key は `[package] enabled/allow_raw_source`、`[roots] markdown/source/types/test`、`[adapters.<lang>] enabled` とする。
 - MVP 対象外の config key は warning として報告し、処理は継続する。
-- `package.md` は存在、必須セクション、package metadata との詳細同期まで検査する。
-- package metadata と `package.md` の `Package`、`Dependencies`、`Dev Dependencies` が矛盾する場合は `mds check` の診断にする。
-- dependency version は package metadata を正とし、`package.md` の値が異なる場合は診断する。
+- package metadata は実体 metadata を parse できることを検査する。
+- package metadata を Markdown に複製しない。
+- dependency version は package metadata を正とする。
 - Markdown table の列名は trim し、case-insensitive に canonical column へ解決する。
 - `Expose.Kind` と `Uses.From` の enum 値は小文字 canonical のみ受け付ける。
 - table の余分な列は warning として無視する。
@@ -75,7 +75,7 @@ related:
 
 ## 状態遷移 / 不変条件
 
-- package metadata は package 情報の正とし、`package.md` は同期対象の正本表示として扱う。
+- package metadata は package 情報の正とし、Markdown は同期対象にしない。
 - `mds build` は mds 管理 marker と manifest によって管理対象と判断できる生成物だけ上書きする。
 - manifest 破損時は安全側に倒し、生成物を書き換えない。
 
@@ -104,7 +104,7 @@ related:
 ## 検証観点
 
 - MVP 対象 config key と対象外 key warning を fixture で確認する。
-- `package.md` と package metadata の詳細同期診断を fixture で確認する。
+- package metadata を Markdown に同期しないことを fixture で確認する。
 - table column、enum、余分な列、意味重複、`Uses.Target` 正規形を fixture で確認する。
 - TypeScript / Python / Rust の import / use 生成順、統合、拡張子、absolute import を fixture で確認する。
 - manifest path、source hash、破損 manifest error を fixture で確認する。

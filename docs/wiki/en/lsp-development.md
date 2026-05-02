@@ -79,7 +79,7 @@ The workspace state defined in `state.rs` is the foundation for all capabilities
 ### Build
 
 ```bash
-./scripts/sync-build.sh
+./.github/script/sync-build.sh
 cd .build/rust
 cargo build -p mds-lsp
 ```

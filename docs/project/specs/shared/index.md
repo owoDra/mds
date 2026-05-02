@@ -27,7 +27,7 @@
 
 - `SPEC-config-toml-resolution.md`: `mds.config.toml` の設定解決仕様
 - `SPEC-package-boundary-detection.md`: monorepo package 境界検出仕様
-- `SPEC-markdown-document-model.md`: `index.md`、`package.md`、implementation md の文書モデル仕様
+- `SPEC-markdown-document-model.md`: `overview.md`、implementation md の文書モデル仕様
 - `SPEC-expose-uses-tables.md`: `Expose` / `Uses` テーブル仕様
 - `SPEC-code-generation-output.md`: Source / Types / Test の生成出力仕様
 - `SPEC-adapter-rust-generation.md`: Rust adapter 生成仕様

@@ -27,7 +27,7 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 rustup component add rustfmt clippy
 
 # Install mds for development
-./scripts/sync-build.sh
+./.github/script/sync-build.sh
 cargo install --path .build/rust/mds-cli
 
 # Verify
@@ -58,7 +58,7 @@ mds/
 ### Rust build
 
 ```bash
-./scripts/sync-build.sh
+./.github/script/sync-build.sh
 cd .build/rust
 cargo build                # Debug build
 cargo build --release      # Release build
@@ -76,7 +76,7 @@ cargo build -p mds-cli     # CLI only
 ### Run all tests
 
 ```bash
-./scripts/sync-build.sh
+./.github/script/sync-build.sh
 cd .build/rust
 cargo test
 ```
@@ -100,7 +100,7 @@ cargo test -p mds-cli -- args                    # CLI argument tests only
 ### Formatting
 
 ```bash
-./scripts/sync-build.sh
+./.github/script/sync-build.sh
 cd .build/rust
 cargo fmt              # Auto-format
 cargo fmt --check      # Check diff only
@@ -116,7 +116,7 @@ cargo clippy -- -D warnings   # Treat warnings as errors
 ### Batch execution
 
 ```bash
-./scripts/sync-build.sh
+./.github/script/sync-build.sh
 cd .build/rust
 cargo fmt --check && cargo clippy -- -D warnings && cargo test
 ```
@@ -128,7 +128,7 @@ In VSCode, you can run the "mds: Check All" task for the same checks.
 How to run commands under development with sample packages.
 
 ```bash
-./scripts/sync-build.sh
+./.github/script/sync-build.sh
 cd .build/rust
 
 # Structure inspection
@@ -191,7 +191,7 @@ cargo test -p mds-core -- --nocapture test_name
 
 ## Checklist for Code Changes
 
-1. Run `scripts/sync-build.sh` to update `.build/rust/`
+1. Run `.github/script/sync-build.sh` to update `.build/rust/`
 2. Format with `cargo fmt` in `.build/rust`
 3. Confirm no warnings with `cargo clippy` in `.build/rust`
 4. Confirm all tests pass with `cargo test` in `.build/rust`

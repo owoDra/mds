@@ -10,35 +10,39 @@ related:
 
 ## 目標
 
-mds は `index.md`、`package.md`、`*.{lang-ext}.md` の 3 種類を明確に区別して扱えること。
+mds は `.mds/source` と `.mds/test` の fixed authoring root 配下で、source overview、test overview、source md、test md を明確に区別して扱えること。
 
 ## 根拠
 
-階層説明、package 説明、1 機能 1 実装の責務を分けることで、正本の読み方と生成対象を安定させるため。
+source rule、test rule、1 機能 1 実装、1 テスト責務を分離することで、正本の読み方と生成対象を安定させるため。
 
 ## 対象範囲
 
-- `index.md` が階層の overview、architecture、navigation を担当すること
-- `package.md` が project または subproject 単位の package 情報を担当すること
-- `*.{lang-ext}.md` が 1 機能 1 実装を担当すること
+- `.mds/source/overview.md` が source root の overview、architecture、dependency snapshot、navigation を担当すること
+- `.mds/test/overview.md` が test root の overview と test rule を担当すること
+- package 情報は language package metadata を正とすること
+- `.mds/source/**/*.{lang-ext}.md` が 1 機能 1 実装を担当すること
+- `.mds/test/**/*.md` が `Covers` を持つ test md を担当すること
 - 各文書種別に必須セクションを定義すること
 
 ## 対象外
 
-- 任意ファイル名の Markdown を実装 md とみなすこと
-- `Structure` セクションを `index.md` の必須構造として追加すること
-- `package.md` をディレクトリ単位の自由文書として扱うこと
+- authoring root を package ごとに自由命名すること
+- 任意ファイル名の Markdown を source md / test md とみなすこと
+- language package metadata を Markdown 正本として扱うこと
 
 ## 成功指標
 
 - 文書種別ごとの必須セクションを検査できる
-- `index.md` の `Exposes` から階層下の公開面を把握できる
-- `package.md` が package metadata と package ルールを説明できる
+- `.mds/source/overview.md` の `Exposes` から階層下の公開面を把握できる
+- test md の `Covers` から source との対応を検査できる
+- language package metadata と Markdown 正本の責務境界が明確である
 
 ## 制約 / 品質条件
 
-- `index.md` の構造一覧は `Exposes` に統合する
-- `package.md` は package metadata からの自動生成を基本にし、`Rules` の手書き補足を許す
+- authoring root は `.mds/source` と `.mds/test` に固定する
+- `overview.md` の構造一覧は `Exposes` に統合する
+- package metadata は Markdown に手書きで複製せず、必要な snapshot は managed section として扱う
 
 ## 関連資料
 

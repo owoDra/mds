@@ -27,14 +27,14 @@
 
 - 2 つ以上の subproject にまたがる仕様は `shared/` に置く
 - 1 つの subproject に閉じる仕様はその subproject 配下に置く
-- mds 自身の実装に結びつく設計は、今後は `src-md/` 配下の該当 `index.md` または implementation md へ移す
+- mds 自身の実装に結びつく設計は、今後は package `index.md`、package 配下 `src-md/overview.md`、または implementation md へ移す
 - `src-md/project/specs/` は作らない
 
 ## 参照
 
 - `shared/index.md`: 複数 subproject にまたがる共有仕様の入口
-- `crates-mds-core/index.md`: 移行前の `mds-core` 固有仕様の入口。新しい設計は `src-md/mds-core/index.md` または該当 implementation md に移す
-- `crates-mds-cli/index.md`: 移行前の `mds-cli` 固有仕様の入口。新しい設計は `src-md/mds-cli/index.md` または該当 implementation md に移す
+- `crates-mds-core/index.md`: 移行前の `mds-core` 固有仕様の入口。新しい設計は `mds-core/src-md/overview.md` または該当 implementation md に移す
+- `crates-mds-cli/index.md`: 移行前の `mds-cli` 固有仕様の入口。新しい設計は `mds-cli/src-md/overview.md` または該当 implementation md に移す
 
 ## 追加された共有仕様
 
