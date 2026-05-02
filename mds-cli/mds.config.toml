@@ -3,9 +3,9 @@ enabled = true
 allow_raw_source = false
 
 [roots]
-source = "../.build/rust/mds-cli"
-types = "../.build/rust/mds-cli"
-test = "../.build/rust/mds-cli"
+source = "src"
+types = "src"
+test = "tests"
 excludes = []
 
 [quality.rs]

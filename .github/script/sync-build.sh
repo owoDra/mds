@@ -83,7 +83,10 @@ for package in packages:
             continue
 
         if path.name.endswith(".rs.md"):
-            output_rel = rel.with_name(rel.name[:-3])
+            if rel == Path("build.rs.md"):
+                output_rel = Path("build.rs")
+            else:
+                output_rel = Path("src") / rel.with_name(rel.name[:-3])
             output_paths = [package_root / output_rel, package_build / output_rel]
             code = extract_code_blocks(path.read_text(encoding="utf-8"))
             for output_path in output_paths:
@@ -97,7 +100,8 @@ for package in packages:
         if path.suffix == ".md" and "templates" not in rel.parts:
             continue
 
-        for output_path in [package_root / rel, package_build / rel]:
+        output_rel = Path("src") / rel
+        for output_path in [package_root / output_rel, package_build / output_rel]:
             output_path.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(path, output_path)
 

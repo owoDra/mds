@@ -11,25 +11,25 @@ Migrated implementation source for `tests/parser_generation_mvp.rs`.
 
 ## Covers
 
-- src/adapter
-- src/config
-- src/diagnostics
-- src/diff
-- src/doctor
-- src/fs_utils
-- src/generation
-- src/hash
-- src/init/mod
-- src/manifest
-- src/markdown
-- src/model
-- src/new
-- src/package
-- src/package_sync
-- src/quality
-- src/release_quality
-- src/runner
-- src/table
+- adapter
+- config
+- diagnostics
+- diff
+- doctor
+- fs_utils
+- generation
+- hash
+- init/mod
+- manifest
+- markdown
+- model
+- new
+- package
+- package_sync
+- quality
+- release_quality
+- runner
+- table
 
 ## Test
 

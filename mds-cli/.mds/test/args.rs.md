@@ -11,7 +11,7 @@ Migrated implementation source for `tests/args.rs`.
 
 ## Covers
 
-- src/args
+- args
 
 ## Test
 

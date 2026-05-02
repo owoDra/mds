@@ -82,12 +82,18 @@ pub(crate) fn plan_output(
     }
     let source_hash = sha256(&doc.normalized_input);
     let relative = output_relative_path(doc, kind);
-    let output_root = match kind {
-        OutputKind::Source => &package.config.roots.source,
-        OutputKind::Types => &package.config.roots.types,
-        OutputKind::Test => &package.config.roots.test,
+    let path = if matches!((doc.lang.clone(), kind), (crate::model::Lang::Rust, OutputKind::Source))
+        && doc.markdown_relative_path == std::path::Path::new("build.rs.md")
+    {
+        package.root.join(relative)
+    } else {
+        let output_root = match kind {
+            OutputKind::Source => &package.config.roots.source,
+            OutputKind::Types => &package.config.roots.types,
+            OutputKind::Test => &package.config.roots.test,
+        };
+        package.root.join(output_root).join(relative)
     };
-    let path = package.root.join(output_root).join(relative);
     if is_excluded(&package.root, &path, &package.config.excludes) {
         return None;
     }

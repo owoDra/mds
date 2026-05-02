@@ -11,8 +11,8 @@ Migrated implementation source for `tests/diagnostics.rs`.
 
 ## Covers
 
-- src/capabilities/diagnostics
-- src/convert
+- capabilities/diagnostics
+- convert
 
 ## Test
 

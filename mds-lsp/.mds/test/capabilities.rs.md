@@ -11,10 +11,10 @@ Migrated implementation source for `tests/capabilities.rs`.
 
 ## Covers
 
-- src/capabilities/code_action
-- src/capabilities/completion
-- src/capabilities/symbols
-- src/convert
+- capabilities/code_action
+- capabilities/completion
+- capabilities/symbols
+- convert
 
 ## Test
 

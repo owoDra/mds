@@ -3,10 +3,10 @@ enabled = true
 allow_raw_source = false
 
 [roots]
-source = "../.build/rust/mds-core"
-types = "../.build/rust/mds-core"
-test = "../.build/rust/mds-core"
-excludes = [".mds/source/src/init/templates/**"]
+source = "src"
+types = "src"
+test = "tests"
+excludes = [".mds/source/init/templates/**"]
 
 [quality.rs]
 linter = "cargo clippy -- -D warnings"

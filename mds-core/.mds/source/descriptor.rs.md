@@ -84,6 +84,9 @@ pub(crate) fn builtin_descriptor(lang: &Lang) -> Descriptor {
 
 ````rs
 pub(crate) fn output_relative_path(relative: &Path, lang: &Lang, kind: OutputKind) -> PathBuf {
+    if matches!((lang, kind), (Lang::Rust, OutputKind::Source)) && relative == Path::new("build.rs.md") {
+        return PathBuf::from("build.rs");
+    }
     let descriptor = builtin_descriptor(lang);
     let rule = descriptor.file_rule(kind);
     apply_file_rule(relative, &descriptor.language.primary_ext, rule)
