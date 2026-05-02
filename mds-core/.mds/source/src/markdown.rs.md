@@ -54,7 +54,9 @@ pub fn load_implementation_docs(
     docs.sort_by(|left, right| left.path.cmp(&right.path));
     Ok(docs)
 }
+````
 
+````rs
 fn load_test_docs(
     package: &Package,
     source_docs: &[ImplDoc],
@@ -141,27 +143,35 @@ pub fn parse_impl_doc(
         normalized_input,
     })
 }
+````
 
+````rs
 pub fn source_markdown_root(package: &Package) -> PathBuf {
     let fixed = package.root.join(".mds/source");
-    if has_source_impl_docs(&fixed) {
+    if fixed.exists() && (has_source_impl_docs(&fixed) || !package.root.join(&package.config.roots.markdown).exists()) {
         fixed
     } else {
         package.root.join(&package.config.roots.markdown)
     }
 }
+````
 
+````rs
 pub fn test_markdown_root(package: &Package) -> PathBuf {
     package.root.join(".mds/test")
 }
+````
 
+````rs
 fn markdown_root_for(package: &Package, doc_kind: DocKind) -> PathBuf {
     match doc_kind {
         DocKind::Source => source_markdown_root(package),
         DocKind::Test => test_markdown_root(package),
     }
 }
+````
 
+````rs
 fn has_source_impl_docs(root: &Path) -> bool {
     let Ok(files) = collect_files(root, false) else {
         return false;
@@ -171,12 +181,16 @@ fn has_source_impl_docs(root: &Path) -> bool {
             && !matches!(path.file_name().and_then(|name| name.to_str()), Some("overview.md" | "index.md"))
     })
 }
+````
 
+````rs
 fn is_test_doc(path: &Path) -> bool {
     matches!(path.extension().and_then(|ext| ext.to_str()), Some("md"))
         && !matches!(path.file_name().and_then(|name| name.to_str()), Some("overview.md"))
 }
+````
 
+````rs
 fn resolve_test_doc_lang(
     package: &Package,
     path: &Path,
@@ -242,13 +256,17 @@ fn resolve_test_doc_lang(
 
     lang
 }
+````
 
+````rs
 fn cover_matches(doc: &ImplDoc, cover: &str) -> bool {
     let cover = cover.trim();
     cover == logical_module_id(&doc.markdown_relative_path)
         || cover == doc.markdown_relative_path.to_string_lossy()
 }
+````
 
+````rs
 fn logical_module_id(path: &Path) -> String {
     let value = path.to_string_lossy().replace('\\', "/");
     let value = value.strip_suffix(".md").unwrap_or(&value);
@@ -273,7 +291,9 @@ fn validate_impl_doc_structure(
     validate_code_fence_integrity(path, text, state);
     validate_duplicate_h2_sections(path, text, label_overrides, state);
 }
+````
 
+````rs
 fn validate_code_fence_integrity(path: &Path, text: &str, state: &mut RunState) {
     let mut fence_len: Option<usize> = None;
     let mut fence_start_line = 0usize;
@@ -309,7 +329,9 @@ fn validate_code_fence_integrity(path: &Path, text: &str, state: &mut RunState) 
         ));
     }
 }
+````
 
+````rs
 fn validate_duplicate_h2_sections(
     path: &Path,
     text: &str,
@@ -317,7 +339,21 @@ fn validate_duplicate_h2_sections(
     state: &mut RunState,
 ) {
     let mut first_seen = HashMap::new();
+    let mut fence_len: Option<usize> = None;
     for (line_index, line) in text.lines().enumerate() {
+        if let Some((marker_len, suffix)) = backtick_fence(line) {
+            if let Some(open_len) = fence_len {
+                if is_closing_fence(marker_len, suffix, open_len) {
+                    fence_len = None;
+                }
+            } else {
+                fence_len = Some(marker_len);
+            }
+            continue;
+        }
+        if fence_len.is_some() {
+            continue;
+        }
         let Some(title) = line.strip_prefix("## ") else {
             continue;
         };
@@ -333,7 +369,9 @@ fn validate_duplicate_h2_sections(
         }
     }
 }
+````
 
+````rs
 pub fn extract_all_code_blocks(text: &str) -> String {
     let mut fence_len: Option<usize> = None;
     let mut current = String::new();
@@ -365,13 +403,17 @@ pub fn extract_all_code_blocks(text: &str) -> String {
         blocks.join("\n\n") + "\n"
     }
 }
+````
 
+````rs
 fn code_from_section(section: Option<&String>) -> String {
     section
         .map(|section| extract_all_code_blocks(section))
         .unwrap_or_default()
 }
+````
 
+````rs
 fn covers_from_section(section: Option<&String>) -> Vec<String> {
     section
         .map(|section| {
@@ -419,7 +461,9 @@ fn validate_code_block_boundaries(path: &Path, lang: &Lang, text: &str, state: &
         }
     }
 }
+````
 
+````rs
 #[derive(Debug)]
 ````
 
@@ -562,7 +606,9 @@ fn backtick_fence(line: &str) -> Option<(usize, &str)> {
     let count = trimmed.chars().take_while(|char| *char == '`').count();
     (count >= 3).then_some((count, &trimmed[count..]))
 }
+````
 
+````rs
 fn is_closing_fence(marker_len: usize, suffix: &str, open_len: usize) -> bool {
     marker_len >= open_len && suffix.trim().is_empty()
 }

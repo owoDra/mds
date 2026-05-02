@@ -33,7 +33,9 @@ pub(crate) fn plan_generation(
     generated.push(plan_manifest(package, docs, &generated));
     generated
 }
+````
 
+````rs
 fn plan_outputs(package: &Package, doc: &ImplDoc, state: &mut RunState) -> Vec<GeneratedFile> {
     let mut generated = Vec::new();
 
@@ -51,7 +53,9 @@ fn plan_outputs(package: &Package, doc: &ImplDoc, state: &mut RunState) -> Vec<G
 
     generated
 }
+````
 
+````rs
 fn source_body(doc: &ImplDoc) -> &str {
     if matches!(doc.doc_kind, DocKind::Source) {
         if doc.source_code.trim().is_empty() {

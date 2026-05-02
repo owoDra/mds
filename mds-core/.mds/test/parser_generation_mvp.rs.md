@@ -48,7 +48,9 @@ use mds_core::{
 
 ````rs
 static TEMP_COUNTER: AtomicUsize = AtomicUsize::new(0);
+````
 
+````rs
 #[test]
 ````
 
@@ -94,7 +96,9 @@ fn builds_three_language_fixture() {
     assert!(temp.path().join("pkg/src/foo/bar.rs").exists());
     assert!(temp.path().join("pkg/.mds/manifest.toml").exists());
 }
+````
 
+````rs
 #[test]
 ````
 
@@ -119,7 +123,9 @@ fn merges_root_and_package_config() {
     assert_eq!(build.exit_code, 0, "{}", build.stderr);
     assert!(temp.path().join("pkg/generated/foo/bar.ts").exists());
 }
+````
 
+````rs
 #[test]
 ````
 
@@ -149,7 +155,9 @@ fn package_metadata_dependencies_do_not_require_markdown_mirror() {
     });
     assert_eq!(check.exit_code, 0, "{}", check.stderr);
 }
+````
 
+````rs
 #[test]
 ````
 
@@ -184,7 +192,9 @@ fn package_sync_skips_markdown_package_metadata() {
     assert!(overview.contains("left-pad"));
     assert!(overview.contains("vitest"));
 }
+````
 
+````rs
 #[test]
 ````
 
@@ -251,7 +261,9 @@ fn rejects_multiple_top_level_implementations_in_one_code_block() {
     assert_eq!(check.exit_code, 1);
     assert!(check.stderr.contains("multiple top-level implementations"));
 }
+````
 
+````rs
 #[test]
 fn rejects_unterminated_code_fence() {
     let temp = TestDir::new();
@@ -271,7 +283,9 @@ fn rejects_unterminated_code_fence() {
     assert_eq!(check.exit_code, 1);
     assert!(check.stderr.contains("unterminated code fence"));
 }
+````
 
+````rs
 #[test]
 fn rejects_new_fence_opener_before_previous_fence_closes() {
     let temp = TestDir::new();
@@ -291,7 +305,9 @@ fn rejects_new_fence_opener_before_previous_fence_closes() {
     assert_eq!(check.exit_code, 1);
     assert!(check.stderr.contains("before a new fence opener"));
 }
+````
 
+````rs
 #[test]
 fn rejects_duplicate_h2_sections() {
     let temp = TestDir::new();
@@ -327,7 +343,9 @@ fn package_check_uses_language_metadata_without_markdown_mirror() {
     });
     assert_eq!(check.exit_code, 0, "{}", check.stderr);
 }
+````
 
+````rs
 #[test]
 ````
 
@@ -354,7 +372,9 @@ fn rejects_broken_manifest_before_building() {
     assert!(build.stderr.contains("manifest schema requires"));
     assert!(!temp.path().join("pkg/src/foo/bar.ts").exists());
 }
+````
 
+````rs
 #[test]
 fn builds_types_and_test_outputs_from_fixed_authoring_roots() {
     let temp = TestDir::new();
@@ -400,7 +420,9 @@ fn builds_types_and_test_outputs_from_fixed_authoring_roots() {
     assert!(package.join("src/foo/bar.types.ts").exists());
     assert!(package.join("tests/foo/bar.test.ts").exists());
 }
+````
 
+````rs
 #[test]
 fn rejects_test_doc_without_covers() {
     let temp = TestDir::new();
@@ -442,7 +464,9 @@ fn rejects_test_doc_without_covers() {
     assert_eq!(check.exit_code, 1);
     assert!(check.stderr.contains("test md requires at least one Covers entry"));
 }
+````
 
+````rs
 #[test]
 ````
 
@@ -494,7 +518,9 @@ fn lint_fix_check_reports_diff_without_writing_and_fix_writes_code_blocks_only()
     assert!(fixed.contains("## Purpose"));
     assert!(fixed.contains("## Source"));
 }
+````
 
+````rs
 #[test]
 ````
 
@@ -534,7 +560,9 @@ fn lint_and_test_use_configured_toolchain_commands() {
     assert_eq!(test.exit_code, 0, "{}", test.stderr);
     assert!(test.stdout.contains("test ok"));
 }
+````
 
+````rs
 #[test]
 ````
 
@@ -570,7 +598,9 @@ fn lint_reports_markdown_path_and_preserved_line_numbers() {
     assert!(lint.stderr.contains(&format!("{}:9:1", md_path.display())));
     assert!(!lint.stderr.contains(".build/mds/tmp/source.ts"));
 }
+````
 
+````rs
 #[test]
 ````
 
@@ -596,7 +626,9 @@ fn lint_reports_environment_missing_as_exit_code_four() {
     assert_eq!(lint.exit_code, 4);
     assert!(lint.stderr.contains("required toolchain"));
 }
+````
 
+````rs
 #[test]
 ````
 
@@ -622,7 +654,9 @@ fn doctor_outputs_json_and_uses_exit_code_four_for_missing_required_tools() {
     assert!(doctor.stdout.starts_with("{\"checks\":"));
     assert!(doctor.stdout.contains("/missing/mds-doctor-tool"));
 }
+````
 
+````rs
 #[test]
 ````
 
@@ -651,7 +685,9 @@ fn doctor_rejects_runtime_versions_below_minimum() {
     assert_eq!(doctor.exit_code, 4);
     assert!(doctor.stderr.contains("DOCTOR002_VERSION_TOO_OLD"));
 }
+````
 
+````rs
 #[test]
 ````
 
@@ -677,7 +713,9 @@ fn exclude_skips_markdown_discovery_and_generation_outputs() {
     assert!(!temp.path().join("pkg/src/foo/bar.rs").exists());
     assert!(temp.path().join("pkg/src/foo/bar.ts").exists());
 }
+````
 
+````rs
 #[test]
 ````
 
@@ -708,7 +746,9 @@ fn label_overrides_preserve_canonical_table_and_section_meaning() {
     });
     assert_eq!(check.exit_code, 0, "{}", check.stderr);
 }
+````
 
+````rs
 #[test]
 ````
 
@@ -731,7 +771,9 @@ fn validates_local_markdown_links() {
     assert_eq!(check.exit_code, 1);
     assert!(check.stderr.contains("Markdown link target does not exist"));
 }
+````
 
+````rs
 #[test]
 ````
 
@@ -757,7 +799,9 @@ fn table_parser_keeps_pipes_inside_code_spans() {
     });
     assert_eq!(check.exit_code, 0, "{}", check.stderr);
 }
+````
 
+````rs
 #[test]
 ````
 
@@ -816,7 +860,9 @@ fn metadata_parser_accepts_common_json_toml_dependency_shapes() {
     });
     assert_eq!(rust_check.exit_code, 0, "{}", rust_check.stderr);
 }
+````
 
+````rs
 #[test]
 ````
 
@@ -835,7 +881,9 @@ fn package_sync_requires_source_overview() {
     assert_eq!(sync.exit_code, 1);
     assert!(sync.stderr.contains("failed to read source overview"));
 }
+````
 
+````rs
 #[test]
 fn check_and_build_reject_stale_dependency_snapshot() {
     let temp = TestDir::new();
@@ -866,7 +914,9 @@ fn check_and_build_reject_stale_dependency_snapshot() {
     assert_eq!(build.exit_code, 1);
     assert!(build.stderr.contains("dependency snapshot is not synchronized"));
 }
+````
 
+````rs
 #[test]
 ````
 
@@ -891,7 +941,9 @@ fn package_sync_hook_enabled_uses_default_sync_command() {
         .stdout
         .contains("package sync hook command: mds package sync"));
 }
+````
 
+````rs
 #[test]
 ````
 
@@ -934,7 +986,9 @@ fn lint_fix_updates_successful_quality_blocks_only() {
     assert!(fixed.contains("fixed_code()"));
     assert!(fixed.contains("DO_NOT_FIX"));
 }
+````
 
+````rs
 #[test]
 ````
 
@@ -960,7 +1014,9 @@ fn refuses_to_overwrite_unmanaged_file() {
         "manual\n"
     );
 }
+````
 
+````rs
 #[test]
 ````
 
@@ -985,7 +1041,9 @@ fn init_ai_plan_does_not_write_without_yes() {
     assert!(result.stdout.contains("No changes written"));
     assert!(!temp.path().join("CLAUDE.md").exists());
 }
+````
 
+````rs
 #[test]
 ````
 
@@ -1025,7 +1083,9 @@ fn init_generates_selected_ai_agent_kit_and_project_skeleton() {
     assert!(config.contains("fixer = \"prettier --write\""));
     assert!(config.contains("test_runner = \"vitest run\""));
 }
+````
 
+````rs
 #[test]
 ````
 
@@ -1065,7 +1125,9 @@ fn init_writes_selected_quality_tool_config() {
     assert!(config.contains("test_runner = \"cargo nextest run\""));
     assert!(config.contains("optional = [\"clippy-driver\", \"cargo-nextest\"]"));
 }
+````
 
+````rs
 #[test]
 ````
 
@@ -1097,7 +1159,9 @@ fn init_writes_custom_quality_commands() {
     assert!(config.contains("linter = \"npm run lint\""));
     assert!(config.contains("test_runner = \"npm test\""));
 }
+````
 
+````rs
 #[test]
 ````
 
@@ -1133,7 +1197,9 @@ fn init_generates_ai_categories_per_target() {
     assert!(temp.path().join(".opencode/skills/mds/SKILL.md").exists());
     assert!(!temp.path().join(".opencode/agents/mds-check.md").exists());
 }
+````
 
+````rs
 #[test]
 ````
 
@@ -1168,7 +1234,9 @@ fn init_can_disable_language_quality_tools() {
         "[quality.rs]\nlinter = false\nfixer = false\ntest_runner = false\nrequired = []"
     ));
 }
+````
 
+````rs
 #[test]
 ````
 
@@ -1200,7 +1268,9 @@ fn init_setup_plan_uses_selected_quality_tools() {
     assert!(result.stdout.contains("cargo-nextest --version"));
     assert!(!temp.path().join("mds.config.toml").exists());
 }
+````
 
+````rs
 #[test]
 ````
 
@@ -1230,7 +1300,9 @@ fn init_refuses_nonmanaged_overwrite_without_force() {
         "manual\n"
     );
 }
+````
 
+````rs
 #[test]
 ````
 
@@ -1254,7 +1326,9 @@ fn init_reports_setup_partial_failures() {
     assert!(result.stderr.contains("setup action"));
     assert!(temp.path().join("mds.config.toml").exists());
 }
+````
 
+````rs
 #[test]
 fn new_creates_source_doc_under_fixed_authoring_root() {
     let temp = TestDir::new();
@@ -1279,7 +1353,9 @@ fn new_creates_source_doc_under_fixed_authoring_root() {
     assert!(temp.path().join(".mds/source/greet.ts.md").exists());
     assert!(!temp.path().join("src-md/greet.ts.md").exists());
 }
+````
 
+````rs
 #[test]
 fn new_creates_test_doc_under_fixed_test_root() {
     let temp = TestDir::new();
@@ -1305,7 +1381,9 @@ fn new_creates_test_doc_under_fixed_test_root() {
     assert!(path.exists());
     assert!(fs::read_to_string(path).unwrap().contains("## Covers"));
 }
+````
 
+````rs
 #[test]
 ````
 

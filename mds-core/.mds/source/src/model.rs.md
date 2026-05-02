@@ -14,13 +14,17 @@ Migrated implementation source for `src/model.rs`.
 ````rs
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
+````
 
+````rs
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub enum BuildMode {
     DryRun,
     Write,
 }
+````
 
+````rs
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub enum Command {
     Check,
@@ -34,7 +38,9 @@ pub enum Command {
     ReleaseCheck { options: ReleaseQualityOptions },
     Update { version: Option<String> },
 }
+````
 
+````rs
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct InitOptions {
     pub ai_only: bool,
@@ -52,7 +58,9 @@ pub struct InitOptions {
     pub quality_commands: Vec<InitQualityCommands>,
     pub target_categories: Vec<InitTargetCategories>,
 }
+````
 
+````rs
 impl Default for InitOptions {
     fn default() -> Self {
         Self {
@@ -73,7 +81,9 @@ impl Default for InitOptions {
         }
     }
 }
+````
 
+````rs
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct InitQualityCommands {
     pub lang: Lang,
@@ -81,19 +91,25 @@ pub struct InitQualityCommands {
     pub lint: Option<String>,
     pub test: Option<String>,
 }
+````
 
+````rs
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct InitTargetCategories {
     pub target: AiTarget,
     pub categories: Vec<AgentKitCategory>,
 }
+````
 
+````rs
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub enum LabelPreset {
     English,
     Japanese,
 }
+````
 
+````rs
 impl LabelPreset {
     pub fn parse(value: &str) -> Option<Self> {
         match value {
@@ -148,13 +164,17 @@ impl LabelPreset {
         }
     }
 }
+````
 
+````rs
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct NewOptions {
     pub name: String,
     pub force: bool,
 }
+````
 
+````rs
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub enum TypeScriptTool {
     Eslint,
@@ -163,7 +183,9 @@ pub enum TypeScriptTool {
     Vitest,
     Jest,
 }
+````
 
+````rs
 impl TypeScriptTool {
     pub fn defaults() -> &'static [Self] {
         &[Self::Eslint, Self::Prettier, Self::Vitest]
@@ -180,7 +202,9 @@ impl TypeScriptTool {
         }
     }
 }
+````
 
+````rs
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub enum PythonTool {
     Ruff,
@@ -188,7 +212,9 @@ pub enum PythonTool {
     Pytest,
     Unittest,
 }
+````
 
+````rs
 impl PythonTool {
     pub fn defaults() -> &'static [Self] {
         &[Self::Ruff, Self::Pytest]
@@ -204,7 +230,9 @@ impl PythonTool {
         }
     }
 }
+````
 
+````rs
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub enum RustTool {
     Rustfmt,
@@ -212,7 +240,9 @@ pub enum RustTool {
     CargoTest,
     Nextest,
 }
+````
 
+````rs
 impl RustTool {
     pub fn defaults() -> &'static [Self] {
         &[Self::Rustfmt, Self::Clippy, Self::CargoTest]
@@ -228,7 +258,9 @@ impl RustTool {
         }
     }
 }
+````
 
+````rs
 #[derive(Debug, Clone, Copy, Eq, Hash, PartialEq)]
 pub enum AiTarget {
     ClaudeCode,
@@ -236,7 +268,9 @@ pub enum AiTarget {
     Opencode,
     GithubCopilotCli,
 }
+````
 
+````rs
 impl AiTarget {
     pub fn all() -> &'static [Self] {
         &[
@@ -267,14 +301,18 @@ impl AiTarget {
         }
     }
 }
+````
 
+````rs
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub enum AgentKitCategory {
     Instructions,
     Skills,
     Commands,
 }
+````
 
+````rs
 impl AgentKitCategory {
     pub fn all() -> &'static [Self] {
         &[Self::Instructions, Self::Skills, Self::Commands]
@@ -297,24 +335,32 @@ impl AgentKitCategory {
         }
     }
 }
+````
 
+````rs
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct ReleaseQualityOptions {
     pub manifest: PathBuf,
 }
+````
 
+````rs
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub enum DoctorFormat {
     Text,
     Json,
 }
+````
 
+````rs
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub enum DocKind {
     Source,
     Test,
 }
+````
 
+````rs
 impl DocKind {
     pub fn key(self) -> &'static str {
         match self {
@@ -323,7 +369,9 @@ impl DocKind {
         }
     }
 }
+````
 
+````rs
 #[derive(Debug, Clone)]
 pub struct CliRequest {
     pub cwd: PathBuf,
@@ -331,14 +379,18 @@ pub struct CliRequest {
     pub verbose: bool,
     pub command: Command,
 }
+````
 
+````rs
 #[derive(Debug, Default)]
 pub struct CliResult {
     pub stdout: String,
     pub stderr: String,
     pub exit_code: i32,
 }
+````
 
+````rs
 #[derive(Debug, Clone, Eq, Hash, PartialEq)]
 pub enum Lang {
     TypeScript,
@@ -346,7 +398,9 @@ pub enum Lang {
     Rust,
     Other(String),
 }
+````
 
+````rs
 impl Lang {
     pub fn from_path(path: &Path) -> Option<Self> {
         let name = path.file_name()?.to_string_lossy();
@@ -404,7 +458,9 @@ impl Lang {
         &[Self::TypeScript, Self::Python, Self::Rust]
     }
 }
+````
 
+````rs
 #[derive(Debug, Clone)]
 pub struct Roots {
     pub markdown: PathBuf,
@@ -412,7 +468,9 @@ pub struct Roots {
     pub types: PathBuf,
     pub test: PathBuf,
 }
+````
 
+````rs
 impl Default for Roots {
     fn default() -> Self {
         Self {
@@ -423,7 +481,9 @@ impl Default for Roots {
         }
     }
 }
+````
 
+````rs
 #[derive(Debug, Clone)]
 pub struct Config {
     pub enabled: bool,
@@ -437,7 +497,9 @@ pub struct Config {
     pub package_sync_hook: Option<String>,
     pub label_overrides: HashMap<String, String>,
 }
+````
 
+````rs
 impl Default for Config {
     fn default() -> Self {
         Self {
@@ -462,7 +524,9 @@ impl Default for Config {
         }
     }
 }
+````
 
+````rs
 #[derive(Debug, Clone)]
 pub struct QualityConfig {
     pub type_check: Option<String>,
@@ -472,7 +536,9 @@ pub struct QualityConfig {
     pub required: Vec<String>,
     pub optional: Vec<String>,
 }
+````
 
+````rs
 impl QualityConfig {
     fn for_lang(_lang: &Lang) -> Self {
         Self {
@@ -485,14 +551,18 @@ impl QualityConfig {
         }
     }
 }
+````
 
+````rs
 #[derive(Debug, Clone)]
 pub struct Package {
     pub root: PathBuf,
     pub config: Config,
     pub metadata_kind: MetadataKind,
 }
+````
 
+````rs
 #[derive(Debug, Clone)]
 pub struct PackageMetadata {
     pub name: String,
@@ -500,14 +570,18 @@ pub struct PackageMetadata {
     pub dependencies: HashMap<String, String>,
     pub dev_dependencies: HashMap<String, String>,
 }
+````
 
+````rs
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub enum MetadataKind {
     Node,
     Python,
     Rust,
 }
+````
 
+````rs
 #[derive(Debug, Clone)]
 pub struct ImplDoc {
     pub doc_kind: DocKind,
@@ -522,14 +596,18 @@ pub struct ImplDoc {
     pub covers: Vec<String>,
     pub normalized_input: String,
 }
+````
 
+````rs
 #[derive(Debug, Clone, Copy, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum OutputKind {
     Source,
     Types,
     Test,
 }
+````
 
+````rs
 impl OutputKind {
     pub fn manifest_kind(self) -> &'static str {
         match self {
@@ -539,7 +617,9 @@ impl OutputKind {
         }
     }
 }
+````
 
+````rs
 #[derive(Debug, Clone)]
 pub struct GeneratedFile {
     pub path: PathBuf,
@@ -547,7 +627,9 @@ pub struct GeneratedFile {
     pub kind: GeneratedKind,
     pub source_path: Option<PathBuf>,
 }
+````
 
+````rs
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub enum GeneratedKind {
     Output(OutputKind),

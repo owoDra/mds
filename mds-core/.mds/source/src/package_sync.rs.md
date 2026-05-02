@@ -63,7 +63,9 @@ pub(crate) fn sync_package_md(
     }
     Ok(())
 }
+````
 
+````rs
 pub(crate) fn planned_package_overview(
     package: &Package,
     state: &mut RunState,
@@ -107,7 +109,9 @@ pub(crate) fn planned_package_overview(
     })?;
     Some((path, old, new))
 }
+````
 
+````rs
 fn replace_managed_block(
     text: &str,
     name: &str,
@@ -142,11 +146,15 @@ fn replace_managed_block(
     output.push_str(&text[end_index..]);
     Some(output)
 }
+````
 
+````rs
 fn package_summary_table(name: &str, version: &str) -> String {
     format!("| Name | Version |\n| --- | --- |\n| {name} | {version} |\n")
 }
+````
 
+````rs
 fn dependency_table(dependencies: &std::collections::HashMap<String, String>) -> String {
     let sorted = dependencies
         .iter()

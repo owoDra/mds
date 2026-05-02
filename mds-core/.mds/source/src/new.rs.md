@@ -77,13 +77,17 @@ pub(crate) fn run_new(
         .push_str(&format!("created {}\n", target.display()));
     Ok(())
 }
+````
 
+````rs
 #[derive(Clone, Copy, Eq, PartialEq)]
 enum DocKind {
     Source,
     Test,
 }
+````
 
+````rs
 fn detect_doc_kind(name: &str) -> DocKind {
     if name == "overview.md" || name.ends_with("/overview.md") || detect_lang(name).is_some() {
         DocKind::Source
@@ -91,7 +95,9 @@ fn detect_doc_kind(name: &str) -> DocKind {
         DocKind::Test
     }
 }
+````
 
+````rs
 fn markdown_target_path(root: &Path, name: &str, doc_kind: DocKind) -> PathBuf {
     match doc_kind {
         DocKind::Source => root.join(".mds/source").join(name),
@@ -264,7 +270,9 @@ fn generate_impl_template(
          {source_block}\n"
     )
 }
+````
 
+````rs
 fn generate_test_template(feature_name: &str, labels: &HashMap<String, String>) -> String {
     let l_purpose = label(labels, "purpose", "Purpose");
     let l_from = label(labels, "from", "From");
