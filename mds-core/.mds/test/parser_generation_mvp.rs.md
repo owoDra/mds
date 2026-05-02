@@ -9,7 +9,29 @@ Migrated implementation source for `tests/parser_generation_mvp.rs`.
 - Preserve the behavior of the pre-migration Rust source.
 - This file is synchronized into `.build/rust/mds-core/tests/parser_generation_mvp.rs`.
 
-## Source
+## Covers
+
+- src/adapter
+- src/config
+- src/diagnostics
+- src/diff
+- src/doctor
+- src/fs_utils
+- src/generation
+- src/hash
+- src/init/mod
+- src/manifest
+- src/markdown
+- src/model
+- src/new
+- src/package
+- src/package_sync
+- src/quality
+- src/release_quality
+- src/runner
+- src/table
+
+## Test
 
 ````rs
 use std::fs;

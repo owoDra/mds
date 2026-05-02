@@ -7,7 +7,7 @@ related:
   - docs/project/validation.md
 ---
 
-# mds 自身の正本を src-md に置き生成物を .build に集約する
+# mds 自身の正本を .mds/source / .mds/test に置き生成物を .build に集約する
 
 ## 背景
 
@@ -17,27 +17,27 @@ mds は Markdown を設計書兼ソースの正本として扱う。一方で、
 
 ## 判断
 
-- mds 自身の編集入口を各 package 配下の `src-md/` に移す。
-- Rust 実装は `mds-core/src-md`、`mds-cli/src-md`、`mds-lsp/src-md` の implementation md を正本とする。
+- mds 自身の編集入口を各 package 配下の `.mds/source/` と `.mds/test/` に移す。
+- Rust 実装は `mds-core/.mds/source`、`mds-cli/.mds/source`、`mds-lsp/.mds/source` と対応する `.mds/test` を正本とする。
 - Rust Cargo workspace は `.build/rust/` に生成する。
 - VS Code extension など Node.js 系の生成物は `.build/node/` に置く。
 - release artifact と supply-chain metadata は `.build/release/` に置く。
 - `crates/` は開発ディレクトリとして廃止する。
-- `src-md/project/specs/` は作らず、package 設計と source root 設計は package 配下の `src-md/overview.md` に置く。
+- `src-md/project/specs/` は作らず、package 設計と source root 設計は package 配下の `.mds/source/overview.md` に置く。
 - 検証事項の正本は引き続き `docs/project/validation.md` に置く。
 
 ## 代替案
 
 - `crates/` を維持する: 既存 Cargo tooling との相性はよいが、mds 自身の正本が Markdown に移らず、dogfooding の効果が弱い。
-- `src-md/project/specs/` を作る: 既存 specs の移行先として分かりやすいが、mds の `index.md` / implementation md の責務と重複する。
+- `src-md/project/specs/` を作る: 既存 specs の移行先として分かりやすいが、mds の `overview.md` / implementation md の責務と重複する。
 - 生成コードを Git 管理する: bootstrap は容易になるが、`.build/` を生成物置き場として統一する方針と矛盾し、正本と派生物の境界が曖昧になる。
 
 ## 結果
 
-- 開発者は package 配下の `src-md/` を編集し、`.github/script/sync-build.sh` で package 内の生成 `src/` / `tests/` と `.build/rust/` を再生成して Cargo commands を実行する。
+- 開発者は package 配下の `.mds/source/` と `.mds/test/` を編集し、`.github/script/sync-build.sh` で package 内の生成 `src/` / `tests/` と `.build/rust/` を再生成して Cargo commands を実行する。
 - `.build/` は Git 管理しない。
 - `crates/` を参照する新規資料や開発手順は追加しない。
-- 既存の `docs/project/specs` は移行前資料として扱い、新しい実装設計は package 配下の `src-md/overview.md` または implementation md に置く。
+- 既存の `docs/project/specs` は移行前資料として扱い、新しい実装設計は package 配下の `.mds/source/overview.md` または implementation md に置く。
 - bootstrap と同期処理は今後 mds 本体機能として改善する余地を残す。
 
 ## 関連資料

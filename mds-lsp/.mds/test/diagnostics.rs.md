@@ -9,7 +9,12 @@ Migrated implementation source for `tests/diagnostics.rs`.
 - Preserve the behavior of the pre-migration Rust source.
 - This file is synchronized into `.build/rust/mds-lsp/tests/diagnostics.rs`.
 
-## Source
+## Covers
+
+- src/capabilities/diagnostics
+- src/convert
+
+## Test
 
 ````rs
 use std::path::PathBuf;

@@ -9,7 +9,14 @@ Migrated implementation source for `tests/capabilities.rs`.
 - Preserve the behavior of the pre-migration Rust source.
 - This file is synchronized into `.build/rust/mds-lsp/tests/capabilities.rs`.
 
-## Source
+## Covers
+
+- src/capabilities/code_action
+- src/capabilities/completion
+- src/capabilities/symbols
+- src/convert
+
+## Test
 
 ````rs
 use tower_lsp::lsp_types::*;

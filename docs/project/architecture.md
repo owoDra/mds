@@ -14,7 +14,7 @@
 
 - `.md` が設計書兼ソースの正本であり、implementation md には実装レベルのコードを含め、生成コードはその派生物とする。
 - mds は設計説明から AI にコードを書かせる仕組みではなく、Markdown 内のコードブロックとメタ情報を generator / language adapter が処理する仕組みとする。
-- mds 自身の package 編集入口は各 package の `src-md/` とし、`.build/` は生成物置き場として Git 管理しない。
+- mds 自身の package 編集入口は各 package の `.mds/source/` と `.mds/test/` とし、`.build/` は生成物置き場として Git 管理しない。
 - 1 つの implementation md は 1 機能だけを扱う。
 - import / use / require はコードブロック外の `Uses` に記録し、language adapter が生成する。
 - implementation md の code block は import / use / require を含めず、1 code block につき 1 top-level logical unit だけを含める。
@@ -36,8 +36,8 @@
 
 ## Workspace 構成
 
-- root 直下に mds 自身の `src-md/` は置かず、各 package の `src-md/overview.md` が package 単位の source overview を担う。
-- `mds-core/src-md`、`mds-cli/src-md`、`mds-lsp/src-md` は Rust 実装の Markdown 正本であり、`.github/script/sync-build.sh` により package 内の生成 `src/` / `tests/` と `.build/rust/` の Cargo workspace へ同期する。
+- root 直下に mds 自身の source root は置かず、各 package の `.mds/source/overview.md` が package 単位の source overview を担う。
+- `mds-core/.mds/source`、`mds-cli/.mds/source`、`mds-lsp/.mds/source` と対応する `.mds/test` は Rust 実装の Markdown 正本であり、`.github/script/sync-build.sh` により package 内の生成 `src/` / `tests/` と `.build/rust/` の Cargo workspace へ同期する。
 - `.build/rust/Cargo.toml` は生成された Rust workspace manifest とし、`.build/rust/mds-core`、`.build/rust/mds-cli`、`.build/rust/mds-lsp` を束ねる。
 - TypeScript / Python / Rust の language adapter 規則は現時点では Rust core 側の生成処理と共有仕様で管理し、独立した `packages/`、`python/`、`mds-lang-rs` 配布単位は置かない。
 - `editors/vscode` は VS Code 拡張とし、syntax highlighting、LSP 連携、snippets を提供する。

@@ -54,6 +54,7 @@ if (root / "Cargo.lock").exists():
 for package in packages:
     package_root = root / package
     package_source = package_root / ".mds" / "source"
+    package_test = package_root / ".mds" / "test"
     has_impl_docs = package_source.exists() and any(
         path.is_file()
         and path.suffix == ".md"
@@ -99,6 +100,25 @@ for package in packages:
         for output_path in [package_root / rel, package_build / rel]:
             output_path.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(path, output_path)
+
+    for path in package_test.rglob("*") if package_test.exists() else []:
+        if path.is_dir():
+            continue
+
+        rel = path.relative_to(package_test)
+        if rel.name == "overview.md":
+            continue
+
+        if path.name.endswith(".rs.md"):
+            output_rel = Path("tests") / rel.with_name(rel.name[:-3])
+            output_paths = [package_root / output_rel, package_build / output_rel]
+            code = extract_code_blocks(path.read_text(encoding="utf-8"))
+            for output_path in output_paths:
+                output_path.parent.mkdir(parents=True, exist_ok=True)
+                output_path.write_text(
+                    generated_header(path, path.relative_to(root)) + code,
+                    encoding="utf-8",
+                )
 PY
 
 echo "synced Rust workspace to $RUST_BUILD_ROOT"

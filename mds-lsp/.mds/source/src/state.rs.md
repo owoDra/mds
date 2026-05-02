@@ -36,7 +36,7 @@ pub struct OpenFile {
     pub lang: Option<Lang>,
 }
 
-/// Parsed workspace index built from `src-md/` directories.
+/// Parsed workspace index built from mds authoring roots.
 #[derive(Debug, Clone, Default)]
 ````
 

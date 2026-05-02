@@ -33,10 +33,10 @@
 
 ## Self-hosted Build 同期
 
-- いつ行うか: package 配下の `src-md/`、`.github/script/sync-build.sh`、Rust package metadata、`.build/` 配置を変更するとき。
+- いつ行うか: package 配下の `.mds/source/` / `.mds/test/`、`.github/script/sync-build.sh`、Rust package metadata、`.build/` 配置を変更するとき。
 - 何で検証するか: `.github/script/sync-build.sh` を実行し、`.build/rust/` で `cargo fmt --check` と `cargo test` を実行する。
-- 期待する結果: package 配下の `src-md/` の implementation md と package metadata から package 内の生成 `src/` / `tests/` と `.build/rust/` の Cargo workspace が再生成され、生成物を手編集せずに build / test できる。
-- 問題があった際にどうするか: `.build/` や生成 `src/` / `tests/` を直接修正せず、package 配下の `src-md/` または同期処理を修正する。
+- 期待する結果: package 配下の `.mds/source/` / `.mds/test/` の implementation md と package metadata から package 内の生成 `src/` / `tests/` と `.build/rust/` の Cargo workspace が再生成され、生成物を手編集せずに build / test できる。
+- 問題があった際にどうするか: `.build/` や生成 `src/` / `tests/` を直接修正せず、package 配下の `.mds/source/` / `.mds/test/` または同期処理を修正する。
 
 ## Language Adapter 動作
 

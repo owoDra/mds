@@ -9,7 +9,11 @@ Migrated implementation source for `tests/args.rs`.
 - Preserve the behavior of the pre-migration Rust source.
 - This file is synchronized into `.build/rust/mds-cli/tests/args.rs`.
 
-## Source
+## Covers
+
+- src/args
+
+## Test
 
 ````rs
 use std::path::PathBuf;

@@ -3,7 +3,6 @@ enabled = true
 allow_raw_source = false
 
 [roots]
-markdown = "src-md"
 source = "../.build/rust/mds-lsp"
 types = "../.build/rust/mds-lsp"
 test = "../.build/rust/mds-lsp"
