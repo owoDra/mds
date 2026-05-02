@@ -1,0 +1,34 @@
+id = "py"
+
+[language]
+primary_ext = "py"
+
+[files.source]
+strip_lang_ext = false
+prefix = ""
+suffix = ""
+extension = "py"
+
+[files.types]
+strip_lang_ext = true
+prefix = ""
+suffix = ""
+extension = "pyi"
+
+[files.test]
+strip_lang_ext = true
+prefix = "test_"
+suffix = ""
+extension = "py"
+
+[imports]
+style = "python"
+allow_default = false
+allow_namespace = true
+allow_alias = true
+allow_type_only = false
+
+[quality_defaults]
+lint = "ruff check"
+fix = "ruff format"
+test = "pytest"

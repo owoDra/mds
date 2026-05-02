@@ -1,0 +1,21 @@
+# GitHub Copilot CLI template manifest
+
+[[file]]
+template = "instructions.md"
+output_path = ".github/instructions/mds.instructions.md"
+category = "instructions"
+
+[[file]]
+template = "skill.prompt.md"
+output_path = ".github/prompts/mds-skill.prompt.md"
+category = "skills"
+
+[[file]]
+template = "command-check.prompt.md"
+output_path = ".github/prompts/mds-check.prompt.md"
+category = "commands"
+
+[[file]]
+template = "command-build.prompt.md"
+output_path = ".github/prompts/mds-build.prompt.md"
+category = "commands"
