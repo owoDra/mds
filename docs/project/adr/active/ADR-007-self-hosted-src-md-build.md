@@ -18,7 +18,7 @@ mds は Markdown を設計書兼ソースの正本として扱う。一方で、
 ## 判断
 
 - mds 自身の編集入口を各 package 配下の `.mds/source/` と `.mds/test/` に移す。
-- Rust 実装は `mds-core/.mds/source`、`mds-cli/.mds/source`、`mds-lsp/.mds/source` と対応する `.mds/test` を正本とする。
+- Rust 実装は `mds/core/.mds/source`、`mds/cli/.mds/source`、`mds/lsp/.mds/source` と対応する `.mds/test` を正本とする。
 - Rust Cargo workspace は `.build/rust/` に生成する。
 - VS Code extension など Node.js 系の生成物は `.build/node/` に置く。
 - release artifact と supply-chain metadata は `.build/release/` に置く。

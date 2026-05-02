@@ -11,7 +11,7 @@ For usage instructions of mds-lsp, see [Editor Integration (LSP)](editor-integra
 mds-lsp is composed of the following components.
 
 ```
-src-md/mds-lsp/
+src-md/mds/lsp/
 ├── src/
 │   ├── main.rs.md        # Entry point (stdio transport startup)
 │   ├── lib.rs.md         # Library root
@@ -159,7 +159,7 @@ To debug the LSP server (Rust side):
 
 ### 1. Create the capability module
 
-Create a new implementation md in `src-md/mds-lsp/src/capabilities/`.
+Create a new implementation md in `src-md/mds/lsp/src/capabilities/`.
 
 ```rust
 // capabilities/my_feature.rs

@@ -17,7 +17,7 @@ import sys
 root = Path(sys.argv[1])
 rust_build_root = root / ".build" / "rust"
 
-packages = ["mds-core", "mds-cli", "mds-lsp"]
+packages = ["mds/core", "mds/cli", "mds/lsp"]
 
 def extract_code_blocks(text: str) -> str:
     blocks = []

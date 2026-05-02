@@ -1,10 +1,10 @@
-mds-core/build.rs linguist-generated=true
-mds-core/src/** linguist-generated=true
-mds-core/tests/** linguist-generated=true
-mds-cli/src/** linguist-generated=true
-mds-cli/tests/** linguist-generated=true
-mds-lsp/src/** linguist-generated=true
-mds-lsp/tests/** linguist-generated=true
+mds/core/build.rs linguist-generated=true
+mds/core/src/** linguist-generated=true
+mds/core/tests/** linguist-generated=true
+mds/cli/src/** linguist-generated=true
+mds/cli/tests/** linguist-generated=true
+mds/lsp/src/** linguist-generated=true
+mds/lsp/tests/** linguist-generated=true
 examples/minimal-ts/src/** linguist-generated=true
 examples/minimal-ts/tests/** linguist-generated=true
 examples/minimal-rs/src/** linguist-generated=true

@@ -38,9 +38,9 @@ mds --version
 mds/
 ├── src-md/                  # mds 自身の Markdown 正本
 │   ├── index.md             # source root の設計
-│   ├── mds-core/            # コアライブラリ正本
-│   ├── mds-cli/             # CLI 正本
-│   └── mds-lsp/             # LSP 正本
+│   ├── mds/core/            # コアライブラリ正本
+│   ├── mds/cli/             # CLI 正本
+│   └── mds/lsp/             # LSP 正本
 ├── .build/                  # 生成物（Git 管理しない）
 │   └── rust/                # 生成された Cargo ワークスペース
 ├── editors/vscode/          # VS Code 拡張機能

@@ -2,14 +2,14 @@
 
 ## 役割
 
-Rust implementation team は、`mds-core/src-md`、`mds-cli/src-md`、`mds-lsp/src-md` の構造、module 境界、公開 API、検証導線を保つ責任を持つ。
+Rust implementation team は、`mds/core/src-md`、`mds/cli/src-md`、`mds/lsp/src-md` の構造、module 境界、公開 API、検証導線を保つ責任を持つ。
 
 ## 担当範囲
 
-- `mds-core/src-md`: 言語横断の document model、config、package boundary、Markdown parsing、generation planning、manifest、diagnostics。
-- `mds-cli/src-md`: native CLI の argument parsing、stdout / stderr、exit code、core 呼び出し。
-- `mds-lsp/src-md`: Language Server Protocol 実装。
-- Rust 固有の use / module block / file pattern 生成は、現在は `mds-core/src-md` の adapter / generation 境界で扱う。
+- `mds/core/src-md`: 言語横断の document model、config、package boundary、Markdown parsing、generation planning、manifest、diagnostics。
+- `mds/cli/src-md`: native CLI の argument parsing、stdout / stderr、exit code、core 呼び出し。
+- `mds/lsp/src-md`: Language Server Protocol 実装。
+- Rust 固有の use / module block / file pattern 生成は、現在は `mds/core/src-md` の adapter / generation 境界で扱う。
 - Rust workspace は `.build/rust/` に生成し、`src-md/Cargo.toml` と `src-md/Cargo.lock` を同期元とする。
 
 ## ルール

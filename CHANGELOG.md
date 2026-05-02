@@ -15,7 +15,6 @@
 - .vscode/tasks.json — VSCode タスク定義
 - サンプルプロジェクト（examples/minimal-ts, minimal-py, minimal-rs）
 - .editorconfig — エディタ横断の統一設定
-- .githooks/pre-commit — コミット前の自動品質チェック
 - GitHub Issue / PR テンプレート
 
 ### Changed

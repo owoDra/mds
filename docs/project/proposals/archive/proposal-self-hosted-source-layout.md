@@ -19,7 +19,7 @@ mds 自身の編集入口を `src-md/` に集約する。
 ```text
 src-md/
   index.md
-  mds-core/
+  mds/core/
     package.md
     index.md
     src/
@@ -32,14 +32,14 @@ src-md/
       config/
         index.md
         resolver.rs.md
-  mds-cli/
+  mds/cli/
     package.md
     index.md
     src/
       index.md
       args.rs.md
       commands.rs.md
-  mds-lsp/
+  mds/lsp/
     package.md
     index.md
     src/
@@ -80,9 +80,9 @@ src-md/
   rust/
     Cargo.toml
     Cargo.lock
-    mds-core/
-    mds-cli/
-    mds-lsp/
+    mds/core/
+    mds/cli/
+    mds/lsp/
     target/
   node/
     vscode/

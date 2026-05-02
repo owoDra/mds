@@ -83,7 +83,7 @@ mds adopts a data-driven template system. To add support for a new AI CLI, follo
 ### 1. Create template directory
 
 ```
-src-md/mds-core/src/init/templates/<target-key>/
+src-md/mds/core/src/init/templates/<target-key>/
 ├── manifest.toml       ← File mapping definition
 ├── instructions.md     ← Template for instructions category
 ├── skill.md            ← Template for skills category
@@ -119,7 +119,7 @@ Templates should include:
 
 ### 4. Add a variant to the AiTarget enum
 
-In `src-md/mds-core/src/model/mod.rs.md`, add to the `AiTarget` enum:
+In `src-md/mds/core/src/model/mod.rs.md`, add to the `AiTarget` enum:
 
 ```rust
 pub enum AiTarget {

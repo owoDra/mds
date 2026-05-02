@@ -2,7 +2,7 @@
 
 ## 役割
 
-移行前の `mds-core` 固有仕様の入口です。新しい設計は `mds-core/src-md/overview.md` または該当 implementation md に置きます。
+移行前の `mds-core` 固有仕様の入口です。新しい設計は `mds/core/src-md/overview.md` または該当 implementation md に置きます。
 
 ## 参照
 

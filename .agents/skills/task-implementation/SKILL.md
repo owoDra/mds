@@ -34,7 +34,7 @@ argument-hint: "目的=<何を実装するか> 進め方=<自走|対話>"
 6. 重要な変更箇所では、関連する requirement / spec / ADR / pattern / validation / test への参照を trace tag で残す方針を決める
 7. 必要なテスト、lint、型チェック、手動確認を実行する
 8. 変更に応じて requirement / spec / pattern / ADR / validation / tech-stack の更新要否を確認する
-9. mds の format、正本構造、主要 command surface を変更する場合は `mds-core/src/init/templates/` の AI Kit template content と AI Agent CLI 初期化の検証更新を同じ変更で行う
+9. mds の format、正本構造、主要 command surface を変更する場合は `mds/core/src/init/templates/` の AI Kit template content と AI Agent CLI 初期化の検証更新を同じ変更で行う
 10. task に実施内容、検証結果、未実施項目、次に読むものを残す
 
 ## ルール

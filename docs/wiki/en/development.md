@@ -40,9 +40,9 @@ mds --version
 mds/
 ├── src-md/                  # Markdown source of truth for mds itself
 │   ├── index.md             # Source root design
-│   ├── mds-core/            # Core library source of truth
-│   ├── mds-cli/             # CLI source of truth
-│   └── mds-lsp/             # LSP source of truth
+│   ├── mds/core/            # Core library source of truth
+│   ├── mds/cli/             # CLI source of truth
+│   └── mds/lsp/             # LSP source of truth
 ├── .build/                  # Generated artifacts (not tracked)
 │   └── rust/                # Generated Cargo workspace
 ├── editors/vscode/          # VS Code extension

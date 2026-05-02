@@ -37,7 +37,7 @@
 ## Workspace 構成
 
 - root 直下に mds 自身の source root は置かず、各 package の `.mds/source/overview.md` が package 単位の source overview を担う。
-- `mds-core/.mds/source`、`mds-cli/.mds/source`、`mds-lsp/.mds/source` と対応する `.mds/test` は Rust 実装の Markdown 正本であり、`.github/script/sync-build.sh` により package 内の生成 `src/` / `tests/` と `.build/rust/` の Cargo workspace へ同期する。
+- `mds/core/.mds/source`、`mds/cli/.mds/source`、`mds/lsp/.mds/source` と対応する `.mds/test` は Rust 実装の Markdown 正本であり、`.github/script/sync-build.sh` により package 内の生成 `src/` / `tests/` と `.build/rust/` の Cargo workspace へ同期する。
 - `.build/rust/Cargo.toml` は生成された Rust workspace manifest とし、`.build/rust/mds-core`、`.build/rust/mds-cli`、`.build/rust/mds-lsp` を束ねる。
 - TypeScript / Python / Rust の language adapter 規則は現時点では Rust core 側の生成処理と共有仕様で管理し、独立した `packages/`、`python/`、`mds-lang-rs` 配布単位は置かない。
 - `editors/vscode` は VS Code 拡張とし、syntax highlighting、LSP 連携、snippets を提供する。

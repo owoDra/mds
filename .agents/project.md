@@ -13,9 +13,9 @@ Rust, TypeScript, Python
 monorepo
 
 ## Subprojects
-- `mds-core`: Rust core library package; Markdown source lives in `mds-core/src-md`
-- `mds-cli`: native CLI package; Markdown source lives in `mds-cli/src-md`
-- `mds-lsp`: Language Server Protocol package; Markdown source lives in `mds-lsp/src-md`
+- `mds-core`: Rust core library package; Markdown source lives in `mds/core/src-md`
+- `mds-cli`: native CLI package; Markdown source lives in `mds/cli/src-md`
+- `mds-lsp`: Language Server Protocol package; Markdown source lives in `mds/lsp/src-md`
 - `editors/vscode`: VS Code extension package; Markdown source context lives in `editors/vscode/src-md`
 
 ## Teams

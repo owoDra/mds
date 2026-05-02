@@ -1,5 +1,12 @@
 .build/
 target/
+mds/core/build.rs
+mds/core/src/
+mds/core/tests/
+mds/cli/src/
+mds/cli/tests/
+mds/lsp/src/
+mds/lsp/tests/
 result/
 __pycache__/
 *.py[cod]

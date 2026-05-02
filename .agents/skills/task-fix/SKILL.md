@@ -31,7 +31,7 @@ argument-hint: "目的=<何を直すか> 進め方=<自走|対話>"
 5. 原因候補を絞り、根本原因を特定する
 6. 最小限の修正を行い、関連テストと回帰確認を実施する
 7. 必要な正本更新要否を確認し、task に記録する
-8. mds の format、正本構造、主要 command surface に触れた修正では `mds-core/src/init/templates/` の AI Kit template content と AI Agent CLI 初期化の検証更新を同じ修正で行う
+8. mds の format、正本構造、主要 command surface に触れた修正では `mds/core/src/init/templates/` の AI Kit template content と AI Agent CLI 初期化の検証更新を同じ修正で行う
 
 ## ルール
 

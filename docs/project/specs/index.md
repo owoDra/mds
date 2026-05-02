@@ -33,8 +33,8 @@
 ## 参照
 
 - `shared/index.md`: 複数 subproject にまたがる共有仕様の入口
-- `crates-mds-core/index.md`: 移行前の `mds-core` 固有仕様の入口。新しい設計は `mds-core/src-md/overview.md` または該当 implementation md に移す
-- `crates-mds-cli/index.md`: 移行前の `mds-cli` 固有仕様の入口。新しい設計は `mds-cli/src-md/overview.md` または該当 implementation md に移す
+- `crates-mds/core/index.md`: 移行前の `mds-core` 固有仕様の入口。新しい設計は `mds/core/src-md/overview.md` または該当 implementation md に移す
+- `crates-mds/cli/index.md`: 移行前の `mds-cli` 固有仕様の入口。新しい設計は `mds/cli/src-md/overview.md` または該当 implementation md に移す
 
 ## 追加された共有仕様
 

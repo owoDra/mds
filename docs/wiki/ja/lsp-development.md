@@ -9,7 +9,7 @@ mds-lsp の利用方法については [エディタ統合 (LSP)](editor-integra
 mds-lsp は以下のコンポーネントで構成されています。
 
 ```
-src-md/mds-lsp/
+src-md/mds/lsp/
 ├── src/
 │   ├── main.rs.md        # エントリポイント（stdio トランスポート起動）
 │   ├── lib.rs.md         # ライブラリルート
@@ -157,7 +157,7 @@ LSP サーバー（Rust 側）をデバッグする場合:
 
 ### 1. capability モジュールの作成
 
-`src-md/mds-lsp/src/capabilities/` に新しい implementation md を作成します。
+`src-md/mds/lsp/src/capabilities/` に新しい implementation md を作成します。
 
 ```rust
 // capabilities/my_feature.rs

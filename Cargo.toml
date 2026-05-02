@@ -1,8 +1,8 @@
 [workspace]
 members = [
-  "mds-core",
-  "mds-cli",
-  "mds-lsp",
+  "mds/core",
+  "mds/cli",
+  "mds/lsp",
 ]
 resolver = "2"
 
