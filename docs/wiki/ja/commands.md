@@ -205,16 +205,6 @@ mds new parser.rs.md --force
 
 既存ファイルがある場合は上書きしません。`--force` で強制上書きできます。
 
-## `mds release check`
-
-`mds release check` は、公開前の成果物検査を行います。
-
-```bash
-mds release check --manifest release.mds.toml
-```
-
-公開前検査では、成果物、チェックサム、署名、ソフトウェア部品表、来歴情報、インストール後の動作確認などを扱います。
-
 ## 終了コード
 
 mds は、失敗の種類を区別できるように終了コードを使い分けます。

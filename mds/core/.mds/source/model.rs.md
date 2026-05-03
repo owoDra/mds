@@ -35,7 +35,6 @@ pub enum Command {
     PackageSync { check: bool },
     Init { options: InitOptions },
     New { options: NewOptions },
-    ReleaseCheck { options: ReleaseQualityOptions },
     Update { version: Option<String> },
 }
 ````
@@ -334,13 +333,6 @@ impl AgentKitCategory {
             Self::Commands => "commands",
         }
     }
-}
-````
-
-````rs
-#[derive(Debug, Clone, Eq, PartialEq)]
-pub struct ReleaseQualityOptions {
-    pub manifest: PathBuf,
 }
 ````
 

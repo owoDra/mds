@@ -63,12 +63,6 @@ mds doctor --package path/to/package
 
 The diagnostics verify required execution environments and tools based on the language adapters enabled for the target package and the `[quality.*]` settings. Unselected tools are not treated as missing.
 
-## Pre-release Inspection
-
-`mds release check` inspects artifacts before publication.
-
-Pre-release inspection covers distribution artifacts, checksums, signatures, software bill of materials, provenance information, and basic post-install operation verification.
-
 ## Recommended Verification Order
 
 During development, verifying in the following order makes it easier to isolate issues:
@@ -80,4 +74,4 @@ During development, verifying in the following order makes it easier to isolate 
 5. `mds test`
 6. `mds doctor`
 
-Before publication, run `mds release check` in addition to the above.
+For this repository's own release flow, run `./.github/script/release-check.sh --manifest release.mds.toml` in addition to the above.

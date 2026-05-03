@@ -207,16 +207,6 @@ The generated template includes all sections: Purpose, Expose, Uses, Types, Sour
 
 Existing files are not overwritten. Use `--force` to force overwrite.
 
-## `mds release check`
-
-`mds release check` performs pre-publication artifact inspection.
-
-```bash
-mds release check --manifest release.mds.toml
-```
-
-Pre-publication inspection covers artifacts, checksums, signatures, software bill of materials, provenance information, and post-installation verification.
-
 ## Exit Codes
 
 mds uses distinct exit codes to differentiate failure types.

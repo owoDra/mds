@@ -31,4 +31,4 @@
 - mds の現行配布面は Cargo crate、native binary、VS Code extension package の 3 系統です。
 - bootstrap の公式経路は `npx`、Cargo、`uvx` です。
 - runtime と toolchain の最低対応は Rust 1.86+、Node.js 24+、Python 3.13+ を基準にします。
-- release 前品質 gate は `release.mds.toml` と `mds release check` を基準にし、checksum、signature、SBOM、provenance、install smoke test の欠落を許容しません。
+- release 前品質 gate は `release.mds.toml` と `./.github/script/release-check.sh` を基準にし、checksum、signature、SBOM、provenance、install smoke test の欠落を許容しません。

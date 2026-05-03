@@ -80,10 +80,6 @@ mod quality;
 ````
 
 ````rs
-mod release_quality;
-````
-
-````rs
 mod runner;
 ````
 
@@ -95,8 +91,7 @@ pub use model::{
     AgentKitCategory, AiTarget, BuildMode, CliRequest, CliResult, Command, Config, DocKind,
     DoctorFormat, GeneratedFile, GeneratedKind, ImplDoc, InitOptions, InitQualityCommands,
     InitTargetCategories, LabelPreset, Lang, MetadataKind, NewOptions, OutputKind, Package,
-    PackageMetadata, PythonTool, QualityConfig, ReleaseQualityOptions, Roots, RustTool,
-    TypeScriptTool,
+    PackageMetadata, PythonTool, QualityConfig, Roots, RustTool, TypeScriptTool,
 };
 pub use runner::execute;
 ````

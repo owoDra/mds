@@ -61,12 +61,6 @@ mds doctor --package path/to/package
 
 診断では、対象パッケージで有効な言語アダプターと `[quality.*]` の設定に応じて、必要な実行環境やツールを確認します。未選択のツールは不足扱いになりません。
 
-## 公開前検査
-
-`mds release check` は、公開前の成果物を検査します。
-
-公開前検査では、配布物、チェックサム、署名、ソフトウェア部品表、来歴情報、インストール後の簡易動作確認などを扱います。
-
 ## 推奨する確認順序
 
 開発中は、次の順序で確認すると問題を切り分けやすくなります。
@@ -78,4 +72,4 @@ mds doctor --package path/to/package
 5. `mds test`
 6. `mds doctor`
 
-公開前には、上記に加えて `mds release check` を実行します。
+このリポジトリ自身の公開前には、上記に加えて `./.github/script/release-check.sh --manifest release.mds.toml` を実行します。

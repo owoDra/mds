@@ -4,9 +4,11 @@
 
 - `mds build` から mds 自身の self-hosted Rust mirror 同期を外した
 - repo-local helper として `./.github/script/sync-self-hosted-rust.sh` を追加した
+- repo-local helper として `./.github/script/release-check.sh` を追加し、`mds release check` を mds 本体から分離した
 - doc comment / docstring 判定を descriptor TOML 駆動へ置き換えた
 - import / export 表現比較は `docs/project/research/research-import-export-authoring-shape.md` に記録した
 - commit: `bb9247e self-hosted mirrorをrepo helperへ分離しdoc comment判定をdescriptor化`
+- commit: `d901041 alpha2 release blockerのLSP diagnostics testを修正`
 
 ## 実施した確認
 
@@ -30,7 +32,7 @@
 - `./.github/script/sync-self-hosted-rust.sh`
   - 成功
 - `cargo test --manifest-path .build/rust/Cargo.toml -q`
-  - 失敗
+  - 成功
 
 ## release 判定
 
@@ -56,12 +58,12 @@
   - 成功
 - `./.github/script/generate-release-artifacts.sh`
   - 成功
-- `cargo run -p mds-cli -- release check --manifest release.mds.toml --verbose`
+- `./.github/script/release-check.sh --manifest release.mds.toml --verbose`
   - `release quality ok`
 
 ## 判断メモ
 
 - package-level の `mds build` / `mds check` / `mds-core` parser test は引き続き green
 - self-hosted mirror を含む Rust workspace test も green になった
-- release artifact 生成と `mds release check` まで通ったため、alpha2 は現時点で進めてよい
+- release artifact 生成と repo-local `release-check.sh` まで通ったため、alpha2 は現時点で進めてよい
 - `mds/lsp/tests/capabilities_test.rs` には unused import warning が残るが、今回の release gate では blocker ではない

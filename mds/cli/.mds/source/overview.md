@@ -21,13 +21,13 @@ This package is authored under `mds/cli/.mds/source/` and synchronized into pack
 
 ### Migrated CLI Command Rules
 
-- The stable surface includes `check`, `build`, `lint`, `lint --fix`, `test`, `new`, `init`, `doctor`, `package sync`, `release check`, and the CLI-side update or wizard flows described by `args.rs.md` and `wizard.rs.md`.
+- The stable surface includes `check`, `build`, `lint`, `lint --fix`, `test`, `new`, `init`, `doctor`, `package sync`, and the CLI-side update or wizard flows described by `args.rs.md` and `wizard.rs.md`.
 - CLI-specific validation belongs here when it changes parsing, prompt flow, user-visible output, or exit code semantics instead of changing core package behavior.
 - `mds init --ai` remains part of the CLI contract even though template generation and environment setup logic live in `mds-core`.
 
 ## Init, Release, And Operational Flows
 
-- `mds init`, `mds doctor`, `mds package sync`, and `mds release check` command entrypoints are described here at the surface level and delegate detailed behavior to `mds-core` implementation markdown.
+- `mds init`, `mds doctor`, and `mds package sync` command entrypoints are described here at the surface level and delegate detailed behavior to `mds-core` implementation markdown.
 - User-visible output, exit-code expectations, and argument compatibility belong here when they are CLI-specific.
 
 ### Migrated User-Facing Behavior

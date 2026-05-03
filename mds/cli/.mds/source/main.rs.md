@@ -90,7 +90,7 @@ fn main() {
                     "      Run `mds check --package <path>` to validate an existing project."
                 );
             } else if message.contains("unknown command") {
-                eprintln!("hint: Available commands: init, check, build, lint, test, doctor, package sync, release check");
+                eprintln!("hint: Available commands: init, check, build, lint, test, doctor, package sync");
             } else if message.contains("unknown option") {
                 eprintln!("hint: Use --verbose for detailed output. Run `mds` without arguments for full usage.");
             }

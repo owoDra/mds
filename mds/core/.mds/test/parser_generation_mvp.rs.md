@@ -27,7 +27,6 @@ Migrated implementation source for `tests/parser_generation_mvp.rs`.
 - package
 - package_sync
 - quality
-- release_quality
 - runner
 - table
 
@@ -41,8 +40,7 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 
 use mds_core::{
     execute, AgentKitCategory, AiTarget, BuildMode, CliRequest, Command, InitOptions,
-    InitQualityCommands, InitTargetCategories, Lang, PythonTool, ReleaseQualityOptions, RustTool,
-    TypeScriptTool,
+    InitQualityCommands, InitTargetCategories, Lang, PythonTool, RustTool, TypeScriptTool,
 };
 ````
 
@@ -1573,78 +1571,6 @@ fn new_uses_descriptor_scaffold_for_vue_source_docs() {
     let content = fs::read_to_string(temp.path().join(".mds/source/greet.vue.md")).unwrap();
     assert!(content.contains("```vue"));
     assert!(content.contains("<template>"));
-}
-````
-
-````rs
-#[test]
-fn release_quality_gate_requires_supply_chain_artifacts() {
-    let temp = TestDir::new();
-    fs::create_dir_all(temp.path().join("dist")).unwrap();
-    for file in ["mds", "mds.sig", "mds.spdx.json", "mds.intoto.jsonl"] {
-        fs::write(temp.path().join("dist").join(file), "ok\n").unwrap();
-    }
-    fs::write(
-        temp.path().join("dist/mds.sha256"),
-        "dc51b8c96c2d745df3bd5590d990230a482fd247123599548e0632fdbf97fc22  mds\n",
-    )
-    .unwrap();
-    fs::write(
-        temp.path().join("dist/mds.spdx.json"),
-        "{\"spdxVersion\":\"SPDX-2.3\",\"SPDXID\":\"SPDXRef-DOCUMENT\"}\n",
-    )
-    .unwrap();
-    fs::write(
-        temp.path().join("dist/mds.intoto.jsonl"),
-        "{\"_type\":\"https://in-toto.io/Statement/v1\"}\n",
-    )
-    .unwrap();
-    fs::write(
-        temp.path().join("release.mds.toml"),
-        "[[artifacts]]\nname = \"native-linux-x64\"\nchannel = \"native\"\npath = \"dist/mds\"\nchecksum = \"dist/mds.sha256\"\nsignature = \"dist/mds.sig\"\nsbom = \"dist/mds.spdx.json\"\nprovenance = \"dist/mds.intoto.jsonl\"\nsmoke = true\n",
-    )
-    .unwrap();
-    let ok = execute(CliRequest {
-        cwd: temp.path().to_path_buf(),
-        package: None,
-        verbose: false,
-        command: Command::ReleaseCheck {
-            options: ReleaseQualityOptions {
-                manifest: PathBuf::from("release.mds.toml"),
-            },
-        },
-    });
-    assert_eq!(ok.exit_code, 0, "{}", ok.stderr);
-    assert!(ok.stdout.contains("release quality ok"));
-
-    fs::remove_file(temp.path().join("dist/mds.sig")).unwrap();
-    let missing = execute(CliRequest {
-        cwd: temp.path().to_path_buf(),
-        package: None,
-        verbose: false,
-        command: Command::ReleaseCheck {
-            options: ReleaseQualityOptions {
-                manifest: PathBuf::from("release.mds.toml"),
-            },
-        },
-    });
-    assert_eq!(missing.exit_code, 1);
-    assert!(missing.stderr.contains("signature"));
-
-    fs::write(temp.path().join("dist/mds.sig"), "ok\n").unwrap();
-    fs::write(temp.path().join("dist/mds.sha256"), "bad\n").unwrap();
-    let mismatch = execute(CliRequest {
-        cwd: temp.path().to_path_buf(),
-        package: None,
-        verbose: false,
-        command: Command::ReleaseCheck {
-            options: ReleaseQualityOptions {
-                manifest: PathBuf::from("release.mds.toml"),
-            },
-        },
-    });
-    assert_eq!(mismatch.exit_code, 1);
-    assert!(mismatch.stderr.contains("SHA-256"));
 }
 ````
 

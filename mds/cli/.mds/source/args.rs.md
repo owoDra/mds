@@ -16,7 +16,7 @@ use std::path::PathBuf;
 
 use mds_core::{
     AgentKitCategory, AiTarget, BuildMode, CliRequest, Command, DoctorFormat, InitOptions,
-    LabelPreset, NewOptions, PythonTool, ReleaseQualityOptions, RustTool, TypeScriptTool,
+    LabelPreset, NewOptions, PythonTool, RustTool, TypeScriptTool,
 };
 ````
 
@@ -43,11 +43,9 @@ where
     let mut check = false;
     let mut format = DoctorFormat::Text;
     let mut package_subcommand = None;
-    let mut release_subcommand = None;
     let mut init_options = InitOptions::default();
     let mut init_targets: Option<Vec<AiTarget>> = None;
     let mut init_categories: Option<Vec<AgentKitCategory>> = None;
-    let mut release_manifest = None;
     let mut new_name: Option<String> = None;
     let mut new_force = false;
     let mut update_version: Option<String> = None;
@@ -122,17 +120,8 @@ where
                 };
                 init_options.rs_tools = parse_rs_tools(&value)?;
             }
-            "--manifest" if command_name == "release" => {
-                let Some(path) = args.next() else {
-                    return Err("--manifest requires a path".to_string());
-                };
-                release_manifest = Some(PathBuf::from(path));
-            }
             "sync" if command_name == "package" && package_subcommand.is_none() => {
                 package_subcommand = Some(arg);
-            }
-            "check" if command_name == "release" && release_subcommand.is_none() => {
-                release_subcommand = Some(arg);
             }
             "--force" if command_name == "new" => {
                 new_force = true;
@@ -224,20 +213,6 @@ where
                     name,
                     force: new_force,
                 },
-            }
-        }
-        "release" => {
-            if dry_run || fix || check || !matches!(format, DoctorFormat::Text) {
-                return Err("release check only accepts --manifest and --verbose".to_string());
-            }
-            match release_subcommand.as_deref() {
-                Some("check") => Command::ReleaseCheck {
-                    options: ReleaseQualityOptions {
-                        manifest: release_manifest
-                            .unwrap_or_else(|| PathBuf::from("release.mds.toml")),
-                    },
-                },
-                _ => return Err("release requires subcommand check".to_string()),
             }
         }
         "update" => {
@@ -409,7 +384,6 @@ pub fn print_usage() {
     eprintln!("  mds test [--package <path>]               Run tests from code blocks");
     eprintln!("  mds doctor [--package <path>]             Diagnose environment");
     eprintln!("  mds package sync [--package <path>]       Sync package index.md");
-    eprintln!("  mds release check [--manifest <path>]     Pre-release validation");
     eprintln!();
     eprintln!("Init options:");
     eprintln!("  --ai                      AI agent kit only (skip project files)");

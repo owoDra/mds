@@ -167,5 +167,5 @@ echo "Artifacts generated in: .build/release/{checksums,signatures,sbom,provenan
 echo ""
 echo "Next steps:"
 echo "  1. Review generated artifacts"
-echo "  2. Run: mds release check --manifest release.mds.toml --verbose"
+echo "  2. Run: ./.github/script/release-check.sh --manifest release.mds.toml --verbose"
 echo "  3. If --sign was used, verify signatures"

@@ -50,7 +50,6 @@ This package is authored under `mds/core/.mds/source/` and synchronized into pac
 
 - `config.rs.md` owns fixed `mds.config.toml` resolution and quality/adapters/package-sync settings.
 - `package.rs.md`, `package_sync.rs.md`, and `doctor.rs.md` own package boundary detection, package sync behavior, and environment diagnostics.
-- `release_quality.rs.md` owns release gate artifact validation for checksum, signature, SBOM, provenance, and smoke tests.
 
 ### Migrated Config And Boundary Rules
 

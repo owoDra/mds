@@ -25,7 +25,6 @@ use crate::new::run_new;
 use crate::package::{discover_packages, validate_index_docs, validate_package_md};
 use crate::package_sync::sync_package_md;
 use crate::quality::{run_quality, QualityOperation};
-use crate::release_quality::run_release_check;
 ````
 
 ````rs
@@ -75,10 +74,6 @@ fn execute_inner(request: CliRequest) -> Result<RunState, String> {
                 request.verbose,
                 &mut state,
             )?;
-            return Ok(state);
-        }
-        Command::ReleaseCheck { options } => {
-            run_release_check(&request.cwd, options, &mut state)?;
             return Ok(state);
         }
         Command::Update { .. } => {
@@ -207,7 +202,6 @@ pub(crate) fn run_package(
         Command::Doctor { .. } => {}
         Command::Init { .. }
         | Command::New { .. }
-        | Command::ReleaseCheck { .. }
         | Command::Update { .. } => unreachable!(),
     }
     Ok(())

@@ -163,20 +163,3 @@ fn rejects_conflicting_init_tool_choices() {
     assert!(error.contains("vitest and jest"));
 }
 ````
-
-````rs
-#[test]
-fn parses_release_check_command() {
-    let request = parse_args_from(
-        PathBuf::from("/repo"),
-        ["release", "check", "--manifest", "dist/release.mds.toml"].map(String::from),
-    )
-    .unwrap();
-    match request.command {
-        Command::ReleaseCheck { options } => {
-            assert_eq!(options.manifest, PathBuf::from("dist/release.mds.toml"));
-        }
-        other => panic!("unexpected command: {other:?}"),
-    }
-}
-````

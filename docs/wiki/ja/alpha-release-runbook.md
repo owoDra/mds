@@ -85,5 +85,5 @@ gh release create v0.1.0-alpha.1 \
 ./.github/script/generate-release-artifacts.sh
 
 # Verify release gate
-mds release check --manifest release.mds.toml --verbose
+./.github/script/release-check.sh --manifest release.mds.toml --verbose
 ```
