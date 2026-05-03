@@ -24,7 +24,6 @@ use crate::state::WorkspaceState;
 
 ````rs
 /// Provide hover information for mds Markdown files.
-
 pub fn provide_hover(
     text: &str,
     position: Position,

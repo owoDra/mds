@@ -20,7 +20,6 @@ use tower_lsp::lsp_types::*;
 
 ````rs
 /// Provide code actions (quick fixes) for mds Markdown files.
-
 pub fn provide_code_actions(uri: &Url, text: &str, config: &Config) -> CodeActionResponse {
     let mut actions = Vec::new();
 

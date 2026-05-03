@@ -24,7 +24,6 @@ use crate::state::WorkspaceState;
 
 ````rs
 /// Go to Definition: resolve Uses table targets to their source markdown files.
-
 pub fn goto_definition(
     text: &str,
     position: Position,
@@ -102,9 +101,6 @@ pub fn goto_definition(
 }
 
 /// Find References: find all files that reference this module (by import path or file name).
-````
-
-````rs
 pub fn find_references(
     text: &str,
     position: Position,

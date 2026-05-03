@@ -22,7 +22,6 @@ use crate::state::WorkspaceState;
 /// Returns SymbolInformation with placeholder URIs; callers should replace
 /// URIs with the actual document URI.
 #[allow(deprecated)]
-
 pub fn document_symbols(text: &str) -> Vec<SymbolInformation> {
     let mut symbols = Vec::new();
 
@@ -89,9 +88,6 @@ pub fn document_symbols(text: &str) -> Vec<SymbolInformation> {
 
 /// Search workspace symbols (expose names) matching a query.
 #[allow(deprecated)]
-````
-
-````rs
 pub fn workspace_symbols(query: &str, state: &WorkspaceState) -> Vec<SymbolInformation> {
     let mut symbols = Vec::new();
 

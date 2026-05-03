@@ -23,7 +23,6 @@ use crate::labels::resolve_label;
 
 ````rs
 /// Provide completion items based on cursor position.
-
 pub fn provide_completions(
     text: &str,
     position: Position,
@@ -66,9 +65,6 @@ pub fn provide_completions(
 }
 
 /// Section heading completions.
-````
-
-````rs
 fn section_completions(config: &Config) -> Vec<CompletionItem> {
     let canonical_sections = [
         ("Purpose", "Module purpose and responsibility"),
@@ -98,9 +94,6 @@ fn section_completions(config: &Config) -> Vec<CompletionItem> {
 }
 
 /// Table column name completions.
-````
-
-````rs
 fn table_column_completions(config: &Config) -> Vec<CompletionItem> {
     let uses_columns = [
         (
@@ -141,9 +134,6 @@ fn table_column_completions(config: &Config) -> Vec<CompletionItem> {
 }
 
 /// Code block language label completions.
-````
-
-````rs
 fn code_block_language_completions(path: Option<&Path>) -> Vec<CompletionItem> {
     let detected = path.and_then(Lang::from_path);
 
@@ -183,9 +173,6 @@ fn code_block_language_completions(path: Option<&Path>) -> Vec<CompletionItem> {
 }
 
 /// Snippet completions for common mds patterns.
-````
-
-````rs
 fn snippet_completions(path: Option<&Path>, config: &Config) -> Vec<CompletionItem> {
     let mut items = Vec::new();
     let lang = path.and_then(Lang::from_path);

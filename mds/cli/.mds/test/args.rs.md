@@ -27,7 +27,6 @@ use mds_core::{
 
 ````rs
 #[test]
-
 fn parses_build_dry_run() {
     let request = parse_args_from(
         PathBuf::from("/repo"),
@@ -46,9 +45,6 @@ fn parses_build_dry_run() {
 }
 
 #[test]
-````
-
-````rs
 fn rejects_dry_run_for_check() {
     let error = parse_args_from(
         PathBuf::from("/repo"),
@@ -59,9 +55,6 @@ fn rejects_dry_run_for_check() {
 }
 
 #[test]
-````
-
-````rs
 fn parses_post_mvp_commands() {
     let lint = parse_args_from(
         PathBuf::from("/repo"),

@@ -27,7 +27,6 @@ use tokio::sync::RwLock;
 ````rs
 /// Open file content tracked by the LSP.
 #[derive(Debug, Clone)]
-
 pub struct OpenFile {
     pub uri: String,
     pub path: PathBuf,
@@ -38,9 +37,6 @@ pub struct OpenFile {
 
 /// Parsed workspace index built from mds authoring roots.
 #[derive(Debug, Clone, Default)]
-````
-
-````rs
 pub struct WorkspaceIndex {
     /// Map from absolute path → parsed ImplDoc.
     pub docs: HashMap<PathBuf, ImplDoc>,
@@ -52,9 +48,6 @@ pub struct WorkspaceIndex {
 
 /// Per-package state.
 #[derive(Debug, Clone)]
-````
-
-````rs
 pub struct PackageState {
     pub package: Package,
     pub index: WorkspaceIndex,
@@ -62,9 +55,6 @@ pub struct PackageState {
 
 /// Global workspace state shared across handlers.
 #[derive(Debug, Default)]
-````
-
-````rs
 pub struct WorkspaceState {
     /// Root folders of the workspace.
     pub workspace_folders: Vec<PathBuf>,

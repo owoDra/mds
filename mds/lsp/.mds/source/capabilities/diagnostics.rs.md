@@ -27,7 +27,6 @@ use crate::convert::to_lsp_diagnostic;
 
 ````rs
 /// Validate an implementation Markdown file and return LSP diagnostics.
-
 pub fn validate_impl_md_text(
     path: &Path,
     text: &str,
@@ -57,9 +56,6 @@ pub fn validate_impl_md_text(
 }
 
 /// Validate mds.config.toml and return LSP diagnostics.
-````
-
-````rs
 pub fn validate_config_text(path: &Path, text: &str) -> Vec<lsp_types::Diagnostic> {
     let mut state = RunState::default();
     let mut config = Config::default();
@@ -84,11 +80,8 @@ pub fn validate_config_text(path: &Path, text: &str) -> Vec<lsp_types::Diagnosti
     state.diagnostics.iter().map(to_lsp_diagnostic).collect()
 }
 
-#[allow(dead_code)]
 /// Validate legacy package index text and return LSP diagnostics.
-````
-
-````rs
+#[allow(dead_code)]
 pub fn validate_package_md_text(
     path: &Path,
     text: &str,
@@ -130,9 +123,6 @@ pub fn validate_package_md_text(
 }
 
 /// Validate that code block language labels match the file's language.
-````
-
-````rs
 fn validate_code_block_languages(
     text: &str,
     expected_lang: &Lang,
