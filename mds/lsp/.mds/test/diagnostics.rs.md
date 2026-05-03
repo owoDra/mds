@@ -30,17 +30,25 @@ fn fixture_path(name: &str) -> PathBuf {
 ````
 
 ````rs
+fn sample_markdown(text: &str) -> String {
+    text.replace("{h2}", "##")
+        .replace("{h5}", "#####")
+        .replace("{fence}", "```")
+}
+````
+
+````rs
 #[test]
 fn test_valid_impl_md_no_diagnostics_for_minimal() {
-    let text = r#"## Purpose
+    let text = sample_markdown(r#"{h2} Purpose
 
 A minimal test module.
 
-## Contract
+{h2} Contract
 
 Public contract.
 
-## Types
+{h2} Types
 
 ### Uses
 
@@ -48,11 +56,11 @@ Public contract.
 | --- | --- | --- | --- |
 | builtin | node:path | join | Path join utility |
 
-```typescript
+{fence}typescript
 export type MyType = string;
-```
+{fence}
 
-## Source
+{h2} Source
 
 ### Uses
 
@@ -60,15 +68,15 @@ export type MyType = string;
 | --- | --- | --- | --- |
 | internal | utils/helper | helper | Helper function |
 
-```typescript
+{fence}typescript
 export function main(): void {}
-```
+{fence}
 
-## Cases
+{h2} Cases
 
 Basic use case.
 
-## Test
+{h2} Test
 
 ### Uses
 
@@ -76,14 +84,14 @@ Basic use case.
 | --- | --- | --- | --- |
 | internal | utils/helper | helper | Helper function |
 
-```typescript
+{fence}typescript
 test("it works", () => {});
-```
-"#;
+{fence}
+"#);
 
     let path = fixture_path("valid.ts.md");
     let config = Config::default();
-    let diags = diagnostics::validate_impl_md_text(&path, text, &config);
+    let diags = diagnostics::validate_impl_md_text(&path, &text, &config);
     assert!(diags.is_empty(), "expected no diagnostics, got: {diags:?}");
 }
 ````
@@ -92,14 +100,14 @@ test("it works", () => {});
 #[test]
 fn test_missing_sections() {
     // With the new format, the only requirement is at least one code block
-    let text = r#"## Purpose
+    let text = sample_markdown(r#"{h2} Purpose
 
 A module with no code blocks.
-"#;
+"#);
 
     let path = fixture_path("missing.ts.md");
     let config = Config::default();
-    let diags = diagnostics::validate_impl_md_text(&path, text, &config);
+    let diags = diagnostics::validate_impl_md_text(&path, &text, &config);
 
     let messages: Vec<&str> = diags.iter().map(|d| d.message.as_str()).collect();
     assert!(
@@ -113,22 +121,22 @@ A module with no code blocks.
 #[test]
 fn test_heading_depth_violation() {
     // H5+ is no longer an error in the new format
-    let text = r#"## Purpose
+    let text = sample_markdown(r#"{h2} Purpose
 
 A module.
 
-##### Deep heading is allowed now
+{h5} Deep heading is allowed now
 
-## Source
+{h2} Source
 
-```typescript
+{fence}typescript
 function main() {}
-```
-"#;
+{fence}
+"#);
 
     let path = fixture_path("deep-heading.ts.md");
     let config = Config::default();
-    let diags = diagnostics::validate_impl_md_text(&path, text, &config);
+    let diags = diagnostics::validate_impl_md_text(&path, &text, &config);
 
     // No heading-depth errors anymore
     let messages: Vec<&str> = diags.iter().map(|d| d.message.as_str()).collect();
@@ -152,16 +160,16 @@ fn test_config_validation_invalid_toml() {
 ````rs
 #[test]
 fn test_package_index_missing_sections() {
-    let text = r#"## Package
+    let text = sample_markdown(r#"{h2} Package
 
 | Name | Version |
 | --- | --- |
 | test-pkg | 1.0.0 |
-"#;
+"#);
 
     let path = fixture_path("index.md");
     let config = Config::default();
-    let diags = diagnostics::validate_package_md_text(&path, text, &config);
+    let diags = diagnostics::validate_package_md_text(&path, &text, &config);
 
     let messages: Vec<&str> = diags.iter().map(|d| d.message.as_str()).collect();
     assert!(
@@ -178,41 +186,41 @@ fn test_package_index_missing_sections() {
 ````rs
 #[test]
 fn test_code_block_language_mismatch_warning() {
-    let text = r#"## Purpose
+    let text = sample_markdown(r#"{h2} Purpose
 
 A module.
 
-## Contract
+{h2} Contract
 
 Contract.
 
-## Types
+{h2} Types
 
-```python
+{fence}python
 x = 1
-```
+{fence}
 
-## Source
+{h2} Source
 
-```python
+{fence}python
 def main(): pass
-```
+{fence}
 
-## Cases
+{h2} Cases
 
 Cases.
 
-## Test
+{h2} Test
 
-```python
+{fence}python
 def test_it(): assert True
-```
-"#;
+{fence}
+"#);
 
     // File is .ts.md but code blocks use python
     let path = fixture_path("mismatch.ts.md");
     let config = Config::default();
-    let diags = diagnostics::validate_impl_md_text(&path, text, &config);
+    let diags = diagnostics::validate_impl_md_text(&path, &text, &config);
 
     let warnings: Vec<&str> = diags
         .iter()
@@ -279,28 +287,28 @@ fn test_valid_config_no_diagnostics() {
 ````rs
 #[test]
 fn test_package_index_full_valid() {
-    let text = r#"## Package
+    let text = sample_markdown(r#"{h2} Package
 
 | Name | Version |
 | --- | --- |
 | test-pkg | 1.0.0 |
 
-## Dependencies
+{h2} Dependencies
 
 No dependencies.
 
-## Dev Dependencies
+{h2} Dev Dependencies
 
 No dev dependencies.
 
-## Rules
+{h2} Rules
 
 No special rules.
-"#;
+"#);
 
     let path = fixture_path("index.md");
     let config = Config::default();
-    let diags = diagnostics::validate_package_md_text(&path, text, &config);
+    let diags = diagnostics::validate_package_md_text(&path, &text, &config);
     assert!(
         diags.is_empty(),
         "valid index.md should have no errors: {diags:?}"

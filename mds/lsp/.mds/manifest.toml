@@ -127,9 +127,9 @@ hash = "7eba8596ece15af9bf80f8f3ad69422a00748ad8c8420daf9cf44640807ab178"
 [[sources]]
 path = ".mds/test/diagnostics.rs.md"
 adapter = "rs"
-hash = "13afc8cb260ed4d5ee3a0d708d682279fc8792af9d132d8c2ae6f80808226751"
+hash = "8370b105d7abb208661b0614ca3c526c0dd67b3b01577d30b71bb165a68e1f50"
 [[sources.outputs]]
 kind = "test"
 path = "tests/diagnostics_test.rs"
-hash = "7286c9dff67ecb6fa1eb269003eb8ffbfc6d60ec545f2232785f5370932b17c4"
+hash = "bb9cb9869bb6c596ffbe9e795b51e076e9270623f30aedcfc391507c5fde313a"
 

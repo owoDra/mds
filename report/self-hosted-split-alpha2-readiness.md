@@ -36,22 +36,32 @@
 
 ### 結論
 
-- 現時点では alpha2 をそのまま release してよい状態ではない
+- 現時点では alpha2 を release してよい状態まで到達した
 
-### blocker
+### 解消した blocker
 
-- self-hosted mirror workspace の Cargo test が失敗する
-- 失敗箇所は `mds/lsp/tests/diagnostics_test.rs`
-- 現在の generated file に Python 行と fence 断片が混入しており、Rust test file として parse できない
+- self-hosted mirror workspace の Cargo test を止めていた `mds/lsp/tests/diagnostics_test.rs` の生成破損を修正した
+- 原因は、LSP diagnostics test の埋め込み sample Markdown が outer Markdown parser に漏れていたことだった
+- 対応として `mds/lsp/.mds/test/diagnostics.rs.md` に `sample_markdown` helper を追加し、埋め込み heading / fence を実行時復元へ変更した
 
-### 根拠ログ要約
+### 最終確認
 
-- `cargo test --manifest-path .build/rust/Cargo.toml -q` で以下が発生した
-  - `mds/lsp/tests/diagnostics_test.rs:6:1` で fence token ````rs` を Rust が解釈できず失敗
-  - `mds/lsp/tests/diagnostics_test.rs:3:5` で `def test_it(): assert True` が混入していて失敗
+- `cargo run -p mds-cli -- build --verbose`
+  - 成功
+- `cargo run -p mds-cli -- check --verbose`
+  - 成功
+- `./.github/script/sync-self-hosted-rust.sh`
+  - 成功
+- `cargo test --manifest-path .build/rust/Cargo.toml -q`
+  - 成功
+- `./.github/script/generate-release-artifacts.sh`
+  - 成功
+- `cargo run -p mds-cli -- release check --manifest release.mds.toml --verbose`
+  - `release quality ok`
 
 ## 判断メモ
 
-- package-level の `mds build` / `mds check` / `mds-core` parser test は green なので、今回の変更自体は狙いどおり入っている
-- ただし release 可否は self-hosted mirror を含む Rust workspace の test green を外せないため、alpha2 は保留が妥当
-- 次タスクは `mds/lsp/tests/diagnostics_test.rs` の生成破損修正が最優先
+- package-level の `mds build` / `mds check` / `mds-core` parser test は引き続き green
+- self-hosted mirror を含む Rust workspace test も green になった
+- release artifact 生成と `mds release check` まで通ったため、alpha2 は現時点で進めてよい
+- `mds/lsp/tests/capabilities_test.rs` には unused import warning が残るが、今回の release gate では blocker ではない
