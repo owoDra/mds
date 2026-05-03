@@ -9,18 +9,20 @@ Built-in language descriptor registry for output path rules.
 - Preserve the behavior of the current built-in adapters while moving file rules into TOML descriptors.
 - This file is synchronized into `.build/rust/mds/core/src/descriptor.rs`.
 
+## Imports
+
+| Kind | From | Target | Symbols | Via | Summary | Code |
+| --- | --- | --- | --- | --- | --- | --- |
+| rust-use | builtin | std::cell | RefCell | std |  | `use std::cell::RefCell;` |
+| rust-use | builtin | std::collections | HashMap | std |  | `use std::collections::HashMap;` |
+| rust-use | builtin | std | fs | std |  | `use std::fs;` |
+| rust-use | builtin | std::path | Path, PathBuf | std |  | `use std::path::{Path, PathBuf};` |
+| rust-use | external | serde | Deserialize | serde |  | `use serde::Deserialize;` |
+| rust-use | internal | crate::model | Lang, OutputKind | crate |  | `use crate::model::{Lang, OutputKind};` |
+
+
 ## Source
 
-````rs
-use std::cell::RefCell;
-use std::collections::HashMap;
-use std::fs;
-use std::path::{Path, PathBuf};
-
-use serde::Deserialize;
-
-use crate::model::{Lang, OutputKind};
-````
 
 ````rs
 mod descriptor_registry {
@@ -31,6 +33,12 @@ mod descriptor_registry {
 ````rs
 mod tool_registry {
     include!(concat!(env!("OUT_DIR"), "/tool_registry.rs"));
+}
+````
+
+````rs
+mod package_manager_registry {
+    include!(concat!(env!("OUT_DIR"), "/package_manager_registry.rs"));
 }
 ````
 
@@ -95,6 +103,50 @@ pub(crate) struct ToolManifest {
 struct ToolRegistry {
     by_id: HashMap<String, ToolManifest>,
     prefix_to_id: Vec<(String, String)>,
+}
+````
+
+````rs
+#[derive(Debug, Clone, Deserialize)]
+pub struct PackageManagerManifest {
+    pub id: String,
+    #[serde(default)]
+    pub aliases: Vec<String>,
+    pub display_name: String,
+    #[serde(default)]
+    pub lang: String,
+    #[serde(default)]
+    pub metadata_files: Vec<String>,
+    #[serde(default)]
+    pub lockfiles: Vec<String>,
+    #[serde(default)]
+    pub metadata_reader: String,
+    #[serde(default)]
+    pub commands: PackageManagerCommands,
+}
+````
+
+````rs
+#[derive(Debug, Clone, Default, Deserialize)]
+pub struct PackageManagerCommands {
+    #[serde(default)]
+    pub install: Option<String>,
+    #[serde(default)]
+    pub build: Option<String>,
+    #[serde(default)]
+    pub typecheck: Option<String>,
+    #[serde(default)]
+    pub lint: Option<String>,
+    #[serde(default)]
+    pub test: Option<String>,
+}
+````
+
+````rs
+#[derive(Debug, Clone)]
+struct PackageManagerRegistry {
+    by_id: HashMap<String, PackageManagerManifest>,
+    alias_to_id: HashMap<String, String>,
 }
 ````
 
@@ -178,6 +230,8 @@ pub(crate) struct ScaffoldSection {
 #[derive(Debug, Clone, Default, Deserialize)]
 pub(crate) struct ToolingSection {
     #[serde(default)]
+    pub typecheck: ToolBehavior,
+    #[serde(default)]
     pub lint: ToolBehavior,
     #[serde(default)]
     pub fix: ToolBehavior,
@@ -190,6 +244,8 @@ pub(crate) struct ToolingSection {
 #[derive(Debug, Clone, Default, Deserialize)]
 pub(crate) struct QualityDefaults {
     #[serde(default)]
+    pub typecheck: Option<String>,
+    #[serde(default)]
     pub lint: Option<String>,
     #[serde(default)]
     pub fix: Option<String>,
@@ -201,6 +257,8 @@ pub(crate) struct QualityDefaults {
 ````rs
 #[derive(Debug, Clone, Default, Deserialize)]
 pub(crate) struct ToolProfiles {
+    #[serde(default)]
+    pub typecheck: HashMap<String, ToolProfile>,
     #[serde(default)]
     pub lint: HashMap<String, ToolProfile>,
     #[serde(default)]
@@ -342,6 +400,10 @@ impl Descriptor {
         &self.tooling.lint
     }
 
+    pub fn typecheck_behavior(&self) -> &ToolBehavior {
+        &self.tooling.typecheck
+    }
+
     pub fn fix_behavior(&self) -> &ToolBehavior {
         &self.tooling.fix
     }
@@ -354,6 +416,10 @@ impl Descriptor {
         self.quality_defaults.lint.as_deref()
     }
 
+    pub fn default_typecheck_command(&self) -> Option<&str> {
+        self.quality_defaults.typecheck.as_deref()
+    }
+
     pub fn default_fix_command(&self) -> Option<&str> {
         self.quality_defaults.fix.as_deref()
     }
@@ -364,6 +430,10 @@ impl Descriptor {
 
     pub fn lint_profile(&self, key: &str) -> Option<&ToolProfile> {
         self.tool_profiles.lint.get(key)
+    }
+
+    pub fn typecheck_profile(&self, key: &str) -> Option<&ToolProfile> {
+        self.tool_profiles.typecheck.get(key)
     }
 
     pub fn fix_profile(&self, key: &str) -> Option<&ToolProfile> {
@@ -522,6 +592,76 @@ impl ToolRegistry {
 ````
 
 ````rs
+impl PackageManagerManifest {
+    pub fn metadata_path(&self, root: &Path) -> Option<PathBuf> {
+        self.metadata_files.iter().find_map(|pattern| {
+            if pattern.contains('*') {
+                return expand_simple_glob(root, pattern).into_iter().next();
+            }
+            let candidate = root.join(pattern);
+            candidate.exists().then_some(candidate)
+        })
+    }
+
+    pub fn resolved_lang(&self) -> Lang {
+        match self.lang.as_str() {
+            "ts" | "typescript" => Lang::TypeScript,
+            "py" | "python" => Lang::Python,
+            "rs" | "rust" => Lang::Rust,
+            other if !other.is_empty() => Lang::Other(other.to_string()),
+            _ => Lang::TypeScript,
+        }
+    }
+
+    pub fn command(&self, kind: &str) -> Option<&str> {
+        match kind {
+            "install" => self.commands.install.as_deref(),
+            "build" => self.commands.build.as_deref(),
+            "typecheck" => self.commands.typecheck.as_deref(),
+            "lint" => self.commands.lint.as_deref(),
+            "test" => self.commands.test.as_deref(),
+            _ => None,
+        }
+    }
+
+    fn score_for_root(&self, root: &Path) -> usize {
+        let metadata_score = usize::from(self.metadata_path(root).is_some()) * 10;
+        let lockfile_score = self
+            .lockfiles
+            .iter()
+            .filter(|lockfile| root.join(lockfile).exists())
+            .count();
+        metadata_score + lockfile_score
+    }
+}
+````
+
+````rs
+impl PackageManagerRegistry {
+    fn package_manager_for_id(&self, key: &str) -> Option<&PackageManagerManifest> {
+        let canonical = self.alias_to_id.get(key).map_or(key, String::as_str);
+        self.by_id.get(canonical)
+    }
+
+    fn package_managers_for_root(&self, root: &Path) -> Vec<PackageManagerManifest> {
+        let mut manifests: Vec<PackageManagerManifest> = self
+            .by_id
+            .values()
+            .filter(|manifest| manifest.metadata_path(root).is_some())
+            .cloned()
+            .collect();
+        manifests.sort_by(|left, right| {
+            right
+                .score_for_root(root)
+                .cmp(&left.score_for_root(root))
+                .then_with(|| left.id.cmp(&right.id))
+        });
+        manifests
+    }
+}
+````
+
+````rs
 impl SpecialFileRule {
     fn output_root(&self, kind: OutputKind) -> OutputRoot {
         match self.root.as_deref() {
@@ -573,22 +713,79 @@ pub(crate) fn tool_behavior_for_command(command: &str) -> Option<ToolBehavior> {
 ````
 
 ````rs
+pub fn package_manager_for_id(id: &str) -> Option<PackageManagerManifest> {
+    package_manager_registry().package_manager_for_id(id).cloned()
+}
+````
+
+````rs
+pub fn package_managers_for_root(root: &Path) -> Vec<PackageManagerManifest> {
+    package_manager_registry().package_managers_for_root(root)
+}
+````
+
+````rs
+pub fn detect_package_manager(root: &Path) -> Option<PackageManagerManifest> {
+    package_managers_for_root(root).into_iter().next()
+}
+````
+
+````rs
 pub fn set_workspace_descriptor_root(root: Option<&Path>) {
     DESCRIPTOR_ROOT.with(|storage| {
         *storage.borrow_mut() = root.map(Path::to_path_buf);
     });
+    REGISTRY_CACHE.with(|storage| *storage.borrow_mut() = None);
+    TOOL_REGISTRY_CACHE.with(|storage| *storage.borrow_mut() = None);
+    PACKAGE_MANAGER_REGISTRY_CACHE.with(|storage| *storage.borrow_mut() = None);
 }
 ````
 
 ````rs
 fn registry() -> DescriptorRegistry {
-    load_registry(active_descriptor_root().as_deref())
+    let root = active_descriptor_root();
+    REGISTRY_CACHE.with(|storage| {
+        if let Some((cached_root, registry)) = storage.borrow().as_ref() {
+            if *cached_root == root {
+                return registry.clone();
+            }
+        }
+        let registry = load_registry(root.as_deref());
+        *storage.borrow_mut() = Some((root.clone(), registry.clone()));
+        registry
+    })
 }
 ````
 
 ````rs
 fn tool_registry() -> ToolRegistry {
-    load_tool_registry(active_descriptor_root().as_deref())
+    let root = active_descriptor_root();
+    TOOL_REGISTRY_CACHE.with(|storage| {
+        if let Some((cached_root, registry)) = storage.borrow().as_ref() {
+            if *cached_root == root {
+                return registry.clone();
+            }
+        }
+        let registry = load_tool_registry(root.as_deref());
+        *storage.borrow_mut() = Some((root.clone(), registry.clone()));
+        registry
+    })
+}
+````
+
+````rs
+fn package_manager_registry() -> PackageManagerRegistry {
+    let root = active_descriptor_root();
+    PACKAGE_MANAGER_REGISTRY_CACHE.with(|storage| {
+        if let Some((cached_root, registry)) = storage.borrow().as_ref() {
+            if *cached_root == root {
+                return registry.clone();
+            }
+        }
+        let registry = load_package_manager_registry(root.as_deref());
+        *storage.borrow_mut() = Some((root.clone(), registry.clone()));
+        registry
+    })
 }
 ````
 
@@ -605,6 +802,9 @@ fn active_descriptor_root() -> Option<PathBuf> {
 ````rs
 thread_local! {
     static DESCRIPTOR_ROOT: RefCell<Option<PathBuf>> = const { RefCell::new(None) };
+    static REGISTRY_CACHE: RefCell<Option<(Option<PathBuf>, DescriptorRegistry)>> = const { RefCell::new(None) };
+    static TOOL_REGISTRY_CACHE: RefCell<Option<(Option<PathBuf>, ToolRegistry)>> = const { RefCell::new(None) };
+    static PACKAGE_MANAGER_REGISTRY_CACHE: RefCell<Option<(Option<PathBuf>, PackageManagerRegistry)>> = const { RefCell::new(None) };
 }
 ````
 
@@ -674,13 +874,17 @@ fn load_tool_registry(root: Option<&Path>) -> ToolRegistry {
     }
 
     if let Some(root) = root {
-        let tools_root = root.join(".mds/descriptors/linters");
-        for tool in load_workspace_tools(&tools_root) {
-            let id = tool.id.clone();
-            for prefix in &tool.match_prefixes {
-                prefix_to_id.push((prefix.clone(), id.clone()));
+        for tools_root in [
+            root.join(".mds/descriptors/linters"),
+            root.join(".mds/descriptors/tools"),
+        ] {
+            for tool in load_workspace_tools(&tools_root) {
+                let id = tool.id.clone();
+                for prefix in &tool.match_prefixes {
+                    prefix_to_id.push((prefix.clone(), id.clone()));
+                }
+                by_id.insert(id, tool);
             }
-            by_id.insert(id, tool);
         }
     }
 
@@ -698,6 +902,38 @@ fn load_tool_registry(root: Option<&Path>) -> ToolRegistry {
         by_id,
         prefix_to_id,
     }
+}
+````
+
+````rs
+fn load_package_manager_registry(root: Option<&Path>) -> PackageManagerRegistry {
+    let mut by_id = HashMap::new();
+    let mut alias_to_id = HashMap::new();
+
+    for entry in package_manager_registry::BUILTIN_PACKAGE_MANAGERS {
+        let manager: PackageManagerManifest =
+            toml::from_str(entry.content).expect("built-in package manager must parse");
+        let id = manager.id.clone();
+        register_alias(&mut alias_to_id, &id, &id);
+        for alias in &manager.aliases {
+            register_alias(&mut alias_to_id, alias, &id);
+        }
+        by_id.insert(id, manager);
+    }
+
+    if let Some(root) = root {
+        let managers_root = root.join(".mds/descriptors/package-managers");
+        for manager in load_workspace_package_managers(&managers_root) {
+            let id = manager.id.clone();
+            register_alias(&mut alias_to_id, &id, &id);
+            for alias in &manager.aliases {
+                register_alias(&mut alias_to_id, alias, &id);
+            }
+            by_id.insert(id, manager);
+        }
+    }
+
+    PackageManagerRegistry { by_id, alias_to_id }
 }
 ````
 
@@ -743,6 +979,23 @@ fn load_workspace_tools(root: &Path) -> Vec<ToolManifest> {
         tools.push(tool);
     }
     tools
+}
+````
+
+````rs
+fn load_workspace_package_managers(root: &Path) -> Vec<PackageManagerManifest> {
+    let mut managers = Vec::new();
+    for path in collect_descriptor_files(root) {
+        let content = match fs::read_to_string(&path) {
+            Ok(content) => content,
+            Err(_) => continue,
+        };
+        let Ok(manager) = toml::from_str::<PackageManagerManifest>(&content) else {
+            continue;
+        };
+        managers.push(manager);
+    }
+    managers
 }
 ````
 
@@ -802,6 +1055,29 @@ fn command_token_name(token: &str) -> &str {
 ````
 
 ````rs
+fn expand_simple_glob(root: &Path, pattern: &str) -> Vec<PathBuf> {
+    let Some((prefix, suffix)) = pattern.split_once('*') else {
+        return Vec::new();
+    };
+    let Ok(entries) = fs::read_dir(root) else {
+        return Vec::new();
+    };
+    let mut matches = Vec::new();
+    for entry in entries.filter_map(|entry| entry.ok()) {
+        let path = entry.path();
+        let Some(name) = path.file_name().and_then(|value| value.to_str()) else {
+            continue;
+        };
+        if name.starts_with(prefix) && name.ends_with(suffix) {
+            matches.push(path);
+        }
+    }
+    matches.sort();
+    matches
+}
+````
+
+````rs
 pub(crate) fn output_relative_path(relative: &Path, lang: &Lang, kind: OutputKind) -> PathBuf {
     let descriptor = builtin_descriptor(lang);
     if let Some(rule) = descriptor.special_file_rule(relative, kind) {
@@ -853,3 +1129,5 @@ fn strip_md_extension(path: &Path) -> PathBuf {
     path.with_file_name(stripped)
 }
 ````
+
+

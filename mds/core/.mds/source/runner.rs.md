@@ -9,26 +9,29 @@ Migrated implementation source for `src/runner.rs`.
 - Preserve the behavior of the pre-migration Rust source.
 - This file is synchronized into `.build/rust/mds/core/src/runner.rs`.
 
+## Imports
+
+| Kind | From | Target | Symbols | Via | Summary | Code |
+| --- | --- | --- | --- | --- | --- | --- |
+| rust-use | builtin | std | fs | std |  | `use std::fs;` |
+| rust-use | builtin | std::path | Path | std |  | `use std::path::Path;` |
+| rust-use | internal | crate::descriptor | set_workspace_descriptor_root | crate |  | `use crate::descriptor::set_workspace_descriptor_root;` |
+| rust-use | internal | crate::diagnostics | Diagnostic, RunState | crate |  | `use crate::diagnostics::{Diagnostic, RunState};` |
+| rust-use | internal | crate::diff | render_dry_run, write_generated | crate |  | `use crate::diff::{render_dry_run, write_generated};` |
+| rust-use | internal | crate::doctor | run_doctor | crate |  | `use crate::doctor::run_doctor;` |
+| rust-use | internal | crate::generation | plan_generation | crate |  | `use crate::generation::plan_generation;` |
+| rust-use | internal | crate::init | run_init | crate |  | `use crate::init::run_init;` |
+| rust-use | internal | crate::manifest | validate_manifest | crate |  | `use crate::manifest::validate_manifest;` |
+| rust-use | internal | crate::markdown | load_implementation_docs | crate |  | `use crate::markdown::load_implementation_docs;` |
+| rust-use | internal | crate::model | BuildMode, CliRequest, CliResult, Command, Package | crate |  | `use crate::model::{BuildMode, CliRequest, CliResult, Command, Package};` |
+| rust-use | internal | crate::new | run_new | crate |  | `use crate::new::run_new;` |
+| rust-use | internal | crate::package | discover_packages, validate_index_docs, validate_package_md | crate |  | `use crate::package::{discover_packages, validate_index_docs, validate_package_md};` |
+| rust-use | internal | crate::package_sync | sync_package_md | crate |  | `use crate::package_sync::sync_package_md;` |
+| rust-use | internal | crate::quality | run_quality, QualityOperation | crate |  | `use crate::quality::{run_quality, QualityOperation};` |
+
+
 ## Source
 
-````rs
-use std::fs;
-use std::path::Path;
-
-use crate::descriptor::set_workspace_descriptor_root;
-use crate::diagnostics::{Diagnostic, RunState};
-use crate::diff::{render_dry_run, write_generated};
-use crate::doctor::run_doctor;
-use crate::generation::plan_generation;
-use crate::init::run_init;
-use crate::manifest::validate_manifest;
-use crate::markdown::load_implementation_docs;
-use crate::model::{BuildMode, CliRequest, CliResult, Command, Package};
-use crate::new::run_new;
-use crate::package::{discover_packages, validate_index_docs, validate_package_md};
-use crate::package_sync::sync_package_md;
-use crate::quality::{run_quality, QualityOperation};
-````
 
 ````rs
 pub fn execute(request: CliRequest) -> CliResult {
@@ -171,15 +174,6 @@ pub(crate) fn run_package(
     let generated = plan_generation(package, &docs, state);
 
     match command {
-        Command::Check => {
-            if !state.has_errors() {
-                state.stdout.push_str(&format!(
-                    "check ok: {} ({} implementation files)\n",
-                    package.root.display(),
-                    docs.len()
-                ));
-            }
-        }
         Command::Build { mode } => {
             if state.has_errors() {
                 return Ok(());
@@ -199,6 +193,12 @@ pub(crate) fn run_package(
                 QualityOperation::Lint
             };
             run_quality(package, &docs, operation, state)?;
+        }
+        Command::Typecheck => {
+            if state.has_errors() {
+                return Ok(());
+            }
+            run_quality(package, &docs, QualityOperation::Typecheck, state)?;
         }
         Command::Test => {
             if state.has_errors() {
@@ -305,6 +305,8 @@ fn copy_dir_recursive(source: &Path, destination: &Path) -> Result<(), String> {
     Ok(())
 }
 ````
+
+
 
 ````rs
 fn copy_file(source: &Path, destination: &Path) -> Result<(), String> {

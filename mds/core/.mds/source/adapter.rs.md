@@ -9,15 +9,18 @@ Migrated implementation source for `src/adapter.rs`.
 - Preserve the behavior of the pre-migration Rust source.
 - This file is synchronized into `.build/rust/mds/core/src/adapter.rs`.
 
+## Imports
+
+| Kind | From | Target | Symbols | Via | Summary | Code |
+| --- | --- | --- | --- | --- | --- | --- |
+| rust-use | builtin | std::path | Path | std |  | `use std::path::Path;` |
+| rust-use | builtin | std::process | Command as ProcessCommand, Stdio | std |  | `use std::process::{Command as ProcessCommand, Stdio};` |
+| rust-use | internal | crate | descriptor | crate |  | `use crate::descriptor;` |
+| rust-use | internal | crate::model | ImplDoc, OutputKind | crate |  | `use crate::model::{ImplDoc, OutputKind};` |
+
+
 ## Source
 
-````rs
-use std::path::Path;
-use std::process::{Command as ProcessCommand, Stdio};
-
-use crate::descriptor;
-use crate::model::{ImplDoc, OutputKind};
-````
 
 Compute the output file path relative to the selected output root. Resolves through the built-in language descriptor.
 
@@ -149,6 +152,8 @@ pub(crate) fn split_command(command: &str) -> Option<(&str, Vec<&str>)> {
     Some((program, parts.collect()))
 }
 ````
+
+
 
 ````rs
 pub(crate) fn tool_available(program: &str) -> bool {

@@ -9,14 +9,17 @@ Migrated implementation source for `src/table.rs`.
 - Preserve the behavior of the pre-migration Rust source.
 - This file is synchronized into `.build/rust/mds/core/src/table.rs`.
 
+## Imports
+
+| Kind | From | Target | Symbols | Via | Summary | Code |
+| --- | --- | --- | --- | --- | --- | --- |
+| rust-use | builtin | std::collections | HashMap | std |  | `use std::collections::HashMap;` |
+| rust-use | builtin | std::path | Path | std |  | `use std::path::Path;` |
+| rust-use | internal | crate::diagnostics | Diagnostic, RunState | crate |  | `use crate::diagnostics::{Diagnostic, RunState};` |
+
+
 ## Source
 
-````rs
-use std::collections::HashMap;
-use std::path::Path;
-
-use crate::diagnostics::{Diagnostic, RunState};
-````
 
 ````rs
 pub fn parse_table_with_labels(
@@ -112,6 +115,8 @@ fn canonical_header(
     header
 }
 ````
+
+
 
 ````rs
 pub fn split_table_row(line: &str) -> Vec<String> {

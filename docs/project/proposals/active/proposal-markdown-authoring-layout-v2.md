@@ -9,7 +9,7 @@ self-hosted 移行では特に次の問題が目立った。
 - 単一 Markdown root に source と test 相当の情報が混在し、生成後 directory との対応が直感的でない。
 - 1 つの implementation md に実装とテストを同居させる前提が、文脈肥大化と AI による勝手な分割を招く。
 - package metadata は正である一方、`overview.md` には dependency の俯瞰がなく、package ルールと dependency の両方を読むために複数ファイルを行き来する必要がある。
-- `mds check` は現状レイアウトのつらさを十分に診断できず、望ましい authoring model へ強く誘導できない。
+- `mds lint` は現状レイアウトのつらさを十分に診断できず、望ましい authoring model へ強く誘導できない。
 
 ## 提案内容
 
@@ -37,10 +37,10 @@ self-hosted 移行では特に次の問題が目立った。
 - package metadata は引き続き正とする。
 - ただし `.mds/source/overview.md` には managed section として package summary、dependencies、dev dependencies の snapshot を自動生成する。
 - `Rules` や architecture 説明などの手書き領域は保持し、managed section だけが同期対象になる。
-- managed section の唯一の writer は `mds package sync` とし、`mds check` と `mds build` は同期ずれを診断するだけにとどめる。
+- managed section の唯一の writer は `mds package sync` とし、`mds lint` と `mds build` は同期ずれを診断するだけにとどめる。
 - package manager post hook は opt-in 前提を維持したうえで、既定 command を `mds package sync` にする。
 
-5. `mds check` を authoring model 起点で厳格化する。
+5. `mds lint` を authoring model 起点で厳格化する。
 
 - `.mds/` 配下の fixed root と `overview.md` の配置、doc kind ごとの必須 section、許可される code block 種別を検査する。
 - default validator では code fence 整合、Markdown link、duplicate H2、import 混在、doc comment / docstring、top-level 実装の code fence 分離を検査し、`[check]` で個別に on/off できるようにする。
@@ -80,7 +80,7 @@ self-hosted 移行では特に次の問題が目立った。
 - test md の canonical section は `Covers` を新設する。
 - generated test root の canonical は authoring model では固定せず、language descriptor が言語ごとに定義する。
 - dependency snapshot managed section の唯一の writer は `mds package sync` とする。
-- dependency snapshot が stale な場合、`mds check` と `mds build` はともに error で止める。
+- dependency snapshot が stale な場合、`mds lint` と `mds build` はともに error で止める。
 - package manager post hook の既定 command は `mds package sync` とする。
 - language descriptor の継承は明示的な `extends` を使う。
 - language descriptor override は section 単位の whitelist merge を使う。
@@ -94,14 +94,14 @@ self-hosted 移行では特に次の問題が目立った。
 ## 推奨する移行順序
 
 1. doc kind と fixed root を requirement / spec に昇格し、`.mds/source` / `.mds/test` を canonical にする。
-2. `mds check` と LSP に migration error を追加し、旧 `src-md` / implementation-test 同居と dependency snapshot drift を早期検知できるようにする。
+2. `mds lint` と LSP に migration error を追加し、旧 `src-md` / implementation-test 同居と dependency snapshot drift を早期検知できるようにする。
 3. `mds package sync` を `.mds/source/overview.md` の managed snapshot writer として実装し、`mds build` は stale snapshot を error として拒否する。
 4. first-party package、examples、init template、AI Kit template を同じ release で `.mds/` model へ切り替える。
 5. adapter descriptor と logical module id 解決をその release の内部実装として同時に差し替え、旧 model の互換分岐を残さない。
 
 ## 代替案
 
-1. 現行の single root を維持し、`mds check` と運用ルールだけで吸収する。
+1. 現行の single root を維持し、`mds lint` と運用ルールだけで吸収する。
 
 - 変更量は少ないが、source / test の責務分離が Markdown 上で曖昧なまま残る。
 - self-hosted で再発した認知コストを structure ではなく慣れで吸収することになり、AI 利用にも不利。
@@ -126,7 +126,7 @@ self-hosted 移行では特に次の問題が目立った。
 - source と test の責務が logical root と doc kind の両方で明確になる。
 - author は logical module id を使うだけでよく、generated path を先読みする負担が下がる。
 - `.mds/source/overview.md` で package rule と dependency の俯瞰を同じ場所で確認できる。
-- `mds check` と LSP が「望ましい形」を構造的に説明できる。
+- `mds lint` と LSP が「望ましい形」を構造的に説明できる。
 - built-in 言語と custom 言語の扱いを descriptor に寄せることで、core と LSP の意味体系を揃えやすい。
 
 ## リスク

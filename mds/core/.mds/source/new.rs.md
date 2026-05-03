@@ -9,18 +9,21 @@ Migrated implementation source for `src/new.rs`.
 - Preserve the behavior of the pre-migration Rust source.
 - This file is synchronized into `.build/rust/mds/core/src/new.rs`.
 
+## Imports
+
+| Kind | From | Target | Symbols | Via | Summary | Code |
+| --- | --- | --- | --- | --- | --- | --- |
+| rust-use | builtin | std::collections | HashMap | std |  | `use std::collections::HashMap;` |
+| rust-use | builtin | std | fs | std |  | `use std::fs;` |
+| rust-use | builtin | std::path | Path, PathBuf | std |  | `use std::path::{Path, PathBuf};` |
+| rust-use | internal | crate | descriptor | crate |  | `use crate::descriptor;` |
+| rust-use | internal | crate::diagnostics | Diagnostic, RunState | crate |  | `use crate::diagnostics::{Diagnostic, RunState};` |
+| rust-use | internal | crate::fs_utils | is_mds_managed_file | crate |  | `use crate::fs_utils::is_mds_managed_file;` |
+| rust-use | internal | crate::model | NewOptions | crate |  | `use crate::model::NewOptions;` |
+
+
 ## Source
 
-````rs
-use std::collections::HashMap;
-use std::fs;
-use std::path::{Path, PathBuf};
-
-use crate::descriptor;
-use crate::diagnostics::{Diagnostic, RunState};
-use crate::fs_utils::is_mds_managed_file;
-use crate::model::NewOptions;
-````
 
 ````rs
 pub(crate) fn run_new(
@@ -264,10 +267,13 @@ fn generate_impl_template(
 ````rs
 fn generate_test_template(feature_name: &str, labels: &HashMap<String, String>) -> String {
     let l_purpose = label(labels, "purpose", "Purpose");
+    let l_kind = label(labels, "kind", "Kind");
     let l_from = label(labels, "from", "From");
     let l_target = label(labels, "target", "Target");
-    let l_expose = label(labels, "expose", "Expose");
+    let l_symbols = label(labels, "symbols", "Symbols");
+    let l_via = label(labels, "via", "Via");
     let l_summary = label(labels, "summary", "Summary");
+    let l_code = label(labels, "code", "Code");
     let l_cases = label(labels, "cases", "Cases");
     let l_test = label(labels, "test", "Test");
 
@@ -283,11 +289,11 @@ fn generate_test_template(feature_name: &str, labels: &HashMap<String, String>) 
          \n\
          - {feature_name}\n\
          \n\
-         ## Uses\n\
+         ## Imports\n\
          \n\
-         | {l_from} | {l_target} | {l_expose} | {l_summary} |\n\
-         | --- | --- | --- | --- |\n\
-         | internal | {feature_name} | {feature_name} | Function under test |\n\
+         | {l_kind} | {l_from} | {l_target} | {l_symbols} | {l_via} | {l_summary} | {l_code} |\n\
+         | --- | --- | --- | --- | --- | --- | --- |\n\
+         | ts-import | internal | {feature_name} | {feature_name} | direct | Function under test | `import {{ {feature_name} }} from './{feature_name}';` |\n\
          \n\
          ## {l_cases}\n\
          \n\
@@ -299,3 +305,5 @@ fn generate_test_template(feature_name: &str, labels: &HashMap<String, String>) 
     )
 }
 ````
+
+

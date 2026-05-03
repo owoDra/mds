@@ -6,7 +6,7 @@ This page explains common problems and how to check them when using mds.
 
 ## No valid mds package found
 
-If the target package is not found when running `mds check` or similar commands, check the following:
+If the target package is not found when running `mds lint`, `mds typecheck`, or similar commands, check the following:
 
 - Does the target package have an `mds.config.toml`?
 - Is `enabled = true` set in `[package]` of `mds.config.toml`?
@@ -21,7 +21,7 @@ Check that `Purpose`, `Contract`, `Types`, `Source`, `Cases`, and `Test` are pre
 
 Heading hierarchy is also important. The main sections of implementation Markdown should be written as `##` headings.
 
-## Errors in `Expose` or `Uses` tables
+## Errors in `Imports`, `Exports`, `Expose`, or `Uses` tables
 
 Check column names, values, and duplicates in the table.
 
@@ -54,7 +54,7 @@ If `.mds/manifest.toml` cannot be read as TOML, or does not match the expected f
 
 This is to prevent accidentally corrupting files by misjudging what is managed.
 
-First, check the situation with `mds build --dry-run` and `mds check`.
+First, check the situation with `mds build --dry-run` and `mds lint`.
 
 ## Reported missing required tools
 

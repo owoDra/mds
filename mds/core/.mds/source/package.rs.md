@@ -9,21 +9,26 @@ Migrated implementation source for `src/package.rs`.
 - Preserve the behavior of the pre-migration Rust source.
 - This file is synchronized into `.build/rust/mds/core/src/package.rs`.
 
+## Imports
+
+| Kind | From | Target | Symbols | Via | Summary | Code |
+| --- | --- | --- | --- | --- | --- | --- |
+| rust-use | builtin | std::collections | HashMap, HashSet | std |  | `use std::collections::{HashMap, HashSet};` |
+| rust-use | builtin | std::ffi | OsStr | std |  | `use std::ffi::OsStr;` |
+| rust-use | builtin | std | fs | std |  | `use std::fs;` |
+| rust-use | builtin | std::path | Path | std |  | `use std::path::Path;` |
+| rust-use | external | regex | Regex | regex |  | `use regex::Regex;` |
+| rust-use | internal | crate::config | merge_config_file | crate |  | `use crate::config::merge_config_file;` |
+| rust-use | internal | crate | descriptor | crate |  | `use crate::descriptor;` |
+| rust-use | internal | crate::diagnostics | Diagnostic, RunState | crate |  | `use crate::diagnostics::{Diagnostic, RunState};` |
+| rust-use | internal | crate::fs_utils | collect_files, is_excluded | crate |  | `use crate::fs_utils::{collect_files, is_excluded};` |
+| rust-use | internal | crate::markdown | sections_with_labels, source_markdown_root, validate_markdown_links | crate |  | `use crate::markdown::{sections_with_labels, source_markdown_root, validate_markdown_links};` |
+| rust-use | internal | crate::model | Package, PackageMetadata | crate |  | `use crate::model::{Package, PackageMetadata};` |
+| rust-use | internal | crate::table | parse_table_with_labels | crate |  | `use crate::table::parse_table_with_labels;` |
+
+
 ## Source
 
-````rs
-use std::collections::{HashMap, HashSet};
-use std::ffi::OsStr;
-use std::fs;
-use std::path::Path;
-
-use crate::config::merge_config_file;
-use crate::diagnostics::{Diagnostic, RunState};
-use crate::fs_utils::{collect_files, is_excluded};
-use crate::markdown::{sections_with_labels, source_markdown_root, validate_markdown_links};
-use crate::model::{MetadataKind, Package, PackageMetadata};
-use crate::table::parse_table_with_labels;
-````
 
 ````rs
 pub fn discover_packages(
@@ -84,12 +89,12 @@ pub fn load_package(
         return None;
     }
 
-    let metadata_kind = match metadata_kind(root) {
-        Some(kind) => kind,
+    let package_manager = match descriptor::detect_package_manager(root) {
+        Some(manager) => manager,
         None => {
             state.diagnostics.push(Diagnostic::error(
                 Some(root.to_path_buf()),
-                "enabled package requires package.json, pyproject.toml, or Cargo.toml",
+                "enabled package requires a recognized package manager metadata file",
             ));
             return None;
         }
@@ -98,22 +103,8 @@ pub fn load_package(
     Some(Package {
         root: root.to_path_buf(),
         config,
-        metadata_kind,
+        package_manager_id: package_manager.id,
     })
-}
-````
-
-````rs
-pub fn metadata_kind(root: &Path) -> Option<MetadataKind> {
-    if root.join("package.json").exists() {
-        Some(MetadataKind::Node)
-    } else if root.join("pyproject.toml").exists() {
-        Some(MetadataKind::Python)
-    } else if root.join("Cargo.toml").exists() {
-        Some(MetadataKind::Rust)
-    } else {
-        None
-    }
 }
 ````
 
@@ -134,12 +125,32 @@ pub fn validate_package_md(package: &Package, state: &mut RunState) {
 
 ````rs
 pub fn read_package_metadata(package: &Package, state: &mut RunState) -> Option<PackageMetadata> {
-    match package.metadata_kind {
-        MetadataKind::Node => read_node_metadata(&package.root.join("package.json"), state),
-        MetadataKind::Python => read_python_metadata(&package.root.join("pyproject.toml"), state),
-        MetadataKind::Rust => {
-            read_toml_metadata(&package.root.join("Cargo.toml"), &["package"], state)
-        }
+    let Some(manager) = descriptor::package_manager_for_id(&package.package_manager_id) else {
+        state.diagnostics.push(Diagnostic::error(
+            Some(package.root.clone()),
+            format!("unknown package manager `{}`", package.package_manager_id),
+        ));
+        return None;
+    };
+    let Some(path) = manager.metadata_path(&package.root) else {
+        state.diagnostics.push(Diagnostic::error(
+            Some(package.root.clone()),
+            format!("package manager `{}` metadata file is missing", manager.id),
+        ));
+        return None;
+    };
+    match manager.metadata_reader.as_str() {
+        "node-package-json" | "vcpkg-json" => read_node_metadata(&path, state),
+        "pyproject-toml" => read_python_metadata(&path, state),
+        "cargo-toml" => read_toml_metadata(&path, &["package"], state),
+        "pubspec-yaml" => read_pubspec_metadata(&path, state),
+        "dotnet-xml" => read_dotnet_metadata(&path, state),
+        "cmake-text" => read_cmake_metadata(&path, state),
+        "meson-text" => read_meson_metadata(&path, state),
+        "conan-text" => read_conan_metadata(&path, state),
+        "bundler" => read_bundler_metadata(&package.root, &path, state),
+        "zig-zon" => read_zig_metadata(&path, state),
+        _ => read_generic_metadata(&package.root, &path),
     }
 }
 ````
@@ -311,6 +322,156 @@ pub fn read_python_metadata(path: &Path, state: &mut RunState) -> Option<Package
 ````
 
 ````rs
+pub fn read_pubspec_metadata(path: &Path, state: &mut RunState) -> Option<PackageMetadata> {
+    let text = fs::read_to_string(path).ok()?;
+    let value = match serde_yaml::from_str::<serde_yaml::Value>(&text) {
+        Ok(value) => value,
+        Err(error) => {
+            state.diagnostics.push(Diagnostic::error(
+                Some(path.to_path_buf()),
+                format!("failed to parse pubspec.yaml: {error}"),
+            ));
+            return None;
+        }
+    };
+    let name = yaml_string(value.get("name"));
+    let version = yaml_string(value.get("version")).unwrap_or_else(|| "0.1.0".to_string());
+    Some(PackageMetadata {
+        name: name.unwrap_or_else(|| fallback_package_name(path)),
+        version,
+        dependencies: yaml_dependency_object(value.get("dependencies")),
+        dev_dependencies: yaml_dependency_object(value.get("dev_dependencies")),
+    })
+}
+````
+
+````rs
+pub fn read_dotnet_metadata(path: &Path, state: &mut RunState) -> Option<PackageMetadata> {
+    let text = fs::read_to_string(path).ok()?;
+    let name = capture_first(&text, &[r"<AssemblyName>([^<]+)</AssemblyName>", r"<PackageId>([^<]+)</PackageId>"])
+        .unwrap_or_else(|| fallback_package_name(path));
+    let version = capture_first(&text, &[r"<Version>([^<]+)</Version>"])
+        .unwrap_or_else(|| "0.1.0".to_string());
+    Some(PackageMetadata {
+        name,
+        version,
+        dependencies: capture_many_pairs(
+            &text,
+            r#"<PackageReference[^>]*Include=\"([^\"]+)\"[^>]*Version=\"([^\"]+)\"[^>]*/?>"#,
+            state,
+        ),
+        dev_dependencies: HashMap::new(),
+    })
+}
+````
+
+````rs
+pub fn read_cmake_metadata(path: &Path, _state: &mut RunState) -> Option<PackageMetadata> {
+    let text = fs::read_to_string(path).ok()?;
+    let name = capture_first(&text, &[r"project\(([^\s\)]+)", r"set\(PROJECT_NAME\s+([^\s\)]+)"])
+        .unwrap_or_else(|| fallback_package_name(path));
+    let version = capture_first(&text, &[r"VERSION\s+([^\s\)]+)"]).unwrap_or_else(|| "0.1.0".to_string());
+    Some(PackageMetadata {
+        name,
+        version,
+        dependencies: capture_many_names(&text, r"find_package\(([^\s\)]+)"),
+        dev_dependencies: HashMap::new(),
+    })
+}
+````
+
+````rs
+pub fn read_meson_metadata(path: &Path, _state: &mut RunState) -> Option<PackageMetadata> {
+    let text = fs::read_to_string(path).ok()?;
+    let name = capture_first(&text, &[r#"project\(['\"]([^'\"]+)['\"]"#])
+        .unwrap_or_else(|| fallback_package_name(path));
+    let version = capture_first(&text, &[r#"version\s*:\s*['\"]([^'\"]+)['\"]"#])
+        .unwrap_or_else(|| "0.1.0".to_string());
+    Some(PackageMetadata {
+        name,
+        version,
+        dependencies: HashMap::new(),
+        dev_dependencies: HashMap::new(),
+    })
+}
+````
+
+````rs
+pub fn read_conan_metadata(path: &Path, _state: &mut RunState) -> Option<PackageMetadata> {
+    let text = fs::read_to_string(path).ok()?;
+    let mut metadata = read_generic_metadata(path.parent().unwrap_or(path), path)?;
+    metadata.dependencies = text
+        .lines()
+        .filter_map(|line| line.split_once('/'))
+        .map(|(name, version)| (name.trim().to_string(), version.trim().to_string()))
+        .collect();
+    Some(metadata)
+}
+````
+
+````rs
+pub fn read_bundler_metadata(root: &Path, path: &Path, _state: &mut RunState) -> Option<PackageMetadata> {
+    if path.extension().and_then(|value| value.to_str()) == Some("gemspec") {
+        let text = fs::read_to_string(path).ok()?;
+        let name = capture_first(&text, &[r#"\.name\s*=\s*['\"]([^'\"]+)['\"]"#])
+            .unwrap_or_else(|| fallback_package_name(path));
+        let version = capture_first(&text, &[r#"\.version\s*=\s*['\"]([^'\"]+)['\"]"#])
+            .unwrap_or_else(|| "0.1.0".to_string());
+        return Some(PackageMetadata {
+            name,
+            version,
+            dependencies: HashMap::new(),
+            dev_dependencies: HashMap::new(),
+        });
+    }
+
+    if let Ok(entries) = fs::read_dir(root) {
+        for entry in entries.filter_map(|entry| entry.ok()) {
+            let candidate = entry.path();
+            if candidate.extension().and_then(|value| value.to_str()) == Some("gemspec") {
+                if let Some(metadata) = read_bundler_metadata(root, &candidate, _state) {
+                    return Some(metadata);
+                }
+            }
+        }
+    }
+
+    read_generic_metadata(root, path)
+}
+````
+
+````rs
+pub fn read_zig_metadata(path: &Path, _state: &mut RunState) -> Option<PackageMetadata> {
+    let text = fs::read_to_string(path).ok()?;
+    let name = capture_first(&text, &[r#"\.name\s*=\s*\"([^\"]+)\""#])
+        .unwrap_or_else(|| fallback_package_name(path));
+    let version = capture_first(&text, &[r#"\.version\s*=\s*\"([^\"]+)\""#])
+        .unwrap_or_else(|| "0.1.0".to_string());
+    Some(PackageMetadata {
+        name,
+        version,
+        dependencies: HashMap::new(),
+        dev_dependencies: HashMap::new(),
+    })
+}
+````
+
+````rs
+fn read_generic_metadata(root: &Path, _path: &Path) -> Option<PackageMetadata> {
+    Some(PackageMetadata {
+        name: root
+            .file_name()
+            .and_then(|value| value.to_str())
+            .unwrap_or("mds-package")
+            .to_string(),
+        version: "0.1.0".to_string(),
+        dependencies: HashMap::new(),
+        dev_dependencies: HashMap::new(),
+    })
+}
+````
+
+````rs
 fn toml_table_path<'a>(
     value: &'a toml::Value,
     table_path: &[&str],
@@ -386,6 +547,90 @@ fn split_dependency_spec(value: &str) -> (String, String) {
         }
     }
     (value.trim().to_string(), String::new())
+}
+````
+
+````rs
+fn yaml_string(value: Option<&serde_yaml::Value>) -> Option<String> {
+    value?.as_str().map(ToOwned::to_owned)
+}
+````
+
+````rs
+fn yaml_dependency_object(value: Option<&serde_yaml::Value>) -> HashMap<String, String> {
+    let Some(mapping) = value.and_then(serde_yaml::Value::as_mapping) else {
+        return HashMap::new();
+    };
+    mapping
+        .iter()
+        .filter_map(|(key, value)| Some((key.as_str()?.to_string(), yaml_dependency_version(value))))
+        .collect()
+}
+````
+
+````rs
+fn yaml_dependency_version(value: &serde_yaml::Value) -> String {
+    value
+        .as_str()
+        .map(ToOwned::to_owned)
+        .unwrap_or_else(|| serde_yaml::to_string(value).unwrap_or_default().trim().to_string())
+}
+````
+
+````rs
+fn capture_first(text: &str, patterns: &[&str]) -> Option<String> {
+    for pattern in patterns {
+        let regex = Regex::new(pattern).ok()?;
+        if let Some(captures) = regex.captures(text) {
+            if let Some(value) = captures.get(1) {
+                return Some(value.as_str().trim().to_string());
+            }
+        }
+    }
+    None
+}
+````
+
+````rs
+fn capture_many_names(text: &str, pattern: &str) -> HashMap<String, String> {
+    let Ok(regex) = Regex::new(pattern) else {
+        return HashMap::new();
+    };
+    regex
+        .captures_iter(text)
+        .filter_map(|captures| captures.get(1).map(|value| (value.as_str().trim().to_string(), String::new())))
+        .collect()
+}
+````
+
+````rs
+fn capture_many_pairs(
+    text: &str,
+    pattern: &str,
+    _state: &mut RunState,
+) -> HashMap<String, String> {
+    let Ok(regex) = Regex::new(pattern) else {
+        return HashMap::new();
+    };
+    regex
+        .captures_iter(text)
+        .filter_map(|captures| {
+            Some((
+                captures.get(1)?.as_str().trim().to_string(),
+                captures.get(2)?.as_str().trim().to_string(),
+            ))
+        })
+        .collect()
+}
+````
+
+````rs
+fn fallback_package_name(path: &Path) -> String {
+    path.parent()
+        .and_then(|value| value.file_name())
+        .and_then(|value| value.to_str())
+        .unwrap_or("mds-package")
+        .to_string()
 }
 ````
 
@@ -524,3 +769,5 @@ pub fn validate_expose_rows(rows: &[HashMap<String, String>], path: &Path, state
     }
 }
 ````
+
+

@@ -91,6 +91,7 @@ This package is authored under `mds/core/.mds/source/` and synchronized into pac
 | regex | 1 |  |
 | serde | 1 |  |
 | serde_json | 1 |  |
+| serde_yaml | 0.9 |  |
 | toml | 0.8 |  |
 
 ### Dev Dependencies

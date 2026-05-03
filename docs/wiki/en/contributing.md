@@ -43,7 +43,7 @@ cargo test
 If you have prepared sample packages that use mds, you can also perform the following checks:
 
 ```bash
-mds check --package path/to/package
+mds lint --package path/to/package
 mds build --package path/to/package --dry-run
 ```
 

@@ -41,7 +41,7 @@ mds init --ai --target all --categories instructions,skills --yes
 | --- | --- |
 | `instructions` | AI CLI rule files. Documents mds workflows and Markdown format |
 | `skills` | Detailed skill definitions referenced on demand |
-| `commands` | Immediately executable command definitions (mds check, mds build, etc.) |
+| `commands` | Immediately executable command definitions (mds lint, mds build, etc.) |
 
 ### Options
 
@@ -142,7 +142,7 @@ build.rs automatically detects manifest.toml and registers it in the template re
 
 For AI agents to work correctly in mds projects, templates need the following information:
 
-1. **Workflow**: `mds check` → `mds build --dry-run` → `mds build` → `mds test`
+1. **Workflow**: `mds lint` → `mds typecheck` → `mds build --dry-run` → `mds build` → `mds test`
 2. **File naming convention**: `src-md/name.{lang}.md` → `src/name.{lang}`
 3. **Required section structure**: Purpose, Contract, Types, Source, Cases, Test (H2, fixed order)
 4. **Uses table specification**: From (internal/package/builtin/workspace), Target, Expose, Summary

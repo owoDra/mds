@@ -41,7 +41,7 @@ cargo test
 mds を利用するサンプルパッケージを用意している場合は、次の確認も行えます。
 
 ```bash
-mds check --package path/to/package
+mds lint --package path/to/package
 mds build --package path/to/package --dry-run
 ```
 

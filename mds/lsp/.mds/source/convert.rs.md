@@ -9,15 +9,17 @@ Migrated implementation source for `src/convert.rs`.
 - Preserve the behavior of the pre-migration Rust source.
 - This file is synchronized into `.build/rust/mds/lsp/src/convert.rs`.
 
+## Imports
+
+| Kind | From | Target | Symbols | Via | Summary | Code |
+| --- | --- | --- | --- | --- | --- | --- |
+| rust-use | external | mds_core | Diagnostic, Severity | mds_core |  | `use mds_core::{Diagnostic, Severity};` |
+| rust-use | external | tower_lsp | lsp_types | tower_lsp |  | `use tower_lsp::lsp_types;` |
+
 ## Source
 
 ````rs
 #![allow(dead_code)]
-````
-
-````rs
-use mds_core::{Diagnostic, Severity};
-use tower_lsp::lsp_types;
 ````
 
 Convert an mds-core Diagnostic to an LSP Diagnostic.

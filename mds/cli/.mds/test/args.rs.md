@@ -13,17 +13,20 @@ Migrated implementation source for `tests/args.rs`.
 
 - args
 
+## Imports
+
+| Kind | From | Target | Symbols | Via | Summary | Code |
+| --- | --- | --- | --- | --- | --- | --- |
+| rust-use | builtin | std::path | PathBuf | std |  | `use std::path::PathBuf;` |
+| rust-use | external | mds_cli::args | parse_args_from | mds_cli |  | `use mds_cli::args::parse_args_from;` |
+| rust-use | external | mds_core | { | mds_core |  | `use mds_core::{` |
+| import | external |  |  |  |  | `AgentKitCategory, AiTarget, BuildMode, Command, DoctorFormat, PythonTool, RustTool,` |
+| import | external |  |  |  |  | `TypeScriptTool,` |
+| import | external |  |  |  |  | `};` |
+
+
 ## Test
 
-````rs
-use std::path::PathBuf;
-
-use mds_cli::args::parse_args_from;
-use mds_core::{
-    AgentKitCategory, AiTarget, BuildMode, Command, DoctorFormat, PythonTool, RustTool,
-    TypeScriptTool,
-};
-````
 
 ````rs
 #[test]
@@ -47,13 +50,14 @@ fn parses_build_dry_run() {
 
 ````rs
 #[test]
-fn rejects_dry_run_for_check() {
+fn rejects_removed_check_command() {
     let error = parse_args_from(
         PathBuf::from("/repo"),
-        ["check", "--dry-run"].map(String::from),
+        ["check"].map(String::from),
     )
     .unwrap_err();
-    assert!(error.contains("--dry-run"));
+    assert!(error.contains("mds check"));
+    assert!(error.contains("mds lint"));
 }
 ````
 
@@ -72,6 +76,13 @@ fn parses_post_mvp_commands() {
             check: true
         }
     ));
+
+    let typecheck = parse_args_from(
+        PathBuf::from("/repo"),
+        ["typecheck", "--package", "pkg"].map(String::from),
+    )
+    .unwrap();
+    assert!(matches!(typecheck.command, Command::Typecheck));
 
     let doctor = parse_args_from(
         PathBuf::from("/repo"),
@@ -163,3 +174,5 @@ fn rejects_conflicting_init_tool_choices() {
     assert!(error.contains("vitest and jest"));
 }
 ````
+
+

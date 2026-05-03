@@ -9,22 +9,25 @@ Migrated implementation source for `src/generation.rs`.
 - Preserve the behavior of the pre-migration Rust source.
 - This file is synchronized into `.build/rust/mds/core/src/generation.rs`.
 
+## Imports
+
+| Kind | From | Target | Symbols | Via | Summary | Code |
+| --- | --- | --- | --- | --- | --- | --- |
+| rust-use | builtin | std::ffi | OsStr | std |  | `use std::ffi::OsStr;` |
+| rust-use | builtin | std | fs | std |  | `use std::fs;` |
+| rust-use | builtin | std::path | Path | std |  | `use std::path::Path;` |
+| rust-use | internal | crate::adapter | output_relative_path | crate |  | `use crate::adapter::output_relative_path;` |
+| rust-use | internal | crate::descriptor | output_root, OutputRoot | crate |  | `use crate::descriptor::{output_root, OutputRoot};` |
+| rust-use | internal | crate::diagnostics | Diagnostic, RunState | crate |  | `use crate::diagnostics::{Diagnostic, RunState};` |
+| rust-use | internal | crate::fs_utils | collect_files, is_excluded, is_mds_managed_file, path_within | crate |  | `use crate::fs_utils::{collect_files, is_excluded, is_mds_managed_file, path_within};` |
+| rust-use | internal | crate::hash | sha256 | crate |  | `use crate::hash::sha256;` |
+| rust-use | internal | crate::manifest | plan_manifest | crate |  | `use crate::manifest::plan_manifest;` |
+| rust-use | internal | crate::markdown | source_markdown_root | crate |  | `use crate::markdown::source_markdown_root;` |
+| rust-use | internal | crate::model | DocKind, GeneratedFile, GeneratedKind, ImplDoc, Lang, OutputKind, Package | crate |  | `use crate::model::{DocKind, GeneratedFile, GeneratedKind, ImplDoc, Lang, OutputKind, Package};` |
+
+
 ## Source
 
-````rs
-use std::ffi::OsStr;
-use std::fs;
-use std::path::Path;
-
-use crate::adapter::output_relative_path;
-use crate::descriptor::{output_root, OutputRoot};
-use crate::diagnostics::{Diagnostic, RunState};
-use crate::fs_utils::{collect_files, is_excluded, is_mds_managed_file, path_within};
-use crate::hash::sha256;
-use crate::manifest::plan_manifest;
-use crate::markdown::source_markdown_root;
-use crate::model::{DocKind, GeneratedFile, GeneratedKind, ImplDoc, Lang, OutputKind, Package};
-````
 
 ````rs
 pub(crate) fn plan_generation(
@@ -212,3 +215,5 @@ pub(crate) fn plan_output(
     })
 }
 ````
+
+

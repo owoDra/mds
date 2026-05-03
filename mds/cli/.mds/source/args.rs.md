@@ -9,16 +9,19 @@ Migrated implementation source for `src/args.rs`.
 - Preserve the behavior of the pre-migration Rust source.
 - This file is synchronized into `.build/rust/mds/cli/src/args.rs`.
 
+## Imports
+
+| Kind | From | Target | Symbols | Via | Summary | Code |
+| --- | --- | --- | --- | --- | --- | --- |
+| rust-use | builtin | std::path | PathBuf | std |  | `use std::path::PathBuf;` |
+| rust-use | external | mds_core | { | mds_core |  | `use mds_core::{` |
+| import | external |  |  |  |  | `AgentKitCategory, AiTarget, BuildMode, CliRequest, Command, DoctorFormat, InitOptions,` |
+| import | external |  |  |  |  | `LabelPreset, NewOptions, PythonTool, RustTool, TypeScriptTool,` |
+| import | external |  |  |  |  | `};` |
+
+
 ## Source
 
-````rs
-use std::path::PathBuf;
-
-use mds_core::{
-    AgentKitCategory, AiTarget, BuildMode, CliRequest, Command, DoctorFormat, InitOptions,
-    LabelPreset, NewOptions, PythonTool, RustTool, TypeScriptTool,
-};
-````
 
 ````rs
 pub fn parse_args(cwd: PathBuf) -> Result<CliRequest, String> {
@@ -147,10 +150,7 @@ where
 
     let command = match command_name.as_str() {
         "check" => {
-            if dry_run {
-                return Err("--dry-run is only valid for build".to_string());
-            }
-            Command::Check
+            return Err("`mds check` was removed; use `mds lint` for structure validation, `mds typecheck` for type checks, and `mds test` for tests".to_string())
         }
         "build" => Command::Build {
             mode: if dry_run {
@@ -167,6 +167,12 @@ where
                 return Err("--check is only valid with lint --fix or package sync".to_string());
             }
             Command::Lint { fix, check }
+        }
+        "typecheck" => {
+            if dry_run || fix || check {
+                return Err("typecheck only accepts --package and --verbose".to_string());
+            }
+            Command::Typecheck
         }
         "test" => {
             if dry_run || fix || check {
@@ -367,6 +373,8 @@ where
 }
 ````
 
+
+
 ````rs
 pub fn print_usage() {
     eprintln!();
@@ -378,8 +386,8 @@ pub fn print_usage() {
     );
     eprintln!("  mds init [options] --yes                  Non-interactive project setup");
     eprintln!("  mds new <name.lang.md>                    Create new implementation Markdown");
-    eprintln!("  mds check [--package <path>]              Validate Markdown structure");
     eprintln!("  mds build [--package <path>] [--dry-run]  Generate derived code");
+    eprintln!("  mds typecheck [--package <path>]          Run type checks on code blocks");
     eprintln!("  mds lint [--package <path>] [--fix]       Run linters on code blocks");
     eprintln!("  mds test [--package <path>]               Run tests from code blocks");
     eprintln!("  mds doctor [--package <path>]             Diagnose environment");
@@ -414,7 +422,6 @@ pub fn print_usage() {
     eprintln!("  mds init --package ./my-pkg --yes              # Quick setup with defaults");
     eprintln!("  mds new greet.ts.md                            # New TypeScript implementation");
     eprintln!("  mds new utils/helper.py.md --package ./my-pkg  # New Python implementation");
-    eprintln!("  mds check --package ./my-pkg                   # Validate structure");
     eprintln!("  mds build --package ./my-pkg --dry-run         # Preview generation");
     eprintln!("  mds build --package ./my-pkg                   # Generate code");
     eprintln!();

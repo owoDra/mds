@@ -19,7 +19,7 @@ This skill helps you work with the mds (Markdown Source) system. mds treats Mark
 ```sh
 mds new <name.lang.md>  # Create new implementation markdown from template
 mds new overview.md        # Create new overview markdown for a directory
-mds check               # Validate markdown structure and references
+mds lint               # Validate markdown structure and references
 mds build --dry-run     # Preview what would be generated
 mds build               # Generate code from markdown sources
 mds lint --fix --check  # Fix and validate formatting
@@ -31,7 +31,7 @@ mds test                # Run tests on generated outputs
 1. Read existing `.mds/source/` files to understand the current state
 2. Create new markdown files with `mds new <name.lang.md>` (generates correct template)
 3. Record dependencies in Uses; write implementation-only code blocks
-4. Run `mds check` to validate structure
+4. Run `mds lint` to validate structure
 5. Run `mds build --dry-run` to preview generation
 6. Run `mds build` to generate code
 7. Run `mds test` to verify correctness
@@ -63,7 +63,7 @@ Implementation files: `.mds/source/name.{lang}.md` → generates `src/name.{lang
 
 - One `.{lang}.md` file = one generated source file
 - All code blocks in the file are concatenated (separated by blank lines) to produce the output
-- Import/use/require statements are forbidden in code blocks; record dependencies in Uses
+- Import/use/require statements are forbidden in code blocks; record dependencies in the Imports section table
 - Each code block must contain exactly one logical unit (type, function, class, impl, etc.) by default
 - Doc comments and docstrings belong in surrounding markdown text, not inside code blocks
 
@@ -76,7 +76,7 @@ All sections are optional. Recommended structure:
 - `## Source` — Implementation code blocks
 - `## Cases` — Example behaviors (documentation only)
 
-### Uses Table
+### Imports Section
 
 | Target | Summary |
 | --- | --- |
@@ -87,6 +87,6 @@ All sections are optional. Recommended structure:
 
 - One `.{lang}.md` per feature (one file = one generated source)
 - Code fence language must match file extension
-- Imports/use/require are forbidden in code blocks; record dependencies in Uses
-- Default `mds check` expects top-level implementations to be split per code fence; projects may relax selected checks in `[check]`
+- Imports/use/require are forbidden in code blocks; record dependencies in the Imports section table
+- Default `mds lint` expects top-level implementations to be split per code fence; projects may relax selected checks in `[check]`
 - Multiple code blocks per section → concatenated with blank lines

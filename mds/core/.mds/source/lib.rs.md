@@ -38,7 +38,7 @@ pub use diagnostics::{Diagnostic, RunState, Severity};
 pub use model::{
     AgentKitCategory, AiTarget, BuildMode, CliRequest, CliResult, Command, Config, DocKind,
     DoctorFormat, GeneratedFile, GeneratedKind, ImplDoc, InitOptions, InitQualityCommands,
-    InitTargetCategories, LabelPreset, Lang, MetadataKind, NewOptions, OutputKind, Package,
+    InitTargetCategories, LabelPreset, Lang, NewOptions, OutputKind, Package,
     PackageMetadata, PythonTool, QualityConfig, Roots, RustTool, TypeScriptTool,
 };
 pub use runner::execute;

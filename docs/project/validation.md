@@ -68,7 +68,7 @@
 
 ## CLI 振る舞い
 
-- いつ行うか: `mds build`、`mds check`、`mds lint`、`mds lint --fix`、`mds test`、`mds doctor`、`mds package sync`、`mds init` を変更するとき。
+- いつ行うか: `mds build`、`mds typecheck`、`mds lint`、`mds lint --fix`、`mds test`、`mds doctor`、`mds package sync`、`mds init` を変更するとき。
 - 何で検証するか: 正常系、入力不備、対象なし、部分失敗の CLI fixture または統合テストを使う。
 - 期待する結果: 終了コード、標準出力、標準エラー、生成物、破壊的でない失敗動作が予測可能である。
 - 問題があった際にどうするか: ユーザーが次に取るべき行動が分かるエラーへ修正し、曖昧な成功扱いを避ける。

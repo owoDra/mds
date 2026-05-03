@@ -9,16 +9,19 @@ Migrated implementation source for `src/manifest.rs`.
 - Preserve the behavior of the pre-migration Rust source.
 - This file is synchronized into `.build/rust/mds/core/src/manifest.rs`.
 
+## Imports
+
+| Kind | From | Target | Symbols | Via | Summary | Code |
+| --- | --- | --- | --- | --- | --- | --- |
+| rust-use | builtin | std | fs | std |  | `use std::fs;` |
+| rust-use | builtin | std::path | Component, Path | std |  | `use std::path::{Component, Path};` |
+| rust-use | internal | crate::diagnostics | Diagnostic, RunState | crate |  | `use crate::diagnostics::{Diagnostic, RunState};` |
+| rust-use | internal | crate::hash | sha256 | crate |  | `use crate::hash::sha256;` |
+| rust-use | internal | crate::model | GeneratedFile, GeneratedKind, ImplDoc, Package | crate |  | `use crate::model::{GeneratedFile, GeneratedKind, ImplDoc, Package};` |
+
+
 ## Source
 
-````rs
-use std::fs;
-use std::path::{Component, Path};
-
-use crate::diagnostics::{Diagnostic, RunState};
-use crate::hash::sha256;
-use crate::model::{GeneratedFile, GeneratedKind, ImplDoc, Package};
-````
 
 ````rs
 pub(crate) fn validate_manifest(package: &Package, state: &mut RunState) {
@@ -103,6 +106,8 @@ pub(crate) fn plan_manifest(
     }
 }
 ````
+
+
 
 ````rs
 fn toml_path(path: &Path) -> String {

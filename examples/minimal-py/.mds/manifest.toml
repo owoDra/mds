@@ -1,9 +1,17 @@
 [[sources]]
 path = ".mds/source/greet.py.md"
 adapter = "py"
-hash = "f608dde0ecb16d453e444da36bc53a9d17650c400ef0c8367fd694c50670a0f8"
+hash = "453e21906d60a807b56b909dd69098a5016709e8a32df11a5ae63da01ac4754a"
 [[sources.outputs]]
 kind = "source"
 path = "src/greet.py"
-hash = "0c0d561d7a7a7da82df5f69bcac0c60c4b3b303ae298672685c9d82a8eb49d8e"
+hash = "5e9431196ed44c3f9d0170d5de109a62c683a14a422c21ec6d8d60b6fccd6a32"
+[[sources.outputs]]
+kind = "types"
+path = "src/greet.pyi"
+hash = "e5a2e135f3a23caf9959370cd6009738dbe877cc585847a1898bc38a9b431000"
+[[sources.outputs]]
+kind = "test"
+path = "tests/test_greet.py"
+hash = "e5a2e135f3a23caf9959370cd6009738dbe877cc585847a1898bc38a9b431000"
 

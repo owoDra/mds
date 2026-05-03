@@ -9,15 +9,18 @@ Migrated implementation source for `src/doctor.rs`.
 - Preserve the behavior of the pre-migration Rust source.
 - This file is synchronized into `.build/rust/mds/core/src/doctor.rs`.
 
+## Imports
+
+| Kind | From | Target | Symbols | Via | Summary | Code |
+| --- | --- | --- | --- | --- | --- | --- |
+| rust-use | builtin | std::process | Command as ProcessCommand | std |  | `use std::process::Command as ProcessCommand;` |
+| rust-use | internal | crate::adapter | tool_available | crate |  | `use crate::adapter::tool_available;` |
+| rust-use | internal | crate::diagnostics | Diagnostic, RunState | crate |  | `use crate::diagnostics::{Diagnostic, RunState};` |
+| rust-use | internal | crate::model | DoctorFormat, Package | crate |  | `use crate::model::{DoctorFormat, Package};` |
+
+
 ## Source
 
-````rs
-use std::process::Command as ProcessCommand;
-
-use crate::adapter::tool_available;
-use crate::diagnostics::{Diagnostic, RunState};
-use crate::model::{DoctorFormat, Package};
-````
 
 ````rs
 pub(crate) fn run_doctor(packages: &[Package], format: DoctorFormat, state: &mut RunState) {
@@ -234,6 +237,8 @@ fn render_json(checks: &[DoctorCheck], state: &mut RunState) {
     state.stdout.push_str("]}\n");
 }
 ````
+
+
 
 ````rs
 fn escape_json(value: &str) -> String {

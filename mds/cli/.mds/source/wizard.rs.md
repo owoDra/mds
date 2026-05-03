@@ -9,26 +9,30 @@ Migrated implementation source for `src/wizard.rs`.
 - Preserve the behavior of the pre-migration Rust source.
 - This file is synchronized into `.build/rust/mds/cli/src/wizard.rs`.
 
+## Imports
+
+| Kind | From | Target | Symbols | Via | Summary | Code |
+| --- | --- | --- | --- | --- | --- | --- |
+| rust-use | builtin | std::io | self, stdout | std |  | `use std::io::{self, stdout};` |
+| rust-use | builtin | std::path | Path | std |  | `use std::path::Path;` |
+| rust-use | external | crossterm | { | crossterm |  | `use crossterm::{` |
+| import | external |  |  |  |  | `event::{self, Event, KeyCode, KeyEventKind},` |
+| import | external |  |  |  |  | `terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},` |
+| import | external |  |  |  |  | `ExecutableCommand,` |
+| import | external |  |  |  |  | `};` |
+| rust-use | external | mds_core | { | mds_core |  | `use mds_core::{` |
+| import | external |  |  |  |  | `descriptor,` |
+| import | external |  |  |  |  | `AgentKitCategory, AiTarget, InitOptions, InitQualityCommands, InitTargetCategories,` |
+| import | external |  |  |  |  | `LabelPreset, Lang,` |
+| import | external |  |  |  |  | `};` |
+| rust-use | external | ratatui | { | ratatui |  | `use ratatui::{` |
+| import | external |  |  |  |  | `prelude::*,` |
+| import | external |  |  |  |  | `widgets::{Block, Borders, Clear, List, ListItem, ListState, Padding, Paragraph, Wrap},` |
+| import | external |  |  |  |  | `};` |
+
+
 ## Source
 
-````rs
-use std::io::{self, stdout};
-use std::path::Path;
-
-use crossterm::{
-    event::{self, Event, KeyCode, KeyEventKind},
-    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
-    ExecutableCommand,
-};
-use mds_core::{
-    AgentKitCategory, AiTarget, InitOptions, InitQualityCommands, InitTargetCategories,
-    LabelPreset, Lang,
-};
-use ratatui::{
-    prelude::*,
-    widgets::{Block, Borders, Clear, List, ListItem, ListState, Padding, Paragraph, Wrap},
-};
-````
 
 ````rs
 #[derive(Clone)]
@@ -107,11 +111,11 @@ impl QualityField {
         }
     }
 
-    fn suggestion(self, profile: &ToolchainProfile) -> &'static str {
+    fn suggestion<'a>(self, profile: &'a ToolchainProfile) -> &'a str {
         match self {
-            Self::TypeCheck => profile.type_check,
-            Self::Lint => profile.lint,
-            Self::Test => profile.test,
+            Self::TypeCheck => &profile.type_check,
+            Self::Lint => &profile.lint,
+            Self::Test => &profile.test,
         }
     }
 }
@@ -120,11 +124,11 @@ impl QualityField {
 ````rs
 struct ToolchainProfile {
     lang: Lang,
-    name: &'static str,
-    metadata: &'static str,
-    type_check: &'static str,
-    lint: &'static str,
-    test: &'static str,
+    name: String,
+    metadata: String,
+    type_check: String,
+    lint: String,
+    test: String,
 }
 ````
 
@@ -351,7 +355,7 @@ impl WizardState {
         let Step::ToolchainCommand { toolchain, .. } = self.steps[self.current_step] else {
             return None;
         };
-        Some(self.toolchains[toolchain].profile.metadata)
+        Some(&self.toolchains[toolchain].profile.metadata)
     }
 
     fn text_description(&self) -> Option<&'static str> {
@@ -916,48 +920,27 @@ fn move_cursor(state: &mut WizardState, direction: isize) {
 ````rs
 fn detect_toolchains(root: &Path) -> Vec<ToolchainState> {
     let mut toolchains = Vec::new();
-    for profile in toolchain_profiles() {
-        if root.join(profile.metadata).exists() {
-            toolchains.push(ToolchainState {
-                type_check: profile.type_check.into(),
-                lint: profile.lint.into(),
-                test: profile.test.into(),
-                profile,
-            });
-        }
+    for manager in descriptor::package_managers_for_root(root) {
+        let metadata = manager
+            .metadata_path(root)
+            .and_then(|path| path.file_name().and_then(|value| value.to_str()).map(ToOwned::to_owned))
+            .unwrap_or_else(|| manager.metadata_files.first().cloned().unwrap_or_default());
+        let profile = ToolchainProfile {
+            lang: manager.resolved_lang(),
+            name: manager.display_name.clone(),
+            metadata,
+            type_check: manager.command("typecheck").unwrap_or_default().to_string(),
+            lint: manager.command("lint").unwrap_or_default().to_string(),
+            test: manager.command("test").unwrap_or_default().to_string(),
+        };
+        toolchains.push(ToolchainState {
+            type_check: profile.type_check.clone(),
+            lint: profile.lint.clone(),
+            test: profile.test.clone(),
+            profile,
+        });
     }
     toolchains
-}
-````
-
-````rs
-fn toolchain_profiles() -> Vec<ToolchainProfile> {
-    vec![
-        ToolchainProfile {
-            lang: Lang::TypeScript,
-            name: "Node.js",
-            metadata: "package.json",
-            type_check: "npm run typecheck",
-            lint: "npm run lint",
-            test: "npm test",
-        },
-        ToolchainProfile {
-            lang: Lang::Python,
-            name: "Python",
-            metadata: "pyproject.toml",
-            type_check: "uv run pyright",
-            lint: "uv run ruff check",
-            test: "uv run pytest",
-        },
-        ToolchainProfile {
-            lang: Lang::Rust,
-            name: "Rust",
-            metadata: "Cargo.toml",
-            type_check: "cargo check",
-            lint: "cargo clippy",
-            test: "cargo test",
-        },
-    ]
 }
 ````
 
@@ -1024,6 +1007,8 @@ fn category_label(category: AgentKitCategory, japanese: bool) -> &'static str {
     }
 }
 ````
+
+
 
 ````rs
 fn category_description(category: AgentKitCategory, japanese: bool) -> &'static str {

@@ -13,8 +13,8 @@ Write real code — TypeScript, Python, Rust — inside Markdown code blocks, th
 ## Features
 
 - Generate `.ts`, `.py`, `.rs` files from `Types`, `Source`, `Test` code blocks in Markdown
-- `mds check` validates Markdown structure and consistency
-- `mds lint` / `mds test` runs linters and tests against code in Markdown
+- `mds lint` validates Markdown structure and runs configured linters against code in Markdown
+- `mds typecheck` / `mds test` runs type checks and tests against code in Markdown
 - `mds init` initializes a project with an interactive wizard
 
 ## Quick Start
@@ -25,7 +25,8 @@ curl -fsSL https://raw.githubusercontent.com/owo-x-project/owox-mds/main/install
 
 # Basic usage
 mds init --package ./path/to/package
-mds check --package ./path/to/package
+mds lint --package ./path/to/package
+mds typecheck --package ./path/to/package
 mds build --package ./path/to/package
 ```
 
@@ -48,6 +49,7 @@ See [examples/](examples/) for minimal working configurations.
 
 - [Getting Started](docs/wiki/en/getting-started.md) — Prerequisites and minimal setup
 - [Commands](docs/wiki/en/commands.md) — Full command reference
+- [Descriptor Guide](docs/wiki/en/descriptors.md) — Language, quality tool, and package manager TOML guide
 - [Development Guide](docs/wiki/en/development.md) — Build, test, debug
 - [AI Agent Integration](docs/wiki/en/ai-agent-integration.md) — Claude Code, Codex, Opencode, GitHub Copilot
 - [Editor Integration (LSP)](docs/wiki/en/editor-integration.md) — VS Code extension, Neovim, real-time diagnostics

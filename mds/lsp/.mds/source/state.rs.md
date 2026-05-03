@@ -9,19 +9,20 @@ Migrated implementation source for `src/state.rs`.
 - Preserve the behavior of the pre-migration Rust source.
 - This file is synchronized into `.build/rust/mds/lsp/src/state.rs`.
 
+## Imports
+
+| Kind | From | Target | Symbols | Via | Summary | Code |
+| --- | --- | --- | --- | --- | --- | --- |
+| rust-use | builtin | std::collections | HashMap | std |  | `use std::collections::HashMap;` |
+| rust-use | builtin | std::path | Path, PathBuf | std |  | `use std::path::{Path, PathBuf};` |
+| rust-use | builtin | std::sync | Arc | std |  | `use std::sync::Arc;` |
+| rust-use | external | mds_core | Config, ImplDoc, Lang, Package | mds_core |  | `use mds_core::{Config, ImplDoc, Lang, Package};` |
+| rust-use | external | tokio::sync | RwLock | tokio |  | `use tokio::sync::RwLock;` |
+
 ## Source
 
 ````rs
 #![allow(dead_code)]
-````
-
-````rs
-use std::collections::HashMap;
-use std::path::{Path, PathBuf};
-use std::sync::Arc;
-
-use mds_core::{Config, ImplDoc, Lang, Package};
-use tokio::sync::RwLock;
 ````
 
 Open file content tracked by the LSP.

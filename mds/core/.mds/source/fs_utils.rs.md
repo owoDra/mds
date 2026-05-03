@@ -9,12 +9,16 @@ Migrated implementation source for `src/fs_utils.rs`.
 - Preserve the behavior of the pre-migration Rust source.
 - This file is synchronized into `.build/rust/mds/core/src/fs_utils.rs`.
 
+## Imports
+
+| Kind | From | Target | Symbols | Via | Summary | Code |
+| --- | --- | --- | --- | --- | --- | --- |
+| rust-use | builtin | std | fs | std |  | `use std::fs;` |
+| rust-use | builtin | std::path | Component, Path, PathBuf | std |  | `use std::path::{Component, Path, PathBuf};` |
+
+
 ## Source
 
-````rs
-use std::fs;
-use std::path::{Component, Path, PathBuf};
-````
 
 ````rs
 pub(crate) fn is_mds_managed_file(path: &Path) -> bool {
@@ -114,6 +118,8 @@ fn glob_match(pattern: &str, value: &str) -> bool {
     glob_match_bytes(pattern.as_bytes(), value.as_bytes())
 }
 ````
+
+
 
 ````rs
 fn glob_match_bytes(pattern: &[u8], value: &[u8]) -> bool {

@@ -176,7 +176,7 @@ Example `launch.json`:
     {
       "type": "lldb",
       "request": "launch",
-      "name": "Debug mds check",
+      "name": "Debug mds lint",
       "cargo": {
         "args": ["build", "-p", "mds-cli"],
         "filter": { "kind": "bin", "name": "mds" }

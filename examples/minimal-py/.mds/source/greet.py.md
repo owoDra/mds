@@ -13,11 +13,13 @@
 
 `greet` は名前を受け取り、挨拶メッセージを返します。
 
-## Source
+## Imports
 
-```py
-from dataclasses import dataclass
-```
+| Kind | From | Target | Symbols | Via | Summary | Code |
+| --- | --- | --- | --- | --- | --- | --- |
+| python-from-import | builtin | dataclasses | dataclass | from |  | `from dataclasses import dataclass` |
+
+## Source
 
 ```py
 @dataclass

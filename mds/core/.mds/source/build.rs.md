@@ -9,13 +9,17 @@ Migrated implementation source for `build.rs`.
 - Preserve the behavior of the pre-migration Rust source.
 - This file is synchronized into `.build/rust/mds/core/build.rs`.
 
+## Imports
+
+| Kind | From | Target | Symbols | Via | Summary | Code |
+| --- | --- | --- | --- | --- | --- | --- |
+| rust-use | builtin | std | env | std |  | `use std::env;` |
+| rust-use | builtin | std | fs | std |  | `use std::fs;` |
+| rust-use | builtin | std::path | Path, PathBuf | std |  | `use std::path::{Path, PathBuf};` |
+
+
 ## Source
 
-````rs
-use std::env;
-use std::fs;
-use std::path::{Path, PathBuf};
-````
 
 ````rs
 fn main() {
@@ -23,6 +27,7 @@ fn main() {
     generate_template_registry(&out_dir);
     generate_descriptor_registry(&out_dir);
     generate_tool_registry(&out_dir);
+    generate_package_manager_registry(&out_dir);
 }
 ````
 
@@ -164,10 +169,10 @@ Generate the built-in quality tool registry emitted into Cargo `OUT_DIR`.
 
 ````rs
 fn generate_tool_registry(out_dir: &Path) {
-    let tools_dir = Path::new("src/descriptors/linters");
     let dest_path = out_dir.join("tool_registry.rs");
 
     println!("cargo:rerun-if-changed=src/descriptors/linters");
+    println!("cargo:rerun-if-changed=src/descriptors/tools");
 
     let mut code = String::new();
     code.push_str("/// Auto-generated tool registry from tool TOML files.\n");
@@ -176,11 +181,43 @@ fn generate_tool_registry(out_dir: &Path) {
     code.push_str("}\n\n");
     code.push_str("pub(crate) const BUILTIN_TOOLS: &[RawToolEntry] = &[\n");
 
-    for path in collect_files_with_extension(tools_dir, "toml") {
+    for tools_dir in [Path::new("src/descriptors/linters"), Path::new("src/descriptors/tools")] {
+        for path in collect_files_with_extension(tools_dir, "toml") {
+            println!("cargo:rerun-if-changed={}", path.display());
+            let content = fs::read_to_string(&path)
+                .unwrap_or_else(|error| panic!("failed to read {}: {error}", path.display()));
+            code.push_str("    RawToolEntry {\n");
+            code.push_str(&format!("        content: {:?},\n", content));
+            code.push_str("    },\n");
+        }
+    }
+
+    code.push_str("];\n");
+    fs::write(&dest_path, code).unwrap();
+}
+````
+
+Generate the built-in package manager registry emitted into Cargo `OUT_DIR`.
+
+````rs
+fn generate_package_manager_registry(out_dir: &Path) {
+    let managers_dir = Path::new("src/descriptors/package-managers");
+    let dest_path = out_dir.join("package_manager_registry.rs");
+
+    println!("cargo:rerun-if-changed=src/descriptors/package-managers");
+
+    let mut code = String::new();
+    code.push_str("/// Auto-generated package manager registry from TOML files.\n");
+    code.push_str("pub(crate) struct RawPackageManagerEntry {\n");
+    code.push_str("    pub content: &'static str,\n");
+    code.push_str("}\n\n");
+    code.push_str("pub(crate) const BUILTIN_PACKAGE_MANAGERS: &[RawPackageManagerEntry] = &[\n");
+
+    for path in collect_files_with_extension(managers_dir, "toml") {
         println!("cargo:rerun-if-changed={}", path.display());
         let content = fs::read_to_string(&path)
             .unwrap_or_else(|error| panic!("failed to read {}: {error}", path.display()));
-        code.push_str("    RawToolEntry {\n");
+        code.push_str("    RawPackageManagerEntry {\n");
         code.push_str(&format!("        content: {:?},\n", content));
         code.push_str("    },\n");
     }
@@ -200,6 +237,8 @@ fn collect_files_with_extension(root: &Path, extension: &str) -> Vec<PathBuf> {
     files
 }
 ````
+
+
 
 Recursively collect files with a given extension into an output vector.
 

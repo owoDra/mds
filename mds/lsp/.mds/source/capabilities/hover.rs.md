@@ -9,18 +9,20 @@ Migrated implementation source for `src/capabilities/hover.rs`.
 - Preserve the behavior of the pre-migration Rust source.
 - This file is synchronized into `.build/rust/mds/lsp/src/capabilities/hover.rs`.
 
+## Imports
+
+| Kind | From | Target | Symbols | Via | Summary | Code |
+| --- | --- | --- | --- | --- | --- | --- |
+| rust-use | builtin | std::path | Path | std |  | `use std::path::Path;` |
+| rust-use | external | mds_core::markdown | sections_with_labels, source_markdown_root | mds_core |  | `use mds_core::markdown::{sections_with_labels, source_markdown_root};` |
+| rust-use | external | mds_core::model | Lang | mds_core |  | `use mds_core::model::Lang;` |
+| rust-use | external | tower_lsp::lsp_types | * | tower_lsp |  | `use tower_lsp::lsp_types::*;` |
+| rust-use | internal | crate::convert | line_at, word_at_position | crate |  | `use crate::convert::{line_at, word_at_position};` |
+| rust-use | internal | crate::state | WorkspaceState | crate |  | `use crate::state::WorkspaceState;` |
+
+
 ## Source
 
-````rs
-use std::path::Path;
-
-use mds_core::markdown::{sections_with_labels, source_markdown_root};
-use mds_core::model::Lang;
-use tower_lsp::lsp_types::*;
-
-use crate::convert::{line_at, word_at_position};
-use crate::state::WorkspaceState;
-````
 
 Provide hover information for mds Markdown files.
 
@@ -73,6 +75,8 @@ fn hover_section(title: &str) -> Option<Hover> {
 }
 
 ````
+
+
 
 Hover information for a Uses table target. Show the target module's Purpose section.
 

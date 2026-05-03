@@ -12,11 +12,6 @@ output_path = ".claude/skills/mds/SKILL.md"
 category = "skills"
 
 [[file]]
-template = "command-check.md"
-output_path = ".claude/commands/mds-check.md"
-category = "commands"
-
-[[file]]
 template = "command-build.md"
 output_path = ".claude/commands/mds-build.md"
 category = "commands"

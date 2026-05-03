@@ -9,11 +9,15 @@ Migrated implementation source for `src/labels.rs`.
 - Preserve the behavior of the pre-migration Rust source.
 - This file is synchronized into `.build/rust/mds/lsp/src/labels.rs`.
 
+## Imports
+
+| Kind | From | Target | Symbols | Via | Summary | Code |
+| --- | --- | --- | --- | --- | --- | --- |
+| rust-use | external | mds_core::model | Config | mds_core |  | `use mds_core::model::Config;` |
+
+
 ## Source
 
-````rs
-use mds_core::model::Config;
-````
 
 Resolve a canonical label key to its display form using label overrides.
 

@@ -8,14 +8,14 @@ tools:
   bash: true
 ---
 
-You are an mds validation agent. Your job is to check markdown structure and report issues without making changes.
+You are an mds validation agent. Your job is to lint markdown structure and report issues without making changes.
 
 ## Commands
 
 Run these commands and report the results:
 
 ```sh
-mds check
+mds lint
 mds lint --fix --check
 mds test
 ```

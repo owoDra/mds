@@ -9,14 +9,18 @@ Migrated implementation source for `src/capabilities/code_action.rs`.
 - Preserve the behavior of the pre-migration Rust source.
 - This file is synchronized into `.build/rust/mds/lsp/src/capabilities/code_action.rs`.
 
+## Imports
+
+| Kind | From | Target | Symbols | Via | Summary | Code |
+| --- | --- | --- | --- | --- | --- | --- |
+| rust-use | internal | crate::labels | resolve_label | crate |  | `use crate::labels::resolve_label;` |
+| rust-use | external | mds_core::markdown | sections_with_labels | mds_core |  | `use mds_core::markdown::sections_with_labels;` |
+| rust-use | external | mds_core::model | Config | mds_core |  | `use mds_core::model::Config;` |
+| rust-use | external | tower_lsp::lsp_types | * | tower_lsp |  | `use tower_lsp::lsp_types::*;` |
+
+
 ## Source
 
-````rs
-use crate::labels::resolve_label;
-use mds_core::markdown::sections_with_labels;
-use mds_core::model::Config;
-use tower_lsp::lsp_types::*;
-````
 
 Provide code actions, or quick fixes, for mds Markdown files.
 

@@ -12,7 +12,7 @@ category = "skills"
 
 [[file]]
 template = "command-check.prompt.md"
-output_path = ".github/prompts/mds-check.prompt.md"
+output_path = ".github/prompts/mds-lint.prompt.md"
 category = "commands"
 
 [[file]]

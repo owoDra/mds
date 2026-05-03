@@ -11,7 +11,7 @@ Markdown is the source of truth. Generated code must not be edited directly.
 ```sh
 mds new <name.lang.md>  # Create new implementation markdown from template
 mds new overview.md        # Create new overview markdown for a directory
-mds check               # Validate markdown structure
+mds lint               # Validate markdown structure
 mds build --dry-run     # Preview generation output
 mds build               # Generate code from markdown
 mds lint --fix --check  # Fix and validate formatting
@@ -28,12 +28,12 @@ Source files live in `.mds/source/` as `name.{lang}.md` (e.g., `helper.ts.md` â†
 
 - One `.{lang}.md` file = one generated source file
 - All code blocks are concatenated (separated by blank lines) to produce the output
-- Import/use/require statements are forbidden in code blocks; record dependencies in Uses
+- Import/use/require statements are forbidden in code blocks; record dependencies in the Imports section table
 - Each code block must contain exactly one logical unit (type, function, class, impl, etc.) by default
 - Doc comments and docstrings belong in surrounding markdown text, not inside code blocks
 - Sections (## headings) are optional documentation
 
-### Uses Table
+### Imports Section
 
 | Target | Summary |
 | --- | --- |
@@ -46,12 +46,12 @@ Source files live in `.mds/source/` as `name.{lang}.md` (e.g., `helper.ts.md` â†
 - Keep executable test intent in `.mds/test/` with `Covers`
 - Generated output naming follows built-in language descriptors
 - Code fence language must match file extension
-- Imports/use/require are forbidden in code blocks; record dependencies in Uses
-- Default `mds check` expects top-level implementations to be split per code fence; projects may relax selected checks in `[check]`
+- Imports/use/require are forbidden in code blocks; record dependencies in the Imports section table
+- Default `mds lint` expects top-level implementations to be split per code fence; projects may relax selected checks in `[check]`
 - Project-specific rules override mds rules when they conflict
 
 ## Testing
 
-- Run `mds check` to validate structure before committing
+- Run `mds lint` to validate structure before committing
 - Run `mds test` to run all generated tests
 - Fix any errors before creating PRs

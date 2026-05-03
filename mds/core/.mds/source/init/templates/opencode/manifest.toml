@@ -12,5 +12,5 @@ category = "skills"
 
 [[file]]
 template = "agent-check.md"
-output_path = ".opencode/agents/mds-check.md"
+output_path = ".opencode/agents/mds-lint.md"
 category = "commands"

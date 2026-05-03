@@ -9,12 +9,16 @@ Migrated implementation source for `src/main.rs`.
 - Preserve the behavior of the pre-migration Rust source.
 - This file is synchronized into `.build/rust/mds/lsp/src/main.rs`.
 
+## Imports
+
+| Kind | From | Target | Symbols | Via | Summary | Code |
+| --- | --- | --- | --- | --- | --- | --- |
+| rust-use | external | tower_lsp | LspService, Server | tower_lsp |  | `use tower_lsp::{LspService, Server};` |
+| rust-use | external | tracing_subscriber | EnvFilter | tracing_subscriber |  | `use tracing_subscriber::EnvFilter;` |
+
+
 ## Source
 
-````rs
-use tower_lsp::{LspService, Server};
-use tracing_subscriber::EnvFilter;
-````
 
 ````rs
 mod capabilities;
@@ -31,6 +35,8 @@ mod labels;
 ````rs
 mod server;
 ````
+
+
 
 ````rs
 mod state;

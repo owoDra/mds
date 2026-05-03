@@ -16,11 +16,11 @@
 - mds は設計説明から AI にコードを書かせる仕組みではなく、Markdown 内のコードブロックとメタ情報を generator / language adapter が処理する仕組みとする。
 - mds 自身の package 編集入口は各 package の `.mds/source/` と `.mds/test/` とし、`.build/` は生成物置き場として Git 管理しない。
 - 1 つの implementation md は 1 機能だけを扱う。
-- import / use / require はコードブロック外の `Uses` に記録し、language adapter が生成する。
+- import / use / require はコードブロック外の `Imports` に記録し、language adapter が生成する。
 - implementation md の code block は import / use / require を含めず、doc comment / docstring を持たず、default では 1 code block につき 1 top-level logical unit だけを含める。
 - `mds.config.toml` の `[check]` は validator の有効 / 無効を切り替えられるが、正本の意味や canonical 構造は変更しない。
 - 設定ファイルは `mds.config.toml` 固定とし、セクションの意味や必須構造は設定で変更しない。
-- `Expose` は公開面を示し、`Uses` は依存を示す。
+- `Exports` は公開面を示し、`Imports` は依存を示す。互換期間だけ `Expose` / `Uses` も読める。
 
 ## 責務分離
 

@@ -9,28 +9,32 @@ Migrated implementation source for `src/quality.rs`.
 - Preserve the behavior of the pre-migration Rust source.
 - This file is synchronized into `.build/rust/mds/core/src/quality.rs`.
 
+## Imports
+
+| Kind | From | Target | Symbols | Via | Summary | Code |
+| --- | --- | --- | --- | --- | --- | --- |
+| rust-use | external | regex | Regex | regex |  | `use regex::Regex;` |
+| rust-use | builtin | std | fs | std |  | `use std::fs;` |
+| rust-use | builtin | std::path | PathBuf | std |  | `use std::path::PathBuf;` |
+| rust-use | internal | crate::adapter | { | crate |  | `use crate::adapter::{` |
+| import | external |  |  |  |  | `path_variants, replace_path_variants, run_toolchain_command, tool_available,` |
+| import | external |  |  |  |  | `tool_output_detail, ToolInvocation, ToolRunOutput, ToolRunStatus,` |
+| import | external |  |  |  |  | `};` |
+| rust-use | internal | crate::descriptor | self, ToolBehavior, ToolInputMode, ToolOutputMode | crate |  | `use crate::descriptor::{self, ToolBehavior, ToolInputMode, ToolOutputMode};` |
+| rust-use | internal | crate::diagnostics | Diagnostic, RunState | crate |  | `use crate::diagnostics::{Diagnostic, RunState};` |
+| rust-use | internal | crate::diff | unified_diff | crate |  | `use crate::diff::unified_diff;` |
+| rust-use | internal | crate::fs_utils | is_excluded | crate |  | `use crate::fs_utils::is_excluded;` |
+| rust-use | internal | crate::model | ImplDoc, Lang, Package | crate |  | `use crate::model::{ImplDoc, Lang, Package};` |
+
+
 ## Source
 
-````rs
-use regex::Regex;
-use std::fs;
-use std::path::PathBuf;
-
-use crate::adapter::{
-    path_variants, replace_path_variants, run_toolchain_command, tool_available,
-    tool_output_detail, ToolInvocation, ToolRunOutput, ToolRunStatus,
-};
-use crate::descriptor::{self, ToolBehavior, ToolInputMode, ToolOutputMode};
-use crate::diagnostics::{Diagnostic, RunState};
-use crate::diff::unified_diff;
-use crate::fs_utils::is_excluded;
-use crate::model::{ImplDoc, Lang, Package};
-````
 
 ````rs
 #[derive(Debug, Clone, Copy)]
 
 pub(crate) enum QualityOperation {
+    Typecheck,
     Lint,
     Fix { check: bool },
     Test,
@@ -45,7 +49,7 @@ pub(crate) fn run_quality(
     state: &mut RunState,
 ) -> Result<(), String> {
     match operation {
-        QualityOperation::Lint | QualityOperation::Test => {
+        QualityOperation::Typecheck | QualityOperation::Lint | QualityOperation::Test => {
             let mut any_configured = false;
             for doc in docs {
                 if has_quality_config(package, doc, operation) {
@@ -55,6 +59,7 @@ pub(crate) fn run_quality(
             }
             if !any_configured && !docs.is_empty() {
                 let name = match operation {
+                    QualityOperation::Typecheck => "typecheck",
                     QualityOperation::Lint => "lint",
                     QualityOperation::Test => "test",
                     QualityOperation::Fix { .. } => unreachable!(),
@@ -65,6 +70,7 @@ pub(crate) fn run_quality(
             }
             if !state.has_errors() && !state.environment_missing {
                 let name = match operation {
+                    QualityOperation::Typecheck => "typecheck",
                     QualityOperation::Lint => "lint",
                     QualityOperation::Test => "test",
                     QualityOperation::Fix { .. } => unreachable!(),
@@ -106,6 +112,7 @@ fn has_quality_config(package: &Package, doc: &ImplDoc, operation: QualityOperat
         return false;
     };
     match operation {
+        QualityOperation::Typecheck => config.type_check.is_some(),
         QualityOperation::Lint => config.lint.is_some(),
         QualityOperation::Test => config.test.is_some(),
         QualityOperation::Fix { .. } => config.fix.is_some(),
@@ -125,6 +132,7 @@ fn run_doc_quality(
         return Ok(());
     };
     let command = match operation {
+        QualityOperation::Typecheck => config.type_check.as_deref(),
         QualityOperation::Lint => config.lint.as_deref(),
         QualityOperation::Test => config.test.as_deref(),
         QualityOperation::Fix { .. } => None,
@@ -195,6 +203,7 @@ fn resolve_tool_behavior(
     command: &str,
 ) -> ToolBehavior {
     descriptor::tool_behavior_for_command(command).unwrap_or_else(|| match operation {
+        QualityOperation::Typecheck => descriptor.typecheck_behavior().clone(),
         QualityOperation::Lint => descriptor.lint_behavior().clone(),
         QualityOperation::Test => descriptor.test_behavior().clone(),
         QualityOperation::Fix { .. } => descriptor.fix_behavior().clone(),
@@ -485,6 +494,8 @@ fn padded_code_from_markdown(doc: &ImplDoc) -> Result<String, String> {
     Ok(output)
 }
 ````
+
+
 
 ````rs
 fn apply_replacements(old: &str, replacements: &[(usize, usize, String)]) -> String {

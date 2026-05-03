@@ -19,7 +19,7 @@ Work with the mds (Markdown Source) system where Markdown is the single source o
 ```sh
 mds new <name.lang.md>  # Create new implementation markdown from template
 mds new overview.md        # Create new overview markdown for a directory
-mds check               # Validate markdown structure
+mds lint               # Validate markdown structure
 mds build --dry-run     # Preview generation
 mds build               # Generate code
 mds lint --fix --check  # Fix formatting
@@ -35,10 +35,10 @@ Test docs: `.mds/test/name.md` → generates language-specific test outputs and 
 
 - One file = one generated source file
 - All code blocks are concatenated (separated by blank lines) to produce output
-- Imports/use/require are forbidden in code blocks; record dependencies in Uses
+- Imports/use/require are forbidden in code blocks; record dependencies in the Imports section table
 - Each code block must contain exactly one logical unit by default
 - Doc comments and docstrings belong in surrounding markdown text, not inside code blocks
 - Sections (## headings) are optional, for documentation
-- Uses table is required for dependencies
+- Imports section table is required for dependencies
 
 Rules: one md per feature, code fence language = file extension, top-level implementations split per fence by default

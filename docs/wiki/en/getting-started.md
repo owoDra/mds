@@ -37,7 +37,7 @@ No runtime dependencies — mds is a single static binary.
 | Python checking, fixing, testing | Python 3.13 or later, plus your chosen Ruff, Black, Pytest, unittest, etc. |
 | Rust checking, fixing, testing | Rust 1.86 or later, Cargo, plus your chosen rustfmt, Clippy, cargo-nextest, etc. |
 
-`mds check` and `mds build` handle Markdown structure and generation. `mds lint` and `mds test` use the checking tools and test runners selected for each target language. Tools that are not selected are not implicitly required.
+`mds lint` and `mds build` handle Markdown structure and generation. `mds typecheck`, `mds lint`, and `mds test` use the selected type checker, linter, and test runner for each target language. Tools that are not selected are not implicitly required.
 
 ## Minimal Setup
 
@@ -50,16 +50,22 @@ Prepare the following files for an mds target package.
 | `src-md/**/*.ts.md` | Implementation Markdown for TypeScript. |
 | `src-md/**/*.py.md` | Implementation Markdown for Python. |
 | `src-md/**/*.rs.md` | Implementation Markdown for Rust. |
-| `package.json`, `pyproject.toml`, `Cargo.toml` | Package information for the target language. |
+| Recognized package manager metadata such as `package.json`, `pyproject.toml`, `Cargo.toml`, `pubspec.yaml`, `*.csproj`, `CMakeLists.txt` | Package manager metadata required by `mds init` and package detection. |
 
 You do not need to use all languages simultaneously. Enable only the languages you target.
 
 ## Basic Workflow
 
-First, check the structure of the target package.
+First, lint the structure of the target package and configured code blocks.
 
 ```bash
-mds check --package ./path/to/package
+mds lint --package ./path/to/package
+```
+
+If the package configures a type checker, run it next.
+
+```bash
+mds typecheck --package ./path/to/package
 ```
 
 Next, verify the generation plan and differences.

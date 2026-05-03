@@ -9,24 +9,26 @@ Migrated implementation source for `src/server.rs`.
 - Preserve the behavior of the pre-migration Rust source.
 - This file is synchronized into `.build/rust/mds/lsp/src/server.rs`.
 
+## Imports
+
+| Kind | From | Target | Symbols | Via | Summary | Code |
+| --- | --- | --- | --- | --- | --- | --- |
+| rust-use | builtin | std::collections | HashMap | std |  | `use std::collections::HashMap;` |
+| rust-use | builtin | std::path | PathBuf | std |  | `use std::path::PathBuf;` |
+| rust-use | external | mds_core::diagnostics | RunState | mds_core |  | `use mds_core::diagnostics::RunState;` |
+| rust-use | external | mds_core::markdown | load_implementation_docs, source_markdown_root, test_markdown_root | mds_core |  | `use mds_core::markdown::{load_implementation_docs, source_markdown_root, test_markdown_root};` |
+| rust-use | external | mds_core::model | Lang | mds_core |  | `use mds_core::model::Lang;` |
+| rust-use | external | mds_core::package | discover_packages | mds_core |  | `use mds_core::package::discover_packages;` |
+| rust-use | external | tower_lsp::jsonrpc | Result | tower_lsp |  | `use tower_lsp::jsonrpc::Result;` |
+| rust-use | external | tower_lsp::lsp_types | * | tower_lsp |  | `use tower_lsp::lsp_types::*;` |
+| rust-use | external | tower_lsp | Client, LanguageServer | tower_lsp |  | `use tower_lsp::{Client, LanguageServer};` |
+| rust-use | external | tracing | error, info | tracing |  | `use tracing::{error, info};` |
+| rust-use | internal | crate | capabilities | crate |  | `use crate::capabilities;` |
+| rust-use | internal | crate::state | OpenFile, PackageState, SharedState, WorkspaceIndex | crate |  | `use crate::state::{OpenFile, PackageState, SharedState, WorkspaceIndex};` |
+
+
 ## Source
 
-````rs
-use std::collections::HashMap;
-use std::path::PathBuf;
-
-use mds_core::diagnostics::RunState;
-use mds_core::markdown::{load_implementation_docs, source_markdown_root, test_markdown_root};
-use mds_core::model::Lang;
-use mds_core::package::discover_packages;
-use tower_lsp::jsonrpc::Result;
-use tower_lsp::lsp_types::*;
-use tower_lsp::{Client, LanguageServer};
-use tracing::{error, info};
-
-use crate::capabilities;
-use crate::state::{OpenFile, PackageState, SharedState, WorkspaceIndex};
-````
 
 ````rs
 pub struct MdsLanguageServer {
@@ -460,3 +462,5 @@ impl LanguageServer for MdsLanguageServer {
     }
 }
 ````
+
+

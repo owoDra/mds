@@ -13,6 +13,6 @@
 | `index.md` | package root の package metadata、overview、architecture、navigation を担当する文書。 |
 | `overview.md` | `src-md/` など source root の overview、architecture、navigation を担当する文書。 |
 | implementation md | 1 機能 1 実装を表す `*.{lang-ext}.md` 形式の文書。設計説明だけでなく、実装レベルの `Types`、`Source`、`Test` コードを含む。 |
-| Expose | 実装 md または index が公開面を表すための表形式メタ情報。 |
-| Uses | `Types`、`Source`、`Test` ごとの依存を表す表形式メタ情報。 |
+| Exports | 実装 md または index が公開面を表すための表形式メタ情報。互換期間だけ Expose も読める。 |
+| Imports | `Types`、`Source`、`Test` ごとの依存を表す表形式メタ情報。互換期間だけ Uses も読める。 |
 | Cases | 人間と AI 向けに期待結果を要約する実装 md セクション。 |

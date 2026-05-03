@@ -44,6 +44,7 @@ mds is a development toolchain that treats Markdown as the source of truth for d
 1. [Contributing](contributing.md) — Policies for reports and proposals
 2. [Development Guide](development.md) — Environment setup, build, test, debug
 3. [LSP Development Guide](lsp-development.md) — Developing, debugging, and adding features to mds-lsp
+4. [Descriptor Guide](descriptors.md) — Language, quality tool, and package manager descriptors
 
 ## Reading Order
 
@@ -76,5 +77,6 @@ If you are reading for the first time, the following order is recommended.
 | [Editor Integration (LSP)](editor-integration.md) | Explains real-time diagnostics, navigation, completion via LSP server, and the VSCode extension. |
 | [Contributing](contributing.md) | Explains what to check when participating in development. |
 | [Development Guide](development.md) | Explains procedures for environment setup, build, test, and debug. |
+| [Descriptor Guide](descriptors.md) | Explains built-in and workspace descriptor directories for languages, quality tools, and package managers. |
 | [LSP Development Guide](lsp-development.md) | Explains procedures for developing, debugging, and adding capabilities to mds-lsp. |
 | [Roadmap](roadmap.md) | Explains the current focus area and future plans. |

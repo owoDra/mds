@@ -14,14 +14,17 @@ Migrated implementation source for `tests/diagnostics.rs`.
 - capabilities/diagnostics
 - convert
 
+## Imports
+
+| Kind | From | Target | Symbols | Via | Summary | Code |
+| --- | --- | --- | --- | --- | --- | --- |
+| rust-use | builtin | std::path | PathBuf | std |  | `use std::path::PathBuf;` |
+| rust-use | external | mds_core | Config | mds_core |  | `use mds_core::Config;` |
+| rust-use | external | mds_lsp::capabilities | diagnostics | mds_lsp |  | `use mds_lsp::capabilities::diagnostics;` |
+
+
 ## Test
 
-````rs
-use std::path::PathBuf;
-
-use mds_core::Config;
-use mds_lsp::capabilities::diagnostics;
-````
 
 ````rs
 fn fixture_path(name: &str) -> PathBuf {
@@ -283,6 +286,8 @@ fn test_valid_config_no_diagnostics() {
     );
 }
 ````
+
+
 
 ````rs
 #[test]

@@ -16,16 +16,19 @@ Migrated implementation source for `tests/capabilities.rs`.
 - capabilities/symbols
 - convert
 
+## Imports
+
+| Kind | From | Target | Symbols | Via | Summary | Code |
+| --- | --- | --- | --- | --- | --- | --- |
+| rust-use | external | tower_lsp::lsp_types | * | tower_lsp |  | `use tower_lsp::lsp_types::*;` |
+| rust-use | external | mds_lsp::capabilities::code_action | provide_code_actions | mds_lsp |  | `use mds_lsp::capabilities::code_action::provide_code_actions;` |
+| rust-use | external | mds_lsp::capabilities::completion | provide_completions | mds_lsp |  | `use mds_lsp::capabilities::completion::provide_completions;` |
+| rust-use | external | mds_lsp::capabilities::symbols | document_symbols | mds_lsp |  | `use mds_lsp::capabilities::symbols::document_symbols;` |
+| rust-use | external | mds_lsp::convert | line_at, table_cell_at_position, word_at_position | mds_lsp |  | `use mds_lsp::convert::{line_at, table_cell_at_position, word_at_position};` |
+
+
 ## Test
 
-````rs
-use tower_lsp::lsp_types::*;
-
-use mds_lsp::capabilities::code_action::provide_code_actions;
-use mds_lsp::capabilities::completion::provide_completions;
-use mds_lsp::capabilities::symbols::document_symbols;
-use mds_lsp::convert::{line_at, table_cell_at_position, word_at_position};
-````
 
 ````rs
 #[test]
@@ -266,6 +269,8 @@ fn test_table_cell_not_a_table() {
     assert_eq!(cell, None);
 }
 ````
+
+
 
 ````rs
 #[test]

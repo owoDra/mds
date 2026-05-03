@@ -13,7 +13,7 @@ Work with the mds (Markdown Source) system where Markdown is the single source o
 ```sh
 mds new <name.lang.md>  # Create new implementation markdown from template
 mds new overview.md        # Create new overview markdown for a directory
-mds check               # Validate markdown structure
+mds lint               # Validate markdown structure
 mds build --dry-run     # Preview generation output
 mds build               # Generate code from markdown
 mds lint --fix --check  # Fix and validate formatting
@@ -25,7 +25,7 @@ mds test                # Run tests on generated outputs
 1. Read existing `.mds/source/` files to understand the current state
 2. Create new files with `mds new <name.lang.md>` (ensures correct template)
 3. Record dependencies in Uses and write implementation-only code blocks
-4. Run `mds check` → `mds build --dry-run` → `mds build`
+4. Run `mds lint` → `mds build --dry-run` → `mds build`
 
 Always use `mds new` to scaffold new files. Example: `mds new greet.ts.md`, `mds new sub/overview.md`
 
@@ -45,7 +45,7 @@ Test docs: `.mds/test/name.md` → generates language-specific test outputs and 
 
 - One `.{lang}.md` file = one generated source file
 - All code blocks in the file are concatenated (separated by blank lines) to produce the output
-- Import/use/require statements are forbidden in code blocks; record dependencies in Uses
+- Import/use/require statements are forbidden in code blocks; record dependencies in the Imports section table
 - Each code block must contain exactly one logical unit (type, function, class, impl, etc.) by default
 - Doc comments and docstrings belong in surrounding markdown text, not inside code blocks
 - Sections (## headings) are optional and for documentation only
@@ -64,7 +64,7 @@ export function greet(config: Config): string {
 }
 \`\`\`
 
-## Uses
+## Imports
 
 | Phase | Target | Names | Summary |
 | --- | --- | --- | --- |
@@ -75,6 +75,6 @@ export function greet(config: Config): string {
 
 - One `.{lang}.md` per feature
 - Code fence language must match file extension
-- Imports/use/require are forbidden in code blocks; record dependencies in Uses
-- Default `mds check` expects top-level implementations to be split per code fence; projects may relax selected checks in `[check]`
-- Uses table is required for dependencies
+- Imports/use/require are forbidden in code blocks; record dependencies in the Imports section table
+- Default `mds lint` expects top-level implementations to be split per code fence; projects may relax selected checks in `[check]`
+- Imports section table is required for dependencies

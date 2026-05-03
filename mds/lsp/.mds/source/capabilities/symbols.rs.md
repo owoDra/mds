@@ -9,13 +9,16 @@ Migrated implementation source for `src/capabilities/symbols.rs`.
 - Preserve the behavior of the pre-migration Rust source.
 - This file is synchronized into `.build/rust/mds/lsp/src/capabilities/symbols.rs`.
 
+## Imports
+
+| Kind | From | Target | Symbols | Via | Summary | Code |
+| --- | --- | --- | --- | --- | --- | --- |
+| rust-use | external | tower_lsp::lsp_types | * | tower_lsp |  | `use tower_lsp::lsp_types::*;` |
+| rust-use | internal | crate::state | WorkspaceState | crate |  | `use crate::state::WorkspaceState;` |
+
+
 ## Source
 
-````rs
-use tower_lsp::lsp_types::*;
-
-use crate::state::WorkspaceState;
-````
 
 Extract document symbols, or section headings, from mds Markdown. Returns `SymbolInformation` with placeholder URIs, and callers replace those URIs with the actual document URI.
 
@@ -86,6 +89,8 @@ pub fn document_symbols(text: &str) -> Vec<SymbolInformation> {
 }
 
 ````
+
+
 
 Search workspace symbols, or expose names, that match a query.
 

@@ -29,7 +29,7 @@ Public contract.
 
 ```typescript
 export type MyType = string;
-```
+`
 
 ## Source
 
@@ -41,7 +41,7 @@ export type MyType = string;
 
 ```typescript
 export function main(): void {}
-```
+`
 
 ## Cases
 
@@ -57,7 +57,7 @@ Basic use case.
 
 ```typescript
 test("it works", () => {});
-```
+`
 "#;
 
     let path = fixture_path("valid.ts.md");
@@ -98,7 +98,7 @@ A module.
 
 ```typescript
 function main() {}
-```
+`
 "#;
 
     let path = fixture_path("deep-heading.ts.md");
@@ -159,13 +159,13 @@ Contract.
 
 ```python
 x = 1
-```
+`
 
 ## Source
 
 ```python
 def main(): pass
-```
+`
 
 ## Cases
 
@@ -175,7 +175,7 @@ Cases.
 
 ```python
 def test_it(): assert True
-```
+`
 "#;
 
     // File is .ts.md but code blocks use python

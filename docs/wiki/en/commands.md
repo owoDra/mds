@@ -9,19 +9,19 @@ This page explains the purpose and usage of mds commands.
 mds commands can be run by specifying the target package.
 
 ```bash
-mds check --package path/to/package
+mds lint --package path/to/package
 ```
 
 If `--package` is omitted, mds searches for enabled packages under the current directory.
 
-## `mds check`
+## `mds lint`
 
-`mds check` inspects Markdown structure, tables, configuration, and generation targets.
+`mds lint` inspects Markdown structure, tables, configuration, generation targets, and then runs configured linters on Markdown code blocks.
 
 It mainly verifies the following.
 
 - Whether required sections exist
-- Whether `Expose` and `Uses` tables are correct
+- Whether `Imports`, `Exports`, `Expose`, and `Uses` tables are correct
 - Whether the target language can be determined
 - Whether generation targets escape outside the package
 - Whether it would overwrite existing files that are not managed
@@ -29,7 +29,15 @@ It mainly verifies the following.
 Example execution.
 
 ```bash
-mds check --package path/to/package
+mds lint --package path/to/package
+```
+
+## `mds typecheck`
+
+`mds typecheck` runs the configured type checker for each language against Markdown code blocks.
+
+```bash
+mds typecheck --package path/to/package
 ```
 
 ## `mds build`
@@ -54,7 +62,7 @@ When generating for the first time or after changing generation rules, use this 
 
 ## `mds lint`
 
-`mds lint` runs language-specific checking tools on code blocks within Markdown.
+`mds lint` runs language-specific checking tools on code blocks within Markdown after structural validation.
 
 ```bash
 mds lint --package path/to/package

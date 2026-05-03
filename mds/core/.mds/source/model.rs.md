@@ -9,12 +9,16 @@ Migrated implementation source for `src/model.rs`.
 - Preserve the behavior of the pre-migration Rust source.
 - This file is synchronized into `.build/rust/mds/core/src/model.rs`.
 
+## Imports
+
+| Kind | From | Target | Symbols | Via | Summary | Code |
+| --- | --- | --- | --- | --- | --- | --- |
+| rust-use | builtin | std::collections | HashMap | std |  | `use std::collections::HashMap;` |
+| rust-use | builtin | std::path | Path, PathBuf | std |  | `use std::path::{Path, PathBuf};` |
+
+
 ## Source
 
-````rs
-use std::collections::HashMap;
-use std::path::{Path, PathBuf};
-````
 
 ````rs
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
@@ -27,9 +31,9 @@ pub enum BuildMode {
 ````rs
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub enum Command {
-    Check,
     Build { mode: BuildMode },
     Lint { fix: bool, check: bool },
+    Typecheck,
     Test,
     Doctor { format: DoctorFormat },
     PackageSync { check: bool },
@@ -583,7 +587,7 @@ impl QualityConfig {
 pub struct Package {
     pub root: PathBuf,
     pub config: Config,
-    pub metadata_kind: MetadataKind,
+    pub package_manager_id: String,
 }
 ````
 
@@ -594,15 +598,6 @@ pub struct PackageMetadata {
     pub version: String,
     pub dependencies: HashMap<String, String>,
     pub dev_dependencies: HashMap<String, String>,
-}
-````
-
-````rs
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
-pub enum MetadataKind {
-    Node,
-    Python,
-    Rust,
 }
 ````
 
@@ -662,3 +657,5 @@ pub enum GeneratedKind {
     Manifest,
 }
 ````
+
+

@@ -9,17 +9,19 @@ Migrated implementation source for `src/capabilities/completion.rs`.
 - Preserve the behavior of the pre-migration Rust source.
 - This file is synchronized into `.build/rust/mds/lsp/src/capabilities/completion.rs`.
 
+## Imports
+
+| Kind | From | Target | Symbols | Via | Summary | Code |
+| --- | --- | --- | --- | --- | --- | --- |
+| rust-use | builtin | std::path | Path | std |  | `use std::path::Path;` |
+| rust-use | external | mds_core::model | Config, Lang | mds_core |  | `use mds_core::model::{Config, Lang};` |
+| rust-use | external | tower_lsp::lsp_types | * | tower_lsp |  | `use tower_lsp::lsp_types::*;` |
+| rust-use | internal | crate::convert | line_at | crate |  | `use crate::convert::line_at;` |
+| rust-use | internal | crate::labels | resolve_label | crate |  | `use crate::labels::resolve_label;` |
+
+
 ## Source
 
-````rs
-use std::path::Path;
-
-use mds_core::model::{Config, Lang};
-use tower_lsp::lsp_types::*;
-
-use crate::convert::line_at;
-use crate::labels::resolve_label;
-````
 
 Provide completion items based on cursor position.
 
@@ -186,6 +188,8 @@ fn code_block_language_completions(path: Option<&Path>) -> Vec<CompletionItem> {
 }
 
 ````
+
+
 
 Snippet completions for common mds patterns.
 

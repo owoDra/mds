@@ -7,19 +7,19 @@
 mds コマンドは、対象パッケージを指定して実行できます。
 
 ```bash
-mds check --package path/to/package
+mds lint --package path/to/package
 ```
 
 `--package` を省略した場合は、現在のディレクトリ以下から mds が有効なパッケージを探します。
 
-## `mds check`
+## `mds lint`
 
-`mds check` は、Markdown の構造、表、設定、生成先を検査します。
+`mds lint` は、Markdown の構造、表、設定、生成先を検査し、その後に code block へ lint を実行します。
 
 主に次の内容を確認します。
 
 - 必須セクションが存在するか
-- `Expose` と `Uses` の表が正しいか
+- `Imports`、`Exports`、`Expose`、`Uses` の表が正しいか
 - 対象言語を判断できるか
 - 生成先がパッケージの外に出ていないか
 - 管理対象ではない既存ファイルを上書きしようとしていないか
@@ -27,7 +27,15 @@ mds check --package path/to/package
 実行例です。
 
 ```bash
-mds check --package path/to/package
+mds lint --package path/to/package
+```
+
+## `mds typecheck`
+
+`mds typecheck` は、対象言語ごとに設定した型検査を Markdown の code block へ実行します。
+
+```bash
+mds typecheck --package path/to/package
 ```
 
 ## `mds build`
@@ -52,7 +60,7 @@ mds build --package path/to/package --dry-run
 
 ## `mds lint`
 
-`mds lint` は、Markdown 内のコードブロックを対象に、言語ごとの検査ツールを実行します。
+`mds lint` は、Markdown 内のコードブロックを対象に、構造検査の後で言語ごとの検査ツールを実行します。
 
 ```bash
 mds lint --package path/to/package

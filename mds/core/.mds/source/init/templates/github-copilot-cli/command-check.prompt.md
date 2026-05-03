@@ -4,10 +4,10 @@ description: "Validate mds markdown structure and references before making gener
 mds-managed: true
 ---
 
-Run `mds check` to validate the markdown structure. Report any errors found and suggest fixes.
+Run `mds lint` to validate the markdown structure. Report any errors found and suggest fixes.
 
 If errors are found:
 1. Read the diagnostic output
 2. Identify the referenced markdown files
 3. Fix missing code blocks, language mismatches, or broken references
-4. Re-run `mds check` to confirm the fix
+4. Re-run `mds lint` to confirm the fix

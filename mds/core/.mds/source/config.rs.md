@@ -9,15 +9,18 @@ Migrated implementation source for `src/config.rs`.
 - Preserve the behavior of the pre-migration Rust source.
 - This file is synchronized into `.build/rust/mds/core/src/config.rs`.
 
+## Imports
+
+| Kind | From | Target | Symbols | Via | Summary | Code |
+| --- | --- | --- | --- | --- | --- | --- |
+| rust-use | builtin | std | fs | std |  | `use std::fs;` |
+| rust-use | builtin | std::path | Path, PathBuf | std |  | `use std::path::{Path, PathBuf};` |
+| rust-use | internal | crate::diagnostics | Diagnostic, RunState | crate |  | `use crate::diagnostics::{Diagnostic, RunState};` |
+| rust-use | internal | crate::model | Config, Lang | crate |  | `use crate::model::{Config, Lang};` |
+
+
 ## Source
 
-````rs
-use std::fs;
-use std::path::{Path, PathBuf};
-
-use crate::diagnostics::{Diagnostic, RunState};
-use crate::model::{Config, Lang};
-````
 
 ````rs
 pub fn merge_config_file(config: &mut Config, path: &Path, state: &mut RunState) -> Option<()> {
@@ -403,6 +406,8 @@ fn string_array_value(
         .collect()
 }
 ````
+
+
 
 ````rs
 fn warn_unsupported(path: &Path, state: &mut RunState, scope: &str, key: &str) {

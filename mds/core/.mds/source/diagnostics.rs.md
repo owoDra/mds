@@ -9,11 +9,15 @@ Migrated implementation source for `src/diagnostics.rs`.
 - Preserve the behavior of the pre-migration Rust source.
 - This file is synchronized into `.build/rust/mds/core/src/diagnostics.rs`.
 
+## Imports
+
+| Kind | From | Target | Symbols | Via | Summary | Code |
+| --- | --- | --- | --- | --- | --- | --- |
+| rust-use | builtin | std::path | PathBuf | std |  | `use std::path::PathBuf;` |
+
+
 ## Source
 
-````rs
-use std::path::PathBuf;
-````
 
 ````rs
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
@@ -103,6 +107,8 @@ pub struct RunState {
     pub environment_missing: bool,
 }
 ````
+
+
 
 ````rs
 impl RunState {

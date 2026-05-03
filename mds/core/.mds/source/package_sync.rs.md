@@ -9,18 +9,21 @@ Migrated implementation source for `src/package_sync.rs`.
 - Preserve the behavior of the pre-migration Rust source.
 - This file is synchronized into `.build/rust/mds/core/src/package_sync.rs`.
 
+## Imports
+
+| Kind | From | Target | Symbols | Via | Summary | Code |
+| --- | --- | --- | --- | --- | --- | --- |
+| rust-use | builtin | std::collections | BTreeMap | std |  | `use std::collections::BTreeMap;` |
+| rust-use | builtin | std | fs | std |  | `use std::fs;` |
+| rust-use | builtin | std::path | Path, PathBuf | std |  | `use std::path::{Path, PathBuf};` |
+| rust-use | internal | crate::diagnostics | Diagnostic, RunState | crate |  | `use crate::diagnostics::{Diagnostic, RunState};` |
+| rust-use | internal | crate::diff | unified_diff | crate |  | `use crate::diff::unified_diff;` |
+| rust-use | internal | crate::model | Package | crate |  | `use crate::model::Package;` |
+| rust-use | internal | crate::package | read_package_metadata | crate |  | `use crate::package::read_package_metadata;` |
+
+
 ## Source
 
-````rs
-use std::collections::BTreeMap;
-use std::fs;
-use std::path::{Path, PathBuf};
-
-use crate::diagnostics::{Diagnostic, RunState};
-use crate::diff::unified_diff;
-use crate::model::Package;
-use crate::package::read_package_metadata;
-````
 
 ````rs
 pub(crate) fn sync_package_md(
@@ -248,3 +251,5 @@ fn dependency_table(dependencies: &std::collections::HashMap<String, String>) ->
     output
 }
 ````
+
+

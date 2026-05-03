@@ -30,19 +30,22 @@ Migrated implementation source for `tests/parser_generation_mvp.rs`.
 - runner
 - table
 
+## Imports
+
+| Kind | From | Target | Symbols | Via | Summary | Code |
+| --- | --- | --- | --- | --- | --- | --- |
+| rust-use | builtin | std | fs | std |  | `use std::fs;` |
+| rust-use | builtin | std::os::unix::fs | PermissionsExt | std |  | `use std::os::unix::fs::PermissionsExt;` |
+| rust-use | builtin | std::path | Path, PathBuf | std |  | `use std::path::{Path, PathBuf};` |
+| rust-use | builtin | std::sync::atomic | AtomicUsize, Ordering | std |  | `use std::sync::atomic::{AtomicUsize, Ordering};` |
+| rust-use | external | mds_core | { | mds_core |  | `use mds_core::{` |
+| import | external |  |  |  |  | `execute, AgentKitCategory, AiTarget, BuildMode, CliRequest, Command, InitOptions,` |
+| import | external |  |  |  |  | `InitQualityCommands, InitTargetCategories, Lang, PythonTool, RustTool, TypeScriptTool,` |
+| import | external |  |  |  |  | `};` |
+
+
 ## Test
 
-````rs
-use std::fs;
-use std::os::unix::fs::PermissionsExt;
-use std::path::{Path, PathBuf};
-use std::sync::atomic::{AtomicUsize, Ordering};
-
-use mds_core::{
-    execute, AgentKitCategory, AiTarget, BuildMode, CliRequest, Command, InitOptions,
-    InitQualityCommands, InitTargetCategories, Lang, PythonTool, RustTool, TypeScriptTool,
-};
-````
 
 ````rs
 static TEMP_COUNTER: AtomicUsize = AtomicUsize::new(0);
@@ -58,10 +61,10 @@ fn builds_three_language_fixture() {
         cwd: temp.path().to_path_buf(),
         package: None,
         verbose: false,
-        command: Command::Check,
+        command: Command::Lint { fix: false, check: false },
     });
     assert_eq!(check.exit_code, 0, "{}", check.stderr);
-    assert!(check.stdout.contains("check ok"));
+    assert!(check.stdout.contains("lint ok"));
 
     let dry_run = execute(CliRequest {
         cwd: temp.path().to_path_buf(),
@@ -203,7 +206,7 @@ fn package_metadata_dependencies_do_not_require_markdown_mirror() {
         cwd: temp.path().to_path_buf(),
         package: None,
         verbose: false,
-        command: Command::Check,
+        command: Command::Lint { fix: false, check: false },
     });
     assert_eq!(check.exit_code, 0, "{}", check.stderr);
 }
@@ -260,7 +263,7 @@ fn reports_unsupported_config_key_as_warning() {
         cwd: temp.path().to_path_buf(),
         package: None,
         verbose: false,
-        command: Command::Check,
+        command: Command::Lint { fix: false, check: false },
     });
     assert_eq!(check.exit_code, 0, "{}", check.stderr);
     assert!(check.stderr.contains("warning:"));
@@ -282,7 +285,7 @@ fn rejects_imports_mixed_with_implementation_code_blocks() {
         cwd: temp.path().to_path_buf(),
         package: None,
         verbose: false,
-        command: Command::Check,
+        command: Command::Lint { fix: false, check: false },
     });
     assert_eq!(check.exit_code, 1);
     assert!(check.stderr.contains("mixes imports with implementation"));
@@ -304,7 +307,7 @@ fn rejects_multiple_top_level_implementations_in_one_code_block() {
         cwd: temp.path().to_path_buf(),
         package: None,
         verbose: false,
-        command: Command::Check,
+        command: Command::Lint { fix: false, check: false },
     });
     assert_eq!(check.exit_code, 1);
     assert!(check.stderr.contains("multiple top-level implementations"));
@@ -326,7 +329,7 @@ fn rejects_multiple_go_top_level_implementations_in_one_code_block() {
         cwd: temp.path().to_path_buf(),
         package: None,
         verbose: false,
-        command: Command::Check,
+        command: Command::Lint { fix: false, check: false },
     });
     assert_eq!(check.exit_code, 1);
     assert!(check.stderr.contains("multiple top-level implementations"));
@@ -353,7 +356,7 @@ fn check_config_can_allow_multiple_top_level_implementations_in_one_code_block()
         cwd: temp.path().to_path_buf(),
         package: None,
         verbose: false,
-        command: Command::Check,
+        command: Command::Lint { fix: false, check: false },
     });
     assert_eq!(check.exit_code, 0, "{}", check.stderr);
 }
@@ -374,7 +377,7 @@ fn rejects_doc_comments_inside_code_blocks() {
         cwd: temp.path().to_path_buf(),
         package: None,
         verbose: false,
-        command: Command::Check,
+        command: Command::Lint { fix: false, check: false },
     });
     assert_eq!(check.exit_code, 1);
     assert!(check.stderr.contains("contains a doc comment"));
@@ -401,7 +404,7 @@ fn check_config_can_disable_doc_comment_validation() {
         cwd: temp.path().to_path_buf(),
         package: None,
         verbose: false,
-        command: Command::Check,
+        command: Command::Lint { fix: false, check: false },
     });
     assert_eq!(check.exit_code, 0, "{}", check.stderr);
 }
@@ -460,7 +463,7 @@ starts_with = "import "
         cwd: temp.path().to_path_buf(),
         package: None,
         verbose: false,
-        command: Command::Check,
+        command: Command::Lint { fix: false, check: false },
     });
     assert_eq!(check.exit_code, 1);
     assert!(check.stderr.contains("contains a doc comment"));
@@ -482,7 +485,7 @@ fn rejects_unterminated_code_fence() {
         cwd: temp.path().to_path_buf(),
         package: None,
         verbose: false,
-        command: Command::Check,
+        command: Command::Lint { fix: false, check: false },
     });
     assert_eq!(check.exit_code, 1);
     assert!(check.stderr.contains("unterminated code fence"));
@@ -509,7 +512,7 @@ fn check_config_can_disable_markdown_link_validation() {
         cwd: temp.path().to_path_buf(),
         package: None,
         verbose: false,
-        command: Command::Check,
+        command: Command::Lint { fix: false, check: false },
     });
     assert_eq!(check.exit_code, 0, "{}", check.stderr);
 }
@@ -530,7 +533,7 @@ fn rejects_new_fence_opener_before_previous_fence_closes() {
         cwd: temp.path().to_path_buf(),
         package: None,
         verbose: false,
-        command: Command::Check,
+        command: Command::Lint { fix: false, check: false },
     });
     assert_eq!(check.exit_code, 1);
     assert!(check.stderr.contains("before a new fence opener"));
@@ -552,7 +555,7 @@ fn rejects_duplicate_h2_sections() {
         cwd: temp.path().to_path_buf(),
         package: None,
         verbose: false,
-        command: Command::Check,
+        command: Command::Lint { fix: false, check: false },
     });
     assert_eq!(check.exit_code, 1);
     assert!(check.stderr.contains("duplicate H2 section"));
@@ -569,7 +572,7 @@ fn package_check_uses_language_metadata_without_markdown_mirror() {
         cwd: temp.path().to_path_buf(),
         package: None,
         verbose: false,
-        command: Command::Check,
+        command: Command::Lint { fix: false, check: false },
     });
     assert_eq!(check.exit_code, 0, "{}", check.stderr);
 }
@@ -682,7 +685,7 @@ fn rejects_test_doc_without_covers() {
         cwd: temp.path().to_path_buf(),
         package: None,
         verbose: false,
-        command: Command::Check,
+        command: Command::Lint { fix: false, check: false },
     });
     assert_eq!(check.exit_code, 1);
     assert!(check
@@ -984,7 +987,7 @@ fn label_overrides_preserve_canonical_table_and_section_meaning() {
         cwd: temp.path().to_path_buf(),
         package: None,
         verbose: false,
-        command: Command::Check,
+        command: Command::Lint { fix: false, check: false },
     });
     assert_eq!(check.exit_code, 0, "{}", check.stderr);
 }
@@ -1005,7 +1008,7 @@ fn validates_local_markdown_links() {
         cwd: temp.path().to_path_buf(),
         package: None,
         verbose: false,
-        command: Command::Check,
+        command: Command::Lint { fix: false, check: false },
     });
     assert_eq!(check.exit_code, 1);
     assert!(check.stderr.contains("Markdown link target does not exist"));
@@ -1031,7 +1034,7 @@ fn table_parser_keeps_pipes_inside_code_spans() {
         cwd: temp.path().to_path_buf(),
         package: None,
         verbose: false,
-        command: Command::Check,
+        command: Command::Lint { fix: false, check: false },
     });
     assert_eq!(check.exit_code, 0, "{}", check.stderr);
 }
@@ -1058,7 +1061,7 @@ fn metadata_parser_accepts_common_json_toml_dependency_shapes() {
         cwd: temp.path().to_path_buf(),
         package: None,
         verbose: false,
-        command: Command::Check,
+        command: Command::Lint { fix: false, check: false },
     });
     assert_eq!(check.exit_code, 0, "{}", check.stderr);
 
@@ -1089,7 +1092,7 @@ fn metadata_parser_accepts_common_json_toml_dependency_shapes() {
         cwd: rust_pkg.clone(),
         package: None,
         verbose: false,
-        command: Command::Check,
+        command: Command::Lint { fix: false, check: false },
     });
     assert_eq!(rust_check.exit_code, 0, "{}", rust_check.stderr);
 }
@@ -1128,7 +1131,7 @@ fn check_and_build_reject_stale_dependency_snapshot() {
         cwd: temp.path().to_path_buf(),
         package: None,
         verbose: false,
-        command: Command::Check,
+        command: Command::Lint { fix: false, check: false },
     });
     assert_eq!(check.exit_code, 1);
     assert!(check
@@ -1288,15 +1291,15 @@ fn init_generates_selected_ai_agent_kit_and_project_skeleton() {
     assert!(temp.path().join(".mds/source/overview.md").exists());
     assert!(temp.path().join(".mds/test/overview.md").exists());
     assert!(temp.path().join(".claude/rules/mds.md").exists());
-    assert!(temp.path().join(".claude/commands/mds-check.md").exists());
+    assert!(!temp.path().join(".claude/commands/mds-check.md").exists());
     assert!(temp.path().join(".claude/commands/mds-build.md").exists());
     assert!(temp.path().join(".claude/commands/mds-lint.md").exists());
     assert!(temp.path().join(".opencode/agents/mds-build.md").exists());
-    assert!(temp.path().join(".opencode/agents/mds-check.md").exists());
+    assert!(temp.path().join(".opencode/agents/mds-lint.md").exists());
     assert!(!temp.path().join(".claude/skills/mds/SKILL.md").exists());
     let rules = fs::read_to_string(temp.path().join(".claude/rules/mds.md")).unwrap();
     assert!(rules.contains("mds-managed: true"));
-    assert!(rules.contains("mds check"));
+    assert!(rules.contains("mds lint"));
     let config = fs::read_to_string(temp.path().join("mds.config.toml")).unwrap();
     assert!(config.contains("linter = \"eslint\""));
     assert!(config.contains("fixer = \"prettier --write\""));
@@ -1405,7 +1408,7 @@ fn init_generates_ai_categories_per_target() {
     assert!(temp.path().join(".claude/rules/mds.md").exists());
     assert!(!temp.path().join(".claude/skills/mds/SKILL.md").exists());
     assert!(temp.path().join(".opencode/skills/mds/SKILL.md").exists());
-    assert!(!temp.path().join(".opencode/agents/mds-check.md").exists());
+    assert!(!temp.path().join(".opencode/agents/mds-lint.md").exists());
 }
 ````
 
@@ -2095,3 +2098,5 @@ fn impl_doc(
     )
 }
 ````
+
+

@@ -9,17 +9,20 @@ Migrated implementation source for `src/markdown.rs`.
 - Preserve the behavior of the pre-migration Rust source.
 - This file is synchronized into `.build/rust/mds/core/src/markdown.rs`.
 
+## Imports
+
+| Kind | From | Target | Symbols | Via | Summary | Code |
+| --- | --- | --- | --- | --- | --- | --- |
+| rust-use | builtin | std::collections | HashMap | std |  | `use std::collections::HashMap;` |
+| rust-use | builtin | std | fs | std |  | `use std::fs;` |
+| rust-use | builtin | std::path | Path, PathBuf | std |  | `use std::path::{Path, PathBuf};` |
+| rust-use | internal | crate::diagnostics | Diagnostic, RunState | crate |  | `use crate::diagnostics::{Diagnostic, RunState};` |
+| rust-use | internal | crate::fs_utils | collect_files, is_excluded | crate |  | `use crate::fs_utils::{collect_files, is_excluded};` |
+| rust-use | internal | crate::model | DocKind, ImplDoc, Lang, Package | crate |  | `use crate::model::{DocKind, ImplDoc, Lang, Package};` |
+
+
 ## Source
 
-````rs
-use std::collections::HashMap;
-use std::fs;
-use std::path::{Path, PathBuf};
-
-use crate::diagnostics::{Diagnostic, RunState};
-use crate::fs_utils::{collect_files, is_excluded};
-use crate::model::{DocKind, ImplDoc, Lang, Package};
-````
 
 ````rs
 pub fn load_implementation_docs(
@@ -125,12 +128,20 @@ pub fn parse_impl_doc(
 ````rs
         validate_markdown_links(path, &text, state);
     }
-    validate_code_block_boundaries(path, &lang, &text, &package.config.check, state);
+    validate_code_block_boundaries(
+        path,
+        &lang,
+        &text,
+        &package.config.label_overrides,
+        &package.config.check,
+        state,
+    );
 
     let sections = sections_with_labels(&text, &package.config.label_overrides);
-    let types_code = code_from_section(sections.get("Types"));
-    let source_code = code_from_section(sections.get("Source"));
-    let test_code = code_from_section(sections.get("Test"));
+    let imports_code = code_from_section(sections.get("Imports"));
+    let types_code = prepend_imports(&imports_code, code_from_section(sections.get("Types")));
+    let source_code = prepend_imports(&imports_code, code_from_section(sections.get("Source")));
+    let test_code = prepend_imports(&imports_code, code_from_section(sections.get("Test")));
     let covers = covers_from_section(sections.get("Covers"));
 
     let code = extract_all_code_blocks(&text);
@@ -443,8 +454,75 @@ pub fn extract_all_code_blocks(text: &str) -> String {
 ````rs
 fn code_from_section(section: Option<&String>) -> String {
     section
-        .map(|section| extract_all_code_blocks(section))
+        .map(|section| {
+            let blocks = extract_all_code_blocks(section);
+            if !blocks.trim().is_empty() {
+                blocks
+            } else {
+                code_from_table(section)
+            }
+        })
         .unwrap_or_default()
+}
+````
+
+````rs
+fn prepend_imports(imports: &str, body: String) -> String {
+    if imports.trim().is_empty() {
+        return body;
+    }
+    if body.trim().is_empty() {
+        return imports.to_string();
+    }
+    format!("{}\n{}", imports.trim_end(), body)
+}
+````
+
+````rs
+fn code_from_table(section: &str) -> String {
+    let lines: Vec<&str> = section.lines().collect();
+    for index in 0..lines.len().saturating_sub(1) {
+        if !lines[index].trim_start().starts_with('|') || !lines[index + 1].contains("---") {
+            continue;
+        }
+        let headers = split_markdown_row(lines[index]);
+        let Some(code_index) = headers
+            .iter()
+            .position(|header| matches!(header.trim().to_ascii_lowercase().as_str(), "code" | "statement"))
+        else {
+            continue;
+        };
+        let mut output = String::new();
+        for row_line in lines.iter().skip(index + 2) {
+            if !row_line.trim_start().starts_with('|') {
+                break;
+            }
+            let cells = split_markdown_row(row_line);
+            let value = cells
+                .get(code_index)
+                .map(String::as_str)
+                .unwrap_or_default()
+                .trim()
+                .trim_matches('`');
+            if value.is_empty() {
+                continue;
+            }
+            output.push_str(value);
+            output.push('\n');
+        }
+        return output;
+    }
+    String::new()
+}
+````
+
+````rs
+fn split_markdown_row(line: &str) -> Vec<String> {
+    line.trim()
+        .trim_matches('|')
+        .split('|')
+        .map(|cell| cell.trim().to_string())
+        .collect()
 }
 ````
 
@@ -468,10 +546,11 @@ fn validate_code_block_boundaries(
     path: &Path,
     lang: &Lang,
     text: &str,
+    label_overrides: &HashMap<String, String>,
     check: &crate::model::CheckConfig,
     state: &mut RunState,
 ) {
-    for block in code_blocks(text) {
+    for block in code_blocks(text, label_overrides) {
         if check.doc_comments_outside_code {
             if let Some(line_offset) = block
                 .content
@@ -503,11 +582,28 @@ fn validate_code_block_boundaries(
         } else {
             0
         };
+        let import_only_block = has_import
+            && block.content.lines().all(|line| {
+                let trimmed = line.trim_start();
+                trimmed.is_empty()
+                    || is_comment_line(lang, trimmed)
+                    || is_import_line(lang, trimmed)
+            });
         if check.import_with_implementation && has_import && declaration_count > 0 {
             state.diagnostics.push(Diagnostic::error(
                 Some(path.to_path_buf()),
                 format!(
-                    "code block starting at line {} mixes imports with implementation; move imports to Uses or an import-only block",
+                    "code block starting at line {} mixes imports with implementation; move imports to the Imports section table",
+                    block.start_line
+                ),
+            ));
+        }
+
+        if import_only_block && block.section.as_deref() != Some("Imports") {
+            state.diagnostics.push(Diagnostic::error(
+                Some(path.to_path_buf()),
+                format!(
+                    "code block starting at line {} is an import-only block; move imports to the Imports section table",
                     block.start_line
                 ),
             ));
@@ -531,26 +627,37 @@ fn validate_code_block_boundaries(
 struct CodeBlock<'a> {
     content: &'a str,
     start_line: usize,
+    section: Option<String>,
 }
 ````
 
 ````rs
-fn code_blocks(text: &str) -> Vec<CodeBlock<'_>> {
+fn code_blocks<'a>(
+    text: &'a str,
+    label_overrides: &HashMap<String, String>,
+) -> Vec<CodeBlock<'a>> {
     let mut blocks = Vec::new();
     let mut fence_len: Option<usize> = None;
     let mut content_start = 0;
     let mut content_start_line = 1;
     let mut cursor = 0;
     let mut line_number = 1;
+    let mut current_section: Option<String> = None;
     for line in text.split_inclusive('\n') {
         let line_start = cursor;
         cursor += line.len();
+        if fence_len.is_none() {
+            if let Some(title) = line.trim_end_matches(['\r', '\n']).strip_prefix("## ") {
+                current_section = Some(canonical_section_title(title.trim(), label_overrides));
+            }
+        }
         if let Some((marker_len, suffix)) = backtick_fence(line) {
             if let Some(open_len) = fence_len {
                 if is_closing_fence(marker_len, suffix, open_len) {
                     blocks.push(CodeBlock {
                         content: &text[content_start..line_start],
                         start_line: content_start_line,
+                        section: current_section.clone(),
                     });
                     fence_len = None;
                 }
@@ -641,7 +748,7 @@ pub fn sections_with_labels(
 ````rs
 fn canonical_section_title(title: &str, label_overrides: &HashMap<String, String>) -> String {
     for canonical in [
-        "Purpose", "Contract", "Types", "Source", "Cases", "Test", "Expose", "Exposes",
+        "Purpose", "Contract", "Types", "Source", "Cases", "Test", "Covers", "Imports", "Exports", "Expose", "Exposes", "Architecture", "Rules",
     ] {
         if title == canonical {
             return canonical.to_string();
@@ -814,3 +921,5 @@ fn should_validate_local_link(target: &str) -> bool {
     clean.ends_with(".md") || clean.contains('/')
 }
 ````
+
+

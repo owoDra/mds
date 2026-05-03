@@ -9,15 +9,18 @@ Migrated implementation source for `src/diff.rs`.
 - Preserve the behavior of the pre-migration Rust source.
 - This file is synchronized into `.build/rust/mds/core/src/diff.rs`.
 
+## Imports
+
+| Kind | From | Target | Symbols | Via | Summary | Code |
+| --- | --- | --- | --- | --- | --- | --- |
+| rust-use | builtin | std | fs | std |  | `use std::fs;` |
+| rust-use | builtin | std::path | Path | std |  | `use std::path::Path;` |
+| rust-use | internal | crate::diagnostics | RunState | crate |  | `use crate::diagnostics::RunState;` |
+| rust-use | internal | crate::model | GeneratedFile | crate |  | `use crate::model::GeneratedFile;` |
+
+
 ## Source
 
-````rs
-use std::fs;
-use std::path::Path;
-
-use crate::diagnostics::RunState;
-use crate::model::GeneratedFile;
-````
 
 ````rs
 pub(crate) fn render_dry_run(generated: &[GeneratedFile], state: &mut RunState) {
@@ -58,6 +61,8 @@ pub(crate) fn write_generated(
     Ok(())
 }
 ````
+
+
 
 ````rs
 pub(crate) fn unified_diff(path: &Path, old: &str, new: &str) -> String {
