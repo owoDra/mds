@@ -1,0 +1,9 @@
+[[sources]]
+path = ".mds/source/greet.rs.md"
+adapter = "rs"
+hash = "2551e235cb900a468831af1ecbb147477b1203be2b8aecbd25a652c7a542706d"
+[[sources.outputs]]
+kind = "source"
+path = "src/greet.rs"
+hash = "2b5cf9c2829ad545ec6823711aa0a5521ef24ca0a380ade595532bc4cd0a2ca2"
+

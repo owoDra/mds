@@ -43,6 +43,7 @@ self-hosted 移行では特に次の問題が目立った。
 5. `mds check` を authoring model 起点で厳格化する。
 
 - `.mds/` 配下の fixed root と `overview.md` の配置、doc kind ごとの必須 section、許可される code block 種別を検査する。
+- default validator では code fence 整合、Markdown link、duplicate H2、import 混在、doc comment / docstring、top-level 実装の code fence 分離を検査し、`[check]` で個別に on/off できるようにする。
 - `Uses.Target` の logical module id、`Covers` の参照解決、managed dependency snapshot の同期ずれを診断する。
 - 旧 1-root / 1-md model は warning ではなく migration error として扱い、first-party package は即時移行対象にする。
 

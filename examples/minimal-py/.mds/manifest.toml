@@ -1,0 +1,9 @@
+[[sources]]
+path = ".mds/source/greet.py.md"
+adapter = "py"
+hash = "f608dde0ecb16d453e444da36bc53a9d17650c400ef0c8367fd694c50670a0f8"
+[[sources.outputs]]
+kind = "source"
+path = "src/greet.py"
+hash = "0c0d561d7a7a7da82df5f69bcac0c60c4b3b303ae298672685c9d82a8eb49d8e"
+

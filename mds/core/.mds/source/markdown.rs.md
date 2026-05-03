@@ -40,6 +40,9 @@ pub fn load_implementation_docs(
         if is_excluded(&package.root, &path, &package.config.excludes) {
             continue;
         }
+        if is_template_asset_markdown(&path) {
+            continue;
+        }
         let Some(lang) = Lang::from_path(&path) else {
             continue;
         };
@@ -84,6 +87,13 @@ fn load_test_docs(
 ````
 
 ````rs
+fn is_template_asset_markdown(path: &Path) -> bool {
+    path.extension().is_some_and(|ext| ext == "md")
+        && path.components().any(|component| component.as_os_str() == "templates")
+}
+````
+
+````rs
 pub fn parse_impl_doc(
     package: &Package,
     doc_kind: DocKind,
@@ -101,9 +111,17 @@ pub fn parse_impl_doc(
             return None;
         }
     };
-    validate_impl_doc_structure(path, &text, &package.config.label_overrides, state);
-    validate_markdown_links(path, &text, state);
-    validate_code_block_boundaries(path, &lang, &text, state);
+    validate_impl_doc_structure(
+        path,
+        &text,
+        &package.config.label_overrides,
+        &package.config.check,
+        state,
+    );
+    if package.config.check.markdown_links {
+        validate_markdown_links(path, &text, state);
+    }
+    validate_code_block_boundaries(path, &lang, &text, &package.config.check, state);
 
     let sections = sections_with_labels(&text, &package.config.label_overrides);
     let types_code = code_from_section(sections.get("Types"));
@@ -112,7 +130,7 @@ pub fn parse_impl_doc(
     let covers = covers_from_section(sections.get("Covers"));
 
     let code = extract_all_code_blocks(&text);
-    if code.trim().is_empty() {
+    if package.config.check.code_blocks_required && code.trim().is_empty() {
         state.diagnostics.push(Diagnostic::error(
             Some(path.to_path_buf()),
             "implementation md requires at least one code block",
@@ -294,10 +312,15 @@ fn validate_impl_doc_structure(
     path: &Path,
     text: &str,
     label_overrides: &HashMap<String, String>,
+    check: &crate::model::CheckConfig,
     state: &mut RunState,
 ) {
-    validate_code_fence_integrity(path, text, state);
-    validate_duplicate_h2_sections(path, text, label_overrides, state);
+    if check.code_fence_integrity {
+        validate_code_fence_integrity(path, text, state);
+    }
+    if check.duplicate_h2_sections {
+        validate_duplicate_h2_sections(path, text, label_overrides, state);
+    }
 }
 ````
 
@@ -437,18 +460,50 @@ fn covers_from_section(section: Option<&String>) -> Vec<String> {
 ````
 
 ````rs
-fn validate_code_block_boundaries(path: &Path, lang: &Lang, text: &str, state: &mut RunState) {
+fn validate_code_block_boundaries(
+    path: &Path,
+    lang: &Lang,
+    text: &str,
+    check: &crate::model::CheckConfig,
+    state: &mut RunState,
+) {
     for block in code_blocks(text) {
-        let has_import = block
-            .content
-            .lines()
-            .any(|line| is_import_line(lang, line.trim_start()));
-        let declaration_count = block
-            .content
-            .lines()
-            .filter(|line| is_top_level_declaration(lang, line))
-            .count();
-        if has_import && declaration_count > 0 {
+        if check.doc_comments_outside_code {
+            if let Some(line_offset) = block
+                .content
+                .lines()
+                .position(|line| is_doc_comment_line(lang, line.trim_start()))
+            {
+                let line_number = block.start_line + line_offset;
+                state.diagnostics.push(Diagnostic::error(
+                    Some(path.to_path_buf()),
+                    format!(
+                        "code block starting at line {} contains a doc comment at line {}; move documentation text outside the code block",
+                        block.start_line,
+                        line_number
+                    ),
+                ));
+            }
+        }
+
+        let has_import = if check.import_with_implementation {
+            block
+                .content
+                .lines()
+                .any(|line| is_import_line(lang, line.trim_start()))
+        } else {
+            false
+        };
+        let declaration_count = if check.import_with_implementation || check.top_level_fence_required {
+            block
+                .content
+                .lines()
+                .filter(|line| is_top_level_declaration(lang, line))
+                .count()
+        } else {
+            0
+        };
+        if check.import_with_implementation && has_import && declaration_count > 0 {
             state.diagnostics.push(Diagnostic::error(
                 Some(path.to_path_buf()),
                 format!(
@@ -458,7 +513,7 @@ fn validate_code_block_boundaries(path: &Path, lang: &Lang, text: &str, state: &
             ));
         }
 
-        if declaration_count > 1 {
+        if check.top_level_fence_required && declaration_count > 1 {
             state.diagnostics.push(Diagnostic::error(
                 Some(path.to_path_buf()),
                 format!(
@@ -536,6 +591,22 @@ fn is_top_level_declaration(lang: &Lang, line: &str) -> bool {
 ````rs
 fn is_comment_line(lang: &Lang, trimmed: &str) -> bool {
     crate::descriptor::builtin_descriptor(lang).matches_comment_line(trimmed)
+}
+````
+
+````rs
+fn is_doc_comment_line(lang: &Lang, trimmed: &str) -> bool {
+    match lang {
+        Lang::Python => trimmed.starts_with("\"\"\"") || trimmed.starts_with("'''"),
+        Lang::Rust => {
+            trimmed.starts_with("///")
+                || trimmed.starts_with("//!")
+                || trimmed.starts_with("/**")
+                || trimmed.starts_with("/*!")
+        }
+        Lang::TypeScript => trimmed.starts_with("/**"),
+        Lang::Other(_) => trimmed.starts_with("/**") || trimmed.starts_with("///"),
+    }
 }
 ````
 

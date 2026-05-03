@@ -64,7 +64,8 @@ Implementation files: `.mds/source/name.{lang}.md` → generates `src/name.{lang
 - One `.{lang}.md` file = one generated source file
 - All code blocks in the file are concatenated (separated by blank lines) to produce the output
 - Import/use/require statements are forbidden in code blocks; record dependencies in Uses
-- Each code block must contain exactly one logical unit (type, function, class, impl, etc.)
+- Each code block must contain exactly one logical unit (type, function, class, impl, etc.) by default
+- Doc comments and docstrings belong in surrounding markdown text, not inside code blocks
 
 ### Sections
 
@@ -87,4 +88,5 @@ All sections are optional. Recommended structure:
 - One `.{lang}.md` per feature (one file = one generated source)
 - Code fence language must match file extension
 - Imports/use/require are forbidden in code blocks; record dependencies in Uses
+- Default `mds check` expects top-level implementations to be split per code fence; projects may relax selected checks in `[check]`
 - Multiple code blocks per section → concatenated with blank lines

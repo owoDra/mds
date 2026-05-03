@@ -4,7 +4,7 @@ set -euo pipefail
 # generate-release-artifacts.sh
 #
 # Generates release quality gate artifacts for all distribution targets.
-# Run after `./.github/script/sync-build.sh && cd .build/rust && cargo build --release && cargo package --allow-dirty`.
+# Run after `cargo run -p mds-cli -- build --verbose && cd .build/rust && cargo build --release && cargo package --allow-dirty`.
 #
 # Outputs:
 #   .build/release/checksums/   — SHA-256 digests
@@ -120,7 +120,10 @@ EOF
 
 echo "=== Cargo crates ==="
 
-"$ROOT/.github/script/sync-build.sh"
+(
+  cd "$ROOT"
+  cargo run -p mds-cli -- build --verbose
+)
 CRATE_DIR="$ROOT/.build/rust/target/package"
 for crate in mds-core mds-cli mds-lsp; do
   echo "[$crate]"

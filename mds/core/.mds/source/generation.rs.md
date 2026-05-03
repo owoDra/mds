@@ -14,6 +14,7 @@ Migrated implementation source for `src/generation.rs`.
 ````rs
 use std::ffi::OsStr;
 use std::fs;
+use std::path::Path;
 
 use crate::adapter::output_relative_path;
 use crate::descriptor::{output_root, OutputRoot};
@@ -100,7 +101,10 @@ fn plan_source_assets(package: &Package, state: &mut RunState) -> Vec<GeneratedF
         {
             continue;
         }
-        if path.extension() == Some(OsStr::new("md")) && Lang::from_path(&path).is_some() {
+        if path.extension() == Some(OsStr::new("md"))
+            && Lang::from_path(&path).is_some()
+            && !is_template_asset_markdown(relative)
+        {
             continue;
         }
 
@@ -129,25 +133,6 @@ fn plan_source_assets(package: &Package, state: &mut RunState) -> Vec<GeneratedF
             ));
             continue;
         }
-        if output_path.exists() {
-            match fs::read_to_string(&output_path) {
-                Ok(existing) if existing == content => {}
-                Ok(_) => {
-                    state.diagnostics.push(Diagnostic::error(
-                        Some(output_path),
-                        "refusing to overwrite copied asset with different content",
-                    ));
-                    continue;
-                }
-                Err(error) => {
-                    state.diagnostics.push(Diagnostic::error(
-                        Some(output_path),
-                        format!("failed to read copied asset destination: {error}"),
-                    ));
-                    continue;
-                }
-            }
-        }
 
         generated.push(GeneratedFile {
             path: output_path,
@@ -157,6 +142,13 @@ fn plan_source_assets(package: &Package, state: &mut RunState) -> Vec<GeneratedF
         });
     }
     generated
+}
+````
+
+````rs
+fn is_template_asset_markdown(path: &Path) -> bool {
+    path.extension() == Some(OsStr::new("md"))
+        && path.components().any(|component| component.as_os_str() == OsStr::new("templates"))
 }
 ````
 

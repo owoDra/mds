@@ -9,6 +9,10 @@
 - `greet` は `GreetOptions` を受け取り、`"Hello, <name>!"` 形式の文字列を返す。
 - `name` が空文字列の場合でもエラーにせず `"Hello, !"` を返す。
 
+`GreetOptions` は `greet` 関数の引数です。
+
+`greet` は名前を受け取り、挨拶メッセージを返します。
+
 ## Source
 
 ```py
@@ -18,13 +22,11 @@ from dataclasses import dataclass
 ```py
 @dataclass
 class GreetOptions:
-    """greet 関数の引数"""
     name: str
 ```
 
 ```py
 def greet(options: GreetOptions) -> str:
-    """名前を受け取り、挨拶メッセージを返します。"""
     return f"Hello, {options.name}!"
 ```
 

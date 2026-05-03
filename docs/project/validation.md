@@ -21,7 +21,7 @@
 
 - いつ行うか: package `index.md`、source `overview.md`、implementation md、`mds.config.toml` の仕様や parser を変更するとき。
 - 何で検証するか: Markdown fixture、構造検査、手元の代表サンプルを使う。
-- 期待する結果: 必須セクション、`Expose`、`Uses`、`Cases`、`Types` / `Source` / `Test` の分離が仕様どおり扱われ、`Types` / `Source` / `Test` の実コードが正本として処理される。
+- 期待する結果: 必須セクション、`Expose`、`Uses`、`Cases`、`Types` / `Source` / `Test` の分離が仕様どおり扱われ、`Types` / `Source` / `Test` の実コードが正本として処理される。default validator では code fence 整合、duplicate H2、Markdown link、import 混在、doc comment / docstring、top-level 実装の fence 分離も確認する。
 - 問題があった際にどうするか: 例外的な入力を暗黙許容せず、仕様化するか明確に reject する。
 
 ## 生成コード整合性
@@ -33,9 +33,9 @@
 
 ## Self-hosted Build 同期
 
-- いつ行うか: package 配下の `.mds/source/` / `.mds/test/`、`.github/script/sync-build.sh`、Rust package metadata、`.build/` 配置を変更するとき。
-- 何で検証するか: `.github/script/sync-build.sh` を実行し、`.build/rust/` で `cargo fmt --check` と `cargo test` を実行する。
-- 期待する結果: package 配下の `.mds/source/` / `.mds/test/` の implementation md と package metadata から package 内の生成 `src/` / `tests/` と `.build/rust/` の Cargo workspace が再生成され、生成物を手編集せずに build / test できる。
+- いつ行うか: package 配下の `.mds/source/` / `.mds/test/`、`cargo run -p mds-cli -- build --verbose`、Rust package metadata、`.build/` 配置を変更するとき。
+- 何で検証するか: `cargo run -p mds-cli -- build --verbose` を実行し、`.build/rust/` で `cargo fmt --check` と `cargo test` を実行する。
+- 期待する結果: package 配下の `.mds/source/` / `.mds/test/` の implementation md と package metadata から package 内の生成 `src/` / `tests/` と `.build/rust/` の Cargo workspace が再生成され、生成物を手編集せずに build / test できる。descriptor の special file 規則も守られ、Rust の `build.rs.md` は package root の `build.rs` へ生成される。
 - 問題があった際にどうするか: `.build/` や生成 `src/` / `tests/` を直接修正せず、package 配下の `.mds/source/` / `.mds/test/` または同期処理を修正する。
 
 ## Language Adapter 動作
@@ -49,7 +49,7 @@
 
 - いつ行うか: `mds.config.toml`、root / subproject 設定、label override、package 有効判定を変更するとき。
 - 何で検証するか: root 設定、subproject 設定、未設定時の built-in default を含む fixture を使う。
-- 期待する結果: built-in default、root、subproject の優先順位が守られ、見た目の語彙変更が意味変更にならない。
+- 期待する結果: built-in default、root、subproject の優先順位が守られ、`[check]` を含む設定の on/off が局所的に反映され、見た目の語彙変更が意味変更にならない。
 - 問題があった際にどうするか: 互換性のために曖昧な優先順位を増やさず、仕様または ADR で判断を確定する。
 
 ## Monorepo 境界

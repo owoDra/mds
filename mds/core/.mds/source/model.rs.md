@@ -489,6 +489,7 @@ pub struct Config {
     pub enabled: bool,
     pub allow_raw_source: bool,
     pub copy_source_assets: bool,
+    pub check: CheckConfig,
     pub mds_version: Option<String>,
     pub roots: Roots,
     pub adapters: HashMap<Lang, bool>,
@@ -507,6 +508,7 @@ impl Default for Config {
             enabled: false,
             allow_raw_source: false,
             copy_source_assets: true,
+            check: CheckConfig::default(),
             mds_version: None,
             roots: Roots::default(),
             adapters: HashMap::from([
@@ -523,6 +525,35 @@ impl Default for Config {
             package_sync_hook_enabled: false,
             package_sync_hook: None,
             label_overrides: HashMap::new(),
+        }
+    }
+}
+````
+
+````rs
+#[derive(Debug, Clone)]
+pub struct CheckConfig {
+    pub code_blocks_required: bool,
+    pub code_fence_integrity: bool,
+    pub duplicate_h2_sections: bool,
+    pub markdown_links: bool,
+    pub import_with_implementation: bool,
+    pub top_level_fence_required: bool,
+    pub doc_comments_outside_code: bool,
+}
+````
+
+````rs
+impl Default for CheckConfig {
+    fn default() -> Self {
+        Self {
+            code_blocks_required: true,
+            code_fence_integrity: true,
+            duplicate_h2_sections: true,
+            markdown_links: true,
+            import_with_implementation: true,
+            top_level_fence_required: true,
+            doc_comments_outside_code: true,
         }
     }
 }

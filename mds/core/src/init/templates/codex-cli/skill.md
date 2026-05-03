@@ -46,7 +46,8 @@ Test docs: `.mds/test/name.md` → generates language-specific test outputs and 
 - One `.{lang}.md` file = one generated source file
 - All code blocks in the file are concatenated (separated by blank lines) to produce the output
 - Import/use/require statements are forbidden in code blocks; record dependencies in Uses
-- Each code block must contain exactly one logical unit (type, function, class, impl, etc.)
+- Each code block must contain exactly one logical unit (type, function, class, impl, etc.) by default
+- Doc comments and docstrings belong in surrounding markdown text, not inside code blocks
 - Sections (## headings) are optional and for documentation only
 
 ### Example
@@ -75,4 +76,5 @@ export function greet(config: Config): string {
 - One `.{lang}.md` per feature
 - Code fence language must match file extension
 - Imports/use/require are forbidden in code blocks; record dependencies in Uses
+- Default `mds check` expects top-level implementations to be split per code fence; projects may relax selected checks in `[check]`
 - Uses table is required for dependencies

@@ -6,7 +6,6 @@ allow_raw_source = false
 source = "src"
 types = "src"
 test = "tests"
-excludes = [".mds/source/init/templates/**"]
 
 [quality.rs]
 linter = "cargo clippy -- -D warnings"

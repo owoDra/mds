@@ -74,6 +74,37 @@ pub fn merge_config_file(config: &mut Config, path: &Path, state: &mut RunState)
         }
     }
 
+    for table_name in ["check", "checks"] {
+        if let Some(check) = root.get(table_name).and_then(toml::Value::as_table) {
+            for (key, value) in check {
+                match key.as_str() {
+                    "code_blocks_required" | "code_block_required" => {
+                        config.check.code_blocks_required = bool_value(value, path, key, state)
+                    }
+                    "code_fence_integrity" | "code_fences" => {
+                        config.check.code_fence_integrity = bool_value(value, path, key, state)
+                    }
+                    "duplicate_h2_sections" | "duplicate_sections" => {
+                        config.check.duplicate_h2_sections = bool_value(value, path, key, state)
+                    }
+                    "markdown_links" | "links" => {
+                        config.check.markdown_links = bool_value(value, path, key, state)
+                    }
+                    "import_with_implementation" | "imports_with_implementation" => {
+                        config.check.import_with_implementation = bool_value(value, path, key, state)
+                    }
+                    "top_level_fence_required" | "multiple_top_level_implementations" => {
+                        config.check.top_level_fence_required = bool_value(value, path, key, state)
+                    }
+                    "doc_comments_outside_code" | "doc_comment_outside_code" => {
+                        config.check.doc_comments_outside_code = bool_value(value, path, key, state)
+                    }
+                    _ => warn_unsupported(path, state, "check config", key),
+                }
+            }
+        }
+    }
+
     if let Some(roots) = root.get("roots").and_then(toml::Value::as_table) {
         for (key, value) in roots {
             match key.as_str() {
@@ -259,6 +290,8 @@ fn is_supported_top_level_table(section: &str) -> bool {
     matches!(
         section,
         "package"
+            | "check"
+            | "checks"
             | "roots"
             | "adapters"
             | "quality"

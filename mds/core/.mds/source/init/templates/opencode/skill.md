@@ -36,7 +36,9 @@ Test docs: `.mds/test/name.md` → generates language-specific test outputs and 
 - One file = one generated source file
 - All code blocks are concatenated (separated by blank lines) to produce output
 - Imports/use/require are forbidden in code blocks; record dependencies in Uses
+- Each code block must contain exactly one logical unit by default
+- Doc comments and docstrings belong in surrounding markdown text, not inside code blocks
 - Sections (## headings) are optional, for documentation
 - Uses table is required for dependencies
 
-Rules: one md per feature, code fence language = file extension
+Rules: one md per feature, code fence language = file extension, top-level implementations split per fence by default
