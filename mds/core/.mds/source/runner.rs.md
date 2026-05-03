@@ -12,6 +12,9 @@ Migrated implementation source for `src/runner.rs`.
 ## Source
 
 ````rs
+use std::fs;
+use std::path::Path;
+
 use crate::descriptor::set_workspace_descriptor_root;
 use crate::diagnostics::{Diagnostic, RunState};
 use crate::diff::{render_dry_run, write_generated};
@@ -90,8 +93,8 @@ fn execute_inner(request: CliRequest) -> Result<RunState, String> {
         return Ok(state);
     }
 
-    if let Command::Doctor { format } = request.command {
-        run_doctor(&packages, format, &mut state);
+    if let Command::Doctor { format } = &request.command {
+        run_doctor(&packages, *format, &mut state);
     } else {
         for package in &packages {
             run_package(
@@ -100,6 +103,11 @@ fn execute_inner(request: CliRequest) -> Result<RunState, String> {
                 request.verbose,
                 &mut state,
             )?;
+        }
+        if matches!(request.command, Command::Build { mode: BuildMode::Write })
+            && !state.has_errors()
+        {
+            sync_self_hosted_rust_workspace(&request.cwd, &mut state)?;
         }
     }
 
@@ -204,6 +212,113 @@ pub(crate) fn run_package(
         | Command::New { .. }
         | Command::Update { .. } => unreachable!(),
     }
+    Ok(())
+}
+````
+
+````rs
+fn sync_self_hosted_rust_workspace(
+    workspace_root: &Path,
+    state: &mut RunState,
+) -> Result<(), String> {
+    let workspace_manifest = workspace_root.join("Cargo.toml");
+    if !workspace_manifest.exists() {
+        return Ok(());
+    }
+
+    let package_paths = ["mds/core", "mds/cli", "mds/lsp"];
+    let existing_packages: Vec<&str> = package_paths
+        .into_iter()
+        .filter(|relative| workspace_root.join(relative).join("Cargo.toml").exists())
+        .collect();
+    if existing_packages.is_empty() {
+        return Ok(());
+    }
+
+    let mirror_root = workspace_root.join(".build/rust");
+    if mirror_root.exists() {
+        fs::remove_dir_all(&mirror_root)
+            .map_err(|error| format!("failed to remove {}: {error}", mirror_root.display()))?;
+    }
+    fs::create_dir_all(&mirror_root)
+        .map_err(|error| format!("failed to create {}: {error}", mirror_root.display()))?;
+
+    copy_file(&workspace_manifest, &mirror_root.join("Cargo.toml"))?;
+
+    let workspace_lock = workspace_root.join("Cargo.lock");
+    if workspace_lock.exists() {
+        copy_file(&workspace_lock, &mirror_root.join("Cargo.lock"))?;
+    }
+
+    for relative in existing_packages {
+        let package_root = workspace_root.join(relative);
+        let mirror_package_root = mirror_root.join(relative);
+        fs::create_dir_all(&mirror_package_root).map_err(|error| {
+            format!("failed to create {}: {error}", mirror_package_root.display())
+        })?;
+
+        copy_file(
+            &package_root.join("Cargo.toml"),
+            &mirror_package_root.join("Cargo.toml"),
+        )?;
+
+        let src_dir = package_root.join("src");
+        if src_dir.exists() {
+            copy_dir_recursive(&src_dir, &mirror_package_root.join("src"))?;
+        }
+
+        let tests_dir = package_root.join("tests");
+        if tests_dir.exists() {
+            copy_dir_recursive(&tests_dir, &mirror_package_root.join("tests"))?;
+        }
+
+        let build_rs = package_root.join("build.rs");
+        if build_rs.exists() {
+            copy_file(&build_rs, &mirror_package_root.join("build.rs"))?;
+        }
+    }
+
+    state
+        .stdout
+        .push_str(&format!("workspace mirror ok: {}\n", mirror_root.display()));
+
+    Ok(())
+}
+````
+
+````rs
+fn copy_dir_recursive(source: &Path, destination: &Path) -> Result<(), String> {
+    fs::create_dir_all(destination)
+        .map_err(|error| format!("failed to create {}: {error}", destination.display()))?;
+    for entry in fs::read_dir(source)
+        .map_err(|error| format!("failed to read {}: {error}", source.display()))?
+    {
+        let entry = entry.map_err(|error| format!("failed to read directory entry: {error}"))?;
+        let path = entry.path();
+        let target = destination.join(entry.file_name());
+        if path.is_dir() {
+            copy_dir_recursive(&path, &target)?;
+        } else {
+            copy_file(&path, &target)?;
+        }
+    }
+    Ok(())
+}
+````
+
+````rs
+fn copy_file(source: &Path, destination: &Path) -> Result<(), String> {
+    if let Some(parent) = destination.parent() {
+        fs::create_dir_all(parent)
+            .map_err(|error| format!("failed to create {}: {error}", parent.display()))?;
+    }
+    fs::copy(source, destination).map_err(|error| {
+        format!(
+            "failed to copy {} to {}: {error}",
+            source.display(),
+            destination.display()
+        )
+    })?;
     Ok(())
 }
 ````

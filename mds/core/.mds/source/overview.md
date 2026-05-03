@@ -6,7 +6,7 @@ Rust core library for parsing, validating, generating, and initializing mds proj
 
 ## Architecture
 
-This package is authored under `mds/core/.mds/source/` and synchronized into package `src/` / `tests/` by `mds build`. The repo-local helper `./.github/script/sync-self-hosted-rust.sh` mirrors those generated files into `.build/rust/mds/core/` before Cargo commands. Package metadata is read from `../Cargo.toml`; mds does not use a package root `index.md`.
+This package is authored under `mds/core/.mds/source/` and synchronized into package `src/` / `tests/` by `mds build`. The same command also refreshes the repo-local self-hosted mirror under `.build/rust/mds/core/`. Package metadata is read from `../Cargo.toml`; mds does not use a package root `index.md`.
 
 ## Source Of Truth Scope
 
@@ -30,14 +30,14 @@ This package is authored under `mds/core/.mds/source/` and synchronized into pac
 ### Migrated Generation And Adapter Rules
 
 - Source / Types / Test output paths are deterministic from authoring path plus descriptor file rules; arbitrary `file=` style output redirection is not part of the model.
-- Built-in descriptors for TypeScript, Python, Rust, and overlay / framework variants define aliases, suffix matching, output naming, lexical rules, scaffold defaults, and tool behaviors from TOML instead of Rust language branches.
+- Built-in descriptors for TypeScript, Python, Rust, and overlay / framework variants define aliases, suffix matching, output naming, lexical rules, scaffold defaults, and default quality profiles from TOML instead of Rust language branches.
 - Workspace-local `.mds/descriptors/*.toml` files extend or override descriptor behavior for generation, `mds new`, quality operations, and LSP validation without recompiling mds.
 - Current built-in language defaults remain: `foo.ts.md -> src/foo.ts / src/foo.types.ts / tests/foo.test.ts`, `pkg/foo.py.md -> src/pkg/foo.py / src/pkg/foo.pyi / tests/pkg/test_foo.py`, and `foo.rs.md -> src/foo.rs / src/foo.types.rs / tests/foo.test.rs` unless a descriptor says otherwise.
 
 ## Quality And Diagnostics
 
 - Markdown-state `lint`, `lint --fix`, and `test` target fenced code blocks only.
-- Descriptor tooling rules choose whether a tool receives stdin, a temp file, or inline source, and regex capture rules map tool output back to Markdown path, line, and column.
+- Tool manifests under `src/tooling/*.toml` choose whether a tool receives stdin, a temp file, or inline source, and regex capture rules map tool output back to Markdown path, line, and column.
 - `lint --fix` rewrites only fenced code block contents and leaves headings, tables, narrative sections, and metadata untouched.
 
 ### Migrated Quality Operation Rules

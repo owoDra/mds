@@ -6,7 +6,7 @@ Native CLI package for mds commands, including argument parsing, wizard flow, an
 
 ## Architecture
 
-This package is authored under `mds/cli/.mds/source/` and synchronized into package `src/` / `tests/` by `mds build`. The repo-local helper `./.github/script/sync-self-hosted-rust.sh` mirrors those generated files into `.build/rust/mds/cli/` before Cargo commands. Package metadata is read from `../Cargo.toml`; mds does not use a package root `index.md`.
+This package is authored under `mds/cli/.mds/source/` and synchronized into package `src/` / `tests/` by `mds build`. The same command also refreshes the repo-local self-hosted mirror under `.build/rust/mds/cli/`. Package metadata is read from `../Cargo.toml`; mds does not use a package root `index.md`.
 
 ## Source Of Truth Scope
 

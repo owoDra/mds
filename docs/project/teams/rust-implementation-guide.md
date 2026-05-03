@@ -20,7 +20,7 @@ Rust implementation team は、`mds/core/src-md`、`mds/cli/src-md`、`mds/lsp/s
 - crate 外へ必要な型だけ `pub` にする。crate 内共有は `pub(crate)` を優先し、外部公開面を増やすときは spec / README / API 利用者への影響を確認する。
 - tests は挙動単位で `tests/` に置く。production module 内の `#[cfg(test)]` は private helper の最小単体確認に限定し、fixture helper は production module に混ぜない。
 - Cargo workspace では `.build/rust/Cargo.lock` と `.build/rust/target/` を共有する。crate 間依存は暗黙にせず、各 package の `Cargo.toml` に path dependency を明示する。
-- `cargo run -p mds-cli -- build --verbose` で package 内の生成 `src/` / `tests/` を更新し、この repo では続けて `./.github/script/sync-self-hosted-rust.sh` を実行してから `.build/rust` で `cargo fmt --check` と `cargo test` を行う。
+- `cargo run -p mds-cli -- build --verbose` で package 内の生成 `src/` / `tests/` と `.build/rust` mirror を更新し、そのまま `.build/rust` で `cargo fmt --check` と `cargo test` を行う。
 
 ## 固有知識
 

@@ -10,11 +10,11 @@ hash = "bebdb4c2a155c25deef61550c35bd53dfedd02a837c2fc85265b9bf7fb5005ef"
 [[sources]]
 path = ".mds/source/build.rs.md"
 adapter = "rs"
-hash = "8a31c746c0eab2053422efc92d8a33a91f9a9dbdc2ead97e2f5dbcd2d1189183"
+hash = "90e855f39445c4bcaa67f2b512ba220f68b0cc169e5427be8f01661be153cac1"
 [[sources.outputs]]
 kind = "source"
 path = "build.rs"
-hash = "fc61f4a31d89abe153fa26fcde785ecea3ba35196cbaf8398eed6509f1d54747"
+hash = "f9daaddc0e9fdce210dd7f485d2eed3559aba977f3a0e01b4d266862f079f6c5"
 
 [[sources]]
 path = ".mds/source/config.rs.md"
@@ -28,11 +28,11 @@ hash = "79f739cf279cda9c375f17c05acf8d91f0c1a3456754f7d14eb9ea0f452e0bd0"
 [[sources]]
 path = ".mds/source/descriptor.rs.md"
 adapter = "rs"
-hash = "684cd80f4883dfce845ca69658d353e5f1dc1b0c1410b0716619a4616c56b1f3"
+hash = "7bba5987484e3912475180c609a84b0f1f5b1be689d02bd1b99b7623173e3fb8"
 [[sources.outputs]]
 kind = "source"
 path = "src/descriptor.rs"
-hash = "feefbb3234a8b835c52ea6b16a34e6481c77a8b3add19cc4dba45448d8941dbf"
+hash = "2068121c1f3cc9b806f689501c51dadd5f227ab15c5c0352868136f6ee452795"
 
 [[sources]]
 path = ".mds/source/diagnostics.rs.md"
@@ -163,20 +163,20 @@ hash = "2fd32d43584b544af6d04e21214549795385fba85bfec9f78391f1e99a5c530c"
 [[sources]]
 path = ".mds/source/quality.rs.md"
 adapter = "rs"
-hash = "49a5959e9990b0643dbb63b19b4c104744d81025091edaa75f994ad6175a3bba"
+hash = "f74e27d49732849ec200283de247bf81a136aefe6748cf059c8dcafe6f7f1262"
 [[sources.outputs]]
 kind = "source"
 path = "src/quality.rs"
-hash = "e60c1419b49296662e1b063f3207d56a7242c5e4c6d9d4eee7e2efbaf8ecdb88"
+hash = "ee57f3f4a1d9f498abbc55e679380ec6e033a6bce2e9761dc29fa61d8ecaaf4c"
 
 [[sources]]
 path = ".mds/source/runner.rs.md"
 adapter = "rs"
-hash = "2c72dc7e532b407932ffb343db592b68caee15de8d070d7213d174bd196e0579"
+hash = "95fec5b3335689864fd9b8ec8b8ef403168a7c634816f5f20984ce7cb9ad815e"
 [[sources.outputs]]
 kind = "source"
 path = "src/runner.rs"
-hash = "f2e57116095f094bed2f6776128f1c00657f5545a3a7ddfd4a3e449f61ef5174"
+hash = "869bf2f051c7198ca27010c106096baa60e8cc9bb8ed26fac26e97f7234fb7da"
 
 [[sources]]
 path = ".mds/source/table.rs.md"
@@ -190,11 +190,11 @@ hash = "320a013a9399e54ea9e22ec3e5e42fae8322eec94e108cac6df915817f21fa06"
 [[sources]]
 path = ".mds/test/parser_generation_mvp.rs.md"
 adapter = "rs"
-hash = "4e6208e1c2be7218f09818954271e2b3ba0e20c430eb519fd51cd3197c338729"
+hash = "b1df0c1be6f94c18e597eeeefa3ed193738d97eec23ee8fb7fce53178961c193"
 [[sources.outputs]]
 kind = "test"
 path = "tests/parser_generation_mvp_test.rs"
-hash = "b23bb8f95e5e479adeb5ae322731db3b35ec792413b9a2f75c57a09f6203e356"
+hash = "3cd26f4afd019dcb895476b3eff4e6aac3170b83241411851594597cc0fc0d67"
 
 [[assets]]
 path = ".mds/source/descriptors/angular.toml"
@@ -405,4 +405,25 @@ hash = "eec69656743d9ecce0262a70ce8927a6b2c53e7b5b77695e12e5b54a60303616"
 [[assets.outputs]]
 path = "src/init/templates/opencode/skill.md"
 hash = "eec69656743d9ecce0262a70ce8927a6b2c53e7b5b77695e12e5b54a60303616"
+
+[[assets]]
+path = ".mds/source/tooling/biome-lint.toml"
+hash = "9bd0b56bafe027dfd37db3a41921038157e8c91ba22c73c7d7fc14475efb288f"
+[[assets.outputs]]
+path = "src/tooling/biome-lint.toml"
+hash = "9bd0b56bafe027dfd37db3a41921038157e8c91ba22c73c7d7fc14475efb288f"
+
+[[assets]]
+path = ".mds/source/tooling/eslint.toml"
+hash = "0afaf3bafb6bc9a965d9020f52b195a80f511fbbf76d8b60100214768b0d98e0"
+[[assets.outputs]]
+path = "src/tooling/eslint.toml"
+hash = "0afaf3bafb6bc9a965d9020f52b195a80f511fbbf76d8b60100214768b0d98e0"
+
+[[assets]]
+path = ".mds/source/tooling/ruff-check.toml"
+hash = "822d467238976c95b5c22d48e5a13740e134a2d7827e454a659203588e67bf7f"
+[[assets.outputs]]
+path = "src/tooling/ruff-check.toml"
+hash = "822d467238976c95b5c22d48e5a13740e134a2d7827e454a659203588e67bf7f"
 

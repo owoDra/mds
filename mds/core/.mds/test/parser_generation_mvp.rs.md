@@ -823,6 +823,42 @@ fn lint_reports_markdown_path_and_preserved_line_numbers() {
 
 ````rs
 #[test]
+fn lint_uses_tool_manifest_mapping_before_descriptor_fallback() {
+    let temp = TestDir::new();
+    write_fixture(temp.path());
+    let eslint = write_tool(
+        temp.path(),
+        "eslint",
+        "#!/bin/sh\nprintf 'error: %s:9:1: lint failed\n' \"$1\" >&2\nexit 1\n",
+    );
+    fs::write(
+        temp.path().join("pkg/mds.config.toml"),
+        format!(
+            "[package]\nenabled = true\nallow_raw_source = false\n\n[quality.ts]\nlinter = \"{}\"\nrequired = []\noptional = []\n\n[quality.py]\nlinter = false\nrequired = []\noptional = []\n\n[quality.rs]\nlinter = false\nrequired = []\noptional = []\n",
+            eslint.display()
+        ),
+    )
+    .unwrap();
+
+    let lint = execute(CliRequest {
+        cwd: temp.path().to_path_buf(),
+        package: None,
+        verbose: false,
+        command: Command::Lint {
+            fix: false,
+            check: false,
+        },
+    });
+
+    let md_path = temp.path().join("pkg/src-md/foo/bar.ts.md");
+    assert_eq!(lint.exit_code, 1);
+    assert!(lint.stderr.contains(&format!("{}:9:1", md_path.display())));
+    assert!(!lint.stderr.contains("toolchain command failed"));
+}
+````
+
+````rs
+#[test]
 fn lint_reports_environment_missing_as_exit_code_four() {
     let temp = TestDir::new();
     write_fixture(temp.path());
@@ -1863,6 +1899,69 @@ fn build_uses_descriptor_special_file_rules_for_build_rs() {
     assert_eq!(result.exit_code, 0, "{}", result.stderr);
     assert!(result.stdout.contains("rust-build-script/build.rs"));
     assert!(!result.stdout.contains("rust-build-script/src/build.rs"));
+}
+````
+
+````rs
+#[test]
+fn build_write_syncs_self_hosted_rust_mirror() {
+    let temp = TestDir::new();
+    fs::write(
+        temp.path().join("Cargo.toml"),
+        "[workspace]\nmembers = [\"mds/core\"]\nresolver = \"2\"\n",
+    )
+    .unwrap();
+
+    let package = temp.path().join("mds/core");
+    fs::create_dir_all(package.join(".mds/source")).unwrap();
+    fs::write(
+        package.join("mds.config.toml"),
+        "[package]\nenabled = true\nallow_raw_source = false\n",
+    )
+    .unwrap();
+    fs::write(
+        package.join("Cargo.toml"),
+        "[package]\nname = \"mds-core-fixture\"\nversion = \"0.1.0\"\n",
+    )
+    .unwrap();
+    fs::write(
+        package.join(".mds/source/overview.md"),
+        "# Overview\n\n## Purpose\n\nRust fixture.\n\n## Architecture\n\nFixture source.\n\n### Package Summary\n\n| Name | Version |\n| --- | --- |\n| mds-core-fixture | 0.1.0 |\n\n### Dependencies\n\n| Name | Version | Summary |\n| --- | --- | --- |\n\n### Dev Dependencies\n\n| Name | Version | Summary |\n| --- | --- | --- |\n\n## Exposes\n\n| Kind | Name | Target | Summary |\n| --- | --- | --- | --- |\n\n## Rules\n\n- Fixture.\n",
+    )
+    .unwrap();
+    fs::write(
+        package.join(".mds/source/lib.rs.md"),
+        "# lib\n\n## Purpose\n\nLibrary.\n\n## Contract\n\n- Compile.\n\n## Source\n\n```rs\npub fn greet() -> &'static str {\n    \"hello\"\n}\n```\n",
+    )
+    .unwrap();
+    fs::write(
+        package.join(".mds/source/build.rs.md"),
+        "# build\n\n## Purpose\n\nBuild script.\n\n## Contract\n\n- Compile.\n\n## Source\n\n```rs\nfn main() {\n    println!(\"cargo:rerun-if-changed=build.rs\");\n}\n```\n",
+    )
+    .unwrap();
+
+    let sync = execute(CliRequest {
+        cwd: package.clone(),
+        package: None,
+        verbose: false,
+        command: Command::PackageSync { check: false },
+    });
+    assert_eq!(sync.exit_code, 0, "{}", sync.stderr);
+
+    let build = execute(CliRequest {
+        cwd: temp.path().to_path_buf(),
+        package: None,
+        verbose: false,
+        command: Command::Build {
+            mode: BuildMode::Write,
+        },
+    });
+    assert_eq!(build.exit_code, 0, "{}", build.stderr);
+    assert!(build.stdout.contains("workspace mirror ok:"));
+    assert!(temp.path().join(".build/rust/Cargo.toml").exists());
+    assert!(temp.path().join(".build/rust/mds/core/src/lib.rs").exists());
+    assert!(temp.path().join(".build/rust/mds/core/build.rs").exists());
+    assert!(!temp.path().join(".build/rust/mds/core/src/build.rs").exists());
 }
 ````
 

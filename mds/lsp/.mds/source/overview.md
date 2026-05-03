@@ -6,7 +6,7 @@ Language Server Protocol package for mds editor integration.
 
 ## Architecture
 
-This package is authored under `mds/lsp/.mds/source/` and synchronized into package `src/` / `tests/` by `mds build`. The repo-local helper `./.github/script/sync-self-hosted-rust.sh` mirrors those generated files into `.build/rust/mds/lsp/` before Cargo commands. Package metadata is read from `../Cargo.toml`; mds does not use a package root `index.md`.
+This package is authored under `mds/lsp/.mds/source/` and synchronized into package `src/` / `tests/` by `mds build`. The same command also refreshes the repo-local self-hosted mirror under `.build/rust/mds/lsp/`. Package metadata is read from `../Cargo.toml`; mds does not use a package root `index.md`.
 
 ### Package Summary
 

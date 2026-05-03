@@ -22,6 +22,7 @@ fn main() {
     let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
     generate_template_registry(&out_dir);
     generate_descriptor_registry(&out_dir);
+    generate_tool_registry(&out_dir);
 }
 ````
 
@@ -150,6 +151,36 @@ fn generate_descriptor_registry(out_dir: &Path) {
         let content = fs::read_to_string(&path)
             .unwrap_or_else(|error| panic!("failed to read {}: {error}", path.display()));
         code.push_str("    RawDescriptorEntry {\n");
+        code.push_str(&format!("        content: {:?},\n", content));
+        code.push_str("    },\n");
+    }
+
+    code.push_str("];\n");
+    fs::write(&dest_path, code).unwrap();
+}
+````
+
+Generate the built-in quality tool registry emitted into Cargo `OUT_DIR`.
+
+````rs
+fn generate_tool_registry(out_dir: &Path) {
+    let tools_dir = Path::new("src/tooling");
+    let dest_path = out_dir.join("tool_registry.rs");
+
+    println!("cargo:rerun-if-changed=src/tooling");
+
+    let mut code = String::new();
+    code.push_str("/// Auto-generated tool registry from tool TOML files.\n");
+    code.push_str("pub(crate) struct RawToolEntry {\n");
+    code.push_str("    pub content: &'static str,\n");
+    code.push_str("}\n\n");
+    code.push_str("pub(crate) const BUILTIN_TOOLS: &[RawToolEntry] = &[\n");
+
+    for path in collect_files_with_extension(tools_dir, "toml") {
+        println!("cargo:rerun-if-changed={}", path.display());
+        let content = fs::read_to_string(&path)
+            .unwrap_or_else(|error| panic!("failed to read {}: {error}", path.display()));
+        code.push_str("    RawToolEntry {\n");
         code.push_str(&format!("        content: {:?},\n", content));
         code.push_str("    },\n");
     }

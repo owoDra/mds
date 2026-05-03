@@ -7,6 +7,10 @@ source = "src"
 types = "src"
 test = "tests"
 
+[check]
+top_level_fence_required = false
+import_with_implementation = false
+
 [quality.rs]
 linter = "cargo clippy -- -D warnings"
 fixer = "cargo fmt"

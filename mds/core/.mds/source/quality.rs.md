@@ -133,12 +133,8 @@ fn run_doc_quality(
         return Ok(());
     };
     let source = padded_code_from_markdown(doc)?;
-    let behavior = match operation {
-        QualityOperation::Lint => descriptor.lint_behavior(),
-        QualityOperation::Test => descriptor.test_behavior(),
-        QualityOperation::Fix { .. } => unreachable!(),
-    };
-    let _ = execute_quality_command(package, doc, command, config, behavior, &source, state)?;
+    let behavior = resolve_tool_behavior(&descriptor, operation, command);
+    let _ = execute_quality_command(package, doc, command, config, &behavior, &source, state)?;
     Ok(())
 }
 ````
@@ -157,7 +153,7 @@ fn fix_doc(
     let Some(command) = config.fix.as_deref() else {
         return Ok(());
     };
-    let behavior = descriptor.fix_behavior();
+    let behavior = resolve_tool_behavior(&descriptor, QualityOperation::Fix { check }, command);
     let old = fs::read_to_string(&doc.path)
         .map_err(|error| format!("failed to read {}: {error}", doc.path.display()))?;
     let mut replacements = Vec::new();
@@ -167,7 +163,7 @@ fn fix_doc(
             doc,
             command,
             config,
-            behavior,
+            &behavior,
             block.content,
             state,
         )? {
@@ -189,6 +185,20 @@ fn fix_doc(
         }
     }
     Ok(())
+}
+````
+
+````rs
+fn resolve_tool_behavior(
+    descriptor: &descriptor::Descriptor,
+    operation: QualityOperation,
+    command: &str,
+) -> ToolBehavior {
+    descriptor::tool_behavior_for_command(command).unwrap_or_else(|| match operation {
+        QualityOperation::Lint => descriptor.lint_behavior().clone(),
+        QualityOperation::Test => descriptor.test_behavior().clone(),
+        QualityOperation::Fix { .. } => descriptor.fix_behavior().clone(),
+    })
 }
 ````
 

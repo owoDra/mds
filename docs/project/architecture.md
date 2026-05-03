@@ -38,9 +38,9 @@
 ## Workspace 構成
 
 - root 直下に mds 自身の source root は置かず、各 package の `.mds/source/overview.md` が package 単位の source overview を担う。
-- `mds/core/.mds/source`、`mds/cli/.mds/source`、`mds/lsp/.mds/source` と対応する `.mds/test` は Rust 実装の Markdown 正本であり、`cargo run -p mds-cli -- build --verbose` は package 内の生成 `src/` / `tests/` を更新する。repo 内の `.build/rust/` mirror は `./.github/script/sync-self-hosted-rust.sh` が別途生成する。
+- `mds/core/.mds/source`、`mds/cli/.mds/source`、`mds/lsp/.mds/source` と対応する `.mds/test` は Rust 実装の Markdown 正本であり、`cargo run -p mds-cli -- build --verbose` は package 内の生成 `src/` / `tests/` を更新し、repo 内の `.build/rust/` self-hosted mirror も同じ command で再生成する。
 - special file は descriptor の出力規則を優先し、たとえば Rust の `build.rs.md` は `src/build.rs` ではなく package root の `build.rs` に生成する。
-- `.build/rust/Cargo.toml` は repo-local self-hosted helper が生成する Rust workspace manifest とし、`.build/rust/mds/core`、`.build/rust/mds/cli`、`.build/rust/mds/lsp` を束ねる。
+- `.build/rust/Cargo.toml` は `mds build` が生成する self-hosted Rust workspace manifest とし、`.build/rust/mds/core`、`.build/rust/mds/cli`、`.build/rust/mds/lsp` を束ねる。
 - TypeScript / Python / Rust の language adapter 規則は現時点では Rust core 側の生成処理と共有仕様で管理し、独立した `packages/`、`python/`、`mds-lang-rs` 配布単位は置かない。
 - `editors/vscode` は VS Code 拡張とし、syntax highlighting、LSP 連携、snippets を提供する。
 - `.agents/` は AI 専用の制約、作業手順、skill、task 文脈キャッシュを置き、`docs/project/` は人間向け正本を置く。
