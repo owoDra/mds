@@ -66,7 +66,7 @@ self-hosted 移行では特に次の問題が目立った。
 - `imports` は freeform template や mini DSL ではなく declarative enum と capability flag で持ち、`Uses` から import / use / require へ変換する canonical rule を定義する。
 - `quality_defaults` は language 別の既定 lint / format / test / typecheck command と required / optional tool id を定義する。
 - `module_management` は generic optional section とし、少なくとも managed_files、markers、insert_strategy、declaration_style の standardized field を持つ。
-- built-in descriptor registry は `mds-core` に同梱し、self-hosted 正本は `mds/core/src-md/src/descriptors/` に置く。
+- built-in descriptor registry は `mds-core` に同梱し、self-hosted 正本は `mds/core/.mds/source/descriptors/languages/` と `mds/core/.mds/source/descriptors/linters/` に置く。
 
 7. first-party package と生成 template は一括で切り替える。
 
@@ -153,9 +153,9 @@ self-hosted 移行では特に次の問題が目立った。
   - `../../../../mds/core/.mds/source/overview.md`
   - `../../../../mds/core/.mds/source/config.rs.md`
   - `../../../../mds/core/.mds/source/package_sync.rs.md`
-  - `../../../../mds/core/.mds/source/descriptors/ts.toml`
-  - `../../../../mds/core/.mds/source/descriptors/py.toml`
-  - `../../../../mds/core/.mds/source/descriptors/rs.toml`
+  - `../../../../mds/core/.mds/source/descriptors/languages/ts.toml`
+  - `../../../../mds/core/.mds/source/descriptors/languages/py.toml`
+  - `../../../../mds/core/.mds/source/descriptors/languages/rs.toml`
   - `../../../../mds/cli/.mds/source/overview.md`
 - validation:
   - `docs/project/validation.md`

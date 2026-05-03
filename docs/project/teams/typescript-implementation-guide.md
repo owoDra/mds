@@ -31,6 +31,6 @@ TypeScript implementation team は、VS Code extension と TypeScript 生成規�
 
 - `../architecture.md`
 - `../patterns/impl-adapter-boundary.md`
-- `../../../mds/core/.mds/source/descriptors/ts.toml`
+- `../../../mds/core/.mds/source/descriptors/languages/ts.toml`
 - `../../../mds/core/.mds/source/overview.md`
 - `../validation.md`

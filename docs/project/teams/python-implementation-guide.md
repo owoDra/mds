@@ -28,6 +28,6 @@ Python implementation team は、Python 生成規則、uv / Pytest / Ruff 導線
 
 - `../architecture.md`
 - `../patterns/impl-adapter-boundary.md`
-- `../../../mds/core/.mds/source/descriptors/py.toml`
+- `../../../mds/core/.mds/source/descriptors/languages/py.toml`
 - `../../../mds/core/.mds/source/overview.md`
 - `../validation.md`

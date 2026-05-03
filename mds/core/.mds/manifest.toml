@@ -10,11 +10,11 @@ hash = "bebdb4c2a155c25deef61550c35bd53dfedd02a837c2fc85265b9bf7fb5005ef"
 [[sources]]
 path = ".mds/source/build.rs.md"
 adapter = "rs"
-hash = "90e855f39445c4bcaa67f2b512ba220f68b0cc169e5427be8f01661be153cac1"
+hash = "88f09c84ffde41271396001d8d296ed837be1e7b06845e8181495385c37c5c66"
 [[sources.outputs]]
 kind = "source"
 path = "build.rs"
-hash = "f9daaddc0e9fdce210dd7f485d2eed3559aba977f3a0e01b4d266862f079f6c5"
+hash = "cd541810ff7d6960cc8b9c53a828ccc8c8cde5ee000968992c9c709eab5497b7"
 
 [[sources]]
 path = ".mds/source/config.rs.md"
@@ -28,11 +28,11 @@ hash = "79f739cf279cda9c375f17c05acf8d91f0c1a3456754f7d14eb9ea0f452e0bd0"
 [[sources]]
 path = ".mds/source/descriptor.rs.md"
 adapter = "rs"
-hash = "7bba5987484e3912475180c609a84b0f1f5b1be689d02bd1b99b7623173e3fb8"
+hash = "592b754846a469f3935e2df30db7684b193a11d16911edd509354e6711689537"
 [[sources.outputs]]
 kind = "source"
 path = "src/descriptor.rs"
-hash = "2068121c1f3cc9b806f689501c51dadd5f227ab15c5c0352868136f6ee452795"
+hash = "4ad26b6989a28c125a647ebbf862bc985ebd43e03e133d95eb961e4e848169bd"
 
 [[sources]]
 path = ".mds/source/diagnostics.rs.md"
@@ -197,88 +197,116 @@ path = "tests/parser_generation_mvp_test.rs"
 hash = "3cd26f4afd019dcb895476b3eff4e6aac3170b83241411851594597cc0fc0d67"
 
 [[assets]]
-path = ".mds/source/descriptors/angular.toml"
+path = ".mds/source/descriptors/languages/angular.toml"
 hash = "32a4a9988b7b06dbe58bbd571c702c9478797dd521d97e4054f63cdc786f2c4d"
 [[assets.outputs]]
-path = "src/descriptors/angular.toml"
+path = "src/descriptors/languages/angular.toml"
 hash = "32a4a9988b7b06dbe58bbd571c702c9478797dd521d97e4054f63cdc786f2c4d"
 
 [[assets]]
-path = ".mds/source/descriptors/astro.toml"
+path = ".mds/source/descriptors/languages/astro.toml"
 hash = "d4d81f7ba2d0323abf7751f94aa0b220ed9e959aa37ed44e0f702915b69959a6"
 [[assets.outputs]]
-path = "src/descriptors/astro.toml"
+path = "src/descriptors/languages/astro.toml"
 hash = "d4d81f7ba2d0323abf7751f94aa0b220ed9e959aa37ed44e0f702915b69959a6"
 
 [[assets]]
-path = ".mds/source/descriptors/go.toml"
+path = ".mds/source/descriptors/languages/go.toml"
 hash = "644b30d784aa8a916dcf25326ff9e176e3f2b8779798ce9d57e9943a3901df6f"
 [[assets.outputs]]
-path = "src/descriptors/go.toml"
+path = "src/descriptors/languages/go.toml"
 hash = "644b30d784aa8a916dcf25326ff9e176e3f2b8779798ce9d57e9943a3901df6f"
 
 [[assets]]
-path = ".mds/source/descriptors/java.toml"
+path = ".mds/source/descriptors/languages/java.toml"
 hash = "418936dd4592bdb5aba05ea06d4a4e308b6db69e7234a9fd58d8be8c2c4809ca"
 [[assets.outputs]]
-path = "src/descriptors/java.toml"
+path = "src/descriptors/languages/java.toml"
 hash = "418936dd4592bdb5aba05ea06d4a4e308b6db69e7234a9fd58d8be8c2c4809ca"
 
 [[assets]]
-path = ".mds/source/descriptors/js.toml"
+path = ".mds/source/descriptors/languages/js.toml"
 hash = "9668d70cef4fb04aaa8e299ada7aea1a2a8d194fab63a1f8b7681779fd938a92"
 [[assets.outputs]]
-path = "src/descriptors/js.toml"
+path = "src/descriptors/languages/js.toml"
 hash = "9668d70cef4fb04aaa8e299ada7aea1a2a8d194fab63a1f8b7681779fd938a92"
 
 [[assets]]
-path = ".mds/source/descriptors/jsx.toml"
+path = ".mds/source/descriptors/languages/jsx.toml"
 hash = "2f3c7fc4d695d8ca0aaa24c99214947f13822f55df4d820e7a06a62a45562a93"
 [[assets.outputs]]
-path = "src/descriptors/jsx.toml"
+path = "src/descriptors/languages/jsx.toml"
 hash = "2f3c7fc4d695d8ca0aaa24c99214947f13822f55df4d820e7a06a62a45562a93"
 
 [[assets]]
-path = ".mds/source/descriptors/py.toml"
+path = ".mds/source/descriptors/languages/py.toml"
 hash = "84fae88e5c2d449b1345193dfc35cbd5ae7d7b2c65181a9205e0432ee119aade"
 [[assets.outputs]]
-path = "src/descriptors/py.toml"
+path = "src/descriptors/languages/py.toml"
 hash = "84fae88e5c2d449b1345193dfc35cbd5ae7d7b2c65181a9205e0432ee119aade"
 
 [[assets]]
-path = ".mds/source/descriptors/rs.toml"
+path = ".mds/source/descriptors/languages/rs.toml"
 hash = "aa4533dabbe99e4592760e26ce84921dd231ee6c0241c5c15b655dfc30750b0b"
 [[assets.outputs]]
-path = "src/descriptors/rs.toml"
+path = "src/descriptors/languages/rs.toml"
 hash = "aa4533dabbe99e4592760e26ce84921dd231ee6c0241c5c15b655dfc30750b0b"
 
 [[assets]]
-path = ".mds/source/descriptors/svelte.toml"
+path = ".mds/source/descriptors/languages/svelte.toml"
 hash = "1dfc749047e6356b88dd26e7b32932ede1007ae808eb021a053a6a5b9ba10f47"
 [[assets.outputs]]
-path = "src/descriptors/svelte.toml"
+path = "src/descriptors/languages/svelte.toml"
 hash = "1dfc749047e6356b88dd26e7b32932ede1007ae808eb021a053a6a5b9ba10f47"
 
 [[assets]]
-path = ".mds/source/descriptors/ts.toml"
+path = ".mds/source/descriptors/languages/ts.toml"
 hash = "1aecddbe78706805a61f131a2b7c34ed50713f078dc8d76f8aad690944ac0ad1"
 [[assets.outputs]]
-path = "src/descriptors/ts.toml"
+path = "src/descriptors/languages/ts.toml"
 hash = "1aecddbe78706805a61f131a2b7c34ed50713f078dc8d76f8aad690944ac0ad1"
 
 [[assets]]
-path = ".mds/source/descriptors/tsx.toml"
+path = ".mds/source/descriptors/languages/tsx.toml"
 hash = "d31adecbf5d63879784d47be4cd3b7f7cb6e496fc0db00a654c5ac9fadb6d6fc"
 [[assets.outputs]]
-path = "src/descriptors/tsx.toml"
+path = "src/descriptors/languages/tsx.toml"
 hash = "d31adecbf5d63879784d47be4cd3b7f7cb6e496fc0db00a654c5ac9fadb6d6fc"
 
 [[assets]]
-path = ".mds/source/descriptors/vue.toml"
+path = ".mds/source/descriptors/languages/vue.toml"
 hash = "66a52d7f7288ebe1a1f02a21edccf5b94e493fcf1863b5763040d5e1b10b2877"
 [[assets.outputs]]
-path = "src/descriptors/vue.toml"
+path = "src/descriptors/languages/vue.toml"
 hash = "66a52d7f7288ebe1a1f02a21edccf5b94e493fcf1863b5763040d5e1b10b2877"
+
+[[assets]]
+path = ".mds/source/descriptors/linters/biome-lint.toml"
+hash = "334e9573e29ebef2704d955afaa65ec3fcc5751765e1ae5bb43c7f9581dbae64"
+[[assets.outputs]]
+path = "src/descriptors/linters/biome-lint.toml"
+hash = "334e9573e29ebef2704d955afaa65ec3fcc5751765e1ae5bb43c7f9581dbae64"
+
+[[assets]]
+path = ".mds/source/descriptors/linters/clippy.toml"
+hash = "57de1adba2c5e12a02570585359b98cf534af8c1a92256c25a834d37b529b4da"
+[[assets.outputs]]
+path = "src/descriptors/linters/clippy.toml"
+hash = "57de1adba2c5e12a02570585359b98cf534af8c1a92256c25a834d37b529b4da"
+
+[[assets]]
+path = ".mds/source/descriptors/linters/eslint.toml"
+hash = "ab1b2530c447b435ff8d8b762088bc5db33f24cca743e2f0da2b1d095555a4c4"
+[[assets.outputs]]
+path = "src/descriptors/linters/eslint.toml"
+hash = "ab1b2530c447b435ff8d8b762088bc5db33f24cca743e2f0da2b1d095555a4c4"
+
+[[assets]]
+path = ".mds/source/descriptors/linters/ruff-check.toml"
+hash = "014cb9e8597e64ae76adf3d5324dfe1f40c514e2475f0843ccf5d0c1eea24981"
+[[assets.outputs]]
+path = "src/descriptors/linters/ruff-check.toml"
+hash = "014cb9e8597e64ae76adf3d5324dfe1f40c514e2475f0843ccf5d0c1eea24981"
 
 [[assets]]
 path = ".mds/source/init/templates/claude-code/command-build.md"
@@ -405,25 +433,4 @@ hash = "eec69656743d9ecce0262a70ce8927a6b2c53e7b5b77695e12e5b54a60303616"
 [[assets.outputs]]
 path = "src/init/templates/opencode/skill.md"
 hash = "eec69656743d9ecce0262a70ce8927a6b2c53e7b5b77695e12e5b54a60303616"
-
-[[assets]]
-path = ".mds/source/tooling/biome-lint.toml"
-hash = "9bd0b56bafe027dfd37db3a41921038157e8c91ba22c73c7d7fc14475efb288f"
-[[assets.outputs]]
-path = "src/tooling/biome-lint.toml"
-hash = "9bd0b56bafe027dfd37db3a41921038157e8c91ba22c73c7d7fc14475efb288f"
-
-[[assets]]
-path = ".mds/source/tooling/eslint.toml"
-hash = "0afaf3bafb6bc9a965d9020f52b195a80f511fbbf76d8b60100214768b0d98e0"
-[[assets.outputs]]
-path = "src/tooling/eslint.toml"
-hash = "0afaf3bafb6bc9a965d9020f52b195a80f511fbbf76d8b60100214768b0d98e0"
-
-[[assets]]
-path = ".mds/source/tooling/ruff-check.toml"
-hash = "822d467238976c95b5c22d48e5a13740e134a2d7827e454a659203588e67bf7f"
-[[assets.outputs]]
-path = "src/tooling/ruff-check.toml"
-hash = "822d467238976c95b5c22d48e5a13740e134a2d7827e454a659203588e67bf7f"
 

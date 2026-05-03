@@ -134,10 +134,10 @@ Generate the built-in descriptor registry emitted into Cargo `OUT_DIR`.
 
 ````rs
 fn generate_descriptor_registry(out_dir: &Path) {
-    let descriptors_dir = Path::new("src/descriptors");
+    let descriptors_dir = Path::new("src/descriptors/languages");
     let dest_path = out_dir.join("descriptor_registry.rs");
 
-    println!("cargo:rerun-if-changed=src/descriptors");
+    println!("cargo:rerun-if-changed=src/descriptors/languages");
 
     let mut code = String::new();
     code.push_str("/// Auto-generated descriptor registry from descriptor TOML files.\n");
@@ -164,10 +164,10 @@ Generate the built-in quality tool registry emitted into Cargo `OUT_DIR`.
 
 ````rs
 fn generate_tool_registry(out_dir: &Path) {
-    let tools_dir = Path::new("src/tooling");
+    let tools_dir = Path::new("src/descriptors/linters");
     let dest_path = out_dir.join("tool_registry.rs");
 
-    println!("cargo:rerun-if-changed=src/tooling");
+    println!("cargo:rerun-if-changed=src/descriptors/linters");
 
     let mut code = String::new();
     code.push_str("/// Auto-generated tool registry from tool TOML files.\n");

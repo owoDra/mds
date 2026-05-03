@@ -19,7 +19,7 @@ This package is authored under `mds/core/.mds/source/` and synchronized into pac
 - Authoring roots are fixed to `.mds/source` and `.mds/test`.
 - One implementation markdown file covers one feature and owns its executable `Types`, `Source`, and `Test` code blocks.
 - `Uses` remains the canonical dependency input; generated imports and output filenames are derived from descriptors instead of language branches.
-- `descriptor.rs.md`, `generation.rs.md`, `markdown.rs.md`, and the TOML files under `descriptors/` together define suffix matching, output file rules, lexical rules, scaffolds, and tool execution defaults.
+- `descriptor.rs.md`, `generation.rs.md`, `markdown.rs.md`, and the TOML files under `descriptors/languages/` and `descriptors/linters/` together define suffix matching, output file rules, lexical rules, scaffolds, and tool execution defaults.
 
 ### Migrated Markdown Model Rules
 
@@ -37,7 +37,7 @@ This package is authored under `mds/core/.mds/source/` and synchronized into pac
 ## Quality And Diagnostics
 
 - Markdown-state `lint`, `lint --fix`, and `test` target fenced code blocks only.
-- Tool manifests under `src/tooling/*.toml` choose whether a tool receives stdin, a temp file, or inline source, and regex capture rules map tool output back to Markdown path, line, and column.
+- Tool manifests under `src/descriptors/linters/*.toml` choose whether a tool receives stdin, a temp file, or inline source, and regex capture rules map tool output back to Markdown path, line, and column.
 - `lint --fix` rewrites only fenced code block contents and leaves headings, tables, narrative sections, and metadata untouched.
 
 ### Migrated Quality Operation Rules
