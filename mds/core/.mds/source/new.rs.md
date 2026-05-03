@@ -16,6 +16,7 @@ use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 
+use crate::descriptor;
 use crate::diagnostics::{Diagnostic, RunState};
 use crate::fs_utils::is_mds_managed_file;
 use crate::model::NewOptions;
@@ -32,12 +33,12 @@ pub(crate) fn run_new(
     let root = package.map_or_else(|| cwd.to_path_buf(), |path| cwd.join(path));
     let name = &options.name;
     let doc_kind = detect_doc_kind(name);
+    let descriptor = descriptor::descriptor_for_markdown_name(name);
 
     let is_index = name == "overview.md" || name.ends_with("/overview.md");
 
     if matches!(doc_kind, DocKind::Source) && !is_index {
-        let lang = detect_lang(name);
-        if lang.is_none() {
+        if descriptor.is_none() {
             return Err(format!(
                 "cannot detect language from `{name}`; expected overview.md or a name ending in .{{lang}}.md (e.g. greet.ts.md, utils.go.md)"
             ));
@@ -61,7 +62,7 @@ pub(crate) fn run_new(
     } else if matches!(doc_kind, DocKind::Test) {
         generate_test_template(&feature_name, &labels)
     } else {
-        generate_impl_template(name, &feature_name, detect_lang(name).unwrap(), &labels)
+        generate_impl_template(name, &feature_name, &descriptor.unwrap(), &labels)
     };
 
     if let Some(parent) = target.parent() {
@@ -89,7 +90,10 @@ enum DocKind {
 
 ````rs
 fn detect_doc_kind(name: &str) -> DocKind {
-    if name == "overview.md" || name.ends_with("/overview.md") || detect_lang(name).is_some() {
+    if name == "overview.md"
+        || name.ends_with("/overview.md")
+        || descriptor::descriptor_for_markdown_name(name).is_some()
+    {
         DocKind::Source
     } else {
         DocKind::Test
@@ -134,25 +138,14 @@ fn label<'a>(labels: &'a HashMap<String, String>, canonical: &str, default: &'a 
 ````
 
 ````rs
-fn detect_lang(name: &str) -> Option<&str> {
-    let without_md = name.strip_suffix(".md")?;
-    let dot_pos = without_md.rfind('.')?;
-    let ext = &without_md[dot_pos + 1..];
-    if !ext.is_empty() && ext.chars().all(|c| c.is_ascii_alphanumeric()) {
-        Some(ext)
-    } else {
-        None
-    }
-}
-````
-
-````rs
 fn extract_feature_name(name: &str) -> String {
-    let base = name
-        .trim_end_matches(".md")
-        .trim_end_matches(".ts")
-        .trim_end_matches(".py")
-        .trim_end_matches(".rs");
+    let mut base = name.trim_end_matches(".md");
+    if let Some(suffix) = descriptor::matched_markdown_suffix(name) {
+        let suffix = format!(".{suffix}");
+        if base.ends_with(&suffix) {
+            base = &base[..base.len() - suffix.len()];
+        }
+    }
     let base = if base == "index"
         || base.ends_with("/index")
         || base == "overview"
@@ -244,15 +237,11 @@ fn generate_index_template(
 fn generate_impl_template(
     name: &str,
     feature_name: &str,
-    lang: &str,
+    descriptor: &descriptor::Descriptor,
     labels: &HashMap<String, String>,
 ) -> String {
-    let source_block = match lang {
-        "ts" => ts_source_template(name, feature_name),
-        "py" => py_source_template(feature_name),
-        "rs" => rs_source_template(feature_name),
-        _ => generic_source_template(lang, feature_name),
-    };
+    let matched_suffix = descriptor::matched_markdown_suffix(name);
+    let source_block = descriptor.render_source_block(matched_suffix.as_deref());
 
     let l_purpose = label(labels, "purpose", "Purpose");
     let l_source = label(labels, "source", "Source");
@@ -308,29 +297,5 @@ fn generate_test_template(feature_name: &str, labels: &HashMap<String, String>) 
          \n\
          ```ts\n// Implement your test here.\n```\n"
     )
-}
-````
-
-````rs
-fn ts_source_template(_name: &str, _feature_name: &str) -> String {
-    "```ts\n// Implement your feature here.\n```".to_string()
-}
-````
-
-````rs
-fn py_source_template(_feature_name: &str) -> String {
-    "```py\n# Implement your feature here.\n```".to_string()
-}
-````
-
-````rs
-fn rs_source_template(_feature_name: &str) -> String {
-    "```rs\n// Implement your feature here.\n```".to_string()
-}
-````
-
-````rs
-fn generic_source_template(lang: &str, _feature_name: &str) -> String {
-    format!("```{lang}\n// Implement your feature here.\n```")
 }
 ````

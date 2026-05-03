@@ -1,4 +1,6 @@
 id = "rs"
+aliases = ["rust"]
+match_suffixes = ["rs"]
 
 [language]
 primary_ext = "rs"
@@ -38,3 +40,55 @@ allow_type_only = false
 lint = "cargo clippy"
 fix = "cargo fmt"
 test = "cargo test"
+
+[tool_profiles.lint.clippy]
+command = "cargo clippy"
+required = ["rustc", "cargo"]
+optional = ["clippy-driver"]
+
+[tool_profiles.fix.rustfmt]
+command = "rustfmt"
+required = ["rustfmt"]
+
+[tool_profiles.test.cargo-test]
+command = "cargo test"
+required = ["rustc", "cargo"]
+
+[tool_profiles.test.nextest]
+command = "cargo nextest run"
+required = ["rustc", "cargo"]
+optional = ["cargo-nextest"]
+
+[syntax]
+top_level_keywords = [
+	"pub fn ",
+	"fn ",
+	"pub struct ",
+	"struct ",
+	"pub enum ",
+	"enum ",
+	"pub trait ",
+	"trait ",
+	"impl ",
+	"pub type ",
+	"type ",
+	"pub const ",
+	"const ",
+	"pub static ",
+	"static ",
+	"pub mod ",
+	"mod ",
+]
+comment_prefixes = ["//", "/*", "*"]
+
+[[syntax.imports]]
+starts_with = "use "
+
+[[syntax.imports]]
+starts_with = "extern crate "
+
+[scaffold]
+fence_lang = "matched-suffix"
+source_body = '''
+// Implement your feature here.
+'''

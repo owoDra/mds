@@ -16,6 +16,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command as ProcessCommand;
 
+use crate::descriptor;
 use crate::diagnostics::{Diagnostic, RunState};
 use crate::fs_utils::is_mds_managed_file;
 use crate::model::{
@@ -199,8 +200,8 @@ struct InitQuality {
     lint: Option<String>,
     fix: Option<String>,
     test: Option<String>,
-    required: Vec<&'static str>,
-    optional: Vec<&'static str>,
+    required: Vec<String>,
+    optional: Vec<String>,
 }
 ````
 
@@ -213,18 +214,12 @@ fn quality_for_lang(options: &InitOptions, lang: Lang) -> InitQuality {
     {
         return custom_quality(commands);
     }
+    let descriptor = descriptor::builtin_descriptor(&lang);
     match lang {
-        Lang::TypeScript => ts_quality(&options.ts_tools),
-        Lang::Python => py_quality(&options.py_tools),
-        Lang::Rust => rs_quality(&options.rs_tools),
-        Lang::Other(_) => InitQuality {
-            type_check: None,
-            lint: None,
-            fix: None,
-            test: None,
-            required: Vec::new(),
-            optional: Vec::new(),
-        },
+        Lang::TypeScript => ts_quality(&descriptor, &options.ts_tools),
+        Lang::Python => py_quality(&descriptor, &options.py_tools),
+        Lang::Rust => rs_quality(&descriptor, &options.rs_tools),
+        Lang::Other(_) => init_quality_from_defaults(&descriptor),
     }
 }
 ````
@@ -243,143 +238,169 @@ fn custom_quality(commands: &InitQualityCommands) -> InitQuality {
 ````
 
 ````rs
-fn ts_quality(tools: &[TypeScriptTool]) -> InitQuality {
-    let has = |tool| tools.contains(&tool);
-    let lint = if has(TypeScriptTool::Eslint) {
-        Some("eslint".to_string())
-    } else if has(TypeScriptTool::Biome) {
-        Some("biome lint".to_string())
-    } else {
-        None
-    };
-    let fix = if has(TypeScriptTool::Prettier) {
-        Some("prettier --write".to_string())
-    } else if has(TypeScriptTool::Biome) {
-        Some("biome format --write".to_string())
-    } else {
-        None
-    };
-    let test = if has(TypeScriptTool::Jest) {
-        Some("jest".to_string())
-    } else if has(TypeScriptTool::Vitest) {
-        Some("vitest run".to_string())
-    } else {
-        None
-    };
-    let mut required = Vec::new();
-    if lint.is_some() || fix.is_some() || test.is_some() {
-        add_unique(&mut required, "node");
-    }
-    if lint.as_deref() == Some("eslint") {
-        add_unique(&mut required, "eslint");
-    }
-    if fix.as_deref() == Some("prettier --write") {
-        add_unique(&mut required, "prettier");
-    }
-    if lint.as_deref() == Some("biome lint") || fix.as_deref() == Some("biome format --write") {
-        add_unique(&mut required, "biome");
-    }
-    if test.as_deref() == Some("vitest run") {
-        add_unique(&mut required, "vitest");
-    }
-    if test.as_deref() == Some("jest") {
-        add_unique(&mut required, "jest");
-    }
+fn init_quality_from_defaults(descriptor: &descriptor::Descriptor) -> InitQuality {
     InitQuality {
         type_check: None,
-        lint,
-        fix,
-        test,
-        required,
+        lint: descriptor.default_lint_command().map(str::to_string),
+        fix: descriptor.default_fix_command().map(str::to_string),
+        test: descriptor.default_test_command().map(str::to_string),
+        required: Vec::new(),
         optional: Vec::new(),
     }
 }
-````
 
-````rs
-fn py_quality(tools: &[PythonTool]) -> InitQuality {
-    let has = |tool| tools.contains(&tool);
-    let lint = has(PythonTool::Ruff).then_some("ruff check".to_string());
-    let fix = if has(PythonTool::Black) {
-        Some("black".to_string())
-    } else if has(PythonTool::Ruff) {
-        Some("ruff format".to_string())
-    } else {
-        None
-    };
-    let test = if has(PythonTool::Unittest) {
-        Some("python3 -m unittest".to_string())
-    } else if has(PythonTool::Pytest) {
-        Some("pytest".to_string())
-    } else {
-        None
-    };
-    let mut required = Vec::new();
-    if lint.is_some() || fix.is_some() || test.as_deref() == Some("python3 -m unittest") {
-        add_unique(&mut required, "python3");
-    }
-    if lint.as_deref() == Some("ruff check") || fix.as_deref() == Some("ruff format") {
-        add_unique(&mut required, "ruff");
-    }
-    if fix.as_deref() == Some("black") {
-        add_unique(&mut required, "black");
-    }
-    if test.as_deref() == Some("pytest") {
-        add_unique(&mut required, "pytest");
-    }
+fn empty_init_quality() -> InitQuality {
     InitQuality {
         type_check: None,
-        lint,
-        fix,
-        test,
-        required,
+        lint: None,
+        fix: None,
+        test: None,
+        required: Vec::new(),
         optional: Vec::new(),
     }
 }
-````
 
-````rs
-fn rs_quality(tools: &[RustTool]) -> InitQuality {
+fn ts_quality(descriptor: &descriptor::Descriptor, tools: &[TypeScriptTool]) -> InitQuality {
     let has = |tool| tools.contains(&tool);
-    let lint = has(RustTool::Clippy).then_some("cargo clippy".to_string());
-    let fix = has(RustTool::Rustfmt).then_some("rustfmt".to_string());
-    let test = if has(RustTool::Nextest) {
-        Some("cargo nextest run".to_string())
-    } else if has(RustTool::CargoTest) {
-        Some("cargo test".to_string())
-    } else {
-        None
-    };
-    let mut required = Vec::new();
-    let mut optional = Vec::new();
-    if lint.is_some() || matches!(test.as_deref(), Some("cargo test" | "cargo nextest run")) {
-        add_unique(&mut required, "rustc");
-        add_unique(&mut required, "cargo");
-    }
-    if fix.as_deref() == Some("rustfmt") {
-        add_unique(&mut required, "rustfmt");
-    }
-    if lint.as_deref() == Some("cargo clippy") {
-        add_unique(&mut optional, "clippy-driver");
-    }
-    if test.as_deref() == Some("cargo nextest run") {
-        add_unique(&mut optional, "cargo-nextest");
-    }
-    InitQuality {
-        type_check: None,
-        lint,
-        fix,
-        test,
-        required,
-        optional,
-    }
+    let mut quality = empty_init_quality();
+    apply_profile(
+        &mut quality.lint,
+        &mut quality.required,
+        &mut quality.optional,
+        if has(TypeScriptTool::Eslint) {
+            descriptor.lint_profile("eslint")
+        } else if has(TypeScriptTool::Biome) {
+            descriptor.lint_profile("biome")
+        } else {
+            None
+        },
+    );
+    apply_profile(
+        &mut quality.fix,
+        &mut quality.required,
+        &mut quality.optional,
+        if has(TypeScriptTool::Prettier) {
+            descriptor.fix_profile("prettier")
+        } else if has(TypeScriptTool::Biome) {
+            descriptor.fix_profile("biome")
+        } else {
+            None
+        },
+    );
+    apply_profile(
+        &mut quality.test,
+        &mut quality.required,
+        &mut quality.optional,
+        if has(TypeScriptTool::Jest) {
+            descriptor.test_profile("jest")
+        } else if has(TypeScriptTool::Vitest) {
+            descriptor.test_profile("vitest")
+        } else {
+            None
+        },
+    );
+    quality
 }
 ````
 
 ````rs
-fn add_unique(values: &mut Vec<&'static str>, value: &'static str) {
-    if !values.contains(&value) {
-        values.push(value);
+fn py_quality(descriptor: &descriptor::Descriptor, tools: &[PythonTool]) -> InitQuality {
+    let has = |tool| tools.contains(&tool);
+    let mut quality = empty_init_quality();
+    apply_profile(
+        &mut quality.lint,
+        &mut quality.required,
+        &mut quality.optional,
+        has(PythonTool::Ruff)
+            .then(|| descriptor.lint_profile("ruff"))
+            .flatten(),
+    );
+    apply_profile(
+        &mut quality.fix,
+        &mut quality.required,
+        &mut quality.optional,
+        if has(PythonTool::Black) {
+            descriptor.fix_profile("black")
+        } else if has(PythonTool::Ruff) {
+            descriptor.fix_profile("ruff")
+        } else {
+            None
+        },
+    );
+    apply_profile(
+        &mut quality.test,
+        &mut quality.required,
+        &mut quality.optional,
+        if has(PythonTool::Unittest) {
+            descriptor.test_profile("unittest")
+        } else if has(PythonTool::Pytest) {
+            descriptor.test_profile("pytest")
+        } else {
+            None
+        },
+    );
+    quality
+}
+````
+
+````rs
+fn rs_quality(descriptor: &descriptor::Descriptor, tools: &[RustTool]) -> InitQuality {
+    let has = |tool| tools.contains(&tool);
+    let mut quality = empty_init_quality();
+    apply_profile(
+        &mut quality.lint,
+        &mut quality.required,
+        &mut quality.optional,
+        has(RustTool::Clippy)
+            .then(|| descriptor.lint_profile("clippy"))
+            .flatten(),
+    );
+    apply_profile(
+        &mut quality.fix,
+        &mut quality.required,
+        &mut quality.optional,
+        has(RustTool::Rustfmt)
+            .then(|| descriptor.fix_profile("rustfmt"))
+            .flatten(),
+    );
+    apply_profile(
+        &mut quality.test,
+        &mut quality.required,
+        &mut quality.optional,
+        if has(RustTool::Nextest) {
+            descriptor.test_profile("nextest")
+        } else if has(RustTool::CargoTest) {
+            descriptor.test_profile("cargo-test")
+        } else {
+            None
+        },
+    );
+    quality
+}
+````
+
+````rs
+fn apply_profile(
+    target: &mut Option<String>,
+    required: &mut Vec<String>,
+    optional: &mut Vec<String>,
+    profile: Option<&descriptor::ToolProfile>,
+) {
+    let Some(profile) = profile else {
+        return;
+    };
+    *target = Some(profile.command.clone());
+    for value in &profile.required {
+        add_unique(required, value);
+    }
+    for value in &profile.optional {
+        add_unique(optional, value);
+    }
+}
+
+fn add_unique(values: &mut Vec<String>, value: &str) {
+    if !values.iter().any(|current| current == value) {
+        values.push(value.to_string());
     }
 }
 ````
@@ -423,7 +444,7 @@ fn render_optional_owned_command(command: Option<&str>) -> String {
 ````
 
 ````rs
-fn render_string_array(values: &[&str]) -> String {
+fn render_string_array(values: &[String]) -> String {
     values
         .iter()
         .map(|value| format!("\"{value}\""))
@@ -588,7 +609,7 @@ fn setup_actions(root: &Path, options: &InitOptions) -> Vec<SetupAction> {
             push_toolchain_check(&mut actions, tool, hint);
         }
         for tool in selected_quality_tools(options) {
-            push_toolchain_check(&mut actions, tool, quality_tool_hint(tool));
+            push_toolchain_check(&mut actions, &tool, quality_tool_hint(&tool));
         }
     }
     if options.install_ai_cli {
@@ -613,15 +634,24 @@ fn setup_actions(root: &Path, options: &InitOptions) -> Vec<SetupAction> {
 ````
 
 ````rs
-fn selected_quality_tools(options: &InitOptions) -> Vec<&'static str> {
+fn selected_quality_tools(options: &InitOptions) -> Vec<String> {
     let mut tools = Vec::new();
     for quality in [
-        ts_quality(&options.ts_tools),
-        py_quality(&options.py_tools),
-        rs_quality(&options.rs_tools),
+        ts_quality(
+            &descriptor::descriptor_for_key("ts").expect("ts descriptor"),
+            &options.ts_tools,
+        ),
+        py_quality(
+            &descriptor::descriptor_for_key("py").expect("py descriptor"),
+            &options.py_tools,
+        ),
+        rs_quality(
+            &descriptor::descriptor_for_key("rs").expect("rs descriptor"),
+            &options.rs_tools,
+        ),
     ] {
         for tool in quality.required.into_iter().chain(quality.optional) {
-            add_unique(&mut tools, tool);
+            add_unique(&mut tools, &tool);
         }
     }
     tools
@@ -629,7 +659,7 @@ fn selected_quality_tools(options: &InitOptions) -> Vec<&'static str> {
 ````
 
 ````rs
-fn push_toolchain_check(actions: &mut Vec<SetupAction>, tool: &'static str, hint: &'static str) {
+fn push_toolchain_check(actions: &mut Vec<SetupAction>, tool: &str, hint: &'static str) {
     if actions.iter().any(|action| {
         action.kind == "toolchain-check" && action.command.first().is_some_and(|name| name == tool)
     }) {

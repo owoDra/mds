@@ -148,7 +148,10 @@ pub fn parse_impl_doc(
 ````rs
 pub fn source_markdown_root(package: &Package) -> PathBuf {
     let fixed = package.root.join(".mds/source");
-    if fixed.exists() && (has_source_impl_docs(&fixed) || !package.root.join(&package.config.roots.markdown).exists()) {
+    if fixed.exists()
+        && (has_source_impl_docs(&fixed)
+            || !package.root.join(&package.config.roots.markdown).exists())
+    {
         fixed
     } else {
         package.root.join(&package.config.roots.markdown)
@@ -178,7 +181,10 @@ fn has_source_impl_docs(root: &Path) -> bool {
     };
     files.into_iter().any(|path| {
         matches!(path.extension().and_then(|ext| ext.to_str()), Some("md"))
-            && !matches!(path.file_name().and_then(|name| name.to_str()), Some("overview.md" | "index.md"))
+            && !matches!(
+                path.file_name().and_then(|name| name.to_str()),
+                Some("overview.md" | "index.md")
+            )
     })
 }
 ````
@@ -186,7 +192,10 @@ fn has_source_impl_docs(root: &Path) -> bool {
 ````rs
 fn is_test_doc(path: &Path) -> bool {
     matches!(path.extension().and_then(|ext| ext.to_str()), Some("md"))
-        && !matches!(path.file_name().and_then(|name| name.to_str()), Some("overview.md"))
+        && !matches!(
+            path.file_name().and_then(|name| name.to_str()),
+            Some("overview.md")
+        )
 }
 ````
 
@@ -508,20 +517,7 @@ fn code_blocks(text: &str) -> Vec<CodeBlock<'_>> {
 
 ````rs
 fn is_import_line(lang: &Lang, trimmed_start: &str) -> bool {
-    match lang {
-        Lang::Rust => {
-            trimmed_start.starts_with("use ") || trimmed_start.starts_with("extern crate ")
-        }
-        Lang::TypeScript => {
-            trimmed_start.starts_with("import ")
-                || trimmed_start.starts_with("export ") && trimmed_start.contains(" from ")
-                || trimmed_start.starts_with("const ") && trimmed_start.contains("require(")
-                || trimmed_start.starts_with("let ") && trimmed_start.contains("require(")
-                || trimmed_start.starts_with("var ") && trimmed_start.contains("require(")
-        }
-        Lang::Python => trimmed_start.starts_with("import ") || trimmed_start.starts_with("from "),
-        Lang::Other(_) => false,
-    }
+    crate::descriptor::builtin_descriptor(lang).matches_import_line(trimmed_start)
 }
 ````
 
@@ -534,69 +530,13 @@ fn is_top_level_declaration(lang: &Lang, line: &str) -> bool {
     if trimmed.is_empty() || is_comment_line(lang, trimmed) || is_import_line(lang, trimmed) {
         return false;
     }
-    match lang {
-        Lang::Rust => matches_top_level_keyword(
-            trimmed,
-            &[
-                "pub fn ",
-                "fn ",
-                "pub struct ",
-                "struct ",
-                "pub enum ",
-                "enum ",
-                "pub trait ",
-                "trait ",
-                "impl ",
-                "pub type ",
-                "type ",
-                "pub const ",
-                "const ",
-                "pub static ",
-                "static ",
-                "pub mod ",
-                "mod ",
-            ],
-        ),
-        Lang::TypeScript => matches_top_level_keyword(
-            trimmed,
-            &[
-                "export function ",
-                "function ",
-                "export class ",
-                "class ",
-                "export interface ",
-                "interface ",
-                "export type ",
-                "type ",
-                "export const ",
-                "const ",
-                "export let ",
-                "let ",
-                "export enum ",
-                "enum ",
-            ],
-        ),
-        Lang::Python => matches_top_level_keyword(trimmed, &["def ", "async def ", "class "]),
-        Lang::Other(_) => false,
-    }
-}
-````
-
-````rs
-fn matches_top_level_keyword(line: &str, keywords: &[&str]) -> bool {
-    keywords.iter().any(|keyword| line.starts_with(keyword))
+    crate::descriptor::builtin_descriptor(lang).matches_top_level_declaration(trimmed)
 }
 ````
 
 ````rs
 fn is_comment_line(lang: &Lang, trimmed: &str) -> bool {
-    match lang {
-        Lang::Rust | Lang::TypeScript => {
-            trimmed.starts_with("//") || trimmed.starts_with("/*") || trimmed.starts_with('*')
-        }
-        Lang::Python => trimmed.starts_with('#'),
-        Lang::Other(_) => false,
-    }
+    crate::descriptor::builtin_descriptor(lang).matches_comment_line(trimmed)
 }
 ````
 

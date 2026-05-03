@@ -20,7 +20,7 @@ pub mod config;
 ````
 
 ````rs
-mod descriptor;
+pub mod descriptor;
 ````
 
 ````rs

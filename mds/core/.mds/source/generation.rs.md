@@ -96,7 +96,8 @@ fn plan_source_assets(package: &Package, state: &mut RunState) -> Vec<GeneratedF
         let Ok(relative) = path.strip_prefix(&source_root) else {
             continue;
         };
-        if matches!(relative.file_name(), Some(name) if name == OsStr::new("overview.md") || name == OsStr::new("index.md")) {
+        if matches!(relative.file_name(), Some(name) if name == OsStr::new("overview.md") || name == OsStr::new("index.md"))
+        {
             continue;
         }
         if path.extension() == Some(OsStr::new("md")) && Lang::from_path(&path).is_some() {
@@ -117,7 +118,10 @@ fn plan_source_assets(package: &Package, state: &mut RunState) -> Vec<GeneratedF
                 continue;
             }
         };
-        let output_path = package.root.join(&package.config.roots.source).join(relative);
+        let output_path = package
+            .root
+            .join(&package.config.roots.source)
+            .join(relative);
         if !path_within(&package.root, &output_path) {
             state.diagnostics.push(Diagnostic::error(
                 Some(output_path),
@@ -172,8 +176,14 @@ pub(crate) fn plan_output(
     let root = output_root(&doc.markdown_relative_path, &doc.lang, kind);
     let path = match root {
         OutputRoot::Package => package.root.join(relative),
-        OutputRoot::Source => package.root.join(&package.config.roots.source).join(relative),
-        OutputRoot::Types => package.root.join(&package.config.roots.types).join(relative),
+        OutputRoot::Source => package
+            .root
+            .join(&package.config.roots.source)
+            .join(relative),
+        OutputRoot::Types => package
+            .root
+            .join(&package.config.roots.types)
+            .join(relative),
         OutputRoot::Test => package.root.join(&package.config.roots.test).join(relative),
     };
     if is_excluded(&package.root, &path, &package.config.excludes) {

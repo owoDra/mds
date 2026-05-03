@@ -127,7 +127,10 @@ fn replace_managed_region(
     }
     state.diagnostics.push(Diagnostic::error(
         Some(path.to_path_buf()),
-        format!("source overview is missing managed section `{}`", managed_section_heading(name)),
+        format!(
+            "source overview is missing managed section `{}`",
+            managed_section_heading(name)
+        ),
     ));
     None
 }
@@ -153,7 +156,10 @@ fn replace_managed_section(
     let Some(start) = lines.iter().position(|line| line.trim() == heading) else {
         state.diagnostics.push(Diagnostic::error(
             Some(path.to_path_buf()),
-            format!("source overview is missing managed section `{}`", managed_section_heading(name)),
+            format!(
+                "source overview is missing managed section `{}`",
+                managed_section_heading(name)
+            ),
         ));
         return None;
     };

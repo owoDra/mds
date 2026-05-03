@@ -15,6 +15,7 @@ Migrated implementation source for `src/capabilities/diagnostics.rs`.
 use std::path::Path;
 
 use mds_core::config::merge_config_file;
+use mds_core::descriptor::set_workspace_descriptor_root;
 use mds_core::diagnostics::RunState;
 use mds_core::markdown::{extract_all_code_blocks, sections_with_labels, validate_markdown_links};
 use mds_core::model::{Config, Lang};
@@ -33,6 +34,7 @@ pub fn validate_impl_md_text(
     _config: &Config,
 ) -> Vec<lsp_types::Diagnostic> {
     let mut state = RunState::default();
+    set_workspace_descriptor_root(path.parent());
 
     // Validate markdown links
     validate_markdown_links(path, text, &mut state);
@@ -61,6 +63,7 @@ pub fn validate_impl_md_text(
 pub fn validate_config_text(path: &Path, text: &str) -> Vec<lsp_types::Diagnostic> {
     let mut state = RunState::default();
     let mut config = Config::default();
+    set_workspace_descriptor_root(path.parent());
 
     // Try to parse and merge the config
     match text.parse::<toml::Value>() {
@@ -92,6 +95,7 @@ pub fn validate_package_md_text(
     config: &Config,
 ) -> Vec<lsp_types::Diagnostic> {
     let mut state = RunState::default();
+    set_workspace_descriptor_root(path.parent());
 
     validate_markdown_links(path, text, &mut state);
 

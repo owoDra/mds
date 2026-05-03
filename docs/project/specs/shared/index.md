@@ -1,8 +1,10 @@
 # Shared Specs
 
+> Deprecated: shared behavioral detail は段階的に `mds/core/.mds/source/overview.md`、`mds/cli/.mds/source/overview.md`、および各 implementation md へ移行する。
+
 ## 役割
 
-このディレクトリは、複数の subproject にまたがる仕様を置くための場所です。
+このディレクトリは、複数 subproject にまたがる旧 spec を一時保持する migration surface です。
 
 ## 置いてよいもの
 
@@ -25,21 +27,24 @@
 
 ## 参照
 
-- `SPEC-config-toml-resolution.md`: `mds.config.toml` の設定解決仕様
-- `SPEC-package-boundary-detection.md`: monorepo package 境界検出仕様
-- `SPEC-markdown-document-model.md`: `overview.md`、implementation md の文書モデル仕様
-- `SPEC-expose-uses-tables.md`: `Expose` / `Uses` テーブル仕様
-- `SPEC-code-generation-output.md`: Source / Types / Test の生成出力仕様
-- `SPEC-adapter-rust-generation.md`: Rust adapter 生成仕様
-- `SPEC-adapter-typescript-generation.md`: TypeScript adapter 生成仕様
-- `SPEC-adapter-python-generation.md`: Python adapter 生成仕様
-- `SPEC-parser-generation-mvp-phase.md`: Parser + 生成 MVP の今フェーズ実装範囲と詳細判断
-- `SPEC-cli-commands.md`: CLI コマンド仕様
-- `SPEC-obsidian-readable-markdown.md`: Obsidian で読める Markdown 仕様
-- `SPEC-md-state-quality-operations.md`: Markdown 状態での lint / lint --fix / test 仕様
-- `SPEC-doctor-command.md`: `mds doctor` の環境診断仕様
-- `SPEC-package-sync.md`: `mds package sync` と任意 post hook 仕様
-- `SPEC-distribution-and-versions.md`: Cargo / native binary 配布と最低対応 version 仕様
-- `SPEC-ai-agent-cli-initialization.md`: Claude Code / Codex CLI / Opencode / GitHub Copilot CLI 向け AI agent kit 初期化仕様
-- `SPEC-init-development-environment-setup.md`: `mds init` による bootstrap と開発環境セットアップ仕様
-- `SPEC-release-prepublish-quality.md`: 全配布経路の公開前品質 gate 仕様
+- `SPEC-config-toml-resolution.md`: `mds.config.toml` の設定解決 legacy spec
+- `SPEC-package-boundary-detection.md`: monorepo package 境界検出 legacy spec
+- `SPEC-markdown-document-model.md`: `overview.md`、implementation md の文書モデル legacy spec
+- `SPEC-expose-uses-tables.md`: `Expose` / `Uses` テーブル legacy spec
+- `SPEC-code-generation-output.md`: Source / Types / Test の生成出力 legacy spec
+- `SPEC-adapter-rust-generation.md`: Rust adapter 生成 legacy spec
+- `SPEC-adapter-typescript-generation.md`: TypeScript adapter 生成 legacy spec
+- `SPEC-adapter-python-generation.md`: Python adapter 生成 legacy spec
+- `SPEC-parser-generation-mvp-phase.md`: Parser + 生成 MVP legacy spec
+- `SPEC-cli-commands.md`: CLI command legacy spec
+- `SPEC-obsidian-readable-markdown.md`: Obsidian readable markdown legacy spec
+- `SPEC-md-state-quality-operations.md`: Markdown state quality legacy spec
+- `SPEC-doctor-command.md`: doctor command legacy spec
+- `SPEC-package-sync.md`: package sync legacy spec
+- `SPEC-distribution-and-versions.md`: distribution/version legacy spec
+- `SPEC-ai-agent-cli-initialization.md`: AI init legacy spec
+- `SPEC-init-development-environment-setup.md`: development setup legacy spec
+- `SPEC-release-prepublish-quality.md`: release quality legacy spec
+- `../../../../mds/core/.mds/source/overview.md`: Markdown model、generation、adapter、quality、doctor、package sync、distribution、release quality の移行先
+- `../../../../mds/cli/.mds/source/overview.md`: CLI command surface の移行先
+- `../../../../mds/core/.mds/source/init/mod.rs.md`: AI init / development setup の主要移行先

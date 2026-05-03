@@ -30,11 +30,12 @@ pub fn to_lsp_diagnostic(diag: &Diagnostic) -> lsp_types::Diagnostic {
     };
 
     let line = diag.line.unwrap_or(1).saturating_sub(1) as u32;
+    let character = diag.column.unwrap_or(1).saturating_sub(1) as u32;
 
     lsp_types::Diagnostic {
         range: lsp_types::Range {
-            start: lsp_types::Position { line, character: 0 },
-            end: lsp_types::Position { line, character: 0 },
+            start: lsp_types::Position { line, character },
+            end: lsp_types::Position { line, character },
         },
         severity: Some(severity),
         source: Some("mds".to_string()),

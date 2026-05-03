@@ -1,80 +1,39 @@
-id = "ts"
-aliases = ["typescript"]
-match_suffixes = ["ts"]
+id = "js"
+aliases = ["javascript"]
+match_suffixes = ["js"]
 
 [language]
-primary_ext = "ts"
+primary_ext = "js"
 
 [files.source]
 strip_lang_ext = false
 prefix = ""
 suffix = ""
-extension = "ts"
+extension = "js"
 
 [files.types]
 strip_lang_ext = true
 prefix = ""
 suffix = ".types"
-extension = "ts"
+extension = "js"
 
 [files.test]
 strip_lang_ext = true
 prefix = ""
 suffix = ".test"
-extension = "ts"
-
-[imports]
-style = "typescript"
-allow_default = true
-allow_namespace = true
-allow_alias = true
-allow_type_only = true
-
-[quality_defaults]
-lint = "eslint"
-fix = "prettier --write"
-test = "vitest run"
-
-[tool_profiles.lint.eslint]
-command = "eslint"
-required = ["node", "eslint"]
-
-[tool_profiles.lint.biome]
-command = "biome lint"
-required = ["node", "biome"]
-
-[tool_profiles.fix.prettier]
-command = "prettier --write"
-required = ["node", "prettier"]
-
-[tool_profiles.fix.biome]
-command = "biome format --write"
-required = ["node", "biome"]
-
-[tool_profiles.test.vitest]
-command = "vitest run"
-required = ["node", "vitest"]
-
-[tool_profiles.test.jest]
-command = "jest"
-required = ["node", "jest"]
+extension = "js"
 
 [syntax]
 top_level_keywords = [
-	"export function ",
-	"function ",
-	"export class ",
-	"class ",
-	"export interface ",
-	"interface ",
-	"export type ",
-	"type ",
-	"export const ",
-	"const ",
-	"export let ",
-	"let ",
-	"export enum ",
-	"enum ",
+  "export function ",
+  "function ",
+  "export class ",
+  "class ",
+  "export const ",
+  "const ",
+  "export let ",
+  "let ",
+  "export default ",
 ]
 comment_prefixes = ["//", "/*", "*"]
 

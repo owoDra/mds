@@ -141,8 +141,6 @@ check_required_layout() {
   require_file "docs/project/research/index.md"
   require_file "docs/project/proposals/index.md"
   require_file "docs/project/requirements/index.md"
-  require_file "docs/project/specs/index.md"
-  require_file "docs/project/specs/shared/index.md"
   require_file "docs/project/patterns/index.md"
   require_file "docs/project/adr/index.md"
   require_file "docs/project/teams/index.md"

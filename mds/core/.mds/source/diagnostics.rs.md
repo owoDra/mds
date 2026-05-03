@@ -31,6 +31,7 @@ pub struct Diagnostic {
     pub severity: Severity,
     pub path: Option<PathBuf>,
     pub line: Option<usize>,
+    pub column: Option<usize>,
     pub message: String,
 }
 ````
@@ -42,6 +43,7 @@ impl Diagnostic {
             severity: Severity::Warning,
             path,
             line: None,
+            column: None,
             message: message.into(),
         }
     }
@@ -51,6 +53,7 @@ impl Diagnostic {
             severity: Severity::Error,
             path,
             line: None,
+            column: None,
             message: message.into(),
         }
     }
@@ -60,17 +63,29 @@ impl Diagnostic {
         self
     }
 
+    pub fn at_column(mut self, column: usize) -> Self {
+        self.column = Some(column);
+        self
+    }
+
     pub fn render(&self) -> String {
         let level = match self.severity {
             Severity::Warning => "warning",
             Severity::Error => "error",
         };
-        match (&self.path, self.line) {
-            (Some(path), Some(line)) => {
+        match (&self.path, self.line, self.column) {
+            (Some(path), Some(line), Some(column)) => {
+                format!(
+                    "{level}: {}:{line}:{column}: {}\n",
+                    path.display(),
+                    self.message
+                )
+            }
+            (Some(path), Some(line), None) => {
                 format!("{level}: {}:{line}: {}\n", path.display(), self.message)
             }
-            (Some(path), None) => format!("{level}: {}: {}\n", path.display(), self.message),
-            (None, _) => format!("{level}: {}\n", self.message),
+            (Some(path), None, _) => format!("{level}: {}: {}\n", path.display(), self.message),
+            (None, _, _) => format!("{level}: {}\n", self.message),
         }
     }
 }

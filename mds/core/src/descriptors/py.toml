@@ -1,4 +1,6 @@
 id = "py"
+aliases = ["python"]
+match_suffixes = ["py"]
 
 [language]
 primary_ext = "py"
@@ -32,3 +34,39 @@ allow_type_only = false
 lint = "ruff check"
 fix = "ruff format"
 test = "pytest"
+
+[tool_profiles.lint.ruff]
+command = "ruff check"
+required = ["python3", "ruff"]
+
+[tool_profiles.fix.black]
+command = "black"
+required = ["python3", "black"]
+
+[tool_profiles.fix.ruff]
+command = "ruff format"
+required = ["python3", "ruff"]
+
+[tool_profiles.test.pytest]
+command = "pytest"
+required = ["pytest"]
+
+[tool_profiles.test.unittest]
+command = "python3 -m unittest"
+required = ["python3"]
+
+[syntax]
+top_level_keywords = ["def ", "async def ", "class "]
+comment_prefixes = ["#"]
+
+[[syntax.imports]]
+starts_with = "import "
+
+[[syntax.imports]]
+starts_with = "from "
+
+[scaffold]
+fence_lang = "matched-suffix"
+source_body = '''
+# Implement your feature here.
+'''

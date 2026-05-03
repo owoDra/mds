@@ -12,10 +12,15 @@ Migrated implementation source for `src/quality.rs`.
 ## Source
 
 ````rs
+use regex::Regex;
 use std::fs;
 use std::path::PathBuf;
 
-use crate::adapter::run_toolchain_command;
+use crate::adapter::{
+    path_variants, replace_path_variants, run_toolchain_command, tool_available,
+    tool_output_detail, ToolInvocation, ToolRunOutput, ToolRunStatus,
+};
+use crate::descriptor::{self, ToolBehavior, ToolInputMode, ToolOutputMode};
 use crate::diagnostics::{Diagnostic, RunState};
 use crate::diff::unified_diff;
 use crate::fs_utils::is_excluded;
@@ -115,6 +120,7 @@ fn run_doc_quality(
     operation: QualityOperation,
     state: &mut RunState,
 ) -> Result<(), String> {
+    let descriptor = descriptor::builtin_descriptor(&doc.lang);
     let Some(config) = package.config.quality.get(&doc.lang) else {
         return Ok(());
     };
@@ -126,22 +132,13 @@ fn run_doc_quality(
     let Some(command) = command else {
         return Ok(());
     };
-    let path = temp_code_path(package, &doc.lang);
-    if let Some(parent) = path.parent() {
-        fs::create_dir_all(parent)
-            .map_err(|error| format!("failed to create {}: {error}", parent.display()))?;
-    }
     let source = padded_code_from_markdown(doc)?;
-    fs::write(&path, source)
-        .map_err(|error| format!("failed to write {}: {error}", path.display()))?;
-    let _ = run_toolchain_command(
-        command,
-        Some(&path),
-        &package.root,
-        config,
-        &doc.path,
-        state,
-    )?;
+    let behavior = match operation {
+        QualityOperation::Lint => descriptor.lint_behavior(),
+        QualityOperation::Test => descriptor.test_behavior(),
+        QualityOperation::Fix { .. } => unreachable!(),
+    };
+    let _ = execute_quality_command(package, doc, command, config, behavior, &source, state)?;
     Ok(())
 }
 ````
@@ -153,35 +150,27 @@ fn fix_doc(
     check: bool,
     state: &mut RunState,
 ) -> Result<(), String> {
+    let descriptor = descriptor::builtin_descriptor(&doc.lang);
     let Some(config) = package.config.quality.get(&doc.lang) else {
         return Ok(());
     };
     let Some(command) = config.fix.as_deref() else {
         return Ok(());
     };
+    let behavior = descriptor.fix_behavior();
     let old = fs::read_to_string(&doc.path)
         .map_err(|error| format!("failed to read {}: {error}", doc.path.display()))?;
     let mut replacements = Vec::new();
     for block in code_block_ranges(&old) {
-        let path = temp_code_path(package, &doc.lang);
-        if let Some(parent) = path.parent() {
-            fs::create_dir_all(parent)
-                .map_err(|error| format!("failed to create {}: {error}", parent.display()))?;
-        }
-        fs::write(&path, block.content)
-            .map_err(|error| format!("failed to write {}: {error}", path.display()))?;
-        if run_toolchain_command(
+        if let Some(fixed) = execute_quality_command(
+            package,
+            doc,
             command,
-            Some(&path),
-            &package.root,
             config,
-            &doc.path,
+            behavior,
+            block.content,
             state,
-        )?
-        .is_ok()
-        {
-            let fixed = fs::read_to_string(&path)
-                .map_err(|error| format!("failed to read {}: {error}", path.display()))?;
+        )? {
             replacements.push((block.start, block.end, fixed));
         }
     }
@@ -200,6 +189,204 @@ fn fix_doc(
         }
     }
     Ok(())
+}
+````
+
+````rs
+fn execute_quality_command(
+    package: &Package,
+    doc: &ImplDoc,
+    command: &str,
+    config: &crate::model::QualityConfig,
+    behavior: &ToolBehavior,
+    source: &str,
+    state: &mut RunState,
+) -> Result<Option<String>, String> {
+    let path = temp_code_path(package, &doc.lang);
+    if needs_tempfile(behavior) {
+        if let Some(parent) = path.parent() {
+            fs::create_dir_all(parent)
+                .map_err(|error| format!("failed to create {}: {error}", parent.display()))?;
+        }
+        fs::write(&path, source)
+            .map_err(|error| format!("failed to write {}: {error}", path.display()))?;
+    }
+
+    let file_arg = behavior.append_file_arg().then_some(path.as_path());
+    let stdin = match behavior.input_mode() {
+        ToolInputMode::Stdin => Some(source),
+        ToolInputMode::TempFile | ToolInputMode::Inline => None,
+    };
+    let inline_arg = match behavior.input_mode() {
+        ToolInputMode::Inline => Some(source),
+        ToolInputMode::TempFile | ToolInputMode::Stdin => None,
+    };
+
+    let status = run_toolchain_command(ToolInvocation {
+        command,
+        file_arg,
+        cwd: &package.root,
+        stdin,
+        inline_arg,
+    })?;
+
+    warn_missing_optional_tools(config, &doc.path, state);
+
+    match status {
+        ToolRunStatus::EmptyCommand => Ok(None),
+        ToolRunStatus::MissingTool(program) => {
+            state.environment_missing = true;
+            state.diagnostics.push(Diagnostic::error(
+                Some(doc.path.clone()),
+                format!(
+                    "LINT001_TOOLCHAIN_FAILED: required toolchain `{program}` is not available"
+                ),
+            ));
+            Ok(None)
+        }
+        ToolRunStatus::Completed(output) => {
+            if !output.success {
+                report_tool_failure(&output, behavior, &doc.path, &path, &package.root, state)?;
+                return Ok(None);
+            }
+            let fixed = match behavior.output_mode() {
+                ToolOutputMode::None => None,
+                ToolOutputMode::Stdout => Some(output.stdout),
+                ToolOutputMode::TempFile => Some(
+                    fs::read_to_string(&path)
+                        .map_err(|error| format!("failed to read {}: {error}", path.display()))?,
+                ),
+            };
+            Ok(fixed)
+        }
+    }
+}
+````
+
+````rs
+fn warn_missing_optional_tools(
+    config: &crate::model::QualityConfig,
+    path: &std::path::Path,
+    state: &mut RunState,
+) {
+    for optional in &config.optional {
+        if !tool_available(optional) {
+            state.diagnostics.push(Diagnostic::warning(
+                Some(path.to_path_buf()),
+                format!("optional toolchain `{optional}` is not available"),
+            ));
+        }
+    }
+}
+````
+
+````rs
+fn report_tool_failure(
+    output: &ToolRunOutput,
+    behavior: &ToolBehavior,
+    markdown_path: &std::path::Path,
+    input_path: &std::path::Path,
+    cwd: &std::path::Path,
+    state: &mut RunState,
+) -> Result<(), String> {
+    let detail = tool_output_detail(output);
+    let diagnostics = capture_tool_diagnostics(&detail, behavior, markdown_path, input_path, cwd)?;
+    if diagnostics.is_empty() {
+        let rendered = replace_path_variants(&detail, input_path, markdown_path, cwd);
+        state.diagnostics.push(Diagnostic::error(
+            Some(markdown_path.to_path_buf()),
+            format!("LINT001_TOOLCHAIN_FAILED: toolchain command failed: {rendered}"),
+        ));
+        return Ok(());
+    }
+    state.diagnostics.extend(diagnostics);
+    Ok(())
+}
+````
+
+````rs
+fn capture_tool_diagnostics(
+    detail: &str,
+    behavior: &ToolBehavior,
+    markdown_path: &std::path::Path,
+    input_path: &std::path::Path,
+    cwd: &std::path::Path,
+) -> Result<Vec<Diagnostic>, String> {
+    let mut diagnostics = Vec::new();
+    for raw_line in detail.lines().filter(|line| !line.trim().is_empty()) {
+        for rule in &behavior.diagnostics {
+            let regex = Regex::new(&rule.pattern)
+                .map_err(|error| format!("invalid diagnostic regex `{}`: {error}", rule.pattern))?;
+            let Some(captures) = regex.captures(raw_line) else {
+                continue;
+            };
+            let mut diagnostic = match rule.severity.as_str() {
+                "warning" => Diagnostic::warning(
+                    Some(markdown_path.to_path_buf()),
+                    capture_message(&captures, rule, raw_line),
+                ),
+                _ => Diagnostic::error(
+                    Some(markdown_path.to_path_buf()),
+                    capture_message(&captures, rule, raw_line),
+                ),
+            };
+            if let Some(line) = captures
+                .name(&rule.line_group)
+                .and_then(|value| value.as_str().parse::<usize>().ok())
+            {
+                diagnostic = diagnostic.at_line(apply_line_offset(line, rule.line_offset));
+            }
+            if let Some(column) = captures
+                .name(&rule.column_group)
+                .and_then(|value| value.as_str().parse::<usize>().ok())
+            {
+                diagnostic = diagnostic.at_column(column);
+            }
+            if let Some(path_match) = captures.name(&rule.path_group) {
+                let captured = std::path::PathBuf::from(path_match.as_str());
+                let rewritten = path_variants(input_path, cwd)
+                    .into_iter()
+                    .any(|variant| variant == captured.display().to_string());
+                if !rewritten {
+                    diagnostic.path = Some(std::path::PathBuf::from(replace_path_variants(
+                        path_match.as_str(),
+                        input_path,
+                        markdown_path,
+                        cwd,
+                    )));
+                }
+            }
+            diagnostics.push(diagnostic);
+            break;
+        }
+    }
+    Ok(diagnostics)
+}
+````
+
+````rs
+fn capture_message(
+    captures: &regex::Captures<'_>,
+    rule: &crate::descriptor::DiagnosticCaptureRule,
+    raw_line: &str,
+) -> String {
+    captures
+        .name(&rule.message_group)
+        .map(|value| value.as_str().to_string())
+        .unwrap_or_else(|| raw_line.to_string())
+}
+
+fn apply_line_offset(line: usize, offset: isize) -> usize {
+    if offset >= 0 {
+        line.saturating_add(offset as usize)
+    } else {
+        line.saturating_sub(offset.unsigned_abs())
+    }
+}
+
+fn needs_tempfile(behavior: &ToolBehavior) -> bool {
+    matches!(behavior.input_mode(), ToolInputMode::TempFile)
+        || matches!(behavior.output_mode(), ToolOutputMode::TempFile)
 }
 ````
 

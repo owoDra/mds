@@ -100,6 +100,69 @@ fn builds_three_language_fixture() {
 
 ````rs
 #[test]
+fn build_uses_workspace_descriptor_toml_for_custom_language() {
+    let temp = TestDir::new();
+    write_fixture(temp.path());
+    fs::create_dir_all(temp.path().join(".mds/descriptors")).unwrap();
+    fs::write(
+        temp.path().join(".mds/descriptors/dart.toml"),
+        r#"id = "dart"
+match_suffixes = ["dart"]
+
+[language]
+primary_ext = "dart"
+
+[files.source]
+strip_lang_ext = false
+prefix = ""
+suffix = ""
+extension = "dart"
+
+[files.types]
+strip_lang_ext = true
+prefix = ""
+suffix = ".types"
+extension = "dart"
+
+[files.test]
+strip_lang_ext = true
+prefix = ""
+suffix = "_test"
+extension = "dart"
+
+[syntax]
+top_level_keywords = ["class ", "void ", "final "]
+comment_prefixes = ["//"]
+
+[scaffold]
+fence_lang = "matched-suffix"
+source_body = '''
+// Implement your feature here.
+'''
+"#,
+    )
+    .unwrap();
+    fs::write(
+        temp.path().join("pkg/src-md/foo/custom.dart.md"),
+        "# Custom\n\n## Purpose\n\nCustom language.\n\n## Source\n\n```dart\nclass Custom {}\n```\n",
+    )
+    .unwrap();
+
+    let build = execute(CliRequest {
+        cwd: temp.path().to_path_buf(),
+        package: None,
+        verbose: false,
+        command: Command::Build {
+            mode: BuildMode::Write,
+        },
+    });
+    assert_eq!(build.exit_code, 0, "{}", build.stderr);
+    assert!(temp.path().join("pkg/src/foo/custom.dart").exists());
+}
+````
+
+````rs
+#[test]
 ````
 
 ````rs
@@ -178,7 +241,9 @@ fn package_sync_skips_markdown_package_metadata() {
         command: Command::PackageSync { check: true },
     });
     assert_eq!(check.exit_code, 1);
-    assert!(check.stderr.contains("dependency snapshot is not synchronized"));
+    assert!(check
+        .stderr
+        .contains("dependency snapshot is not synchronized"));
 
     let sync = execute(CliRequest {
         cwd: temp.path().to_path_buf(),
@@ -249,6 +314,28 @@ fn rejects_multiple_top_level_implementations_in_one_code_block() {
     fs::write(
         temp.path().join("pkg/src-md/foo/multiple.ts.md"),
         "# Multiple\n\n## Purpose\n\nMultiple declarations.\n\n## Source\n\n```ts\nexport const first = 1;\nexport const second = 2;\n```\n",
+    )
+    .unwrap();
+
+    let check = execute(CliRequest {
+        cwd: temp.path().to_path_buf(),
+        package: None,
+        verbose: false,
+        command: Command::Check,
+    });
+    assert_eq!(check.exit_code, 1);
+    assert!(check.stderr.contains("multiple top-level implementations"));
+}
+````
+
+````rs
+#[test]
+fn rejects_multiple_go_top_level_implementations_in_one_code_block() {
+    let temp = TestDir::new();
+    write_fixture(temp.path());
+    fs::write(
+        temp.path().join("pkg/src-md/foo/multiple.go.md"),
+        "# Multiple\n\n## Purpose\n\nMultiple declarations.\n\n## Source\n\n```go\nfunc first() {}\nfunc second() {}\n```\n",
     )
     .unwrap();
 
@@ -354,11 +441,7 @@ fn rejects_broken_manifest_before_building() {
     let temp = TestDir::new();
     write_fixture(temp.path());
     fs::create_dir_all(temp.path().join("pkg/.mds")).unwrap();
-    fs::write(
-        temp.path().join("pkg/.mds/manifest.toml"),
-        "not manifest\n",
-    )
-    .unwrap();
+    fs::write(temp.path().join("pkg/.mds/manifest.toml"), "not manifest\n").unwrap();
 
     let build = execute(CliRequest {
         cwd: temp.path().to_path_buf(),
@@ -462,7 +545,9 @@ fn rejects_test_doc_without_covers() {
         command: Command::Check,
     });
     assert_eq!(check.exit_code, 1);
-    assert!(check.stderr.contains("test md requires at least one Covers entry"));
+    assert!(check
+        .stderr
+        .contains("test md requires at least one Covers entry"));
 }
 ````
 
@@ -528,7 +613,11 @@ fn lint_fix_check_reports_diff_without_writing_and_fix_writes_code_blocks_only()
 fn lint_and_test_use_configured_toolchain_commands() {
     let temp = TestDir::new();
     write_fixture(temp.path());
-    let tool = write_tool(temp.path(), "ok-tool", "#!/bin/sh\ntest -f \"$1\"\n");
+    let tool = write_tool(
+        temp.path(),
+        "ok-tool",
+        "#!/bin/sh\ncat >/dev/null\nexit 0\n",
+    );
     fs::write(
         temp.path().join("pkg/mds.config.toml"),
         format!(
@@ -597,6 +686,7 @@ fn lint_reports_markdown_path_and_preserved_line_numbers() {
     assert_eq!(lint.exit_code, 1);
     assert!(lint.stderr.contains(&format!("{}:9:1", md_path.display())));
     assert!(!lint.stderr.contains(".build/mds/tmp/source.ts"));
+    assert!(!temp.path().join("pkg/.build/mds/tmp/source.ts").exists());
 }
 ````
 
@@ -901,7 +991,9 @@ fn check_and_build_reject_stale_dependency_snapshot() {
         command: Command::Check,
     });
     assert_eq!(check.exit_code, 1);
-    assert!(check.stderr.contains("dependency snapshot is not synchronized"));
+    assert!(check
+        .stderr
+        .contains("dependency snapshot is not synchronized"));
 
     let build = execute(CliRequest {
         cwd: temp.path().to_path_buf(),
@@ -912,7 +1004,9 @@ fn check_and_build_reject_stale_dependency_snapshot() {
         },
     });
     assert_eq!(build.exit_code, 1);
-    assert!(build.stderr.contains("dependency snapshot is not synchronized"));
+    assert!(build
+        .stderr
+        .contains("dependency snapshot is not synchronized"));
 }
 ````
 
@@ -1380,6 +1474,35 @@ fn new_creates_test_doc_under_fixed_test_root() {
     let path = temp.path().join(".mds/test/greet.md");
     assert!(path.exists());
     assert!(fs::read_to_string(path).unwrap().contains("## Covers"));
+}
+````
+
+````rs
+#[test]
+fn new_uses_descriptor_scaffold_for_vue_source_docs() {
+    let temp = TestDir::new();
+    fs::write(
+        temp.path().join("mds.config.toml"),
+        "[package]\nenabled = true\nallow_raw_source = false\n",
+    )
+    .unwrap();
+
+    let result = execute(CliRequest {
+        cwd: temp.path().to_path_buf(),
+        package: None,
+        verbose: false,
+        command: Command::New {
+            options: mds_core::NewOptions {
+                name: "greet.vue.md".to_string(),
+                force: false,
+            },
+        },
+    });
+    assert_eq!(result.exit_code, 0, "{}", result.stderr);
+
+    let content = fs::read_to_string(temp.path().join(".mds/source/greet.vue.md")).unwrap();
+    assert!(content.contains("```vue"));
+    assert!(content.contains("<template>"));
 }
 ````
 

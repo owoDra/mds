@@ -12,6 +12,7 @@ Migrated implementation source for `src/runner.rs`.
 ## Source
 
 ````rs
+use crate::descriptor::set_workspace_descriptor_root;
 use crate::diagnostics::{Diagnostic, RunState};
 use crate::diff::{render_dry_run, write_generated};
 use crate::doctor::run_doctor;
@@ -43,6 +44,18 @@ pub fn execute(request: CliRequest) -> CliResult {
 ````rs
 fn execute_inner(request: CliRequest) -> Result<RunState, String> {
     let mut state = RunState::default();
+    let descriptor_root = request
+        .package
+        .as_deref()
+        .map(|path| {
+            if path.is_absolute() {
+                path.to_path_buf()
+            } else {
+                request.cwd.join(path)
+            }
+        })
+        .unwrap_or_else(|| request.cwd.clone());
+    set_workspace_descriptor_root(Some(&descriptor_root));
     match &request.command {
         Command::Init { options } => {
             run_init(

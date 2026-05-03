@@ -12,13 +12,11 @@ Migrated implementation source for `src/adapter.rs`.
 ## Source
 
 ````rs
-use std::io;
 use std::path::Path;
 use std::process::{Command as ProcessCommand, Stdio};
 
 use crate::descriptor;
-use crate::diagnostics::{Diagnostic, RunState};
-use crate::model::{ImplDoc, OutputKind, QualityConfig};
+use crate::model::{ImplDoc, OutputKind};
 ````
 
 ````rs
@@ -31,76 +29,99 @@ pub(crate) fn output_relative_path(doc: &ImplDoc, kind: OutputKind) -> std::path
 ````
 
 ````rs
+pub(crate) struct ToolInvocation<'a> {
+    pub command: &'a str,
+    pub file_arg: Option<&'a Path>,
+    pub cwd: &'a Path,
+    pub stdin: Option<&'a str>,
+    pub inline_arg: Option<&'a str>,
+}
+````
+
+````rs
+pub(crate) struct ToolRunOutput {
+    pub success: bool,
+    pub stdout: String,
+    pub stderr: String,
+}
+````
+
+````rs
+pub(crate) enum ToolRunStatus {
+    EmptyCommand,
+    MissingTool(String),
+    Completed(ToolRunOutput),
+}
+````
+
+````rs
 pub(crate) fn run_toolchain_command(
-    command: &str,
-    file: Option<&Path>,
-    cwd: &Path,
-    config: &QualityConfig,
-    diagnostic_path: &Path,
-    state: &mut RunState,
-) -> Result<io::Result<()>, String> {
-    let Some((program, args)) = split_command(command) else {
-        return Ok(Ok(()));
+    invocation: ToolInvocation<'_>,
+) -> Result<ToolRunStatus, String> {
+    let Some((program, args)) = split_command(invocation.command) else {
+        return Ok(ToolRunStatus::EmptyCommand);
     };
     if !tool_available(program) {
-        state.environment_missing = true;
-        state.diagnostics.push(Diagnostic::error(
-            Some(diagnostic_path.to_path_buf()),
-            format!("LINT001_TOOLCHAIN_FAILED: required toolchain `{program}` is not available"),
-        ));
-        return Ok(Err(io::Error::new(io::ErrorKind::NotFound, program)));
+        return Ok(ToolRunStatus::MissingTool(program.to_string()));
     }
     let mut process = ProcessCommand::new(program);
     process
         .args(args)
-        .current_dir(cwd)
+        .current_dir(invocation.cwd)
         .stdout(Stdio::piped())
         .stderr(Stdio::piped());
-    if let Some(file) = file {
-        process.arg(file);
-    }
-    let output = process
-        .output()
-        .map_err(|error| format!("failed to run toolchain: {error}"))?;
-    if !output.status.success() {
-        let detail = tool_output_detail(&output.stdout, &output.stderr, file, diagnostic_path, cwd);
-        state.diagnostics.push(Diagnostic::error(
-            Some(diagnostic_path.to_path_buf()),
-            format!("LINT001_TOOLCHAIN_FAILED: toolchain command failed: {detail}"),
-        ));
-        return Ok(Err(io::Error::other("toolchain command failed")));
-    }
-    for optional in &config.optional {
-        if !tool_available(optional) {
-            state.diagnostics.push(Diagnostic::warning(
-                Some(diagnostic_path.to_path_buf()),
-                format!("optional toolchain `{optional}` is not available"),
-            ));
+
+    match invocation.stdin {
+        Some(_) => {
+            process.stdin(Stdio::piped());
+        }
+        None => {
+            process.stdin(Stdio::null());
         }
     }
-    Ok(Ok(()))
+
+    if let Some(file) = invocation.file_arg {
+        process.arg(file);
+    }
+    if let Some(inline_arg) = invocation.inline_arg {
+        process.arg(inline_arg);
+    }
+
+    let mut child = process
+        .spawn()
+        .map_err(|error| format!("failed to run toolchain: {error}"))?;
+    if let Some(stdin) = invocation.stdin {
+        if let Some(mut handle) = child.stdin.take() {
+            use std::io::Write;
+            handle
+                .write_all(stdin.as_bytes())
+                .map_err(|error| format!("failed to write toolchain stdin: {error}"))?;
+        }
+    }
+    let output = child
+        .wait_with_output()
+        .map_err(|error| format!("failed to wait for toolchain: {error}"))?;
+    Ok(ToolRunStatus::Completed(ToolRunOutput {
+        success: output.status.success(),
+        stdout: String::from_utf8_lossy(&output.stdout).into_owned(),
+        stderr: String::from_utf8_lossy(&output.stderr).into_owned(),
+    }))
 }
 ````
 
 ````rs
-fn tool_output_detail(
-    stdout: &[u8],
-    stderr: &[u8],
-    file: Option<&Path>,
-    diagnostic_path: &Path,
-    cwd: &Path,
-) -> String {
-    let raw = if stderr.is_empty() { stdout } else { stderr };
-    let detail = String::from_utf8_lossy(raw).trim().to_string();
-    let Some(file) = file else {
-        return detail;
+pub(crate) fn tool_output_detail(output: &ToolRunOutput) -> String {
+    let raw = if output.stderr.trim().is_empty() {
+        &output.stdout
+    } else {
+        &output.stderr
     };
-    replace_path_variants(&detail, file, diagnostic_path, cwd)
+    raw.trim().to_string()
 }
 ````
 
 ````rs
-fn replace_path_variants(output: &str, from: &Path, to: &Path, cwd: &Path) -> String {
+pub(crate) fn replace_path_variants(output: &str, from: &Path, to: &Path, cwd: &Path) -> String {
     let mut replaced = output.to_string();
     let to_display = to.display().to_string();
     for variant in path_variants(from, cwd) {
@@ -111,7 +132,7 @@ fn replace_path_variants(output: &str, from: &Path, to: &Path, cwd: &Path) -> St
 ````
 
 ````rs
-fn path_variants(path: &Path, cwd: &Path) -> Vec<String> {
+pub(crate) fn path_variants(path: &Path, cwd: &Path) -> Vec<String> {
     let mut variants = vec![path.display().to_string()];
     if let Ok(relative) = path.strip_prefix(cwd) {
         variants.push(relative.display().to_string());

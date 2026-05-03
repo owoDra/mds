@@ -118,7 +118,7 @@ pub fn metadata_kind(root: &Path) -> Option<MetadataKind> {
 ````
 
 ````rs
- pub fn validate_package_md(package: &Package, state: &mut RunState) {
+pub fn validate_package_md(package: &Package, state: &mut RunState) {
     let Some((path, old, new)) = crate::package_sync::planned_package_overview(package, state)
     else {
         return;

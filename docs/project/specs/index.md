@@ -1,8 +1,10 @@
 # Specs
 
+> Deprecated: 新しい振る舞いの正本は `mds/*/.mds/source/overview.md` と implementation md に置く。ここは移行残置の legacy spec 入口としてのみ維持する。
+
 ## 役割
 
-このディレクトリは、要求を具体的な振る舞いへ落とし込む正本です。
+このディレクトリは、過去に requirements を具体的な振る舞いへ落とし込んだ spec を一時的に保持する legacy migration surface です。
 
 ## 置いてよいもの
 
@@ -25,16 +27,19 @@
 
 ## 参照ルール
 
-- 2 つ以上の subproject にまたがる仕様は `shared/` に置く
-- 1 つの subproject に閉じる仕様はその subproject 配下に置く
-- mds 自身の実装に結びつく設計は、今後は package `index.md`、package 配下 `src-md/overview.md`、または implementation md へ移す
+- 新しい spec 個票は追加しない
+- 既存 spec の内容は package overview または implementation md へ移したうえで参照を解消する
+- 2 つ以上の subproject にまたがる旧 spec は、まず対象 package overview 群へ責務分解してから archive 化する
 - `src-md/project/specs/` は作らない
 
 ## 参照
 
-- `shared/index.md`: 複数 subproject にまたがる共有仕様の入口
-- `crates-mds/core/index.md`: 移行前の `mds-core` 固有仕様の入口。新しい設計は `mds/core/src-md/overview.md` または該当 implementation md に移す
-- `crates-mds/cli/index.md`: 移行前の `mds-cli` 固有仕様の入口。新しい設計は `mds/cli/src-md/overview.md` または該当 implementation md に移す
+- `shared/index.md`: 複数 subproject にまたがる legacy spec の入口
+- `crates-mds-cli/index.md`: legacy の CLI subproject spec 入口
+- `crates-mds-core/index.md`: legacy の core subproject spec 入口
+- `../../../mds/core/.mds/source/overview.md`: 現行の core behavioral source of truth
+- `../../../mds/cli/.mds/source/overview.md`: 現行の CLI surface source of truth
+- `../../../mds/lsp/.mds/source/overview.md`: 現行の LSP package source of truth
 
 ## 追加された共有仕様
 

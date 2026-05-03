@@ -14,14 +14,19 @@ Migrated implementation source for `build.rs`.
 ````rs
 use std::env;
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 ````
 
 ````rs
 fn main() {
+    let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
+    generate_template_registry(&out_dir);
+    generate_descriptor_registry(&out_dir);
+}
+
+fn generate_template_registry(out_dir: &Path) {
     let templates_dir = Path::new("src/init/templates");
-    let out_dir = env::var("OUT_DIR").unwrap();
-    let dest_path = Path::new(&out_dir).join("template_registry.rs");
+    let dest_path = out_dir.join("template_registry.rs");
 
     println!("cargo:rerun-if-changed=src/init/templates");
 
@@ -36,8 +41,8 @@ fn main() {
     let mut targets: Vec<String> = Vec::new();
 
     if let Ok(entries) = fs::read_dir(templates_dir) {
-        let mut dirs: Vec<_> = entries.filter_map(|e| e.ok()).collect();
-        dirs.sort_by_key(|e| e.file_name());
+        let mut dirs: Vec<_> = entries.filter_map(|entry| entry.ok()).collect();
+        dirs.sort_by_key(|entry| entry.file_name());
 
         for entry in dirs {
             let path = entry.path();
@@ -54,16 +59,17 @@ fn main() {
 
             println!("cargo:rerun-if-changed={}", manifest_path.display());
 
-            let manifest_content = fs::read_to_string(&manifest_path)
-                .unwrap_or_else(|e| panic!("failed to read {}: {e}", manifest_path.display()));
+            let manifest_content = fs::read_to_string(&manifest_path).unwrap_or_else(|error| {
+                panic!("failed to read {}: {error}", manifest_path.display())
+            });
 
-            let manifest: toml::Value = manifest_content
-                .parse()
-                .unwrap_or_else(|e| panic!("failed to parse {}: {e}", manifest_path.display()));
+            let manifest: toml::Value = manifest_content.parse().unwrap_or_else(|error| {
+                panic!("failed to parse {}: {error}", manifest_path.display())
+            });
 
             let files = manifest
                 .get("file")
-                .and_then(|v| v.as_array())
+                .and_then(|value| value.as_array())
                 .unwrap_or_else(|| panic!("no [[file]] entries in {}", manifest_path.display()));
 
             code.push_str(&format!(
@@ -71,18 +77,25 @@ fn main() {
             ));
 
             for file_entry in files {
-                let template = file_entry.get("template").and_then(|v| v.as_str()).unwrap();
+                let template = file_entry
+                    .get("template")
+                    .and_then(|value| value.as_str())
+                    .unwrap();
                 let output_path = file_entry
                     .get("output_path")
-                    .and_then(|v| v.as_str())
+                    .and_then(|value| value.as_str())
                     .unwrap();
-                let category = file_entry.get("category").and_then(|v| v.as_str()).unwrap();
+                let category = file_entry
+                    .get("category")
+                    .and_then(|value| value.as_str())
+                    .unwrap();
 
                 let template_path = path.join(template);
                 println!("cargo:rerun-if-changed={}", template_path.display());
 
-                let content = fs::read_to_string(&template_path)
-                    .unwrap_or_else(|e| panic!("failed to read {}: {e}", template_path.display()));
+                let content = fs::read_to_string(&template_path).unwrap_or_else(|error| {
+                    panic!("failed to read {}: {error}", template_path.display())
+                });
 
                 code.push_str("    TemplateEntry {\n");
                 code.push_str(&format!("        output_path: {:?},\n", output_path));
@@ -96,7 +109,6 @@ fn main() {
         }
     }
 
-    // Generate a lookup function
     code.push_str(
         "pub(crate) fn templates_for_target(target: &str) -> &'static [TemplateEntry] {\n",
     );
@@ -110,5 +122,54 @@ fn main() {
     code.push_str("}\n");
 
     fs::write(&dest_path, code).unwrap();
+}
+
+fn generate_descriptor_registry(out_dir: &Path) {
+    let descriptors_dir = Path::new("src/descriptors");
+    let dest_path = out_dir.join("descriptor_registry.rs");
+
+    println!("cargo:rerun-if-changed=src/descriptors");
+
+    let mut code = String::new();
+    code.push_str("/// Auto-generated descriptor registry from descriptor TOML files.\n");
+    code.push_str("pub(crate) struct RawDescriptorEntry {\n");
+    code.push_str("    pub content: &'static str,\n");
+    code.push_str("}\n\n");
+    code.push_str("pub(crate) const BUILTIN_DESCRIPTORS: &[RawDescriptorEntry] = &[\n");
+
+    for path in collect_files_with_extension(descriptors_dir, "toml") {
+        println!("cargo:rerun-if-changed={}", path.display());
+        let content = fs::read_to_string(&path)
+            .unwrap_or_else(|error| panic!("failed to read {}: {error}", path.display()));
+        code.push_str("    RawDescriptorEntry {\n");
+        code.push_str(&format!("        content: {:?},\n", content));
+        code.push_str("    },\n");
+    }
+
+    code.push_str("];\n");
+    fs::write(&dest_path, code).unwrap();
+}
+
+fn collect_files_with_extension(root: &Path, extension: &str) -> Vec<PathBuf> {
+    let mut files = Vec::new();
+    collect_files_with_extension_into(root, extension, &mut files);
+    files.sort();
+    files
+}
+
+fn collect_files_with_extension_into(root: &Path, extension: &str, files: &mut Vec<PathBuf>) {
+    let Ok(entries) = fs::read_dir(root) else {
+        return;
+    };
+    for entry in entries.filter_map(|entry| entry.ok()) {
+        let path = entry.path();
+        if path.is_dir() {
+            collect_files_with_extension_into(&path, extension, files);
+            continue;
+        }
+        if path.extension().and_then(|value| value.to_str()) == Some(extension) {
+            files.push(path);
+        }
+    }
 }
 ````
