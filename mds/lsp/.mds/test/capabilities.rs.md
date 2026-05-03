@@ -29,7 +29,6 @@ use mds_lsp::convert::{line_at, table_cell_at_position, word_at_position};
 
 ````rs
 #[test]
-
 fn test_document_symbols_extracts_headings() {
     let text = r#"## Purpose
 
@@ -69,11 +68,10 @@ Uses content.
     );
     assert!(names.contains(&"Uses"), "should contain Uses: {names:?}");
 }
-
-#[test]
 ````
 
 ````rs
+#[test]
 fn test_section_completion_on_heading_prefix() {
     let text = "## ";
     let position = Position {
@@ -97,11 +95,10 @@ fn test_section_completion_on_heading_prefix() {
         "should offer Source: {labels:?}"
     );
 }
-
-#[test]
 ````
 
 ````rs
+#[test]
 fn test_code_block_language_completion() {
     let text = "```";
     let position = Position {
@@ -117,11 +114,10 @@ fn test_code_block_language_completion() {
         "should offer typescript: {labels:?}"
     );
 }
-
-#[test]
 ````
 
 ````rs
+#[test]
 fn test_code_action_missing_sections() {
     let text = r#"## Purpose
 
@@ -135,11 +131,10 @@ A module.
         "should provide code actions for missing sections"
     );
 }
-
-#[test]
 ````
 
 ````rs
+#[test]
 fn test_word_at_position() {
     let text = "hello world foo-bar";
     let word = word_at_position(
@@ -151,11 +146,10 @@ fn test_word_at_position() {
     );
     assert_eq!(word, Some("world".to_string()));
 }
-
-#[test]
 ````
 
 ````rs
+#[test]
 fn test_word_at_position_with_path() {
     let text = "| internal | utils/helper | Name | desc |";
     let word = word_at_position(
@@ -167,11 +161,10 @@ fn test_word_at_position_with_path() {
     );
     assert_eq!(word, Some("utils/helper".to_string()));
 }
-
-#[test]
 ````
 
 ````rs
+#[test]
 fn test_table_cell_at_position() {
     let text = "| internal | utils/helper | Name | desc |";
     let cell = table_cell_at_position(
@@ -183,11 +176,10 @@ fn test_table_cell_at_position() {
     );
     assert_eq!(cell, Some("utils/helper".to_string()));
 }
-
-#[test]
 ````
 
 ````rs
+#[test]
 fn test_line_at() {
     let text = "line 0\nline 1\nline 2";
     assert_eq!(line_at(text, 0), Some("line 0"));
@@ -195,11 +187,10 @@ fn test_line_at() {
     assert_eq!(line_at(text, 2), Some("line 2"));
     assert_eq!(line_at(text, 3), None);
 }
-
-#[test]
 ````
 
 ````rs
+#[test]
 fn test_code_action_empty_document() {
     let text = "";
     let uri = Url::parse("file:///test/empty.ts.md").unwrap();
@@ -210,20 +201,18 @@ fn test_code_action_empty_document() {
         "should offer to add all missing sections"
     );
 }
-
-#[test]
 ````
 
 ````rs
+#[test]
 fn test_document_symbols_empty() {
     let symbols = document_symbols("");
     assert!(symbols.is_empty(), "empty document should have no symbols");
 }
-
-#[test]
 ````
 
 ````rs
+#[test]
 fn test_document_symbols_with_h4() {
     let text = "## Purpose\n\n#### Detail\n\nContent.";
     let symbols = document_symbols(text);
@@ -232,11 +221,10 @@ fn test_document_symbols_with_h4() {
     // H4 headings should NOT appear in symbols (only ## and ###)
     assert!(!names.contains(&"Detail"), "should not have H4 heading");
 }
-
-#[test]
 ````
 
 ````rs
+#[test]
 fn test_word_at_position_boundary() {
     let text = "hello";
     // At beginning
@@ -262,11 +250,10 @@ fn test_word_at_position_boundary() {
         None
     );
 }
-
-#[test]
 ````
 
 ````rs
+#[test]
 fn test_table_cell_not_a_table() {
     let text = "This is not a table line";
     let cell = table_cell_at_position(
@@ -278,11 +265,10 @@ fn test_table_cell_not_a_table() {
     );
     assert_eq!(cell, None);
 }
-
-#[test]
 ````
 
 ````rs
+#[test]
 fn test_completion_snippet_provided() {
     let text = "## ";
     let position = Position {

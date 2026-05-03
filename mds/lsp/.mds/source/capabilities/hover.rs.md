@@ -22,8 +22,9 @@ use crate::convert::{line_at, word_at_position};
 use crate::state::WorkspaceState;
 ````
 
+Provide hover information for mds Markdown files.
+
 ````rs
-/// Provide hover information for mds Markdown files.
 pub fn provide_hover(
     text: &str,
     position: Position,
@@ -45,8 +46,9 @@ pub fn provide_hover(
     None
 }
 
-/// Hover info for section headings.
 ````
+
+Hover information for section headings.
 
 ````rs
 fn hover_section(title: &str) -> Option<Hover> {
@@ -70,8 +72,9 @@ fn hover_section(title: &str) -> Option<Hover> {
     })
 }
 
-/// Hover info for Uses table target: show the target module's Purpose section.
 ````
+
+Hover information for a Uses table target. Show the target module's Purpose section.
 
 ````rs
 fn hover_uses_target(

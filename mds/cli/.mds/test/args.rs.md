@@ -43,7 +43,9 @@ fn parses_build_dry_run() {
         }
     ));
 }
+````
 
+````rs
 #[test]
 fn rejects_dry_run_for_check() {
     let error = parse_args_from(
@@ -53,7 +55,9 @@ fn rejects_dry_run_for_check() {
     .unwrap_err();
     assert!(error.contains("--dry-run"));
 }
+````
 
+````rs
 #[test]
 fn parses_post_mvp_commands() {
     let lint = parse_args_from(
@@ -88,11 +92,10 @@ fn parses_post_mvp_commands() {
     .unwrap();
     assert!(matches!(sync.command, Command::PackageSync { check: true }));
 }
-
-#[test]
 ````
 
 ````rs
+#[test]
 fn parses_init_command() {
     let request = parse_args_from(
         PathBuf::from("/repo"),
@@ -147,11 +150,10 @@ fn parses_init_command() {
         other => panic!("unexpected command: {other:?}"),
     }
 }
-
-#[test]
 ````
 
 ````rs
+#[test]
 fn rejects_conflicting_init_tool_choices() {
     let error = parse_args_from(
         PathBuf::from("/repo"),
@@ -160,11 +162,10 @@ fn rejects_conflicting_init_tool_choices() {
     .unwrap_err();
     assert!(error.contains("vitest and jest"));
 }
-
-#[test]
 ````
 
 ````rs
+#[test]
 fn parses_release_check_command() {
     let request = parse_args_from(
         PathBuf::from("/repo"),

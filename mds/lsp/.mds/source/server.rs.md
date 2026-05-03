@@ -43,8 +43,13 @@ impl MdsLanguageServer {
             state: Default::default(),
         }
     }
+}
+````
 
-    /// Reindex all packages in the workspace.
+Reindex all packages in the workspace.
+
+````rs
+impl MdsLanguageServer {
     pub async fn reindex_workspace(&self) {
         let mut state = self.state.write().await;
         state.packages.clear();
@@ -66,8 +71,13 @@ impl MdsLanguageServer {
         }
         info!("indexed {} packages", state.packages.len());
     }
+}
+````
 
-    /// Check if a path is within any known mds authoring root.
+Check if a path is within any known mds authoring root.
+
+````rs
+impl MdsLanguageServer {
     async fn is_in_authoring_root(&self, path: &std::path::Path) -> bool {
         let state = self.state.read().await;
         for pkg_state in &state.packages {
@@ -79,8 +89,13 @@ impl MdsLanguageServer {
         }
         false
     }
+}
+````
 
-    /// Validate a single document and publish diagnostics.
+Validate a single document and publish diagnostics.
+
+````rs
+impl MdsLanguageServer {
     pub async fn validate_document(&self, uri: &Url, text: &str) {
         let path = match uri.to_file_path() {
             Ok(p) => p,
@@ -110,8 +125,9 @@ impl MdsLanguageServer {
     }
 }
 
-/// Build a workspace index for a single package.
 ````
+
+Build a workspace index for a single package.
 
 ````rs
 fn build_workspace_index(package: &mds_core::Package) -> WorkspaceIndex {

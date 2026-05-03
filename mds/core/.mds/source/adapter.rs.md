@@ -19,10 +19,9 @@ use crate::descriptor;
 use crate::model::{ImplDoc, OutputKind};
 ````
 
-````rs
-/// Compute the output file path relative to the selected output root.
-/// Resolves through the built-in language descriptor.
+Compute the output file path relative to the selected output root. Resolves through the built-in language descriptor.
 
+````rs
 pub(crate) fn output_relative_path(doc: &ImplDoc, kind: OutputKind) -> std::path::PathBuf {
     descriptor::output_relative_path(&doc.markdown_relative_path, &doc.lang, kind)
 }

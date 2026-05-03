@@ -285,10 +285,9 @@ fn logical_module_id(path: &Path) -> String {
         value.to_string()
     }
 }
-
-/// Extract all code blocks from the entire markdown content.
-/// Code blocks are separated by `\n\n` in the output.
 ````
+
+Extract all code blocks from the entire markdown content. Code blocks are separated by `\n\n` in the output.
 
 ````rs
 fn validate_impl_doc_structure(

@@ -23,7 +23,11 @@ fn main() {
     generate_template_registry(&out_dir);
     generate_descriptor_registry(&out_dir);
 }
+````
 
+Generate the template registry emitted into Cargo `OUT_DIR`.
+
+````rs
 fn generate_template_registry(out_dir: &Path) {
     let templates_dir = Path::new("src/init/templates");
     let dest_path = out_dir.join("template_registry.rs");
@@ -123,7 +127,11 @@ fn generate_template_registry(out_dir: &Path) {
 
     fs::write(&dest_path, code).unwrap();
 }
+````
 
+Generate the built-in descriptor registry emitted into Cargo `OUT_DIR`.
+
+````rs
 fn generate_descriptor_registry(out_dir: &Path) {
     let descriptors_dir = Path::new("src/descriptors");
     let dest_path = out_dir.join("descriptor_registry.rs");
@@ -149,14 +157,22 @@ fn generate_descriptor_registry(out_dir: &Path) {
     code.push_str("];\n");
     fs::write(&dest_path, code).unwrap();
 }
+````
 
+Collect files with a given extension under a root directory.
+
+````rs
 fn collect_files_with_extension(root: &Path, extension: &str) -> Vec<PathBuf> {
     let mut files = Vec::new();
     collect_files_with_extension_into(root, extension, &mut files);
     files.sort();
     files
 }
+````
 
+Recursively collect files with a given extension into an output vector.
+
+````rs
 fn collect_files_with_extension_into(root: &Path, extension: &str, files: &mut Vec<PathBuf>) {
     let Ok(entries) = fs::read_dir(root) else {
         return;

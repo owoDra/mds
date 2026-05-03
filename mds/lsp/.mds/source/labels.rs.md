@@ -15,9 +15,9 @@ Migrated implementation source for `src/labels.rs`.
 use mds_core::model::Config;
 ````
 
-````rs
-/// Resolve a canonical label key to its display form using label overrides.
+Resolve a canonical label key to its display form using label overrides.
 
+````rs
 pub fn resolve_label(key: &str, config: &Config) -> String {
     if let Some(override_label) = config.label_overrides.get(key) {
         return override_label.clone();

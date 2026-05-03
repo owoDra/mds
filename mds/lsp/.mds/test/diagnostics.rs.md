@@ -27,11 +27,10 @@ use mds_lsp::capabilities::diagnostics;
 fn fixture_path(name: &str) -> PathBuf {
     PathBuf::from(format!("/tmp/mds-test/{name}"))
 }
-
-#[test]
 ````
 
 ````rs
+#[test]
 fn test_valid_impl_md_no_diagnostics_for_minimal() {
     let text = r#"## Purpose
 
@@ -87,11 +86,10 @@ test("it works", () => {});
     let diags = diagnostics::validate_impl_md_text(&path, text, &config);
     assert!(diags.is_empty(), "expected no diagnostics, got: {diags:?}");
 }
-
-#[test]
 ````
 
 ````rs
+#[test]
 fn test_missing_sections() {
     // With the new format, the only requirement is at least one code block
     let text = r#"## Purpose
@@ -109,11 +107,10 @@ A module with no code blocks.
         "should report missing code block: {messages:?}"
     );
 }
-
-#[test]
 ````
 
 ````rs
+#[test]
 fn test_heading_depth_violation() {
     // H5+ is no longer an error in the new format
     let text = r#"## Purpose
@@ -140,22 +137,20 @@ function main() {}
         "should not report deep heading: {messages:?}"
     );
 }
-
-#[test]
 ````
 
 ````rs
+#[test]
 fn test_config_validation_invalid_toml() {
     let text = "this is not valid toml [[[";
     let path = fixture_path("mds.config.toml");
     let diags = diagnostics::validate_config_text(&path, text);
     assert!(!diags.is_empty(), "should report TOML parse error");
 }
-
-#[test]
 ````
 
 ````rs
+#[test]
 fn test_package_index_missing_sections() {
     let text = r#"## Package
 
@@ -178,11 +173,10 @@ fn test_package_index_missing_sections() {
         "should report missing Rules: {messages:?}"
     );
 }
-
-#[test]
 ````
 
 ````rs
+#[test]
 fn test_code_block_language_mismatch_warning() {
     let text = r#"## Purpose
 
@@ -232,11 +226,10 @@ def test_it(): assert True
         "should warn about language mismatch: {warnings:?}"
     );
 }
-
-#[test]
 ````
 
 ````rs
+#[test]
 fn test_empty_document_diagnostics() {
     let text = "";
     let path = fixture_path("empty.ts.md");
@@ -252,11 +245,10 @@ fn test_empty_document_diagnostics() {
         "should mention code block requirement: {diags:?}"
     );
 }
-
-#[test]
 ````
 
 ````rs
+#[test]
 fn test_valid_config_no_diagnostics() {
     // Write a valid config to a temp file
     let dir = tempfile::tempdir().unwrap();
@@ -282,11 +274,10 @@ fn test_valid_config_no_diagnostics() {
         "valid TOML should not have parse errors: {toml_errors:?}"
     );
 }
-
-#[test]
 ````
 
 ````rs
+#[test]
 fn test_package_index_full_valid() {
     let text = r#"## Package
 

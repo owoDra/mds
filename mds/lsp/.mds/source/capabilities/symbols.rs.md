@@ -17,10 +17,9 @@ use tower_lsp::lsp_types::*;
 use crate::state::WorkspaceState;
 ````
 
+Extract document symbols, or section headings, from mds Markdown. Returns `SymbolInformation` with placeholder URIs, and callers replace those URIs with the actual document URI.
+
 ````rs
-/// Extract document symbols (section headings) from mds Markdown.
-/// Returns SymbolInformation with placeholder URIs; callers should replace
-/// URIs with the actual document URI.
 #[allow(deprecated)]
 pub fn document_symbols(text: &str) -> Vec<SymbolInformation> {
     let mut symbols = Vec::new();
@@ -86,7 +85,11 @@ pub fn document_symbols(text: &str) -> Vec<SymbolInformation> {
     symbols
 }
 
-/// Search workspace symbols (expose names) matching a query.
+````
+
+Search workspace symbols, or expose names, that match a query.
+
+````rs
 #[allow(deprecated)]
 pub fn workspace_symbols(query: &str, state: &WorkspaceState) -> Vec<SymbolInformation> {
     let mut symbols = Vec::new();

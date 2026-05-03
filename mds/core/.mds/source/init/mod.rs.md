@@ -492,9 +492,9 @@ fn ai_target_files(
         })
         .collect()
 }
-
-/// Replace {{PLACEHOLDER}} tokens in skill templates with the chosen preset labels.
 ````
+
+Replace `{{PLACEHOLDER}}` tokens in skill templates with the chosen preset labels.
 
 ````rs
 fn apply_label_preset(content: &str, preset: LabelPreset) -> String {

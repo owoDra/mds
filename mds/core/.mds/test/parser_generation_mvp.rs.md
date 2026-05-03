@@ -52,9 +52,6 @@ static TEMP_COUNTER: AtomicUsize = AtomicUsize::new(0);
 
 ````rs
 #[test]
-````
-
-````rs
 fn builds_three_language_fixture() {
     let temp = TestDir::new();
     write_fixture(temp.path());
@@ -163,9 +160,6 @@ source_body = '''
 
 ````rs
 #[test]
-````
-
-````rs
 fn merges_root_and_package_config() {
     let temp = TestDir::new();
     write_fixture(temp.path());
@@ -190,9 +184,6 @@ fn merges_root_and_package_config() {
 
 ````rs
 #[test]
-````
-
-````rs
 fn package_metadata_dependencies_do_not_require_markdown_mirror() {
     let temp = TestDir::new();
     write_fixture(temp.path());
@@ -222,9 +213,6 @@ fn package_metadata_dependencies_do_not_require_markdown_mirror() {
 
 ````rs
 #[test]
-````
-
-````rs
 fn package_sync_skips_markdown_package_metadata() {
     let temp = TestDir::new();
     write_fixture(temp.path());
@@ -261,9 +249,6 @@ fn package_sync_skips_markdown_package_metadata() {
 
 ````rs
 #[test]
-````
-
-````rs
 fn reports_unsupported_config_key_as_warning() {
     let temp = TestDir::new();
     write_fixture(temp.path());
@@ -434,9 +419,6 @@ fn package_check_uses_language_metadata_without_markdown_mirror() {
 
 ````rs
 #[test]
-````
-
-````rs
 fn rejects_broken_manifest_before_building() {
     let temp = TestDir::new();
     write_fixture(temp.path());
@@ -553,9 +535,6 @@ fn rejects_test_doc_without_covers() {
 
 ````rs
 #[test]
-````
-
-````rs
 fn lint_fix_check_reports_diff_without_writing_and_fix_writes_code_blocks_only() {
     let temp = TestDir::new();
     write_fixture(temp.path());
@@ -607,9 +586,6 @@ fn lint_fix_check_reports_diff_without_writing_and_fix_writes_code_blocks_only()
 
 ````rs
 #[test]
-````
-
-````rs
 fn lint_and_test_use_configured_toolchain_commands() {
     let temp = TestDir::new();
     write_fixture(temp.path());
@@ -653,9 +629,6 @@ fn lint_and_test_use_configured_toolchain_commands() {
 
 ````rs
 #[test]
-````
-
-````rs
 fn lint_reports_markdown_path_and_preserved_line_numbers() {
     let temp = TestDir::new();
     write_fixture(temp.path());
@@ -692,9 +665,6 @@ fn lint_reports_markdown_path_and_preserved_line_numbers() {
 
 ````rs
 #[test]
-````
-
-````rs
 fn lint_reports_environment_missing_as_exit_code_four() {
     let temp = TestDir::new();
     write_fixture(temp.path());
@@ -720,9 +690,6 @@ fn lint_reports_environment_missing_as_exit_code_four() {
 
 ````rs
 #[test]
-````
-
-````rs
 fn doctor_outputs_json_and_uses_exit_code_four_for_missing_required_tools() {
     let temp = TestDir::new();
     write_fixture(temp.path());
@@ -748,9 +715,6 @@ fn doctor_outputs_json_and_uses_exit_code_four_for_missing_required_tools() {
 
 ````rs
 #[test]
-````
-
-````rs
 fn doctor_rejects_runtime_versions_below_minimum() {
     let temp = TestDir::new();
     write_fixture(temp.path());
@@ -779,9 +743,6 @@ fn doctor_rejects_runtime_versions_below_minimum() {
 
 ````rs
 #[test]
-````
-
-````rs
 fn exclude_skips_markdown_discovery_and_generation_outputs() {
     let temp = TestDir::new();
     write_fixture(temp.path());
@@ -807,9 +768,6 @@ fn exclude_skips_markdown_discovery_and_generation_outputs() {
 
 ````rs
 #[test]
-````
-
-````rs
 fn label_overrides_preserve_canonical_table_and_section_meaning() {
     let temp = TestDir::new();
     write_fixture(temp.path());
@@ -840,9 +798,6 @@ fn label_overrides_preserve_canonical_table_and_section_meaning() {
 
 ````rs
 #[test]
-````
-
-````rs
 fn validates_local_markdown_links() {
     let temp = TestDir::new();
     write_fixture(temp.path());
@@ -865,9 +820,6 @@ fn validates_local_markdown_links() {
 
 ````rs
 #[test]
-````
-
-````rs
 fn table_parser_keeps_pipes_inside_code_spans() {
     let temp = TestDir::new();
     write_fixture(temp.path());
@@ -893,9 +845,6 @@ fn table_parser_keeps_pipes_inside_code_spans() {
 
 ````rs
 #[test]
-````
-
-````rs
 fn metadata_parser_accepts_common_json_toml_dependency_shapes() {
     let temp = TestDir::new();
     write_fixture(temp.path());
@@ -954,9 +903,6 @@ fn metadata_parser_accepts_common_json_toml_dependency_shapes() {
 
 ````rs
 #[test]
-````
-
-````rs
 fn package_sync_requires_source_overview() {
     let temp = TestDir::new();
     write_fixture(temp.path());
@@ -1012,9 +958,6 @@ fn check_and_build_reject_stale_dependency_snapshot() {
 
 ````rs
 #[test]
-````
-
-````rs
 fn package_sync_hook_enabled_uses_default_sync_command() {
     let temp = TestDir::new();
     write_fixture(temp.path());
@@ -1039,9 +982,6 @@ fn package_sync_hook_enabled_uses_default_sync_command() {
 
 ````rs
 #[test]
-````
-
-````rs
 fn lint_fix_updates_successful_quality_blocks_only() {
     let temp = TestDir::new();
     write_fixture(temp.path());
@@ -1084,9 +1024,6 @@ fn lint_fix_updates_successful_quality_blocks_only() {
 
 ````rs
 #[test]
-````
-
-````rs
 fn refuses_to_overwrite_unmanaged_file() {
     let temp = TestDir::new();
     write_fixture(temp.path());
@@ -1112,9 +1049,6 @@ fn refuses_to_overwrite_unmanaged_file() {
 
 ````rs
 #[test]
-````
-
-````rs
 fn init_ai_plan_does_not_write_without_yes() {
     let temp = TestDir::new();
     let result = execute(CliRequest {
@@ -1139,9 +1073,6 @@ fn init_ai_plan_does_not_write_without_yes() {
 
 ````rs
 #[test]
-````
-
-````rs
 fn init_generates_selected_ai_agent_kit_and_project_skeleton() {
     let temp = TestDir::new();
     let result = execute(CliRequest {
@@ -1181,9 +1112,6 @@ fn init_generates_selected_ai_agent_kit_and_project_skeleton() {
 
 ````rs
 #[test]
-````
-
-````rs
 fn init_writes_selected_quality_tool_config() {
     let temp = TestDir::new();
     let result = execute(CliRequest {
@@ -1223,9 +1151,6 @@ fn init_writes_selected_quality_tool_config() {
 
 ````rs
 #[test]
-````
-
-````rs
 fn init_writes_custom_quality_commands() {
     let temp = TestDir::new();
     let result = execute(CliRequest {
@@ -1257,9 +1182,6 @@ fn init_writes_custom_quality_commands() {
 
 ````rs
 #[test]
-````
-
-````rs
 fn init_generates_ai_categories_per_target() {
     let temp = TestDir::new();
     let result = execute(CliRequest {
@@ -1295,9 +1217,6 @@ fn init_generates_ai_categories_per_target() {
 
 ````rs
 #[test]
-````
-
-````rs
 fn init_can_disable_language_quality_tools() {
     let temp = TestDir::new();
     let result = execute(CliRequest {
@@ -1332,9 +1251,6 @@ fn init_can_disable_language_quality_tools() {
 
 ````rs
 #[test]
-````
-
-````rs
 fn init_setup_plan_uses_selected_quality_tools() {
     let temp = TestDir::new();
     let result = execute(CliRequest {
@@ -1366,9 +1282,6 @@ fn init_setup_plan_uses_selected_quality_tools() {
 
 ````rs
 #[test]
-````
-
-````rs
 fn init_refuses_nonmanaged_overwrite_without_force() {
     let temp = TestDir::new();
     fs::create_dir_all(temp.path().join(".claude/rules")).unwrap();
@@ -1398,9 +1311,6 @@ fn init_refuses_nonmanaged_overwrite_without_force() {
 
 ````rs
 #[test]
-````
-
-````rs
 fn init_reports_setup_partial_failures() {
     let temp = TestDir::new();
     let result = execute(CliRequest {
@@ -1508,9 +1418,6 @@ fn new_uses_descriptor_scaffold_for_vue_source_docs() {
 
 ````rs
 #[test]
-````
-
-````rs
 fn release_quality_gate_requires_supply_chain_artifacts() {
     let temp = TestDir::new();
     fs::create_dir_all(temp.path().join("dist")).unwrap();

@@ -22,8 +22,9 @@ use crate::convert::{line_at, table_cell_at_position, word_at_position};
 use crate::state::WorkspaceState;
 ````
 
+Resolve Uses table targets to their source markdown files for Go to Definition.
+
 ````rs
-/// Go to Definition: resolve Uses table targets to their source markdown files.
 pub fn goto_definition(
     text: &str,
     position: Position,
@@ -100,7 +101,11 @@ pub fn goto_definition(
     None
 }
 
-/// Find References: find all files that reference this module (by import path or file name).
+````
+
+Find References by locating files that reference this module by import path or file name.
+
+````rs
 pub fn find_references(
     text: &str,
     position: Position,

@@ -20,8 +20,9 @@ use mds_core::{Diagnostic, Severity};
 use tower_lsp::lsp_types;
 ````
 
+Convert an mds-core Diagnostic to an LSP Diagnostic.
+
 ````rs
-/// Convert an mds-core Diagnostic to an LSP Diagnostic.
 pub fn to_lsp_diagnostic(diag: &Diagnostic) -> lsp_types::Diagnostic {
     let severity = match diag.severity {
         Severity::Error => lsp_types::DiagnosticSeverity::ERROR,
@@ -43,7 +44,11 @@ pub fn to_lsp_diagnostic(diag: &Diagnostic) -> lsp_types::Diagnostic {
     }
 }
 
-/// Convert a line number (1-based) to an LSP Range covering the full line.
+````
+
+Convert a line number (1-based) to an LSP Range covering the full line.
+
+````rs
 pub fn line_range(line_1based: usize) -> lsp_types::Range {
     let line = line_1based.saturating_sub(1) as u32;
     lsp_types::Range {
@@ -52,12 +57,20 @@ pub fn line_range(line_1based: usize) -> lsp_types::Range {
     }
 }
 
-/// Get the line at a given position from text.
+````
+
+Get the line at a given position from text.
+
+````rs
 pub fn line_at(text: &str, line: u32) -> Option<&str> {
     text.lines().nth(line as usize)
 }
 
-/// Get the word at a given position in text.
+````
+
+Get the word at a given position in text.
+
+````rs
 pub fn word_at_position(text: &str, position: lsp_types::Position) -> Option<String> {
     let line_text = line_at(text, position.line)?;
     let col = position.character as usize;
@@ -88,8 +101,11 @@ pub fn word_at_position(text: &str, position: lsp_types::Position) -> Option<Str
 fn is_word_char(b: u8) -> bool {
     b.is_ascii_alphanumeric() || b == b'_' || b == b'-' || b == b'/' || b == b'.'
 }
+````
 
-/// Extract the table cell content at a given position (within a `| ... |` table row).
+Extract the table cell content at a given position within a `| ... |` table row.
+
+````rs
 pub fn table_cell_at_position(text: &str, position: lsp_types::Position) -> Option<String> {
     let line_text = line_at(text, position.line)?;
     if !line_text.trim_start().starts_with('|') {
