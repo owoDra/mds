@@ -2,7 +2,7 @@
 status: 採用
 related:
   - docs/project/requirements/REQ-adapter-required-language-adapters.md
-  - docs/project/specs/shared/SPEC-md-state-quality-operations.md
+  - mds/core/.mds/source/quality.rs.md
 ---
 
 # Adapter 境界
@@ -48,5 +48,6 @@ related:
 ## 関連資料
 
 - `../requirements/REQ-adapter-required-language-adapters.md`
-- `../specs/shared/SPEC-md-state-quality-operations.md`
+- `../../../mds/core/.mds/source/descriptor.rs.md`
+- `../../../mds/core/.mds/source/quality.rs.md`
 - `../architecture.md`

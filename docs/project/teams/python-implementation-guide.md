@@ -22,12 +22,12 @@ Python implementation team は、Python 生成規則、uv / Pytest / Ruff 導線
 - Parser + 生成 MVP の Python 既定 pattern は、`src-md/pkg/foo.py.md` から Source `src/pkg/foo.py`、Types `src/pkg/foo.pyi`、Test `tests/pkg/test_foo.py` を生成する。
 - `internal` import は生成先 source root からの absolute package import として生成する。
 - Python の `Types` は MVP では `.pyi` stub として扱う。
-- default import / alias 相当の拡張は MVP 外であり、実装前に spec を追加する。
+- default import / alias 相当の拡張は current package overview / implementation md / proposal で扱うまでは対象外とみなす。
 
 ## 関連資料
 
 - `../architecture.md`
 - `../patterns/impl-adapter-boundary.md`
-- `../specs/shared/SPEC-adapter-python-generation.md`
-- `../specs/shared/SPEC-parser-generation-mvp-phase.md`
+- `../../../mds/core/.mds/source/descriptors/py.toml`
+- `../../../mds/core/.mds/source/overview.md`
 - `../validation.md`

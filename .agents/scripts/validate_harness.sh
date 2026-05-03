@@ -94,6 +94,8 @@ find_workspace_markdown_files() {
       -name .cache -o \
       -name .pnpm-store -o \
       -name .yarn -o \
+      -name .build -o \
+      -name .backup -o \
       -name venv -o \
       -name .venv \
     \) -prune -o \
@@ -382,7 +384,16 @@ check_markdown_links() {
       if [[ ! -e "$resolved" ]]; then
         log_error "broken markdown link in $file -> $target"
       fi
-    done < <(grep -oE '\[[^]]+\]\(([^)]+)\)' "$file" || true)
+    done < <(
+      awk '
+        BEGIN { in_fence = 0 }
+        /^```/ || /^````/ {
+          in_fence = !in_fence
+          next
+        }
+        !in_fence { print }
+      ' "$file" | grep -oE '\[[^]]+\]\(([^)]+)\)' || true
+    )
   done < <(find_workspace_markdown_files)
 }
 

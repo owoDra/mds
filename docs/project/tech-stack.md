@@ -25,3 +25,10 @@
 | Ruff / Black / Pytest / unittest | Python lint / format / test 接続候補 | 最新安定系列 | tbd |
 | Claude Code / Codex CLI / Opencode / GitHub Copilot CLI | AI agent kit 生成対象 CLI | 各 CLI の最新安定系列 | `adr/active/ADR-006-ai-agent-init-and-dev-setup.md` |
 | SBOM / provenance / artifact signing | 全配布経路の公開前品質 gate | format / provider は release 実装時に固定 | `adr/active/ADR-006-ai-agent-init-and-dev-setup.md` |
+
+## 配布と最低対応バージョン
+
+- mds の現行配布面は Cargo crate、native binary、VS Code extension package の 3 系統です。
+- bootstrap の公式経路は `npx`、Cargo、`uvx` です。
+- runtime と toolchain の最低対応は Rust 1.86+、Node.js 24+、Python 3.13+ を基準にします。
+- release 前品質 gate は `release.mds.toml` と `mds release check` を基準にし、checksum、signature、SBOM、provenance、install smoke test の欠落を許容しません。

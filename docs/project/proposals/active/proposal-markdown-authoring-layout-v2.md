@@ -148,14 +148,14 @@ self-hosted 移行では特に次の問題が目立った。
   - `docs/project/requirements/REQ-generation-code-output-rules.md`
   - `docs/project/requirements/REQ-quality-md-state-validation.md`
   - `docs/project/requirements/REQ-ai-agent-cli-initialization.md`
-- spec:
-  - `docs/project/specs/shared/SPEC-markdown-document-model.md`
-  - `docs/project/specs/shared/SPEC-config-toml-resolution.md`
-  - `docs/project/specs/shared/SPEC-cli-commands.md`
-  - `docs/project/specs/shared/SPEC-package-sync.md`
-  - `docs/project/specs/shared/SPEC-adapter-typescript-generation.md`
-  - `docs/project/specs/shared/SPEC-adapter-python-generation.md`
-  - `docs/project/specs/shared/SPEC-adapter-rust-generation.md`
+- implementation / overview:
+  - `../../../../mds/core/.mds/source/overview.md`
+  - `../../../../mds/core/.mds/source/config.rs.md`
+  - `../../../../mds/core/.mds/source/package_sync.rs.md`
+  - `../../../../mds/core/.mds/source/descriptors/ts.toml`
+  - `../../../../mds/core/.mds/source/descriptors/py.toml`
+  - `../../../../mds/core/.mds/source/descriptors/rs.toml`
+  - `../../../../mds/cli/.mds/source/overview.md`
 - validation:
   - `docs/project/validation.md`
 - adr:
@@ -165,8 +165,8 @@ self-hosted 移行では特に次の問題が目立った。
 
 - `../../architecture.md`
 - `../../requirements/REQ-doc-model-markdown-document-types.md`
-- `../../specs/shared/SPEC-markdown-document-model.md`
-- `../../specs/shared/SPEC-config-toml-resolution.md`
-- `../../specs/shared/SPEC-cli-commands.md`
-- `../../specs/shared/SPEC-package-sync.md`
+- `../../../../mds/core/.mds/source/overview.md`
+- `../../../../mds/core/.mds/source/config.rs.md`
+- `../../../../mds/core/.mds/source/package_sync.rs.md`
+- `../../../../mds/cli/.mds/source/overview.md`
 - `../../validation.md`

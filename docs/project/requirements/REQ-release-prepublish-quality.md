@@ -3,7 +3,7 @@ id: REQ-release-prepublish-quality
 status: 採用
 related:
   - docs/project/requirements/REQ-platform-multi-ecosystem-distribution.md
-  - docs/project/specs/shared/SPEC-release-prepublish-quality.md
+  - mds/core/.mds/source/release_quality.rs.md
 ---
 
 # 公開前品質
@@ -44,6 +44,6 @@ mds は native CLI と editor extension として配布されるため、利用�
 ## 関連資料
 
 - `REQ-platform-multi-ecosystem-distribution.md`
-- `../specs/shared/SPEC-release-prepublish-quality.md`
-- `../specs/shared/SPEC-distribution-and-versions.md`
+- `../../../mds/core/.mds/source/release_quality.rs.md`
+- `../tech-stack.md`
 - `../adr/active/ADR-006-ai-agent-init-and-dev-setup.md`

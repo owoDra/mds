@@ -3,7 +3,7 @@ id: REQ-ai-agent-cli-initialization
 status: 採用
 related:
   - docs/project/architecture.md
-  - docs/project/specs/shared/SPEC-ai-agent-cli-initialization.md
+  - mds/core/.mds/source/init/mod.rs.md
 ---
 
 # AI Agent CLI 初期化
@@ -47,5 +47,6 @@ mds は Markdown を設計書兼ソースの正本として扱い、人間と AI
 ## 関連資料
 
 - `../architecture.md`
-- `../specs/shared/SPEC-ai-agent-cli-initialization.md`
+- `../../../mds/core/.mds/source/init/mod.rs.md`
+- `../../../mds/cli/.mds/source/overview.md`
 - `../adr/active/ADR-006-ai-agent-init-and-dev-setup.md`

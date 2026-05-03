@@ -3,7 +3,7 @@ id: ADR-002-toml-only-config
 status: 採用
 related:
   - docs/project/requirements/REQ-config-toml-fixed-config.md
-  - docs/project/specs/shared/SPEC-config-toml-resolution.md
+  - mds/core/.mds/source/config.rs.md
 ---
 
 # 設定ファイルを mds.config.toml に固定する
@@ -29,5 +29,5 @@ mds は Node、Rust、Python のエコシステムを横断して利用される
 ## 関連資料
 
 - `../../requirements/REQ-config-toml-fixed-config.md`
-- `../../specs/shared/SPEC-config-toml-resolution.md`
+- `../../../../mds/core/.mds/source/config.rs.md`
 - `../../tech-stack.md`

@@ -3,7 +3,7 @@
 # This file defines the artifacts, checksums, and supply-chain metadata
 # required by `mds release check` before publishing.
 #
-# See: docs/project/specs/shared/SPEC-release-prepublish-quality.md
+# See: mds/core/.mds/source/release_quality.rs.md and docs/project/tech-stack.md
 #
 # Usage:
 #   mds release check --manifest release.mds.toml --verbose

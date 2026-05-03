@@ -48,6 +48,6 @@ mds は人間と AI エージェントが同じ Markdown 正本を参照する�
 - `../../requirements/REQ-ai-agent-cli-initialization.md`
 - `../../requirements/REQ-init-development-environment-setup.md`
 - `../../requirements/REQ-release-prepublish-quality.md`
-- `../../specs/shared/SPEC-ai-agent-cli-initialization.md`
-- `../../specs/shared/SPEC-init-development-environment-setup.md`
-- `../../specs/shared/SPEC-release-prepublish-quality.md`
+- `../../../../mds/core/.mds/source/init/mod.rs.md`
+- `../../../../mds/cli/.mds/source/overview.md`
+- `../../../../mds/core/.mds/source/release_quality.rs.md`

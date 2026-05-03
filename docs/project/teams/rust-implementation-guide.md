@@ -36,7 +36,7 @@ Rust implementation team は、`mds/core/src-md`、`mds/cli/src-md`、`mds/lsp/s
 - `../architecture.md`
 - `../tech-stack.md`
 - `../patterns/impl-adapter-boundary.md`
-- `../specs/shared/SPEC-parser-generation-mvp-phase.md`
+- `../../../mds/core/.mds/source/overview.md`
 - `../validation.md`
 - Rust Book: Control Scope and Privacy with Modules
 - Cargo Book: Package Layout
