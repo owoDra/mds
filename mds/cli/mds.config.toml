@@ -14,6 +14,6 @@ excludes = []
 [quality.rs]
 linter = "cargo clippy -- -D warnings"
 fixer = "cargo fmt"
-test_runner = "cargo test"
+test_runner = "cargo test --lib"
 required = ["rustc", "cargo", "rustfmt"]
 optional = ["clippy-driver"]

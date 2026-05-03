@@ -11,23 +11,32 @@ Migrated implementation source for `src/runner.rs`.
 
 ## Imports
 
-| Kind | From | Target | Symbols | Via | Summary | Code |
-| --- | --- | --- | --- | --- | --- | --- |
-| rust-use | builtin | std | fs | std |  | `use std::fs;` |
-| rust-use | builtin | std::path | Path | std |  | `use std::path::Path;` |
-| rust-use | internal | crate::descriptor | set_workspace_descriptor_root | crate |  | `use crate::descriptor::set_workspace_descriptor_root;` |
-| rust-use | internal | crate::diagnostics | Diagnostic, RunState | crate |  | `use crate::diagnostics::{Diagnostic, RunState};` |
-| rust-use | internal | crate::diff | render_dry_run, write_generated | crate |  | `use crate::diff::{render_dry_run, write_generated};` |
-| rust-use | internal | crate::doctor | run_doctor | crate |  | `use crate::doctor::run_doctor;` |
-| rust-use | internal | crate::generation | plan_generation | crate |  | `use crate::generation::plan_generation;` |
-| rust-use | internal | crate::init | run_init | crate |  | `use crate::init::run_init;` |
-| rust-use | internal | crate::manifest | validate_manifest | crate |  | `use crate::manifest::validate_manifest;` |
-| rust-use | internal | crate::markdown | load_implementation_docs | crate |  | `use crate::markdown::load_implementation_docs;` |
-| rust-use | internal | crate::model | BuildMode, CliRequest, CliResult, Command, Package | crate |  | `use crate::model::{BuildMode, CliRequest, CliResult, Command, Package};` |
-| rust-use | internal | crate::new | run_new | crate |  | `use crate::new::run_new;` |
-| rust-use | internal | crate::package | discover_packages, validate_index_docs, validate_package_md | crate |  | `use crate::package::{discover_packages, validate_index_docs, validate_package_md};` |
-| rust-use | internal | crate::package_sync | sync_package_md | crate |  | `use crate::package_sync::sync_package_md;` |
-| rust-use | internal | crate::quality | run_quality, QualityOperation | crate |  | `use crate::quality::{run_quality, QualityOperation};` |
+| From | Target | Symbols | Via | Summary | Reference |
+| --- | --- | --- | --- | --- | --- |
+| builtin | std | fs | - | - | - |
+| builtin | std::path | Path | - | - | - |
+| internal | crate::descriptor | set_workspace_descriptor_root | - | - | [descriptor.rs.md#source](descriptor.rs.md#source) |
+| internal | crate::diagnostics | Diagnostic | - | - | [diagnostics.rs.md#source](diagnostics.rs.md#source) |
+| internal | crate::diagnostics | RunState | - | - | [diagnostics.rs.md#source](diagnostics.rs.md#source) |
+| internal | crate::diff | render_dry_run | - | - | [diff.rs.md#source](diff.rs.md#source) |
+| internal | crate::diff | write_generated | - | - | [diff.rs.md#source](diff.rs.md#source) |
+| internal | crate::doctor | run_doctor | - | - | [doctor.rs.md#source](doctor.rs.md#source) |
+| internal | crate::generation | plan_generation | - | - | [generation.rs.md#source](generation.rs.md#source) |
+| internal | crate::init | run_init | - | - | [init/mod.rs.md#source](init/mod.rs.md#source) |
+| internal | crate::manifest | validate_manifest | - | - | [manifest.rs.md#source](manifest.rs.md#source) |
+| internal | crate::markdown | load_implementation_docs | - | - | [markdown.rs.md#source](markdown.rs.md#source) |
+| internal | crate::model | BuildMode | - | - | [model.rs.md#source](model.rs.md#source) |
+| internal | crate::model | CliRequest | - | - | [model.rs.md#source](model.rs.md#source) |
+| internal | crate::model | CliResult | - | - | [model.rs.md#source](model.rs.md#source) |
+| internal | crate::model | Command | - | - | [model.rs.md#source](model.rs.md#source) |
+| internal | crate::model | Package | - | - | [model.rs.md#source](model.rs.md#source) |
+| internal | crate::new | run_new | - | - | [new.rs.md#source](new.rs.md#source) |
+| internal | crate::package | discover_packages | - | - | [package.rs.md#source](package.rs.md#source) |
+| internal | crate::package | validate_index_docs | - | - | [package.rs.md#source](package.rs.md#source) |
+| internal | crate::package | validate_package_md | - | - | [package.rs.md#source](package.rs.md#source) |
+| internal | crate::package_sync | sync_package_md | - | - | [package_sync.rs.md#source](package_sync.rs.md#source) |
+| internal | crate::quality | run_quality | - | - | [quality.rs.md#source](quality.rs.md#source) |
+| internal | crate::quality | QualityOperation | - | - | [quality.rs.md#source](quality.rs.md#source) |
 
 
 ## Source

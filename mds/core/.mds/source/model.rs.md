@@ -11,10 +11,11 @@ Migrated implementation source for `src/model.rs`.
 
 ## Imports
 
-| Kind | From | Target | Symbols | Via | Summary | Code |
-| --- | --- | --- | --- | --- | --- | --- |
-| rust-use | builtin | std::collections | HashMap | std |  | `use std::collections::HashMap;` |
-| rust-use | builtin | std::path | Path, PathBuf | std |  | `use std::path::{Path, PathBuf};` |
+| From | Target | Symbols | Via | Summary | Reference |
+| --- | --- | --- | --- | --- | --- |
+| builtin | std::collections | HashMap | - | - | - |
+| builtin | std::path | Path | - | - | - |
+| builtin | std::path | PathBuf | - | - | - |
 
 
 ## Source
@@ -139,13 +140,19 @@ impl LabelPreset {
                 ("source", "実装"),
                 ("cases", "ケース"),
                 ("test", "テスト"),
+                ("covers", "対象確認"),
+                ("imports", "依存"),
+                ("exports", "公開"),
                 ("expose", "公開"),
                 ("exposes", "公開面"),
                 ("from", "取得元"),
                 ("target", "対象"),
+                ("symbols", "識別子"),
+                ("via", "経由"),
                 ("summary", "概要"),
-                ("kind", "種別"),
                 ("name", "名前"),
+                ("visibility", "公開範囲"),
+                ("reference", "参照"),
                 ("version", "バージョン"),
             ],
         }

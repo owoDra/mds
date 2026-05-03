@@ -11,18 +11,25 @@ Migrated implementation source for `src/init/mod.rs`.
 
 ## Imports
 
-| Kind | From | Target | Symbols | Via | Summary | Code |
-| --- | --- | --- | --- | --- | --- | --- |
-| rust-use | builtin | std | fs | std |  | `use std::fs;` |
-| rust-use | builtin | std::path | Path, PathBuf | std |  | `use std::path::{Path, PathBuf};` |
-| rust-use | builtin | std::process | Command as ProcessCommand | std |  | `use std::process::Command as ProcessCommand;` |
-| rust-use | internal | crate | descriptor | crate |  | `use crate::descriptor;` |
-| rust-use | internal | crate::diagnostics | Diagnostic, RunState | crate |  | `use crate::diagnostics::{Diagnostic, RunState};` |
-| rust-use | internal | crate::fs_utils | is_mds_managed_file | crate |  | `use crate::fs_utils::is_mds_managed_file;` |
-| rust-use | internal | crate::model | { | crate |  | `use crate::model::{` |
-| import | external |  |  |  |  | `AgentKitCategory, AiTarget, InitOptions, InitQualityCommands, LabelPreset, Lang, PythonTool,` |
-| import | external |  |  |  |  | `RustTool, TypeScriptTool,` |
-| import | external |  |  |  |  | `};` |
+| From | Target | Symbols | Via | Summary | Reference |
+| --- | --- | --- | --- | --- | --- |
+| builtin | std | fs | - | - | - |
+| builtin | std::path | Path | - | - | - |
+| builtin | std::path | PathBuf | - | - | - |
+| builtin | std::process | Command as ProcessCommand | - | - | - |
+| internal | crate | descriptor | - | - | [../descriptor.rs.md#source](../descriptor.rs.md#source) |
+| internal | crate::diagnostics | Diagnostic | - | - | [../diagnostics.rs.md#source](../diagnostics.rs.md#source) |
+| internal | crate::diagnostics | RunState | - | - | [../diagnostics.rs.md#source](../diagnostics.rs.md#source) |
+| internal | crate::fs_utils | is_mds_managed_file | - | - | [../fs_utils.rs.md#source](../fs_utils.rs.md#source) |
+| external | crate::model | AgentKitCategory | - | - | - |
+| external | crate::model | AiTarget | - | - | - |
+| external | crate::model | InitOptions | - | - | - |
+| external | crate::model | InitQualityCommands | - | - | - |
+| external | crate::model | LabelPreset | - | - | - |
+| external | crate::model | Lang | - | - | - |
+| external | crate::model | PythonTool | - | - | - |
+| external | crate::model | RustTool | - | - | - |
+| external | crate::model | TypeScriptTool | - | - | - |
 
 
 ## Source
@@ -165,12 +172,12 @@ fn project_files(root: &Path, options: &InitOptions) -> Vec<PlannedFile> {
         },
         PlannedFile {
             path: root.join(".mds/reference/impl.md"),
-            content: "# greet\n\n## Purpose\n\nProvide the greeting entrypoint.\n\n## Contract\n\n- Return a greeting string for the supplied name.\n\n## Exports\n\n| Kind | Name | Visibility | Summary |\n| --- | --- | --- | --- |\n| function | greet | public | Public greeting function |\n\n##### Greeting\n\n## Imports\n\n| Kind | From | Target | Symbols | Via | Summary | Code |\n| --- | --- | --- | --- | --- | --- | --- |\n| ts-import | internal | format-name | formatName | direct | Name formatter | `import { formatName } from './format-name';` |\n\n## Types\n\n```ts\nexport type Greeting = string;\n```\n\n## Source\n\n```ts\nexport function greet(name: string): Greeting {\n  return `Hello, ${formatName(name)}`;\n}\n```\n\n## Cases\n\n- Returns a stable greeting for a valid name.\n"
+            content: "# greet\n\n## Purpose\n\nProvide the greeting entrypoint.\n\n## Contract\n\n- Return a greeting string for the supplied name.\n\n## Exports\n\n| Name | Visibility | Summary |\n| --- | --- | --- |\n| greet | public | Public greeting function |\n\n##### greet\n\nShared entrypoint referenced from tests and other modules.\n\n## Imports\n\n| From | Target | Symbols | Via | Summary | Reference |\n| --- | --- | --- | --- | --- | --- |\n| internal | ./format-name | formatName | - | Name formatter | [./format-name.ts.md#format-name](./format-name.ts.md#format-name) |\n\n## Types\n\n```ts\nexport type Greeting = string;\n```\n\n## Source\n\n```ts\nexport function greet(name: string): Greeting {\n  return `Hello, ${formatName(name)}`;\n}\n```\n\n## Cases\n\n- Returns a stable greeting for a valid name.\n"
                 .to_string(),
         },
         PlannedFile {
             path: root.join(".mds/reference/test.md"),
-            content: "# greet test\n\n## Purpose\n\nVerify the greeting behavior.\n\n## Covers\n\n- greet\n\n## Imports\n\n| Kind | From | Target | Symbols | Via | Summary | Code |\n| --- | --- | --- | --- | --- | --- | --- |\n| ts-import | internal | greet | greet | direct | Function under test | `import { greet } from './greet';` |\n| ts-import | external | vitest | describe, expect, it | direct | Test helpers | `import { describe, expect, it } from 'vitest';` |\n\n## Cases\n\n- Returns `Hello, Ada` for `Ada`.\n\n## Test\n\n```ts\ndescribe('greet', () => {\n  it('returns a greeting', () => {\n    expect(greet('Ada')).toBe('Hello, Ada');\n  });\n});\n```\n"
+            content: "# greet test\n\n## Purpose\n\nVerify the greeting behavior.\n\n## Covers\n\n- greet\n\n## Imports\n\n| From | Target | Symbols | Via | Summary | Reference |\n| --- | --- | --- | --- | --- | --- |\n| internal | ./greet | greet | - | Function under test | [./greet.ts.md#greet](./greet.ts.md#greet) |\n| external | vitest | describe, expect, it | - | Test helpers | - |\n\n## Cases\n\n- Returns `Hello, Ada` for `Ada`.\n\n## Test\n\n```ts\ndescribe('greet', () => {\n  it('returns a greeting', () => {\n    expect(greet('Ada')).toBe('Hello, Ada');\n  });\n});\n```\n"
                 .to_string(),
         },
     ]
@@ -541,7 +548,18 @@ fn apply_label_preset(content: &str, preset: LabelPreset) -> String {
         ("{{SOURCE}}", "source"),
         ("{{CASES}}", "cases"),
         ("{{TEST}}", "test"),
+        ("{{COVERS}}", "covers"),
+        ("{{IMPORTS}}", "imports"),
+        ("{{EXPORTS}}", "exports"),
         ("{{EXPOSE}}", "expose"),
+        ("{{FROM}}", "from"),
+        ("{{TARGET}}", "target"),
+        ("{{SYMBOLS}}", "symbols"),
+        ("{{VIA}}", "via"),
+        ("{{SUMMARY}}", "summary"),
+        ("{{REFERENCE}}", "reference"),
+        ("{{NAME}}", "name"),
+        ("{{VISIBILITY}}", "visibility"),
     ];
     for (placeholder, key) in replacements {
         let label = preset.section_label(key);

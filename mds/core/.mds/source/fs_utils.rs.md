@@ -11,10 +11,12 @@ Migrated implementation source for `src/fs_utils.rs`.
 
 ## Imports
 
-| Kind | From | Target | Symbols | Via | Summary | Code |
-| --- | --- | --- | --- | --- | --- | --- |
-| rust-use | builtin | std | fs | std |  | `use std::fs;` |
-| rust-use | builtin | std::path | Component, Path, PathBuf | std |  | `use std::path::{Component, Path, PathBuf};` |
+| From | Target | Symbols | Via | Summary | Reference |
+| --- | --- | --- | --- | --- | --- |
+| builtin | std | fs | - | - | - |
+| builtin | std::path | Component | - | - | - |
+| builtin | std::path | Path | - | - | - |
+| builtin | std::path | PathBuf | - | - | - |
 
 
 ## Source

@@ -23,6 +23,9 @@ prefix = ""
 suffix = "_test"
 extension = "rb"
 
+[imports]
+style = "ruby"
+
 [syntax]
 top_level_keywords = ["class ", "module ", "def ", "require ", "extend ", "include "]
 comment_prefixes = ["#"]

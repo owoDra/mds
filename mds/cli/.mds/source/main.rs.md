@@ -11,13 +11,16 @@ Migrated implementation source for `src/main.rs`.
 
 ## Imports
 
-| Kind | From | Target | Symbols | Via | Summary | Code |
-| --- | --- | --- | --- | --- | --- | --- |
-| rust-use | external | mds_cli::args | parse_args, print_usage | mds_cli |  | `use mds_cli::args::{parse_args, print_usage};` |
-| rust-use | external | mds_cli::wizard | run_interactive_init | mds_cli |  | `use mds_cli::wizard::run_interactive_init;` |
-| rust-use | external | mds_core | execute, CliRequest, Command | mds_core |  | `use mds_core::{execute, CliRequest, Command};` |
-| rust-use | builtin | std::io | IsTerminal | std |  | `use std::io::IsTerminal;` |
-| rust-use | builtin | std::process | Command as ProcessCommand | std |  | `use std::process::Command as ProcessCommand;` |
+| From | Target | Symbols | Via | Summary | Reference |
+| --- | --- | --- | --- | --- | --- |
+| external | mds_cli::args | parse_args | - | - | [args.rs.md#source](args.rs.md#source) |
+| external | mds_cli::args | print_usage | - | - | [args.rs.md#source](args.rs.md#source) |
+| external | mds_cli::wizard | run_interactive_init | - | - | [wizard.rs.md#source](wizard.rs.md#source) |
+| external | mds_core | execute | - | - | [../../../core/.mds/source/lib.rs.md#source](../../../core/.mds/source/lib.rs.md#source) |
+| external | mds_core | CliRequest | - | - | [../../../core/.mds/source/lib.rs.md#source](../../../core/.mds/source/lib.rs.md#source) |
+| external | mds_core | Command | - | - | [../../../core/.mds/source/lib.rs.md#source](../../../core/.mds/source/lib.rs.md#source) |
+| builtin | std::io | IsTerminal | - | - | - |
+| builtin | std::process | Command as ProcessCommand | - | - | - |
 
 
 ## Source

@@ -1,38 +1,38 @@
 [[sources]]
 path = ".mds/source/capabilities/code_action.rs.md"
 adapter = "rs"
-hash = "cc45019a54b1a9bcc7852d6364f60dce599ffc6bed9fcddffd6d9f26d69f3419"
+hash = "c104089f686b8e508749acf5e14d919f248af1f667384efd5ac94cfeb654208d"
 [[sources.outputs]]
 kind = "source"
 path = "src/capabilities/code_action.rs"
-hash = "9fdc42786ce4716baff20545ab8422ad72668f8bbc3c939f838b60ac825f58a0"
+hash = "d118fc720d64ce3b776a853b9eb34812f5f8cbe8f3862db614beb60f9ff3c243"
 
 [[sources]]
 path = ".mds/source/capabilities/completion.rs.md"
 adapter = "rs"
-hash = "5df5a4225959ce61c72f1a9db5e87f4136cfd6f8d320d468775d36b074934170"
+hash = "42a31b8acbc1ffdb3de0ebd8e06d5f5754ada2cd22ee33c98b9b98ac8d683913"
 [[sources.outputs]]
 kind = "source"
 path = "src/capabilities/completion.rs"
-hash = "76c919205e8c5444dc61db80a0d287d9e607706e4d76ee2059aa9efae1bead35"
+hash = "a12aae5a80f41ea3f3710c9e4dd5789831ccf3de6135e1e735cea75eb0ce8046"
 
 [[sources]]
 path = ".mds/source/capabilities/diagnostics.rs.md"
 adapter = "rs"
-hash = "2c8e5e05c676f652fdd46634bc93db9493d0c1ced98a516635ee940b05a50754"
+hash = "abceafb27f5218e46c49da4836da2f29490b87a65c71e27713d18870deb4a7fb"
 [[sources.outputs]]
 kind = "source"
 path = "src/capabilities/diagnostics.rs"
-hash = "f9750f26adeeb64282d199382f62cad9083c2416ef3102bde0e80a02152bcd51"
+hash = "74c9fab55b8fea9abce583ee2d161a830dd6c3ccad5cc80478e89e237c94b8c5"
 
 [[sources]]
 path = ".mds/source/capabilities/hover.rs.md"
 adapter = "rs"
-hash = "23e29babc49229921d6658c4520cee5a14198f5d7aa5191199f54a9ba31038a6"
+hash = "7ae4d58aa7a165ddb14cea21875cce77f2115ac0d0301ca37486be510c69d80e"
 [[sources.outputs]]
 kind = "source"
 path = "src/capabilities/hover.rs"
-hash = "68b81e74633d8dbec30650a317165ef84a79c91f6c5b41a5e0932c4eb52685d5"
+hash = "e74eaecb840d944b32310b0c1167163a321f26e5450b8179572e3082bea71bd0"
 
 [[sources]]
 path = ".mds/source/capabilities/mod.rs.md"
@@ -46,38 +46,38 @@ hash = "f17d2e724ab6faf46f263f89946f1be987555b68aa564e1222b8208c47d16091"
 [[sources]]
 path = ".mds/source/capabilities/navigation.rs.md"
 adapter = "rs"
-hash = "c520c978e6e3dd7b7dbdcf61b57677d34f56632cccd65d3c55fd22588d2d6231"
+hash = "0043b532b7bdb6cebc63c5ca69095d00cfb30895bed898b2e03b92c4ea6de9f9"
 [[sources.outputs]]
 kind = "source"
 path = "src/capabilities/navigation.rs"
-hash = "0efa50343a62c16eed8d42da2bb2304297557d4d15ae8959ff242a80c0eeb98c"
+hash = "cfa5bec3ce1fb8d1fdfab08609acfe771a27481ccef1730d70bba39cd1475446"
 
 [[sources]]
 path = ".mds/source/capabilities/symbols.rs.md"
 adapter = "rs"
-hash = "adafa8ae9c48a857626cd999f33c37b12b2c754c89c4c5a993ec43644af9af24"
+hash = "5386c76d27fc2f1646a6918176ee87e97dbac2a489eb285f724475aada33b826"
 [[sources.outputs]]
 kind = "source"
 path = "src/capabilities/symbols.rs"
-hash = "8f473eb9b70c992894c65a335dc5e20e80a1b6e2c358e2fb1ab236f03fd249f1"
+hash = "a4e6cbb10e6f6d4b98411ac975204bf77c939058a10843e0052e510b605220b9"
 
 [[sources]]
 path = ".mds/source/convert.rs.md"
 adapter = "rs"
-hash = "1bac0bfd63a6392f681f85ba0afa3b803075d9caeb4571f0dfb1e50c989b29d1"
+hash = "bb005f650f2c7fb536ac50593dc2c26a41181b999fa94ecaf163432d8b54a44b"
 [[sources.outputs]]
 kind = "source"
 path = "src/convert.rs"
-hash = "d88ef686f88dcb1c8d1e2253dfbe2c0266cd3dab05a4a4bfcadd5b436ea51edb"
+hash = "4e4bfbbeee3e7556577383dc4a627f5dd82360bff9edb159930d752b102d44fd"
 
 [[sources]]
 path = ".mds/source/labels.rs.md"
 adapter = "rs"
-hash = "ef9bc4053eb3d62d593751f9bacf636b635e1b05054bd9aa60d2c66a8f81b7a0"
+hash = "0f5baf1bf30f03b15a383fdb272bed9c39844d578fa1b64f5d1b371d5667d7fc"
 [[sources.outputs]]
 kind = "source"
 path = "src/labels.rs"
-hash = "5892e9a9cb9ba0a5849d0c5b0f4469cef46c17e7862fc1085258b5bdb56ed548"
+hash = "cd0aa1a554686c6a4fea02073866d783f36c3e7fffaa6d04b0f4bff31f67a2e2"
 
 [[sources]]
 path = ".mds/source/lib.rs.md"
@@ -91,45 +91,41 @@ hash = "759f17733a5eeb9f9f74a4153a7d9f722c16d1c1c5123af060927af7f9a69b85"
 [[sources]]
 path = ".mds/source/main.rs.md"
 adapter = "rs"
-hash = "d86ecb11092b354597b2eb2e0de4bb49e8cab386c9a1df737bec51cd88970da0"
+hash = "a0b528b15b2e7de6fa14d70135c7deb544ae279ab1d85537e683addc51bb932c"
 [[sources.outputs]]
 kind = "source"
 path = "src/main.rs"
-hash = "5ccbfa35e0158f84c399489a3dbfe7b87e28d565584b5c771033501d6ae9079a"
+hash = "58a01d48db365ffa691c57e485106b1aa25a1109ec73d33e02c0ac7fadf5bb69"
 
 [[sources]]
 path = ".mds/source/server.rs.md"
 adapter = "rs"
-hash = "d32c833fb0cf235a34d7168bb2931c0c2784eb34d1b8f5f49ef2a58ada9713ef"
+hash = "e1b1c0a55d25da0eca3b760b8880409b65b3e602a82a815070261d3b3714059f"
 [[sources.outputs]]
 kind = "source"
 path = "src/server.rs"
-hash = "0d7257ef0e5365f96b5e76efbdb8f7d95e95621e0e6d6a3d92538e2213881db8"
+hash = "3a4fdbd301db78d614354dca4cc07442b98648a61ea1835ded6109208d8f3ad5"
 
 [[sources]]
 path = ".mds/source/state.rs.md"
 adapter = "rs"
-hash = "88ed21607d6a9d47d6087cdc360ddea3982c19233e5fef7712cc1a7339cec5f1"
+hash = "faa42e7ecbd182dbe51021368fe169cf905c8df2e59f6ffc307fd0a32bd0d1c7"
 [[sources.outputs]]
 kind = "source"
 path = "src/state.rs"
-hash = "a54605917e6d0c31262504e343d4f4cf97b29eccbb04b803dd69244b5db47bd2"
+hash = "857dc5b4a0efcd80ec775a1ecce3cba59acc2b580202ac01062e297e349cdccf"
 
 [[sources]]
 path = ".mds/test/capabilities.rs.md"
 adapter = "rs"
-hash = "508e461330a97f6df52920fe0fa64276842b8cb2f942f32e7ce8b3ad6b3456df"
-[[sources.outputs]]
-kind = "test"
-path = "tests/capabilities_test.rs"
-hash = "7eba8596ece15af9bf80f8f3ad69422a00748ad8c8420daf9cf44640807ab178"
+hash = "518c3754a4646d2022ea63e97c92cab17049299508d8dc1f6018b9d93c9a94ce"
 
 [[sources]]
 path = ".mds/test/diagnostics.rs.md"
 adapter = "rs"
-hash = "8370b105d7abb208661b0614ca3c526c0dd67b3b01577d30b71bb165a68e1f50"
+hash = "6007d334a978398288b0cacef80b5fa8a0a5ce3096e285b38b8c837f1f92f469"
 [[sources.outputs]]
 kind = "test"
 path = "tests/diagnostics_test.rs"
-hash = "bb9cb9869bb6c596ffbe9e795b51e076e9270623f30aedcfc391507c5fde313a"
+hash = "8fe5f3b2118a6a96252a7f629cb62fa4a86bf63e3100a129c398296028f0d164"
 

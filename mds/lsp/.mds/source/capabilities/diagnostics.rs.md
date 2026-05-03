@@ -11,17 +11,20 @@ Migrated implementation source for `src/capabilities/diagnostics.rs`.
 
 ## Imports
 
-| Kind | From | Target | Symbols | Via | Summary | Code |
-| --- | --- | --- | --- | --- | --- | --- |
-| rust-use | builtin | std::path | Path | std |  | `use std::path::Path;` |
-| rust-use | external | mds_core::config | merge_config_file | mds_core |  | `use mds_core::config::merge_config_file;` |
-| rust-use | external | mds_core::descriptor | set_workspace_descriptor_root | mds_core |  | `use mds_core::descriptor::set_workspace_descriptor_root;` |
-| rust-use | external | mds_core::diagnostics | RunState | mds_core |  | `use mds_core::diagnostics::RunState;` |
-| rust-use | external | mds_core::markdown | extract_all_code_blocks, sections_with_labels, validate_markdown_links | mds_core |  | `use mds_core::markdown::{extract_all_code_blocks, sections_with_labels, validate_markdown_links};` |
-| rust-use | external | mds_core::model | Config, Lang | mds_core |  | `use mds_core::model::{Config, Lang};` |
-| rust-use | external | mds_core::table | parse_table_with_labels | mds_core |  | `use mds_core::table::parse_table_with_labels;` |
-| rust-use | external | tower_lsp | lsp_types | tower_lsp |  | `use tower_lsp::lsp_types;` |
-| rust-use | internal | crate::convert | to_lsp_diagnostic | crate |  | `use crate::convert::to_lsp_diagnostic;` |
+| From | Target | Symbols | Via | Summary | Reference |
+| --- | --- | --- | --- | --- | --- |
+| builtin | std::path | Path | - | - | - |
+| external | mds_core::config | merge_config_file | - | - | [../../../../core/.mds/source/config.rs.md#source](../../../../core/.mds/source/config.rs.md#source) |
+| external | mds_core::descriptor | set_workspace_descriptor_root | - | - | [../../../../core/.mds/source/descriptor.rs.md#source](../../../../core/.mds/source/descriptor.rs.md#source) |
+| external | mds_core::diagnostics | RunState | - | - | [../../../../core/.mds/source/diagnostics.rs.md#source](../../../../core/.mds/source/diagnostics.rs.md#source) |
+| external | mds_core::markdown | extract_all_code_blocks | - | - | [../../../../core/.mds/source/markdown.rs.md#source](../../../../core/.mds/source/markdown.rs.md#source) |
+| external | mds_core::markdown | sections_with_labels | - | - | [../../../../core/.mds/source/markdown.rs.md#source](../../../../core/.mds/source/markdown.rs.md#source) |
+| external | mds_core::markdown | validate_markdown_links | - | - | [../../../../core/.mds/source/markdown.rs.md#source](../../../../core/.mds/source/markdown.rs.md#source) |
+| external | mds_core::model | Config | - | - | [../../../../core/.mds/source/model.rs.md#source](../../../../core/.mds/source/model.rs.md#source) |
+| external | mds_core::model | Lang | - | - | [../../../../core/.mds/source/model.rs.md#source](../../../../core/.mds/source/model.rs.md#source) |
+| external | mds_core::table | parse_table_with_labels | - | - | [../../../../core/.mds/source/table.rs.md#source](../../../../core/.mds/source/table.rs.md#source) |
+| external | tower_lsp | lsp_types | - | - | - |
+| internal | crate::convert | to_lsp_diagnostic | - | - | [../convert.rs.md#source](../convert.rs.md#source) |
 
 
 ## Source

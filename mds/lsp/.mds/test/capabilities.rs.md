@@ -18,13 +18,15 @@ Migrated implementation source for `tests/capabilities.rs`.
 
 ## Imports
 
-| Kind | From | Target | Symbols | Via | Summary | Code |
-| --- | --- | --- | --- | --- | --- | --- |
-| rust-use | external | tower_lsp::lsp_types | * | tower_lsp |  | `use tower_lsp::lsp_types::*;` |
-| rust-use | external | mds_lsp::capabilities::code_action | provide_code_actions | mds_lsp |  | `use mds_lsp::capabilities::code_action::provide_code_actions;` |
-| rust-use | external | mds_lsp::capabilities::completion | provide_completions | mds_lsp |  | `use mds_lsp::capabilities::completion::provide_completions;` |
-| rust-use | external | mds_lsp::capabilities::symbols | document_symbols | mds_lsp |  | `use mds_lsp::capabilities::symbols::document_symbols;` |
-| rust-use | external | mds_lsp::convert | line_at, table_cell_at_position, word_at_position | mds_lsp |  | `use mds_lsp::convert::{line_at, table_cell_at_position, word_at_position};` |
+| From | Target | Symbols | Via | Summary | Reference |
+| --- | --- | --- | --- | --- | --- |
+| external | tower_lsp::lsp_types | * | - | - | - |
+| external | mds_lsp::capabilities::code_action | provide_code_actions | - | - | [../source/capabilities/code_action.rs.md#source](../source/capabilities/code_action.rs.md#source) |
+| external | mds_lsp::capabilities::completion | provide_completions | - | - | [../source/capabilities/completion.rs.md#source](../source/capabilities/completion.rs.md#source) |
+| external | mds_lsp::capabilities::symbols | document_symbols | - | - | [../source/capabilities/symbols.rs.md#source](../source/capabilities/symbols.rs.md#source) |
+| external | mds_lsp::convert | line_at | - | - | [../source/convert.rs.md#source](../source/convert.rs.md#source) |
+| external | mds_lsp::convert | table_cell_at_position | - | - | [../source/convert.rs.md#source](../source/convert.rs.md#source) |
+| external | mds_lsp::convert | word_at_position | - | - | [../source/convert.rs.md#source](../source/convert.rs.md#source) |
 
 
 ## Test

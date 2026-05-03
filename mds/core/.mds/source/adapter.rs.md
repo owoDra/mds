@@ -11,12 +11,14 @@ Migrated implementation source for `src/adapter.rs`.
 
 ## Imports
 
-| Kind | From | Target | Symbols | Via | Summary | Code |
-| --- | --- | --- | --- | --- | --- | --- |
-| rust-use | builtin | std::path | Path | std |  | `use std::path::Path;` |
-| rust-use | builtin | std::process | Command as ProcessCommand, Stdio | std |  | `use std::process::{Command as ProcessCommand, Stdio};` |
-| rust-use | internal | crate | descriptor | crate |  | `use crate::descriptor;` |
-| rust-use | internal | crate::model | ImplDoc, OutputKind | crate |  | `use crate::model::{ImplDoc, OutputKind};` |
+| From | Target | Symbols | Via | Summary | Reference |
+| --- | --- | --- | --- | --- | --- |
+| builtin | std::path | Path | - | - | - |
+| builtin | std::process | Command as ProcessCommand | - | - | - |
+| builtin | std::process | Stdio | - | - | - |
+| internal | crate | descriptor | - | - | [descriptor.rs.md#source](descriptor.rs.md#source) |
+| internal | crate::model | ImplDoc | - | - | [model.rs.md#source](model.rs.md#source) |
+| internal | crate::model | OutputKind | - | - | [model.rs.md#source](model.rs.md#source) |
 
 
 ## Source

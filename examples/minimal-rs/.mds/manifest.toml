@@ -7,3 +7,12 @@ kind = "source"
 path = "src/greet.rs"
 hash = "2b5cf9c2829ad545ec6823711aa0a5521ef24ca0a380ade595532bc4cd0a2ca2"
 
+[[sources]]
+path = ".mds/source/lib.rs.md"
+adapter = "rs"
+hash = "b873fe218605a49fa76ed48bfbbea9d98b9a9d685cb7e5cd795e6c4506b47567"
+[[sources.outputs]]
+kind = "source"
+path = "src/lib.rs"
+hash = "1132b3840593dd2279c6008507db9449a976b6feb9a7c99b979afe3b83265da5"
+

@@ -11,15 +11,17 @@ Migrated implementation source for `src/package_sync.rs`.
 
 ## Imports
 
-| Kind | From | Target | Symbols | Via | Summary | Code |
-| --- | --- | --- | --- | --- | --- | --- |
-| rust-use | builtin | std::collections | BTreeMap | std |  | `use std::collections::BTreeMap;` |
-| rust-use | builtin | std | fs | std |  | `use std::fs;` |
-| rust-use | builtin | std::path | Path, PathBuf | std |  | `use std::path::{Path, PathBuf};` |
-| rust-use | internal | crate::diagnostics | Diagnostic, RunState | crate |  | `use crate::diagnostics::{Diagnostic, RunState};` |
-| rust-use | internal | crate::diff | unified_diff | crate |  | `use crate::diff::unified_diff;` |
-| rust-use | internal | crate::model | Package | crate |  | `use crate::model::Package;` |
-| rust-use | internal | crate::package | read_package_metadata | crate |  | `use crate::package::read_package_metadata;` |
+| From | Target | Symbols | Via | Summary | Reference |
+| --- | --- | --- | --- | --- | --- |
+| builtin | std::collections | BTreeMap | - | - | - |
+| builtin | std | fs | - | - | - |
+| builtin | std::path | Path | - | - | - |
+| builtin | std::path | PathBuf | - | - | - |
+| internal | crate::diagnostics | Diagnostic | - | - | [diagnostics.rs.md#source](diagnostics.rs.md#source) |
+| internal | crate::diagnostics | RunState | - | - | [diagnostics.rs.md#source](diagnostics.rs.md#source) |
+| internal | crate::diff | unified_diff | - | - | [diff.rs.md#source](diff.rs.md#source) |
+| internal | crate::model | Package | - | - | [model.rs.md#source](model.rs.md#source) |
+| internal | crate::package | read_package_metadata | - | - | [package.rs.md#source](package.rs.md#source) |
 
 
 ## Source
@@ -198,9 +200,7 @@ fn replace_managed_block(
 ) -> Option<String> {
     let begin = format!("<!-- mds:begin {name} -->");
     let end = format!("<!-- mds:end {name} -->");
-    let Some(start) = text.find(&begin) else {
-        return None;
-    };
+    let start = text.find(&begin)?;
     let search_from = start + begin.len();
     let Some(relative_end) = text[search_from..].find(&end) else {
         state.diagnostics.push(Diagnostic::error(

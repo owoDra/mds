@@ -71,17 +71,21 @@ Implementation files: `.mds/source/name.{lang}.md` → generates `src/name.{lang
 
 All sections are optional. Recommended structure:
 
-- `## Purpose` — Feature description (documentation only)
-- `## Contract` — Behavior guarantees (documentation only)
-- `## Source` — Implementation code blocks
-- `## Cases` — Example behaviors (documentation only)
+- `## {{PURPOSE}}` — Feature description (documentation only)
+- `## {{CONTRACT}}` — Behavior guarantees (documentation only)
+- `## {{SOURCE}}` — Implementation code blocks
+- `## {{CASES}}` — Example behaviors (documentation only)
 
-### Imports Section
+### {{IMPORTS}} Section
 
-| Target | Summary |
-| --- | --- |
-| ./config | Configuration module |
-| lodash | Utility library |
+| {{FROM}} | {{TARGET}} | {{SYMBOLS}} | {{VIA}} | {{SUMMARY}} | {{REFERENCE}} |
+| --- | --- | --- | --- | --- | --- |
+| internal | ./config | Config | - | Configuration module | [./config.ts.md#config](./config.ts.md#config) |
+| external | lodash | mapValues | - | Utility library | - |
+
+##### Config
+
+Add an H5 section for shared definitions that other modules or packages import.
 
 ### Constraints
 

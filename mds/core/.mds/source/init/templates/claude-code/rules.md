@@ -37,12 +37,12 @@ Source files live in `.mds/source/` as `name.{lang}.md` (e.g., `helper.ts.md` â†
 - Multiple blocks are concatenated with blank lines
 - Imports/use/require are forbidden in code blocks; record dependencies in the Imports section table
 
-### Imports Section
+### {{IMPORTS}} Section
 
-| Target | Summary |
-| --- | --- |
-| ./config | Configuration module |
-| lodash | npm/PyPI/crates dependency |
+| {{FROM}} | {{TARGET}} | {{SYMBOLS}} | {{VIA}} | {{SUMMARY}} | {{REFERENCE}} |
+| --- | --- | --- | --- | --- | --- |
+| internal | ./config | Config | - | Configuration module | [./config.ts.md#config](./config.ts.md#config) |
+| external | lodash | mapValues | - | npm/PyPI/crates dependency | - |
 
 ### Constraints
 

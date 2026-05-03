@@ -11,23 +11,24 @@ Migrated implementation source for `src/state.rs`.
 
 ## Imports
 
-| Kind | From | Target | Symbols | Via | Summary | Code |
-| --- | --- | --- | --- | --- | --- | --- |
-| rust-use | builtin | std::collections | HashMap | std |  | `use std::collections::HashMap;` |
-| rust-use | builtin | std::path | Path, PathBuf | std |  | `use std::path::{Path, PathBuf};` |
-| rust-use | builtin | std::sync | Arc | std |  | `use std::sync::Arc;` |
-| rust-use | external | mds_core | Config, ImplDoc, Lang, Package | mds_core |  | `use mds_core::{Config, ImplDoc, Lang, Package};` |
-| rust-use | external | tokio::sync | RwLock | tokio |  | `use tokio::sync::RwLock;` |
+| From | Target | Symbols | Via | Summary | Reference |
+| --- | --- | --- | --- | --- | --- |
+| builtin | std::collections | HashMap | - | - | - |
+| builtin | std::path | Path | - | - | - |
+| builtin | std::path | PathBuf | - | - | - |
+| builtin | std::sync | Arc | - | - | - |
+| external | mds_core | Config | - | - | [../../../core/.mds/source/lib.rs.md#source](../../../core/.mds/source/lib.rs.md#source) |
+| external | mds_core | ImplDoc | - | - | [../../../core/.mds/source/lib.rs.md#source](../../../core/.mds/source/lib.rs.md#source) |
+| external | mds_core | Lang | - | - | [../../../core/.mds/source/lib.rs.md#source](../../../core/.mds/source/lib.rs.md#source) |
+| external | mds_core | Package | - | - | [../../../core/.mds/source/lib.rs.md#source](../../../core/.mds/source/lib.rs.md#source) |
+| external | tokio::sync | RwLock | - | - | - |
 
 ## Source
-
-````rs
-#![allow(dead_code)]
-````
 
 Open file content tracked by the LSP.
 
 ````rs
+#[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub struct OpenFile {
     pub uri: String,
@@ -47,6 +48,7 @@ Workspace index field meanings:
 - `file_exposes`: file path to expose name list
 
 ````rs
+#[allow(dead_code)]
 #[derive(Debug, Clone, Default)]
 pub struct WorkspaceIndex {
     pub docs: HashMap<PathBuf, ImplDoc>,
@@ -75,6 +77,7 @@ Workspace state field meanings:
 - `configs`: config file path to `Config`
 
 ````rs
+#[allow(dead_code)]
 #[derive(Debug, Default)]
 pub struct WorkspaceState {
     pub workspace_folders: Vec<PathBuf>,
@@ -91,6 +94,7 @@ pub type SharedState = Arc<RwLock<WorkspaceState>>;
 Find the package that owns a given file path.
 
 ````rs
+#[allow(dead_code)]
 impl WorkspaceState {
     pub fn package_for_path(&self, path: &Path) -> Option<&PackageState> {
         self.packages
@@ -103,6 +107,7 @@ impl WorkspaceState {
 Find an `ImplDoc` by its absolute path across all packages.
 
 ````rs
+#[allow(dead_code)]
 impl WorkspaceState {
     pub fn find_doc(&self, path: &Path) -> Option<&ImplDoc> {
         for pkg in &self.packages {
@@ -118,6 +123,7 @@ impl WorkspaceState {
 Find all file paths that expose a given name.
 
 ````rs
+#[allow(dead_code)]
 impl WorkspaceState {
     pub fn find_expose_locations(&self, name: &str) -> Vec<PathBuf> {
         let mut results = Vec::new();

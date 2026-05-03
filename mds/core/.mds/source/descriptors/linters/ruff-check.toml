@@ -2,7 +2,7 @@ id = "ruff-check"
 match_prefixes = ["ruff check", "python3 -m ruff check"]
 
 [behavior]
-input = "stdin"
+input = "tempfile"
 append_file_arg = true
 
 [[behavior.diagnostics]]

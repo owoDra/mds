@@ -23,6 +23,9 @@ prefix = ""
 suffix = "_test"
 extension = "dart"
 
+[imports]
+style = "dart"
+
 [syntax]
 top_level_keywords = ["class ", "enum ", "mixin ", "extension ", "typedef ", "final ", "const ", "void "]
 comment_prefixes = ["//", "/*", "*"]

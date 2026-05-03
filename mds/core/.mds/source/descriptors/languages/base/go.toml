@@ -23,6 +23,9 @@ prefix = ""
 suffix = "_test"
 extension = "go"
 
+[imports]
+style = "go"
+
 [syntax]
 top_level_keywords = ["func ", "type ", "var ", "const "]
 comment_prefixes = ["//", "/*", "*"]

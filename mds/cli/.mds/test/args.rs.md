@@ -15,14 +15,18 @@ Migrated implementation source for `tests/args.rs`.
 
 ## Imports
 
-| Kind | From | Target | Symbols | Via | Summary | Code |
-| --- | --- | --- | --- | --- | --- | --- |
-| rust-use | builtin | std::path | PathBuf | std |  | `use std::path::PathBuf;` |
-| rust-use | external | mds_cli::args | parse_args_from | mds_cli |  | `use mds_cli::args::parse_args_from;` |
-| rust-use | external | mds_core | { | mds_core |  | `use mds_core::{` |
-| import | external |  |  |  |  | `AgentKitCategory, AiTarget, BuildMode, Command, DoctorFormat, PythonTool, RustTool,` |
-| import | external |  |  |  |  | `TypeScriptTool,` |
-| import | external |  |  |  |  | `};` |
+| From | Target | Symbols | Via | Summary | Reference |
+| --- | --- | --- | --- | --- | --- |
+| builtin | std::path | PathBuf | - | - | - |
+| external | mds_cli::args | parse_args_from | - | - | [../source/args.rs.md#source](../source/args.rs.md#source) |
+| external | mds_core | AgentKitCategory | - | - | [../../../core/.mds/source/lib.rs.md#source](../../../core/.mds/source/lib.rs.md#source) |
+| external | mds_core | AiTarget | - | - | [../../../core/.mds/source/lib.rs.md#source](../../../core/.mds/source/lib.rs.md#source) |
+| external | mds_core | BuildMode | - | - | [../../../core/.mds/source/lib.rs.md#source](../../../core/.mds/source/lib.rs.md#source) |
+| external | mds_core | Command | - | - | [../../../core/.mds/source/lib.rs.md#source](../../../core/.mds/source/lib.rs.md#source) |
+| external | mds_core | DoctorFormat | - | - | [../../../core/.mds/source/lib.rs.md#source](../../../core/.mds/source/lib.rs.md#source) |
+| external | mds_core | PythonTool | - | - | [../../../core/.mds/source/lib.rs.md#source](../../../core/.mds/source/lib.rs.md#source) |
+| external | mds_core | RustTool | - | - | [../../../core/.mds/source/lib.rs.md#source](../../../core/.mds/source/lib.rs.md#source) |
+| external | mds_core | TypeScriptTool | - | - | [../../../core/.mds/source/lib.rs.md#source](../../../core/.mds/source/lib.rs.md#source) |
 
 
 ## Test

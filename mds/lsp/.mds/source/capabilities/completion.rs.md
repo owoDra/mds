@@ -11,13 +11,14 @@ Migrated implementation source for `src/capabilities/completion.rs`.
 
 ## Imports
 
-| Kind | From | Target | Symbols | Via | Summary | Code |
-| --- | --- | --- | --- | --- | --- | --- |
-| rust-use | builtin | std::path | Path | std |  | `use std::path::Path;` |
-| rust-use | external | mds_core::model | Config, Lang | mds_core |  | `use mds_core::model::{Config, Lang};` |
-| rust-use | external | tower_lsp::lsp_types | * | tower_lsp |  | `use tower_lsp::lsp_types::*;` |
-| rust-use | internal | crate::convert | line_at | crate |  | `use crate::convert::line_at;` |
-| rust-use | internal | crate::labels | resolve_label | crate |  | `use crate::labels::resolve_label;` |
+| From | Target | Symbols | Via | Summary | Reference |
+| --- | --- | --- | --- | --- | --- |
+| builtin | std::path | Path | - | - | - |
+| external | mds_core::model | Config | - | - | [../../../../core/.mds/source/model.rs.md#source](../../../../core/.mds/source/model.rs.md#source) |
+| external | mds_core::model | Lang | - | - | [../../../../core/.mds/source/model.rs.md#source](../../../../core/.mds/source/model.rs.md#source) |
+| external | tower_lsp::lsp_types | * | - | - | - |
+| internal | crate::convert | line_at | - | - | [../convert.rs.md#source](../convert.rs.md#source) |
+| internal | crate::labels | resolve_label | - | - | [../labels.rs.md#source](../labels.rs.md#source) |
 
 
 ## Source

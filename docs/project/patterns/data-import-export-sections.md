@@ -23,16 +23,19 @@ import / export と shared definition を code block の暗黙構造から切り
 - 行単位の関係は Markdown table で表す。
 - shared definition は H5 見出しで表し、同一ファイル内外からリンク可能にする。
 - import-only code block は正規形にしない。
+- 使わない cell や section は削除せず `-` で skip する。
+- `From = internal` の row は target に definition 箇所への Markdown link を置き、必要なら section fragment まで指定する。
 
 ## 基本列
 
-- `Imports`: `Kind`, `From`, `Target`, `Symbols`, `Via`, `Summary`, `Code`
-- `Exports`: `Kind`, `Name`, `Visibility`, `Summary`
+- `Imports`: `From`, `Target`, `Symbols`, `Via`, `Summary`, `Reference`
+- `Exports`: `Name`, `Visibility`, `Summary`
 
 ## 補足
 
-- `Code` は descriptor-based renderer がすべての言語を吸収しきるまでの literal fallback とする。
-- 人間は `From`、`Target`、`Symbols`、`Via` を読み、generator は必要に応じて `Code` を使う。
+- import statement は descriptor-based renderer が `From`、`Target`、`Symbols`、`Via` から復元する。
+- `Reference` は `internal` と参照可能な `external` dependency に付け、定義元の Markdown location を示す。
+- 他モジュールや他 package から参照される主要な class / type / function は H5 shared definition 見出しと説明を置いて強調する。
 
 ## 根拠
 

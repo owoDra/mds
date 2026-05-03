@@ -11,9 +11,9 @@ Migrated implementation source for `src/labels.rs`.
 
 ## Imports
 
-| Kind | From | Target | Symbols | Via | Summary | Code |
-| --- | --- | --- | --- | --- | --- | --- |
-| rust-use | external | mds_core::model | Config | mds_core |  | `use mds_core::model::Config;` |
+| From | Target | Symbols | Via | Summary | Reference |
+| --- | --- | --- | --- | --- | --- |
+| external | mds_core::model | Config | - | - | [../../../core/.mds/source/model.rs.md#source](../../../core/.mds/source/model.rs.md#source) |
 
 
 ## Source

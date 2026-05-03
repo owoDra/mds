@@ -23,6 +23,9 @@ prefix = ""
 suffix = ".test"
 extension = "cs"
 
+[imports]
+style = "csharp"
+
 [syntax]
 top_level_keywords = ["public class ", "class ", "public interface ", "interface ", "public record ", "record ", "public enum ", "enum ", "public static ", "static "]
 comment_prefixes = ["//", "/*", "*"]

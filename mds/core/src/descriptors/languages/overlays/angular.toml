@@ -23,6 +23,9 @@ prefix = ""
 suffix = ".test"
 extension = "ts"
 
+[imports]
+style = "typescript"
+
 [syntax]
 top_level_keywords = [
   "export class ",

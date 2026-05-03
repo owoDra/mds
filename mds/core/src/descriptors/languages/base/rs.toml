@@ -39,7 +39,7 @@ allow_type_only = false
 [quality_defaults]
 lint = "cargo clippy"
 fix = "cargo fmt"
-test = "cargo test"
+test = "cargo test --lib"
 
 [tool_profiles.lint.clippy]
 command = "cargo clippy"
@@ -51,7 +51,7 @@ command = "rustfmt"
 required = ["rustfmt"]
 
 [tool_profiles.test.cargo-test]
-command = "cargo test"
+command = "cargo test --lib"
 required = ["rustc", "cargo"]
 
 [tool_profiles.test.nextest]

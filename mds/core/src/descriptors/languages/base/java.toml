@@ -22,6 +22,9 @@ prefix = ""
 suffix = "Test"
 extension = "java"
 
+[imports]
+style = "java"
+
 [syntax]
 top_level_keywords = [
   "public class ",

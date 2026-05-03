@@ -11,11 +11,12 @@ Migrated implementation source for `src/table.rs`.
 
 ## Imports
 
-| Kind | From | Target | Symbols | Via | Summary | Code |
-| --- | --- | --- | --- | --- | --- | --- |
-| rust-use | builtin | std::collections | HashMap | std |  | `use std::collections::HashMap;` |
-| rust-use | builtin | std::path | Path | std |  | `use std::path::Path;` |
-| rust-use | internal | crate::diagnostics | Diagnostic, RunState | crate |  | `use crate::diagnostics::{Diagnostic, RunState};` |
+| From | Target | Symbols | Via | Summary | Reference |
+| --- | --- | --- | --- | --- | --- |
+| builtin | std::collections | HashMap | - | - | - |
+| builtin | std::path | Path | - | - | - |
+| internal | crate::diagnostics | Diagnostic | - | - | [diagnostics.rs.md#source](diagnostics.rs.md#source) |
+| internal | crate::diagnostics | RunState | - | - | [diagnostics.rs.md#source](diagnostics.rs.md#source) |
 
 
 ## Source

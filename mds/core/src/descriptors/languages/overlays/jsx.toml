@@ -22,6 +22,9 @@ prefix = ""
 suffix = ".test"
 extension = "jsx"
 
+[imports]
+style = "typescript"
+
 [syntax]
 top_level_keywords = [
   "export function ",

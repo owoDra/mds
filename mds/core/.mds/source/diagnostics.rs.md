@@ -11,9 +11,9 @@ Migrated implementation source for `src/diagnostics.rs`.
 
 ## Imports
 
-| Kind | From | Target | Symbols | Via | Summary | Code |
-| --- | --- | --- | --- | --- | --- | --- |
-| rust-use | builtin | std::path | PathBuf | std |  | `use std::path::PathBuf;` |
+| From | Target | Symbols | Via | Summary | Reference |
+| --- | --- | --- | --- | --- | --- |
+| builtin | std::path | PathBuf | - | - | - |
 
 
 ## Source

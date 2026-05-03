@@ -22,6 +22,9 @@ prefix = ""
 suffix = ".test"
 extension = "zig"
 
+[imports]
+style = "zig"
+
 [syntax]
 top_level_keywords = ["pub fn ", "fn ", "pub const ", "const ", "pub var ", "var ", "test ", "comptime "]
 comment_prefixes = ["//", "/*", "*"]

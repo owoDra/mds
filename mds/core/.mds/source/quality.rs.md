@@ -11,20 +11,31 @@ Migrated implementation source for `src/quality.rs`.
 
 ## Imports
 
-| Kind | From | Target | Symbols | Via | Summary | Code |
-| --- | --- | --- | --- | --- | --- | --- |
-| rust-use | external | regex | Regex | regex |  | `use regex::Regex;` |
-| rust-use | builtin | std | fs | std |  | `use std::fs;` |
-| rust-use | builtin | std::path | PathBuf | std |  | `use std::path::PathBuf;` |
-| rust-use | internal | crate::adapter | { | crate |  | `use crate::adapter::{` |
-| import | external |  |  |  |  | `path_variants, replace_path_variants, run_toolchain_command, tool_available,` |
-| import | external |  |  |  |  | `tool_output_detail, ToolInvocation, ToolRunOutput, ToolRunStatus,` |
-| import | external |  |  |  |  | `};` |
-| rust-use | internal | crate::descriptor | self, ToolBehavior, ToolInputMode, ToolOutputMode | crate |  | `use crate::descriptor::{self, ToolBehavior, ToolInputMode, ToolOutputMode};` |
-| rust-use | internal | crate::diagnostics | Diagnostic, RunState | crate |  | `use crate::diagnostics::{Diagnostic, RunState};` |
-| rust-use | internal | crate::diff | unified_diff | crate |  | `use crate::diff::unified_diff;` |
-| rust-use | internal | crate::fs_utils | is_excluded | crate |  | `use crate::fs_utils::is_excluded;` |
-| rust-use | internal | crate::model | ImplDoc, Lang, Package | crate |  | `use crate::model::{ImplDoc, Lang, Package};` |
+| From | Target | Symbols | Via | Summary | Reference |
+| --- | --- | --- | --- | --- | --- |
+| external | regex | Regex | - | - | - |
+| builtin | std | fs | - | - | - |
+| builtin | std::path | PathBuf | - | - | - |
+| external | crate::adapter | path_variants | - | - | - |
+| external | crate::adapter | replace_path_variants | - | - | - |
+| external | crate::adapter | run_toolchain_command | - | - | - |
+| external | crate::adapter | tool_available | - | - | - |
+| external | crate::adapter | tool_output_detail | - | - | - |
+| external | crate::adapter | ToolInvocation | - | - | - |
+| external | crate::adapter | ToolRunOutput | - | - | - |
+| external | crate::adapter | ToolRunStatus | - | - | - |
+| internal | crate::descriptor | self | - | - | [descriptor.rs.md#source](descriptor.rs.md#source) |
+| internal | crate::descriptor | ToolBehavior | - | - | [descriptor.rs.md#source](descriptor.rs.md#source) |
+| internal | crate::descriptor | ToolInputMode | - | - | [descriptor.rs.md#source](descriptor.rs.md#source) |
+| internal | crate::descriptor | ToolOutputMode | - | - | [descriptor.rs.md#source](descriptor.rs.md#source) |
+| internal | crate::diagnostics | Diagnostic | - | - | [diagnostics.rs.md#source](diagnostics.rs.md#source) |
+| internal | crate::diagnostics | RunState | - | - | [diagnostics.rs.md#source](diagnostics.rs.md#source) |
+| internal | crate::diff | unified_diff | - | - | [diff.rs.md#source](diff.rs.md#source) |
+| internal | crate::fs_utils | is_excluded | - | - | [fs_utils.rs.md#source](fs_utils.rs.md#source) |
+| internal | crate::model | DocKind | - | - | [model.rs.md#source](model.rs.md#source) |
+| internal | crate::model | ImplDoc | - | - | [model.rs.md#source](model.rs.md#source) |
+| internal | crate::model | Lang | - | - | [model.rs.md#source](model.rs.md#source) |
+| internal | crate::model | Package | - | - | [model.rs.md#source](model.rs.md#source) |
 
 
 ## Source
@@ -480,10 +491,17 @@ fn padded_code_from_markdown(doc: &ImplDoc) -> Result<String, String> {
         .map_err(|error| format!("failed to read {}: {error}", doc.path.display()))?;
     let mut output = String::new();
     let mut output_line = 1;
+    let import_prefix = quality_import_prefix(doc);
+    let mut prepended_imports = false;
     for block in code_block_ranges(&text) {
         while output_line < block.content_start_line {
             output.push('\n');
             output_line += 1;
+        }
+        if !prepended_imports && !import_prefix.is_empty() {
+            output.push_str(&import_prefix);
+            output_line += import_prefix.bytes().filter(|byte| *byte == b'\n').count();
+            prepended_imports = true;
         }
         output.push_str(block.content);
         output_line += block.content.bytes().filter(|byte| *byte == b'\n').count();
@@ -492,6 +510,33 @@ fn padded_code_from_markdown(doc: &ImplDoc) -> Result<String, String> {
         output.push_str(&doc.code);
     }
     Ok(output)
+}
+````
+
+````rs
+fn quality_import_prefix(doc: &ImplDoc) -> String {
+    let candidate = match doc.doc_kind {
+        DocKind::Source if !doc.source_code.trim().is_empty() => doc.source_code.as_str(),
+        DocKind::Source if !doc.types_code.trim().is_empty() => doc.types_code.as_str(),
+        DocKind::Test if !doc.test_code.trim().is_empty() => doc.test_code.as_str(),
+        _ => doc.code.as_str(),
+    };
+    let descriptor = descriptor::builtin_descriptor(&doc.lang);
+    let mut output = String::new();
+    for line in candidate.lines() {
+        let trimmed = line.trim_start();
+        if descriptor.matches_import_line(trimmed) {
+            output.push_str(line);
+            output.push('\n');
+            continue;
+        }
+        if trimmed.is_empty() && !output.is_empty() {
+            output.push('\n');
+            continue;
+        }
+        break;
+    }
+    output
 }
 ````
 

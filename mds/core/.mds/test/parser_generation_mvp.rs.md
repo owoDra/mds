@@ -32,16 +32,27 @@ Migrated implementation source for `tests/parser_generation_mvp.rs`.
 
 ## Imports
 
-| Kind | From | Target | Symbols | Via | Summary | Code |
-| --- | --- | --- | --- | --- | --- | --- |
-| rust-use | builtin | std | fs | std |  | `use std::fs;` |
-| rust-use | builtin | std::os::unix::fs | PermissionsExt | std |  | `use std::os::unix::fs::PermissionsExt;` |
-| rust-use | builtin | std::path | Path, PathBuf | std |  | `use std::path::{Path, PathBuf};` |
-| rust-use | builtin | std::sync::atomic | AtomicUsize, Ordering | std |  | `use std::sync::atomic::{AtomicUsize, Ordering};` |
-| rust-use | external | mds_core | { | mds_core |  | `use mds_core::{` |
-| import | external |  |  |  |  | `execute, AgentKitCategory, AiTarget, BuildMode, CliRequest, Command, InitOptions,` |
-| import | external |  |  |  |  | `InitQualityCommands, InitTargetCategories, Lang, PythonTool, RustTool, TypeScriptTool,` |
-| import | external |  |  |  |  | `};` |
+| From | Target | Symbols | Via | Summary | Reference |
+| --- | --- | --- | --- | --- | --- |
+| builtin | std | fs | - | - | - |
+| builtin | std::os::unix::fs | PermissionsExt | - | - | - |
+| builtin | std::path | Path | - | - | - |
+| builtin | std::path | PathBuf | - | - | - |
+| builtin | std::sync::atomic | AtomicUsize | - | - | - |
+| builtin | std::sync::atomic | Ordering | - | - | - |
+| external | mds_core | execute | - | - | [../source/lib.rs.md#source](../source/lib.rs.md#source) |
+| external | mds_core | AgentKitCategory | - | - | [../source/lib.rs.md#source](../source/lib.rs.md#source) |
+| external | mds_core | AiTarget | - | - | [../source/lib.rs.md#source](../source/lib.rs.md#source) |
+| external | mds_core | BuildMode | - | - | [../source/lib.rs.md#source](../source/lib.rs.md#source) |
+| external | mds_core | CliRequest | - | - | [../source/lib.rs.md#source](../source/lib.rs.md#source) |
+| external | mds_core | Command | - | - | [../source/lib.rs.md#source](../source/lib.rs.md#source) |
+| external | mds_core | InitOptions | - | - | [../source/lib.rs.md#source](../source/lib.rs.md#source) |
+| external | mds_core | InitQualityCommands | - | - | [../source/lib.rs.md#source](../source/lib.rs.md#source) |
+| external | mds_core | InitTargetCategories | - | - | [../source/lib.rs.md#source](../source/lib.rs.md#source) |
+| external | mds_core | Lang | - | - | [../source/lib.rs.md#source](../source/lib.rs.md#source) |
+| external | mds_core | PythonTool | - | - | [../source/lib.rs.md#source](../source/lib.rs.md#source) |
+| external | mds_core | RustTool | - | - | [../source/lib.rs.md#source](../source/lib.rs.md#source) |
+| external | mds_core | TypeScriptTool | - | - | [../source/lib.rs.md#source](../source/lib.rs.md#source) |
 
 
 ## Test
@@ -289,6 +300,95 @@ fn rejects_imports_mixed_with_implementation_code_blocks() {
     });
     assert_eq!(check.exit_code, 1);
     assert!(check.stderr.contains("mixes imports with implementation"));
+}
+````
+
+````rs
+#[test]
+fn build_renders_typescript_imports_without_kind_or_code_columns() {
+    let temp = TestDir::new();
+    let package = temp.path().join("ts-import-fixture");
+    fs::create_dir_all(package.join(".mds/source")).unwrap();
+    fs::write(
+        package.join("mds.config.toml"),
+        "[package]\nenabled = true\nallow_raw_source = false\n",
+    )
+    .unwrap();
+    fs::write(
+        package.join("package.json"),
+        "{\"name\":\"ts-import-fixture\",\"version\":\"0.1.0\"}\n",
+    )
+    .unwrap();
+    fs::write(
+        package.join(".mds/source/overview.md"),
+        "# Overview\n\n## Purpose\n\nFixture package.\n\n## Architecture\n\nFixture architecture.\n\n<!-- mds:begin package-summary -->\n| Name | Version |\n| --- | --- |\n| ts-import-fixture | 0.1.0 |\n<!-- mds:end package-summary -->\n\n## Exposes\n\n| Kind | Name | Target | Summary |\n| --- | --- | --- | --- |\n\n<!-- mds:begin dependencies -->\n| Name | Version | Summary |\n| --- | --- | --- |\n<!-- mds:end dependencies -->\n\n<!-- mds:begin dev-dependencies -->\n| Name | Version | Summary |\n| --- | --- | --- |\n<!-- mds:end dev-dependencies -->\n\n## Rules\n\n- Fixture rules.\n",
+    )
+    .unwrap();
+    fs::write(
+        package.join(".mds/source/greet.ts.md"),
+        "# greet\n\n## Purpose\n\nFixture.\n\n## Imports\n\n| From | Target | Symbols | Via | Summary |\n| --- | --- | --- | --- | --- |\n| external | ./format-name | formatName | - | formatter |\n\n## Source\n\n```ts\nexport function greet(name: string) {\n  return formatName(name);\n}\n```\n",
+    )
+    .unwrap();
+
+    let build = execute(CliRequest {
+        cwd: package.clone(),
+        package: None,
+        verbose: false,
+        command: Command::Build {
+            mode: BuildMode::Write,
+        },
+    });
+    assert_eq!(build.exit_code, 0, "{}", build.stderr);
+
+    let generated = fs::read_to_string(package.join("src/greet.ts")).unwrap();
+    assert!(generated.contains("import { formatName } from './format-name';"));
+}
+````
+
+````rs
+#[test]
+fn build_renders_python_imports_from_internal_markdown_links() {
+    let temp = TestDir::new();
+    let package = temp.path().join("py-import-fixture");
+    fs::create_dir_all(package.join(".mds/source")).unwrap();
+    fs::write(
+        package.join("mds.config.toml"),
+        "[package]\nenabled = true\nallow_raw_source = false\n",
+    )
+    .unwrap();
+    fs::write(
+        package.join("pyproject.toml"),
+        "[project]\nname = 'py-import-fixture'\nversion = '0.1.0'\n",
+    )
+    .unwrap();
+    fs::write(
+        package.join(".mds/source/overview.md"),
+        "# Overview\n\n## Purpose\n\nFixture package.\n\n## Architecture\n\nFixture architecture.\n\n<!-- mds:begin package-summary -->\n| Name | Version |\n| --- | --- |\n| py-import-fixture | 0.1.0 |\n<!-- mds:end package-summary -->\n\n## Exposes\n\n| Kind | Name | Target | Summary |\n| --- | --- | --- | --- |\n\n<!-- mds:begin dependencies -->\n| Name | Version | Summary |\n| --- | --- | --- |\n<!-- mds:end dependencies -->\n\n<!-- mds:begin dev-dependencies -->\n| Name | Version | Summary |\n| --- | --- | --- |\n<!-- mds:end dev-dependencies -->\n\n## Rules\n\n- Fixture rules.\n",
+    )
+    .unwrap();
+    fs::write(
+        package.join(".mds/source/format_name.py.md"),
+        "# format_name\n\n## Purpose\n\nFixture.\n\n##### format-name\n\nShared formatter.\n\n## Source\n\n```py\ndef format_name(name: str) -> str:\n    return name\n```\n",
+    )
+    .unwrap();
+    fs::write(
+        package.join(".mds/source/greet.py.md"),
+        "# greet\n\n## Purpose\n\nFixture.\n\n## Imports\n\n| From | Target | Symbols | Via | Summary |\n| --- | --- | --- | --- | --- |\n| internal | [format_name](./format_name.py.md#format-name) | format_name | - | formatter |\n\n## Source\n\n```py\ndef greet(name: str) -> str:\n    return format_name(name)\n```\n",
+    )
+    .unwrap();
+
+    let build = execute(CliRequest {
+        cwd: package.clone(),
+        package: None,
+        verbose: false,
+        command: Command::Build {
+            mode: BuildMode::Write,
+        },
+    });
+    assert_eq!(build.exit_code, 0, "{}", build.stderr);
+
+    let generated = fs::read_to_string(package.join("src/greet.py")).unwrap();
+    assert!(generated.contains("from format_name import format_name"));
 }
 ````
 

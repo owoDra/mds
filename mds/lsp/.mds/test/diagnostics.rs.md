@@ -16,11 +16,11 @@ Migrated implementation source for `tests/diagnostics.rs`.
 
 ## Imports
 
-| Kind | From | Target | Symbols | Via | Summary | Code |
-| --- | --- | --- | --- | --- | --- | --- |
-| rust-use | builtin | std::path | PathBuf | std |  | `use std::path::PathBuf;` |
-| rust-use | external | mds_core | Config | mds_core |  | `use mds_core::Config;` |
-| rust-use | external | mds_lsp::capabilities | diagnostics | mds_lsp |  | `use mds_lsp::capabilities::diagnostics;` |
+| From | Target | Symbols | Via | Summary | Reference |
+| --- | --- | --- | --- | --- | --- |
+| builtin | std::path | PathBuf | - | - | - |
+| external | mds_core | Config | - | - | [../../../core/.mds/source/lib.rs.md#source](../../../core/.mds/source/lib.rs.md#source) |
+| external | mds_lsp::capabilities | diagnostics | - | - | [../source/capabilities/mod.rs.md#source](../source/capabilities/mod.rs.md#source) |
 
 
 ## Test

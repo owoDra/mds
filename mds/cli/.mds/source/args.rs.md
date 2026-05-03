@@ -11,13 +11,21 @@ Migrated implementation source for `src/args.rs`.
 
 ## Imports
 
-| Kind | From | Target | Symbols | Via | Summary | Code |
-| --- | --- | --- | --- | --- | --- | --- |
-| rust-use | builtin | std::path | PathBuf | std |  | `use std::path::PathBuf;` |
-| rust-use | external | mds_core | { | mds_core |  | `use mds_core::{` |
-| import | external |  |  |  |  | `AgentKitCategory, AiTarget, BuildMode, CliRequest, Command, DoctorFormat, InitOptions,` |
-| import | external |  |  |  |  | `LabelPreset, NewOptions, PythonTool, RustTool, TypeScriptTool,` |
-| import | external |  |  |  |  | `};` |
+| From | Target | Symbols | Via | Summary | Reference |
+| --- | --- | --- | --- | --- | --- |
+| builtin | std::path | PathBuf | - | - | - |
+| external | mds_core | AgentKitCategory | - | - | [../../../core/.mds/source/lib.rs.md#source](../../../core/.mds/source/lib.rs.md#source) |
+| external | mds_core | AiTarget | - | - | [../../../core/.mds/source/lib.rs.md#source](../../../core/.mds/source/lib.rs.md#source) |
+| external | mds_core | BuildMode | - | - | [../../../core/.mds/source/lib.rs.md#source](../../../core/.mds/source/lib.rs.md#source) |
+| external | mds_core | CliRequest | - | - | [../../../core/.mds/source/lib.rs.md#source](../../../core/.mds/source/lib.rs.md#source) |
+| external | mds_core | Command | - | - | [../../../core/.mds/source/lib.rs.md#source](../../../core/.mds/source/lib.rs.md#source) |
+| external | mds_core | DoctorFormat | - | - | [../../../core/.mds/source/lib.rs.md#source](../../../core/.mds/source/lib.rs.md#source) |
+| external | mds_core | InitOptions | - | - | [../../../core/.mds/source/lib.rs.md#source](../../../core/.mds/source/lib.rs.md#source) |
+| external | mds_core | LabelPreset | - | - | [../../../core/.mds/source/lib.rs.md#source](../../../core/.mds/source/lib.rs.md#source) |
+| external | mds_core | NewOptions | - | - | [../../../core/.mds/source/lib.rs.md#source](../../../core/.mds/source/lib.rs.md#source) |
+| external | mds_core | PythonTool | - | - | [../../../core/.mds/source/lib.rs.md#source](../../../core/.mds/source/lib.rs.md#source) |
+| external | mds_core | RustTool | - | - | [../../../core/.mds/source/lib.rs.md#source](../../../core/.mds/source/lib.rs.md#source) |
+| external | mds_core | TypeScriptTool | - | - | [../../../core/.mds/source/lib.rs.md#source](../../../core/.mds/source/lib.rs.md#source) |
 
 
 ## Source

@@ -11,14 +11,22 @@ Migrated implementation source for `src/markdown.rs`.
 
 ## Imports
 
-| Kind | From | Target | Symbols | Via | Summary | Code |
-| --- | --- | --- | --- | --- | --- | --- |
-| rust-use | builtin | std::collections | HashMap | std |  | `use std::collections::HashMap;` |
-| rust-use | builtin | std | fs | std |  | `use std::fs;` |
-| rust-use | builtin | std::path | Path, PathBuf | std |  | `use std::path::{Path, PathBuf};` |
-| rust-use | internal | crate::diagnostics | Diagnostic, RunState | crate |  | `use crate::diagnostics::{Diagnostic, RunState};` |
-| rust-use | internal | crate::fs_utils | collect_files, is_excluded | crate |  | `use crate::fs_utils::{collect_files, is_excluded};` |
-| rust-use | internal | crate::model | DocKind, ImplDoc, Lang, Package | crate |  | `use crate::model::{DocKind, ImplDoc, Lang, Package};` |
+| From | Target | Symbols | Via | Summary | Reference |
+| --- | --- | --- | --- | --- | --- |
+| builtin | std::collections | HashMap | - | - | - |
+| builtin | std | fs | - | - | - |
+| builtin | std::path | Path | - | - | - |
+| builtin | std::path | PathBuf | - | - | - |
+| internal | crate::descriptor | builtin_descriptor | - | - | [descriptor.rs.md#source](descriptor.rs.md#source) |
+| internal | crate::diagnostics | Diagnostic | - | - | [diagnostics.rs.md#source](diagnostics.rs.md#source) |
+| internal | crate::diagnostics | RunState | - | - | [diagnostics.rs.md#source](diagnostics.rs.md#source) |
+| internal | crate::fs_utils | collect_files | - | - | [fs_utils.rs.md#source](fs_utils.rs.md#source) |
+| internal | crate::fs_utils | is_excluded | - | - | [fs_utils.rs.md#source](fs_utils.rs.md#source) |
+| internal | crate::model | DocKind | - | - | [model.rs.md#source](model.rs.md#source) |
+| internal | crate::model | ImplDoc | - | - | [model.rs.md#source](model.rs.md#source) |
+| internal | crate::model | Lang | - | - | [model.rs.md#source](model.rs.md#source) |
+| internal | crate::model | Package | - | - | [model.rs.md#source](model.rs.md#source) |
+| internal | crate::table | parse_table_with_labels | - | - | [table.rs.md#source](table.rs.md#source) |
 
 
 ## Source
@@ -138,7 +146,13 @@ pub fn parse_impl_doc(
     );
 
     let sections = sections_with_labels(&text, &package.config.label_overrides);
-    let imports_code = code_from_section(sections.get("Imports"));
+    let imports_code = render_imports_section(
+        sections.get("Imports"),
+        path,
+        &lang,
+        &package.config.label_overrides,
+        state,
+    );
     let types_code = prepend_imports(&imports_code, code_from_section(sections.get("Types")));
     let source_code = prepend_imports(&imports_code, code_from_section(sections.get("Source")));
     let test_code = prepend_imports(&imports_code, code_from_section(sections.get("Test")));
@@ -472,9 +486,43 @@ fn prepend_imports(imports: &str, body: String) -> String {
         return body;
     }
     if body.trim().is_empty() {
-        return imports.to_string();
+        return String::new();
     }
     format!("{}\n{}", imports.trim_end(), body)
+}
+````
+
+````rs
+fn render_imports_section(
+    section: Option<&String>,
+    path: &Path,
+    lang: &Lang,
+    label_overrides: &HashMap<String, String>,
+    state: &mut RunState,
+) -> String {
+    let Some(section) = section else {
+        return String::new();
+    };
+    let Some(rows) = parse_table_with_labels(
+        section,
+        &["From", "Target", "Symbols", "Via", "Summary", "Reference"],
+        path,
+        label_overrides,
+        state,
+    ) else {
+        return String::new();
+    };
+
+    let descriptor = builtin_descriptor(lang);
+    let mut output = String::new();
+    for row in rows {
+        let Some(statement) = descriptor.render_import(&row) else {
+            continue;
+        };
+        output.push_str(&statement);
+        output.push('\n');
+    }
+    output
 }
 ````
 
@@ -488,7 +536,7 @@ fn code_from_table(section: &str) -> String {
         let headers = split_markdown_row(lines[index]);
         let Some(code_index) = headers
             .iter()
-            .position(|header| matches!(header.trim().to_ascii_lowercase().as_str(), "code" | "statement"))
+            .position(|header| header.trim().eq_ignore_ascii_case("statement"))
         else {
             continue;
         };
@@ -578,7 +626,7 @@ fn validate_code_block_boundaries(
             false
         };
         let declaration_count = if check.import_with_implementation || check.top_level_fence_required {
-            top_level_declaration_count(&lang, block.content)
+            top_level_declaration_count(lang, block.content)
         } else {
             0
         };
@@ -813,7 +861,6 @@ pub fn validate_markdown_links(path: &Path, text: &str, state: &mut RunState) {
 fn top_level_declaration_count(lang: &Lang, content: &str) -> usize {
     let declarations: Vec<&str> = content
         .lines()
-        .map(str::trim_start)
         .filter(|line| is_top_level_declaration(lang, line))
         .collect();
     if declarations.is_empty() {

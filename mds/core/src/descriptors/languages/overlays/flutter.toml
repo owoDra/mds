@@ -22,6 +22,9 @@ prefix = ""
 suffix = "_test"
 extension = "dart"
 
+[imports]
+style = "dart"
+
 [syntax]
 top_level_keywords = ["class ", "enum ", "Widget ", "StatefulWidget", "StatelessWidget", "final ", "const "]
 comment_prefixes = ["//", "/*", "*"]

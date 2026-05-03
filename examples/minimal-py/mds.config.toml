@@ -11,6 +11,6 @@ test = "tests"
 [quality.py]
 linter = "ruff check"
 fixer = "ruff format"
-test_runner = "pytest"
+test_runner = ""
 required = ["python3", "ruff", "pytest"]
 optional = []

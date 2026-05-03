@@ -11,20 +11,27 @@ Migrated implementation source for `src/server.rs`.
 
 ## Imports
 
-| Kind | From | Target | Symbols | Via | Summary | Code |
-| --- | --- | --- | --- | --- | --- | --- |
-| rust-use | builtin | std::collections | HashMap | std |  | `use std::collections::HashMap;` |
-| rust-use | builtin | std::path | PathBuf | std |  | `use std::path::PathBuf;` |
-| rust-use | external | mds_core::diagnostics | RunState | mds_core |  | `use mds_core::diagnostics::RunState;` |
-| rust-use | external | mds_core::markdown | load_implementation_docs, source_markdown_root, test_markdown_root | mds_core |  | `use mds_core::markdown::{load_implementation_docs, source_markdown_root, test_markdown_root};` |
-| rust-use | external | mds_core::model | Lang | mds_core |  | `use mds_core::model::Lang;` |
-| rust-use | external | mds_core::package | discover_packages | mds_core |  | `use mds_core::package::discover_packages;` |
-| rust-use | external | tower_lsp::jsonrpc | Result | tower_lsp |  | `use tower_lsp::jsonrpc::Result;` |
-| rust-use | external | tower_lsp::lsp_types | * | tower_lsp |  | `use tower_lsp::lsp_types::*;` |
-| rust-use | external | tower_lsp | Client, LanguageServer | tower_lsp |  | `use tower_lsp::{Client, LanguageServer};` |
-| rust-use | external | tracing | error, info | tracing |  | `use tracing::{error, info};` |
-| rust-use | internal | crate | capabilities | crate |  | `use crate::capabilities;` |
-| rust-use | internal | crate::state | OpenFile, PackageState, SharedState, WorkspaceIndex | crate |  | `use crate::state::{OpenFile, PackageState, SharedState, WorkspaceIndex};` |
+| From | Target | Symbols | Via | Summary | Reference |
+| --- | --- | --- | --- | --- | --- |
+| builtin | std::collections | HashMap | - | - | - |
+| builtin | std::path | PathBuf | - | - | - |
+| external | mds_core::diagnostics | RunState | - | - | [../../../core/.mds/source/diagnostics.rs.md#source](../../../core/.mds/source/diagnostics.rs.md#source) |
+| external | mds_core::markdown | load_implementation_docs | - | - | [../../../core/.mds/source/markdown.rs.md#source](../../../core/.mds/source/markdown.rs.md#source) |
+| external | mds_core::markdown | source_markdown_root | - | - | [../../../core/.mds/source/markdown.rs.md#source](../../../core/.mds/source/markdown.rs.md#source) |
+| external | mds_core::markdown | test_markdown_root | - | - | [../../../core/.mds/source/markdown.rs.md#source](../../../core/.mds/source/markdown.rs.md#source) |
+| external | mds_core::model | Lang | - | - | [../../../core/.mds/source/model.rs.md#source](../../../core/.mds/source/model.rs.md#source) |
+| external | mds_core::package | discover_packages | - | - | [../../../core/.mds/source/package.rs.md#source](../../../core/.mds/source/package.rs.md#source) |
+| external | tower_lsp::jsonrpc | Result | - | - | - |
+| external | tower_lsp::lsp_types | * | - | - | - |
+| external | tower_lsp | Client | - | - | - |
+| external | tower_lsp | LanguageServer | - | - | - |
+| external | tracing | error | - | - | - |
+| external | tracing | info | - | - | - |
+| internal | crate | capabilities | - | - | [capabilities/mod.rs.md#source](capabilities/mod.rs.md#source) |
+| internal | crate::state | OpenFile | - | - | [state.rs.md#source](state.rs.md#source) |
+| internal | crate::state | PackageState | - | - | [state.rs.md#source](state.rs.md#source) |
+| internal | crate::state | SharedState | - | - | [state.rs.md#source](state.rs.md#source) |
+| internal | crate::state | WorkspaceIndex | - | - | [state.rs.md#source](state.rs.md#source) |
 
 
 ## Source

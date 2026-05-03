@@ -64,11 +64,15 @@ export function greet(config: Config): string {
 }
 \`\`\`
 
-## Imports
+## {{IMPORTS}}
 
-| Phase | Target | Names | Summary |
-| --- | --- | --- | --- |
-| Source | ./config | Config | Configuration type. |
+| {{FROM}} | {{TARGET}} | {{SYMBOLS}} | {{VIA}} | {{SUMMARY}} | {{REFERENCE}} |
+| --- | --- | --- | --- | --- | --- |
+| internal | ./config | Config | - | Configuration type. | [./config.ts.md#config](./config.ts.md#config) |
+
+##### Config
+
+Use H5 headings for shared definitions that other modules or packages reference.
 ```
 
 ### Rules

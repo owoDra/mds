@@ -11,14 +11,16 @@ Built-in language descriptor registry for output path rules.
 
 ## Imports
 
-| Kind | From | Target | Symbols | Via | Summary | Code |
-| --- | --- | --- | --- | --- | --- | --- |
-| rust-use | builtin | std::cell | RefCell | std |  | `use std::cell::RefCell;` |
-| rust-use | builtin | std::collections | HashMap | std |  | `use std::collections::HashMap;` |
-| rust-use | builtin | std | fs | std |  | `use std::fs;` |
-| rust-use | builtin | std::path | Path, PathBuf | std |  | `use std::path::{Path, PathBuf};` |
-| rust-use | external | serde | Deserialize | serde |  | `use serde::Deserialize;` |
-| rust-use | internal | crate::model | Lang, OutputKind | crate |  | `use crate::model::{Lang, OutputKind};` |
+| From | Target | Symbols | Via | Summary | Reference |
+| --- | --- | --- | --- | --- | --- |
+| builtin | std::cell | RefCell | - | - | - |
+| builtin | std::collections | HashMap | - | - | - |
+| builtin | std | fs | - | - | - |
+| builtin | std::path | Path | - | - | - |
+| builtin | std::path | PathBuf | - | - | - |
+| external | serde | Deserialize | - | - | - |
+| internal | crate::model | Lang | - | - | [model.rs.md#source](model.rs.md#source) |
+| internal | crate::model | OutputKind | - | - | [model.rs.md#source](model.rs.md#source) |
 
 
 ## Source
@@ -65,6 +67,8 @@ pub(crate) struct Descriptor {
     pub files: FileRules,
     #[serde(default)]
     pub special_files: Vec<SpecialFileRule>,
+    #[serde(default)]
+    pub imports: ImportSection,
     #[serde(default)]
     pub syntax: SyntaxSection,
     #[serde(default)]
@@ -188,6 +192,14 @@ pub(crate) struct FileRule {
     #[serde(default)]
     pub suffix: String,
     pub extension: String,
+}
+````
+
+````rs
+#[derive(Debug, Clone, Default, Deserialize)]
+pub(crate) struct ImportSection {
+    #[serde(default)]
+    pub style: String,
 }
 ````
 
@@ -396,6 +408,35 @@ impl Descriptor {
         format!("```{fence_lang}\n{body}\n```")
     }
 
+    pub fn render_import(&self, row: &HashMap<String, String>) -> Option<String> {
+        let style = self.imports.style.as_str();
+        if style.is_empty() || style == "none" {
+            return None;
+        }
+
+        let from = normalize_import_cell(row.get("from").map(String::as_str));
+        let target = normalize_import_cell(row.get("target").map(String::as_str));
+        let symbols = split_import_symbols(row.get("symbols").map(String::as_str));
+        let via = normalize_import_cell(row.get("via").map(String::as_str));
+        let via = (!via.is_empty()).then_some(via.as_str());
+
+        match style {
+            "typescript" if !target.is_empty() => render_typescript_import(&target, &symbols, via),
+            "python" if !target.is_empty() => Some(render_python_import(&target, &symbols)),
+            "rust" => render_rust_import(&target, &symbols),
+            "go" if !target.is_empty() => Some(format!("import \"{target}\"")),
+            "java" if !target.is_empty() => render_java_import(&target, &symbols),
+            "csharp" if !target.is_empty() => Some(format!("using {target};")),
+            "c-include" if !target.is_empty() => Some(render_c_include(from.as_str(), &target)),
+            "dart" if !target.is_empty() => Some(render_dart_import(&target, &symbols)),
+            "ruby" if !target.is_empty() => Some(render_ruby_import(from.as_str(), &target)),
+            "scss" if !target.is_empty() => Some(render_scss_import(&target, via)),
+            "zig" if !target.is_empty() => Some(render_zig_import(&target, &symbols, via)),
+            "mojo" if !target.is_empty() => Some(render_python_import(&target, &symbols)),
+            _ => None,
+        }
+    }
+
     pub fn lint_behavior(&self) -> &ToolBehavior {
         &self.tooling.lint
     }
@@ -460,6 +501,152 @@ impl LinePattern {
         line.starts_with(&self.starts_with)
             && self.contains.iter().all(|needle| line.contains(needle))
     }
+}
+````
+
+````rs
+fn normalize_import_cell(value: Option<&str>) -> String {
+    let value = value.unwrap_or_default().trim();
+    if value.is_empty() || value == "-" {
+        return String::new();
+    }
+    let value = value.trim_matches('`');
+    if let Some((label, _link)) = markdown_link_parts(value) {
+        return label.to_string();
+    }
+    value.to_string()
+}
+````
+
+````rs
+fn split_import_symbols(value: Option<&str>) -> Vec<String> {
+    normalize_import_cell(value)
+        .trim_matches(['{', '}'])
+        .split(',')
+        .map(str::trim)
+        .filter(|symbol| !symbol.is_empty() && *symbol != "-")
+        .map(|symbol| symbol.to_string())
+        .collect()
+}
+````
+
+````rs
+fn markdown_link_parts(value: &str) -> Option<(&str, &str)> {
+    if !value.starts_with('[') || !value.ends_with(')') {
+        return None;
+    }
+    let middle = value.find("](")?;
+    Some((&value[1..middle], &value[middle + 2..value.len() - 1]))
+}
+````
+
+````rs
+fn render_typescript_import(target: &str, symbols: &[String], via: Option<&str>) -> Option<String> {
+    if symbols.is_empty() {
+        return Some(format!("import '{target}';"));
+    }
+    match via.unwrap_or_default() {
+        "default" if symbols.len() == 1 => Some(format!("import {} from '{target}';", symbols[0])),
+        "namespace" if symbols.len() == 1 => {
+            Some(format!("import * as {} from '{target}';", symbols[0]))
+        }
+        "type" => Some(format!("import type {{ {} }} from '{target}';", symbols.join(", "))),
+        _ => Some(format!("import {{ {} }} from '{target}';", symbols.join(", "))),
+    }
+}
+````
+
+````rs
+fn render_python_import(target: &str, symbols: &[String]) -> String {
+    if symbols.is_empty() {
+        format!("import {target}")
+    } else {
+        format!("from {target} import {}", symbols.join(", "))
+    }
+}
+````
+
+````rs
+fn render_rust_import(target: &str, symbols: &[String]) -> Option<String> {
+    if target.is_empty() && symbols.is_empty() {
+        return None;
+    }
+    if symbols.is_empty() {
+        return Some(format!("use {target};"));
+    }
+    Some(format!("use {target}::{{{}}};", symbols.join(", ")))
+}
+````
+
+````rs
+fn render_java_import(target: &str, symbols: &[String]) -> Option<String> {
+    if symbols.is_empty() {
+        return Some(format!("import {target};"));
+    }
+    Some(
+        symbols
+            .iter()
+            .map(|symbol| format!("import {target}.{symbol};"))
+            .collect::<Vec<_>>()
+            .join("\n"),
+    )
+}
+````
+
+````rs
+fn render_c_include(from: &str, target: &str) -> String {
+    if matches!(from, "internal" | "workspace") {
+        format!("#include \"{target}\"")
+    } else {
+        format!("#include <{target}>")
+    }
+}
+````
+
+````rs
+fn render_dart_import(target: &str, symbols: &[String]) -> String {
+    if symbols.is_empty() {
+        format!("import '{target}';")
+    } else {
+        format!("import '{target}' show {};", symbols.join(", "))
+    }
+}
+````
+
+````rs
+fn render_ruby_import(from: &str, target: &str) -> String {
+    if matches!(from, "internal" | "workspace") {
+        format!("require_relative '{target}'")
+    } else {
+        format!("require '{target}'")
+    }
+}
+````
+
+````rs
+fn render_scss_import(target: &str, via: Option<&str>) -> String {
+    match via.unwrap_or_default() {
+        alias if alias.starts_with("as ") => format!("@use '{target}' {alias};"),
+        _ => format!("@use '{target}';"),
+    }
+}
+````
+
+````rs
+fn render_zig_import(target: &str, symbols: &[String], via: Option<&str>) -> String {
+    let binding = via
+        .filter(|value| !value.is_empty() && *value != "-")
+        .map(str::to_string)
+        .or_else(|| symbols.first().cloned())
+        .unwrap_or_else(|| {
+            target
+                .rsplit('/')
+                .next()
+                .unwrap_or("dep")
+                .trim_end_matches(".zig")
+                .to_string()
+        });
+    format!("const {binding} = @import(\"{target}\");")
 }
 ````
 

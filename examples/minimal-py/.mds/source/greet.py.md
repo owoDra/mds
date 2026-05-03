@@ -15,9 +15,9 @@
 
 ## Imports
 
-| Kind | From | Target | Symbols | Via | Summary | Code |
-| --- | --- | --- | --- | --- | --- | --- |
-| python-from-import | builtin | dataclasses | dataclass | from |  | `from dataclasses import dataclass` |
+| From | Target | Symbols | Via | Summary | Reference |
+| --- | --- | --- | --- | --- | --- |
+| builtin | dataclasses | dataclass | - | - | - |
 
 ## Source
 

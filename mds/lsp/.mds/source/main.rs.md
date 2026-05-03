@@ -11,10 +11,11 @@ Migrated implementation source for `src/main.rs`.
 
 ## Imports
 
-| Kind | From | Target | Symbols | Via | Summary | Code |
-| --- | --- | --- | --- | --- | --- | --- |
-| rust-use | external | tower_lsp | LspService, Server | tower_lsp |  | `use tower_lsp::{LspService, Server};` |
-| rust-use | external | tracing_subscriber | EnvFilter | tracing_subscriber |  | `use tracing_subscriber::EnvFilter;` |
+| From | Target | Symbols | Via | Summary | Reference |
+| --- | --- | --- | --- | --- | --- |
+| external | tower_lsp | LspService | - | - | - |
+| external | tower_lsp | Server | - | - | - |
+| external | tracing_subscriber | EnvFilter | - | - | - |
 
 
 ## Source

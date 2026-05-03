@@ -11,12 +11,14 @@ Migrated implementation source for `src/doctor.rs`.
 
 ## Imports
 
-| Kind | From | Target | Symbols | Via | Summary | Code |
-| --- | --- | --- | --- | --- | --- | --- |
-| rust-use | builtin | std::process | Command as ProcessCommand | std |  | `use std::process::Command as ProcessCommand;` |
-| rust-use | internal | crate::adapter | tool_available | crate |  | `use crate::adapter::tool_available;` |
-| rust-use | internal | crate::diagnostics | Diagnostic, RunState | crate |  | `use crate::diagnostics::{Diagnostic, RunState};` |
-| rust-use | internal | crate::model | DoctorFormat, Package | crate |  | `use crate::model::{DoctorFormat, Package};` |
+| From | Target | Symbols | Via | Summary | Reference |
+| --- | --- | --- | --- | --- | --- |
+| builtin | std::process | Command as ProcessCommand | - | - | - |
+| internal | crate::adapter | tool_available | - | - | [adapter.rs.md#source](adapter.rs.md#source) |
+| internal | crate::diagnostics | Diagnostic | - | - | [diagnostics.rs.md#source](diagnostics.rs.md#source) |
+| internal | crate::diagnostics | RunState | - | - | [diagnostics.rs.md#source](diagnostics.rs.md#source) |
+| internal | crate::model | DoctorFormat | - | - | [model.rs.md#source](model.rs.md#source) |
+| internal | crate::model | Package | - | - | [model.rs.md#source](model.rs.md#source) |
 
 
 ## Source

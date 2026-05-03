@@ -23,6 +23,9 @@ prefix = ""
 suffix = ".test"
 extension = "c"
 
+[imports]
+style = "c-include"
+
 [syntax]
 top_level_keywords = ["typedef ", "struct ", "enum ", "static ", "extern ", "#define "]
 comment_prefixes = ["//", "/*", "*"]

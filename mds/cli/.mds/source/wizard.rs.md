@@ -11,24 +11,24 @@ Migrated implementation source for `src/wizard.rs`.
 
 ## Imports
 
-| Kind | From | Target | Symbols | Via | Summary | Code |
-| --- | --- | --- | --- | --- | --- | --- |
-| rust-use | builtin | std::io | self, stdout | std |  | `use std::io::{self, stdout};` |
-| rust-use | builtin | std::path | Path | std |  | `use std::path::Path;` |
-| rust-use | external | crossterm | { | crossterm |  | `use crossterm::{` |
-| import | external |  |  |  |  | `event::{self, Event, KeyCode, KeyEventKind},` |
-| import | external |  |  |  |  | `terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},` |
-| import | external |  |  |  |  | `ExecutableCommand,` |
-| import | external |  |  |  |  | `};` |
-| rust-use | external | mds_core | { | mds_core |  | `use mds_core::{` |
-| import | external |  |  |  |  | `descriptor,` |
-| import | external |  |  |  |  | `AgentKitCategory, AiTarget, InitOptions, InitQualityCommands, InitTargetCategories,` |
-| import | external |  |  |  |  | `LabelPreset, Lang,` |
-| import | external |  |  |  |  | `};` |
-| rust-use | external | ratatui | { | ratatui |  | `use ratatui::{` |
-| import | external |  |  |  |  | `prelude::*,` |
-| import | external |  |  |  |  | `widgets::{Block, Borders, Clear, List, ListItem, ListState, Padding, Paragraph, Wrap},` |
-| import | external |  |  |  |  | `};` |
+| From | Target | Symbols | Via | Summary | Reference |
+| --- | --- | --- | --- | --- | --- |
+| builtin | std::io | self | - | - | - |
+| builtin | std::io | stdout | - | - | - |
+| builtin | std::path | Path | - | - | - |
+| external | crossterm::event | self, Event, KeyCode, KeyEventKind | - | - | - |
+| external | crossterm::terminal | disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen | - | - | - |
+| external | crossterm | ExecutableCommand | - | - | - |
+| external | mds_core | descriptor | - | - | [../../../core/.mds/source/descriptor.rs.md#source](../../../core/.mds/source/descriptor.rs.md#source) |
+| external | mds_core | AgentKitCategory | - | - | [../../../core/.mds/source/lib.rs.md#source](../../../core/.mds/source/lib.rs.md#source) |
+| external | mds_core | AiTarget | - | - | [../../../core/.mds/source/lib.rs.md#source](../../../core/.mds/source/lib.rs.md#source) |
+| external | mds_core | InitOptions | - | - | [../../../core/.mds/source/lib.rs.md#source](../../../core/.mds/source/lib.rs.md#source) |
+| external | mds_core | InitQualityCommands | - | - | [../../../core/.mds/source/lib.rs.md#source](../../../core/.mds/source/lib.rs.md#source) |
+| external | mds_core | InitTargetCategories | - | - | [../../../core/.mds/source/lib.rs.md#source](../../../core/.mds/source/lib.rs.md#source) |
+| external | mds_core | LabelPreset | - | - | [../../../core/.mds/source/lib.rs.md#source](../../../core/.mds/source/lib.rs.md#source) |
+| external | mds_core | Lang | - | - | [../../../core/.mds/source/lib.rs.md#source](../../../core/.mds/source/lib.rs.md#source) |
+| external | ratatui | prelude::* | - | - | - |
+| external | ratatui::widgets | Block, Borders, Clear, List, ListItem, ListState, Padding, Paragraph, Wrap | - | - | - |
 
 
 ## Source
@@ -111,7 +111,7 @@ impl QualityField {
         }
     }
 
-    fn suggestion<'a>(self, profile: &'a ToolchainProfile) -> &'a str {
+    fn suggestion(self, profile: &ToolchainProfile) -> &str {
         match self {
             Self::TypeCheck => &profile.type_check,
             Self::Lint => &profile.lint,

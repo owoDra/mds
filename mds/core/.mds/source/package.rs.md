@@ -11,20 +11,26 @@ Migrated implementation source for `src/package.rs`.
 
 ## Imports
 
-| Kind | From | Target | Symbols | Via | Summary | Code |
-| --- | --- | --- | --- | --- | --- | --- |
-| rust-use | builtin | std::collections | HashMap, HashSet | std |  | `use std::collections::{HashMap, HashSet};` |
-| rust-use | builtin | std::ffi | OsStr | std |  | `use std::ffi::OsStr;` |
-| rust-use | builtin | std | fs | std |  | `use std::fs;` |
-| rust-use | builtin | std::path | Path | std |  | `use std::path::Path;` |
-| rust-use | external | regex | Regex | regex |  | `use regex::Regex;` |
-| rust-use | internal | crate::config | merge_config_file | crate |  | `use crate::config::merge_config_file;` |
-| rust-use | internal | crate | descriptor | crate |  | `use crate::descriptor;` |
-| rust-use | internal | crate::diagnostics | Diagnostic, RunState | crate |  | `use crate::diagnostics::{Diagnostic, RunState};` |
-| rust-use | internal | crate::fs_utils | collect_files, is_excluded | crate |  | `use crate::fs_utils::{collect_files, is_excluded};` |
-| rust-use | internal | crate::markdown | sections_with_labels, source_markdown_root, validate_markdown_links | crate |  | `use crate::markdown::{sections_with_labels, source_markdown_root, validate_markdown_links};` |
-| rust-use | internal | crate::model | Package, PackageMetadata | crate |  | `use crate::model::{Package, PackageMetadata};` |
-| rust-use | internal | crate::table | parse_table_with_labels | crate |  | `use crate::table::parse_table_with_labels;` |
+| From | Target | Symbols | Via | Summary | Reference |
+| --- | --- | --- | --- | --- | --- |
+| builtin | std::collections | HashMap | - | - | - |
+| builtin | std::collections | HashSet | - | - | - |
+| builtin | std::ffi | OsStr | - | - | - |
+| builtin | std | fs | - | - | - |
+| builtin | std::path | Path | - | - | - |
+| external | regex | Regex | - | - | - |
+| internal | crate::config | merge_config_file | - | - | [config.rs.md#source](config.rs.md#source) |
+| internal | crate | descriptor | - | - | [descriptor.rs.md#source](descriptor.rs.md#source) |
+| internal | crate::diagnostics | Diagnostic | - | - | [diagnostics.rs.md#source](diagnostics.rs.md#source) |
+| internal | crate::diagnostics | RunState | - | - | [diagnostics.rs.md#source](diagnostics.rs.md#source) |
+| internal | crate::fs_utils | collect_files | - | - | [fs_utils.rs.md#source](fs_utils.rs.md#source) |
+| internal | crate::fs_utils | is_excluded | - | - | [fs_utils.rs.md#source](fs_utils.rs.md#source) |
+| internal | crate::markdown | sections_with_labels | - | - | [markdown.rs.md#source](markdown.rs.md#source) |
+| internal | crate::markdown | source_markdown_root | - | - | [markdown.rs.md#source](markdown.rs.md#source) |
+| internal | crate::markdown | validate_markdown_links | - | - | [markdown.rs.md#source](markdown.rs.md#source) |
+| internal | crate::model | Package | - | - | [model.rs.md#source](model.rs.md#source) |
+| internal | crate::model | PackageMetadata | - | - | [model.rs.md#source](model.rs.md#source) |
+| internal | crate::table | parse_table_with_labels | - | - | [table.rs.md#source](table.rs.md#source) |
 
 
 ## Source

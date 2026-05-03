@@ -11,16 +11,13 @@ Migrated implementation source for `src/convert.rs`.
 
 ## Imports
 
-| Kind | From | Target | Symbols | Via | Summary | Code |
-| --- | --- | --- | --- | --- | --- | --- |
-| rust-use | external | mds_core | Diagnostic, Severity | mds_core |  | `use mds_core::{Diagnostic, Severity};` |
-| rust-use | external | tower_lsp | lsp_types | tower_lsp |  | `use tower_lsp::lsp_types;` |
+| From | Target | Symbols | Via | Summary | Reference |
+| --- | --- | --- | --- | --- | --- |
+| external | mds_core | Diagnostic | - | - | [../../../core/.mds/source/lib.rs.md#source](../../../core/.mds/source/lib.rs.md#source) |
+| external | mds_core | Severity | - | - | [../../../core/.mds/source/lib.rs.md#source](../../../core/.mds/source/lib.rs.md#source) |
+| external | tower_lsp | lsp_types | - | - | - |
 
 ## Source
-
-````rs
-#![allow(dead_code)]
-````
 
 Convert an mds-core Diagnostic to an LSP Diagnostic.
 
@@ -51,6 +48,7 @@ pub fn to_lsp_diagnostic(diag: &Diagnostic) -> lsp_types::Diagnostic {
 Convert a line number (1-based) to an LSP Range covering the full line.
 
 ````rs
+#[allow(dead_code)]
 pub fn line_range(line_1based: usize) -> lsp_types::Range {
     let line = line_1based.saturating_sub(1) as u32;
     lsp_types::Range {

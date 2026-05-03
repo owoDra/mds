@@ -11,12 +11,12 @@ Migrated implementation source for `src/diff.rs`.
 
 ## Imports
 
-| Kind | From | Target | Symbols | Via | Summary | Code |
-| --- | --- | --- | --- | --- | --- | --- |
-| rust-use | builtin | std | fs | std |  | `use std::fs;` |
-| rust-use | builtin | std::path | Path | std |  | `use std::path::Path;` |
-| rust-use | internal | crate::diagnostics | RunState | crate |  | `use crate::diagnostics::RunState;` |
-| rust-use | internal | crate::model | GeneratedFile | crate |  | `use crate::model::GeneratedFile;` |
+| From | Target | Symbols | Via | Summary | Reference |
+| --- | --- | --- | --- | --- | --- |
+| builtin | std | fs | - | - | - |
+| builtin | std::path | Path | - | - | - |
+| internal | crate::diagnostics | RunState | - | - | [diagnostics.rs.md#source](diagnostics.rs.md#source) |
+| internal | crate::model | GeneratedFile | - | - | [model.rs.md#source](model.rs.md#source) |
 
 
 ## Source

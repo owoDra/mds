@@ -29,12 +29,12 @@ Implementation files: `.mds/source/name.{lang}.md` → generates `src/name.{lang
 - Doc comments and docstrings belong in surrounding markdown text, not inside code blocks
 - Sections (## headings) are optional documentation
 
-### Imports Section
+### {{IMPORTS}} Section
 
-| Target | Summary |
-| --- | --- |
-| ./config | Configuration module |
-| lodash | Utility library |
+| {{FROM}} | {{TARGET}} | {{SYMBOLS}} | {{VIA}} | {{SUMMARY}} | {{REFERENCE}} |
+| --- | --- | --- | --- | --- | --- |
+| internal | ./config | Config | - | Configuration module | [./config.ts.md#config](./config.ts.md#config) |
+| external | lodash | mapValues | - | Utility library | - |
 
 ### Constraints
 

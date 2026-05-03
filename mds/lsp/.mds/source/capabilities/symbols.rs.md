@@ -11,10 +11,10 @@ Migrated implementation source for `src/capabilities/symbols.rs`.
 
 ## Imports
 
-| Kind | From | Target | Symbols | Via | Summary | Code |
-| --- | --- | --- | --- | --- | --- | --- |
-| rust-use | external | tower_lsp::lsp_types | * | tower_lsp |  | `use tower_lsp::lsp_types::*;` |
-| rust-use | internal | crate::state | WorkspaceState | crate |  | `use crate::state::WorkspaceState;` |
+| From | Target | Symbols | Via | Summary | Reference |
+| --- | --- | --- | --- | --- | --- |
+| external | tower_lsp::lsp_types | * | - | - | - |
+| internal | crate::state | WorkspaceState | - | - | [../state.rs.md#source](../state.rs.md#source) |
 
 
 ## Source

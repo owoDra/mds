@@ -1,19 +1,11 @@
 [[sources]]
 path = ".mds/source/args.rs.md"
 adapter = "rs"
-hash = "eb877fbba5040287bf1a12c05951a124d6016fae56aece8be7343be72d4a2500"
+hash = "b0acc2aaeea0a3cc3ed96d174bd986df042ad9adc8030f579661f3e7af3ed183"
 [[sources.outputs]]
 kind = "source"
 path = "src/args.rs"
-hash = "8968177bb92006855ed24b6fe149cf53091302ed56edd2a6433198f38563a9e6"
-[[sources.outputs]]
-kind = "types"
-path = "src/args_types.rs"
-hash = "3b6321b3ad7d0ae43c9a122fe6eb8aff4d3b4c78bf06d7b4a06249deeb3e0992"
-[[sources.outputs]]
-kind = "test"
-path = "tests/args_test.rs"
-hash = "3b6321b3ad7d0ae43c9a122fe6eb8aff4d3b4c78bf06d7b4a06249deeb3e0992"
+hash = "ea7766f578937dbfe76da91ad48958632ce38baba6da2d58fcd43bf849df600f"
 
 [[sources]]
 path = ".mds/source/lib.rs.md"
@@ -27,43 +19,27 @@ hash = "fa029661c13055759bd65b71d0ffcf25fa2c48fe5aa90338ac0e0d4d825d0ce7"
 [[sources]]
 path = ".mds/source/main.rs.md"
 adapter = "rs"
-hash = "d0a99ba5bbf3edca893ed706acc1bcc3e98c5ae5cdd4a60092cf63118b1ed270"
+hash = "25dd740d73ab190ff984cf5fbe5345c390ed3f885ef2475dd8b3d5a33532e927"
 [[sources.outputs]]
 kind = "source"
 path = "src/main.rs"
-hash = "a6bca8975a21f94030c9207814893168be72176d018282c86f9ee0250916d0c3"
-[[sources.outputs]]
-kind = "types"
-path = "src/main_types.rs"
-hash = "bd5be9590084acf63560acfd1a125c973fcc956fc8fd31c9b9f0e74c1587570f"
-[[sources.outputs]]
-kind = "test"
-path = "tests/main_test.rs"
-hash = "bd5be9590084acf63560acfd1a125c973fcc956fc8fd31c9b9f0e74c1587570f"
+hash = "b81f49c93467097081ee8aa9f68235a16eb43f38211c98942bd27b62eced319e"
 
 [[sources]]
 path = ".mds/source/wizard.rs.md"
 adapter = "rs"
-hash = "9e40a045b78ac264612b602cb77e04e14d72aaeb0eb324f6ec00969dc7d607a2"
+hash = "02417d183f44d6beb74651c145b4b715df9afe5f7ce710150cfd7f35d55e1adb"
 [[sources.outputs]]
 kind = "source"
 path = "src/wizard.rs"
-hash = "47f263eb28c9bf260492c2fa7891b770d22a36b191e5b3df87b12a410fe7cd1a"
-[[sources.outputs]]
-kind = "types"
-path = "src/wizard_types.rs"
-hash = "a13396b01f0e73b0eb91343c8179b33d5085d1f24a4c54056365f0006c440eb2"
-[[sources.outputs]]
-kind = "test"
-path = "tests/wizard_test.rs"
-hash = "a13396b01f0e73b0eb91343c8179b33d5085d1f24a4c54056365f0006c440eb2"
+hash = "b94e7542acd18def21ae94d2dc480df6fbcde9248057d6a68b42772ecc28fee6"
 
 [[sources]]
 path = ".mds/test/args.rs.md"
 adapter = "rs"
-hash = "fa57b0bb0f628514c497dc19e1eec4a979cfaf83841edbe7d938943a32fcf570"
+hash = "65eb4c2d35448b7945f51a2d38323a9925dc8f317f3e31bc8fb2ea67cdc4c5a4"
 [[sources.outputs]]
 kind = "test"
 path = "tests/args_test.rs"
-hash = "2302d3dd499b2ad90181bc030aa4a58247490f0dc754815e23d722d31413f745"
+hash = "735197cfb86a2d49dbcc07c332cdaea4aca90e5cfcb54e32f0671b891d47e6b9"
 

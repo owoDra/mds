@@ -11,13 +11,18 @@ Migrated implementation source for `src/manifest.rs`.
 
 ## Imports
 
-| Kind | From | Target | Symbols | Via | Summary | Code |
-| --- | --- | --- | --- | --- | --- | --- |
-| rust-use | builtin | std | fs | std |  | `use std::fs;` |
-| rust-use | builtin | std::path | Component, Path | std |  | `use std::path::{Component, Path};` |
-| rust-use | internal | crate::diagnostics | Diagnostic, RunState | crate |  | `use crate::diagnostics::{Diagnostic, RunState};` |
-| rust-use | internal | crate::hash | sha256 | crate |  | `use crate::hash::sha256;` |
-| rust-use | internal | crate::model | GeneratedFile, GeneratedKind, ImplDoc, Package | crate |  | `use crate::model::{GeneratedFile, GeneratedKind, ImplDoc, Package};` |
+| From | Target | Symbols | Via | Summary | Reference |
+| --- | --- | --- | --- | --- | --- |
+| builtin | std | fs | - | - | - |
+| builtin | std::path | Component | - | - | - |
+| builtin | std::path | Path | - | - | - |
+| internal | crate::diagnostics | Diagnostic | - | - | [diagnostics.rs.md#source](diagnostics.rs.md#source) |
+| internal | crate::diagnostics | RunState | - | - | [diagnostics.rs.md#source](diagnostics.rs.md#source) |
+| internal | crate::hash | sha256 | - | - | [hash.rs.md#source](hash.rs.md#source) |
+| internal | crate::model | GeneratedFile | - | - | [model.rs.md#source](model.rs.md#source) |
+| internal | crate::model | GeneratedKind | - | - | [model.rs.md#source](model.rs.md#source) |
+| internal | crate::model | ImplDoc | - | - | [model.rs.md#source](model.rs.md#source) |
+| internal | crate::model | Package | - | - | [model.rs.md#source](model.rs.md#source) |
 
 
 ## Source
