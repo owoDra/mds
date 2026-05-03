@@ -37,11 +37,11 @@ hash = "59694204f2a6e1b802c44aa2de4af6a9d5b50e2e9a799c9d131d054ed650e93c"
 [[sources]]
 path = ".mds/source/diagnostics.rs.md"
 adapter = "rs"
-hash = "f9f72bdf5316fe8b3c5069cfe5986089194c3b4dec49db301bc2c4d332ad9698"
+hash = "ebe3e2be4518d925c19b301089ca16a74dfd3b056a76200f82256769c9dc28dd"
 [[sources.outputs]]
 kind = "source"
 path = "src/diagnostics.rs"
-hash = "0178d211a604e4ab7c3362d7466ce679116111b36489b9188a79ce9e7989846d"
+hash = "a0ca55e92a070b31598dc9e9ff1b46bb8c656c58f41cd0ebc16418f2eae9db7f"
 
 [[sources]]
 path = ".mds/source/diff.rs.md"
@@ -55,11 +55,11 @@ hash = "c11b03b40be941b661ca40240b058f60ed117024159dba7fd96f42ae7bb2ad7d"
 [[sources]]
 path = ".mds/source/doctor.rs.md"
 adapter = "rs"
-hash = "c190cf8b12733b6e632139a6c89904d9e64e0519f8ec1e0519a6e648f3aed2fa"
+hash = "e95f7728cad2b5c14f9c855cea842e96f3896cb134dd7746337903e5aa2edf26"
 [[sources.outputs]]
 kind = "source"
 path = "src/doctor.rs"
-hash = "64b4a7b9ec9537553a5b30eefa08c32b96b85b6817280a8922c75e5d3b6203da"
+hash = "b9755fc6127b740953c4b90c4802bd316a6252f57c014de6177d38e8bba2f9ab"
 
 [[sources]]
 path = ".mds/source/fs_utils.rs.md"
@@ -100,11 +100,11 @@ hash = "eae44dc7b0ac6a0f12e0105823985f31fdaff8a5cf3d3d660baddb8b526fd168"
 [[sources]]
 path = ".mds/source/lib.rs.md"
 adapter = "rs"
-hash = "5699f79ea1388255b0ec89364e12e36124c71972ebc19feff670dea3a0223995"
+hash = "0db696fa549490fa83ecfd0ef21f4a141cc80dd3c14193f70fda78e07d440bc8"
 [[sources.outputs]]
 kind = "source"
 path = "src/lib.rs"
-hash = "e16f0f9e9e470572a5ed279fa4af747f0250232ffeb4b3fe0bc5159f54c30220"
+hash = "9dac01cc06ac29e088a0f1c16bb0e1bc0ee50eb69d86be63027e8aea3fb63395"
 
 [[sources]]
 path = ".mds/source/manifest.rs.md"
@@ -118,11 +118,11 @@ hash = "417e1907b573cf381f82fcf7c63b785319fb70d4a16ddb5ff58ba7f74c678b8a"
 [[sources]]
 path = ".mds/source/markdown.rs.md"
 adapter = "rs"
-hash = "db879792172c207e72fe0403c5c369717384ef242d81514a532c69f05b213010"
+hash = "0bf15a63c7ea2968f6dcd3255abb1c6300fcf8f3a982333cd96eca7f0dd2f33a"
 [[sources.outputs]]
 kind = "source"
 path = "src/markdown.rs"
-hash = "59f50d598e1e9f59c9cc35e12373ce59d24cdfbc878c1b0d6ff3e9a6eadf716c"
+hash = "3a4fbadef4a7fff7522aba40fa5fd5915ddf7dbd0df616bd0dfe78d191706194"
 
 [[sources]]
 path = ".mds/source/model.rs.md"
@@ -163,11 +163,11 @@ hash = "2fd32d43584b544af6d04e21214549795385fba85bfec9f78391f1e99a5c530c"
 [[sources]]
 path = ".mds/source/quality.rs.md"
 adapter = "rs"
-hash = "f74e27d49732849ec200283de247bf81a136aefe6748cf059c8dcafe6f7f1262"
+hash = "d9d297ef40748373a66d07175fe4eaba9fb5a855a407fcea3e97fb480f4210d0"
 [[sources.outputs]]
 kind = "source"
 path = "src/quality.rs"
-hash = "ee57f3f4a1d9f498abbc55e679380ec6e033a6bce2e9761dc29fa61d8ecaaf4c"
+hash = "d92bfc0104a78cfcf98ed254fd6b9fd1f516b42bca5d5a74a6bc8d1e1c4cc703"
 
 [[sources]]
 path = ".mds/source/runner.rs.md"

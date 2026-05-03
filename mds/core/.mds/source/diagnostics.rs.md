@@ -23,10 +23,11 @@ pub enum Severity {
     Error,
 }
 
-#[derive(Debug, Clone)]
 ````
 
 ````rs
+
+#[derive(Debug, Clone)]
 pub struct Diagnostic {
     pub severity: Severity,
     pub path: Option<PathBuf>,
@@ -90,10 +91,11 @@ impl Diagnostic {
     }
 }
 
-#[derive(Debug, Default)]
 ````
 
 ````rs
+
+#[derive(Debug, Default)]
 pub struct RunState {
     pub stdout: String,
     pub diagnostics: Vec<Diagnostic>,

@@ -119,6 +119,10 @@ pub fn parse_impl_doc(
         state,
     );
     if package.config.check.markdown_links {
+
+````
+
+````rs
         validate_markdown_links(path, &text, state);
     }
     validate_code_block_boundaries(path, &lang, &text, &package.config.check, state);
@@ -495,11 +499,7 @@ fn validate_code_block_boundaries(
             false
         };
         let declaration_count = if check.import_with_implementation || check.top_level_fence_required {
-            block
-                .content
-                .lines()
-                .filter(|line| is_top_level_declaration(lang, line))
-                .count()
+            top_level_declaration_count(&lang, block.content)
         } else {
             0
         };
@@ -528,9 +528,6 @@ fn validate_code_block_boundaries(
 
 ````rs
 #[derive(Debug)]
-````
-
-````rs
 struct CodeBlock<'a> {
     content: &'a str,
     start_line: usize,
@@ -702,6 +699,29 @@ pub fn validate_markdown_links(path: &Path, text: &str, state: &mut RunState) {
             ));
         }
     }
+}
+````
+
+````rs
+fn top_level_declaration_count(lang: &Lang, content: &str) -> usize {
+    let declarations: Vec<&str> = content
+        .lines()
+        .map(str::trim_start)
+        .filter(|line| is_top_level_declaration(lang, line))
+        .collect();
+    if declarations.is_empty() {
+        return 0;
+    }
+    if declarations.iter().all(|line| is_module_declaration(line)) {
+        return 1;
+    }
+    declarations.len()
+}
+````
+
+````rs
+fn is_module_declaration(line: &str) -> bool {
+    line.starts_with("mod ") || line.starts_with("pub mod ")
 }
 ````
 

@@ -165,10 +165,11 @@ fn render_version(version: &(u32, u32, u32)) -> String {
     format!("{}.{}.{}", version.0, version.1, version.2)
 }
 
-#[derive(Debug)]
 ````
 
 ````rs
+
+#[derive(Debug)]
 struct DoctorCheck {
     name: String,
     status: &'static str,

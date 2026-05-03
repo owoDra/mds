@@ -13,79 +13,27 @@ Migrated implementation source for `src/lib.rs`.
 
 ````rs
 mod adapter;
-````
-
-````rs
 pub mod config;
-````
-
-````rs
 pub mod descriptor;
-````
-
-````rs
 pub mod diagnostics;
-````
-
-````rs
 mod diff;
-````
-
-````rs
 mod doctor;
-````
-
-````rs
 mod fs_utils;
-````
-
-````rs
 mod generation;
-````
-
-````rs
 mod hash;
-````
-
-````rs
 mod init;
-````
-
-````rs
 mod manifest;
-````
-
-````rs
 pub mod markdown;
-````
-
-````rs
 pub mod model;
-````
-
-````rs
 mod new;
-````
-
-````rs
 pub mod package;
-````
-
-````rs
 mod package_sync;
-````
-
-````rs
 mod quality;
-````
-
-````rs
 mod runner;
+pub mod table;
 ````
 
 ````rs
-pub mod table;
-
 pub use diagnostics::{Diagnostic, RunState, Severity};
 pub use model::{
     AgentKitCategory, AiTarget, BuildMode, CliRequest, CliResult, Command, Config, DocKind,

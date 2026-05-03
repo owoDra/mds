@@ -32,7 +32,6 @@ use ratatui::{
 
 ````rs
 #[derive(Clone)]
-
 enum Step {
     LabelPreset,
     ToolchainCommand {
@@ -83,10 +82,11 @@ impl Step {
     }
 }
 
-#[derive(Clone, Copy)]
 ````
 
 ````rs
+
+#[derive(Clone, Copy)]
 enum QualityField {
     TypeCheck,
     Lint,

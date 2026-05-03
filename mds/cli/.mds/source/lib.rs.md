@@ -13,8 +13,5 @@ Migrated implementation source for `src/lib.rs`.
 
 ````rs
 pub mod args;
-````
-
-````rs
 pub mod wizard;
 ````

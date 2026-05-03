@@ -420,10 +420,11 @@ fn temp_code_path(package: &Package, lang: &Lang) -> PathBuf {
     }
 }
 
-#[derive(Debug)]
 ````
 
 ````rs
+
+#[derive(Debug)]
 struct CodeBlock<'a> {
     start: usize,
     end: usize,

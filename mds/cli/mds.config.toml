@@ -2,6 +2,9 @@
 enabled = true
 allow_raw_source = false
 
+[check]
+top_level_fence_required = false
+
 [roots]
 source = "src"
 types = "src"
