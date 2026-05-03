@@ -20,15 +20,21 @@ use std::path::{Path, PathBuf};
 use serde::Deserialize;
 
 use crate::model::{Lang, OutputKind};
+````
 
+````rs
 mod descriptor_registry {
     include!(concat!(env!("OUT_DIR"), "/descriptor_registry.rs"));
 }
+````
 
+````rs
 mod tool_registry {
     include!(concat!(env!("OUT_DIR"), "/tool_registry.rs"));
 }
+````
 
+````rs
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub(crate) enum OutputRoot {
     Package,
@@ -36,7 +42,9 @@ pub(crate) enum OutputRoot {
     Types,
     Test,
 }
+````
 
+````rs
 #[derive(Debug, Clone, Deserialize)]
 pub(crate) struct Descriptor {
     #[allow(dead_code)]
@@ -60,14 +68,18 @@ pub(crate) struct Descriptor {
     #[serde(default)]
     pub tool_profiles: ToolProfiles,
 }
+````
 
+````rs
 #[derive(Debug, Clone)]
 struct DescriptorRegistry {
     by_id: HashMap<String, Descriptor>,
     alias_to_id: HashMap<String, String>,
     suffix_to_id: Vec<(String, String)>,
 }
+````
 
+````rs
 #[derive(Debug, Clone, Deserialize)]
 pub(crate) struct ToolManifest {
     pub id: String,
@@ -76,13 +88,17 @@ pub(crate) struct ToolManifest {
     #[serde(default)]
     pub behavior: ToolBehavior,
 }
+````
 
+````rs
 #[derive(Debug, Clone)]
 struct ToolRegistry {
     by_id: HashMap<String, ToolManifest>,
     prefix_to_id: Vec<(String, String)>,
 }
+````
 
+````rs
 #[derive(Debug, Clone, Deserialize)]
 pub(crate) struct SpecialFileRule {
     #[serde(rename = "match")]
@@ -92,19 +108,25 @@ pub(crate) struct SpecialFileRule {
     #[serde(default)]
     pub root: Option<String>,
 }
+````
 
+````rs
 #[derive(Debug, Clone, Deserialize)]
 pub(crate) struct LanguageSection {
     pub primary_ext: String,
 }
+````
 
+````rs
 #[derive(Debug, Clone, Deserialize)]
 pub(crate) struct FileRules {
     pub source: FileRule,
     pub types: FileRule,
     pub test: FileRule,
 }
+````
 
+````rs
 #[derive(Debug, Clone, Deserialize)]
 pub(crate) struct FileRule {
     #[serde(default)]
@@ -115,7 +137,9 @@ pub(crate) struct FileRule {
     pub suffix: String,
     pub extension: String,
 }
+````
 
+````rs
 #[derive(Debug, Clone, Default, Deserialize)]
 pub(crate) struct SyntaxSection {
     #[serde(default)]
@@ -129,14 +153,18 @@ pub(crate) struct SyntaxSection {
     #[serde(default)]
     pub doc_string_delimiters: Vec<String>,
 }
+````
 
+````rs
 #[derive(Debug, Clone, Default, Deserialize)]
 pub(crate) struct LinePattern {
     pub starts_with: String,
     #[serde(default)]
     pub contains: Vec<String>,
 }
+````
 
+````rs
 #[derive(Debug, Clone, Default, Deserialize)]
 pub(crate) struct ScaffoldSection {
     #[serde(default)]
@@ -144,7 +172,9 @@ pub(crate) struct ScaffoldSection {
     #[serde(default)]
     pub source_body: String,
 }
+````
 
+````rs
 #[derive(Debug, Clone, Default, Deserialize)]
 pub(crate) struct ToolingSection {
     #[serde(default)]
@@ -154,7 +184,9 @@ pub(crate) struct ToolingSection {
     #[serde(default)]
     pub test: ToolBehavior,
 }
+````
 
+````rs
 #[derive(Debug, Clone, Default, Deserialize)]
 pub(crate) struct QualityDefaults {
     #[serde(default)]
@@ -164,7 +196,9 @@ pub(crate) struct QualityDefaults {
     #[serde(default)]
     pub test: Option<String>,
 }
+````
 
+````rs
 #[derive(Debug, Clone, Default, Deserialize)]
 pub(crate) struct ToolProfiles {
     #[serde(default)]
@@ -174,7 +208,9 @@ pub(crate) struct ToolProfiles {
     #[serde(default)]
     pub test: HashMap<String, ToolProfile>,
 }
+````
 
+````rs
 #[derive(Debug, Clone, Default, Deserialize)]
 pub(crate) struct ToolProfile {
     pub command: String,
@@ -183,7 +219,9 @@ pub(crate) struct ToolProfile {
     #[serde(default)]
     pub optional: Vec<String>,
 }
+````
 
+````rs
 #[derive(Debug, Clone, Deserialize)]
 pub(crate) struct ToolBehavior {
     #[serde(default = "default_input_mode")]
@@ -195,7 +233,9 @@ pub(crate) struct ToolBehavior {
     #[serde(default)]
     pub diagnostics: Vec<DiagnosticCaptureRule>,
 }
+````
 
+````rs
 #[derive(Debug, Clone, Deserialize)]
 pub(crate) struct DiagnosticCaptureRule {
     pub pattern: String,
@@ -212,7 +252,9 @@ pub(crate) struct DiagnosticCaptureRule {
     #[serde(default)]
     pub line_offset: isize,
 }
+````
 
+````rs
 impl Default for ToolBehavior {
     fn default() -> Self {
         Self {
@@ -223,7 +265,9 @@ impl Default for ToolBehavior {
         }
     }
 }
+````
 
+````rs
 impl Descriptor {
     pub fn file_rule(&self, kind: OutputKind) -> &FileRule {
         match kind {
@@ -338,14 +382,18 @@ impl Descriptor {
         suffixes
     }
 }
+````
 
+````rs
 impl LinePattern {
     fn matches(&self, line: &str) -> bool {
         line.starts_with(&self.starts_with)
             && self.contains.iter().all(|needle| line.contains(needle))
     }
 }
+````
 
+````rs
 impl ToolBehavior {
     pub fn input_mode(&self) -> ToolInputMode {
         match self.input.as_str() {
@@ -368,49 +416,69 @@ impl ToolBehavior {
             .unwrap_or(matches!(self.input_mode(), ToolInputMode::TempFile))
     }
 }
+````
 
+````rs
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub(crate) enum ToolInputMode {
     TempFile,
     Stdin,
     Inline,
 }
+````
 
+````rs
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub(crate) enum ToolOutputMode {
     None,
     Stdout,
     TempFile,
 }
+````
 
+````rs
 fn default_input_mode() -> String {
     "tempfile".to_string()
 }
+````
 
+````rs
 fn default_output_mode() -> String {
     "none".to_string()
 }
+````
 
+````rs
 fn default_path_group() -> String {
     "path".to_string()
 }
+````
 
+````rs
 fn default_line_group() -> String {
     "line".to_string()
 }
+````
 
+````rs
 fn default_message_group() -> String {
     "message".to_string()
 }
+````
 
+````rs
 fn default_column_group() -> String {
     "column".to_string()
 }
+````
 
+````rs
 fn default_severity_value() -> String {
     "error".to_string()
 }
+````
 
+````rs
 impl DescriptorRegistry {
     fn descriptor_for_key(&self, key: &str) -> Option<&Descriptor> {
         let canonical = self.alias_to_id.get(key).map_or(key, String::as_str);
@@ -438,7 +506,9 @@ impl DescriptorRegistry {
         None
     }
 }
+````
 
+````rs
 impl ToolRegistry {
     fn tool_manifest_for_command(&self, command: &str) -> Option<&ToolManifest> {
         for (prefix, id) in &self.prefix_to_id {
@@ -449,7 +519,9 @@ impl ToolRegistry {
         None
     }
 }
+````
 
+````rs
 impl SpecialFileRule {
     fn output_root(&self, kind: OutputKind) -> OutputRoot {
         match self.root.as_deref() {
@@ -465,44 +537,62 @@ impl SpecialFileRule {
         }
     }
 }
+````
 
+````rs
 pub(crate) fn builtin_descriptor(lang: &Lang) -> Descriptor {
     descriptor_for_key(lang.key())
         .unwrap_or_else(|| panic!("no built-in descriptor for `{}`", lang.key()))
 }
+````
 
+````rs
 pub(crate) fn descriptor_for_key(key: &str) -> Option<Descriptor> {
     registry().descriptor_for_key(key).cloned()
 }
+````
 
+````rs
 pub(crate) fn descriptor_for_markdown_name(name: &str) -> Option<Descriptor> {
     registry().descriptor_for_markdown_name(name).cloned()
 }
+````
 
+````rs
 pub(crate) fn matched_markdown_suffix(name: &str) -> Option<String> {
     registry().matched_markdown_suffix(name).map(str::to_string)
 }
+````
 
+````rs
 pub(crate) fn tool_behavior_for_command(command: &str) -> Option<ToolBehavior> {
     tool_registry()
         .tool_manifest_for_command(command)
         .map(|tool| tool.behavior.clone())
 }
+````
 
+````rs
 pub fn set_workspace_descriptor_root(root: Option<&Path>) {
     DESCRIPTOR_ROOT.with(|storage| {
         *storage.borrow_mut() = root.map(Path::to_path_buf);
     });
 }
+````
 
+````rs
 fn registry() -> DescriptorRegistry {
     load_registry(active_descriptor_root().as_deref())
 }
+````
 
+````rs
 fn tool_registry() -> ToolRegistry {
     load_tool_registry(active_descriptor_root().as_deref())
 }
+````
 
+````rs
 fn active_descriptor_root() -> Option<PathBuf> {
     let configured = DESCRIPTOR_ROOT.with(|storage| storage.borrow().clone());
     if configured.is_some() {
@@ -510,11 +600,15 @@ fn active_descriptor_root() -> Option<PathBuf> {
     }
     std::env::current_dir().ok()
 }
+````
 
+````rs
 thread_local! {
     static DESCRIPTOR_ROOT: RefCell<Option<PathBuf>> = const { RefCell::new(None) };
 }
+````
 
+````rs
 fn load_registry(root: Option<&Path>) -> DescriptorRegistry {
     let mut by_id = HashMap::new();
     let mut alias_to_id = HashMap::new();
@@ -535,7 +629,7 @@ fn load_registry(root: Option<&Path>) -> DescriptorRegistry {
     }
 
     if let Some(root) = root {
-        let descriptors_root = root.join(".mds/descriptors");
+        let descriptors_root = root.join(".mds/descriptors/languages");
         for descriptor in load_workspace_descriptors(&descriptors_root) {
             let id = descriptor.id.clone();
             register_alias(&mut alias_to_id, &id, &id);
@@ -563,7 +657,9 @@ fn load_registry(root: Option<&Path>) -> DescriptorRegistry {
         suffix_to_id,
     }
 }
+````
 
+````rs
 fn load_tool_registry(root: Option<&Path>) -> ToolRegistry {
     let mut by_id = HashMap::new();
     let mut prefix_to_id = Vec::new();
@@ -578,7 +674,7 @@ fn load_tool_registry(root: Option<&Path>) -> ToolRegistry {
     }
 
     if let Some(root) = root {
-        let tools_root = root.join(".mds/tooling");
+        let tools_root = root.join(".mds/descriptors/linters");
         for tool in load_workspace_tools(&tools_root) {
             let id = tool.id.clone();
             for prefix in &tool.match_prefixes {
@@ -603,7 +699,9 @@ fn load_tool_registry(root: Option<&Path>) -> ToolRegistry {
         prefix_to_id,
     }
 }
+````
 
+````rs
 fn register_alias(alias_to_id: &mut HashMap<String, String>, alias: &str, id: &str) {
     if let Some(existing) = alias_to_id.insert(alias.to_string(), id.to_string()) {
         assert_eq!(
@@ -612,7 +710,9 @@ fn register_alias(alias_to_id: &mut HashMap<String, String>, alias: &str, id: &s
         );
     }
 }
+````
 
+````rs
 fn load_workspace_descriptors(root: &Path) -> Vec<Descriptor> {
     let mut descriptors = Vec::new();
     for path in collect_descriptor_files(root) {
@@ -627,7 +727,9 @@ fn load_workspace_descriptors(root: &Path) -> Vec<Descriptor> {
     }
     descriptors
 }
+````
 
+````rs
 fn load_workspace_tools(root: &Path) -> Vec<ToolManifest> {
     let mut tools = Vec::new();
     for path in collect_descriptor_files(root) {
@@ -642,14 +744,18 @@ fn load_workspace_tools(root: &Path) -> Vec<ToolManifest> {
     }
     tools
 }
+````
 
+````rs
 fn collect_descriptor_files(root: &Path) -> Vec<PathBuf> {
     let mut files = Vec::new();
     collect_descriptor_files_into(root, &mut files);
     files.sort();
     files
 }
+````
 
+````rs
 fn collect_descriptor_files_into(root: &Path, files: &mut Vec<PathBuf>) {
     let Ok(entries) = fs::read_dir(root) else {
         return;
@@ -665,7 +771,9 @@ fn collect_descriptor_files_into(root: &Path, files: &mut Vec<PathBuf>) {
         }
     }
 }
+````
 
+````rs
 fn command_matches_prefix(command: &str, prefix: &str) -> bool {
     let command_tokens: Vec<&str> = command.split_whitespace().collect();
     let prefix_tokens: Vec<&str> = prefix.split_whitespace().collect();
@@ -682,14 +790,18 @@ fn command_matches_prefix(command: &str, prefix: &str) -> bool {
         }
     })
 }
+````
 
+````rs
 fn command_token_name(token: &str) -> &str {
     Path::new(token)
         .file_name()
         .and_then(|value| value.to_str())
         .unwrap_or(token)
 }
+````
 
+````rs
 pub(crate) fn output_relative_path(relative: &Path, lang: &Lang, kind: OutputKind) -> PathBuf {
     let descriptor = builtin_descriptor(lang);
     if let Some(rule) = descriptor.special_file_rule(relative, kind) {
@@ -698,7 +810,9 @@ pub(crate) fn output_relative_path(relative: &Path, lang: &Lang, kind: OutputKin
     let rule = descriptor.file_rule(kind);
     apply_file_rule(relative, &descriptor.language.primary_ext, rule)
 }
+````
 
+````rs
 pub(crate) fn output_root(relative: &Path, lang: &Lang, kind: OutputKind) -> OutputRoot {
     let descriptor = builtin_descriptor(lang);
     if let Some(rule) = descriptor.special_file_rule(relative, kind) {
@@ -710,7 +824,9 @@ pub(crate) fn output_root(relative: &Path, lang: &Lang, kind: OutputKind) -> Out
         OutputKind::Test => OutputRoot::Test,
     }
 }
+````
 
+````rs
 fn apply_file_rule(relative: &Path, primary_ext: &str, rule: &FileRule) -> PathBuf {
     let stripped = strip_md_extension(relative);
     let parent = stripped.parent().map(PathBuf::from).unwrap_or_default();
@@ -728,7 +844,9 @@ fn apply_file_rule(relative: &Path, primary_ext: &str, rule: &FileRule) -> PathB
     let output_name = format!("{}{}{}.{}", rule.prefix, base, rule.suffix, rule.extension);
     parent.join(output_name)
 }
+````
 
+````rs
 fn strip_md_extension(path: &Path) -> PathBuf {
     let name = path.file_name().unwrap_or_default().to_string_lossy();
     let stripped = name.strip_suffix(".md").unwrap_or(&name);

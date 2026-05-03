@@ -98,9 +98,9 @@ fn builds_three_language_fixture() {
 fn build_uses_workspace_descriptor_toml_for_custom_language() {
     let temp = TestDir::new();
     write_fixture(temp.path());
-    fs::create_dir_all(temp.path().join(".mds/descriptors")).unwrap();
+    fs::create_dir_all(temp.path().join(".mds/descriptors/languages")).unwrap();
     fs::write(
-        temp.path().join(".mds/descriptors/dart.toml"),
+        temp.path().join(".mds/descriptors/languages/dart.toml"),
         r#"id = "dart"
 match_suffixes = ["dart"]
 
@@ -412,9 +412,9 @@ fn check_config_can_disable_doc_comment_validation() {
 fn workspace_descriptor_toml_controls_doc_comment_validation() {
     let temp = TestDir::new();
     write_fixture(temp.path());
-    fs::create_dir_all(temp.path().join(".mds/descriptors")).unwrap();
+    fs::create_dir_all(temp.path().join(".mds/descriptors/languages")).unwrap();
     fs::write(
-        temp.path().join(".mds/descriptors/ts.toml"),
+        temp.path().join(".mds/descriptors/languages/ts.toml"),
         r#"id = "ts"
 aliases = ["typescript"]
 match_suffixes = ["ts"]

@@ -28,11 +28,11 @@ hash = "79f739cf279cda9c375f17c05acf8d91f0c1a3456754f7d14eb9ea0f452e0bd0"
 [[sources]]
 path = ".mds/source/descriptor.rs.md"
 adapter = "rs"
-hash = "592b754846a469f3935e2df30db7684b193a11d16911edd509354e6711689537"
+hash = "bb1eb8d65a57ccd0bbd908f66278dc8c81b68f5ec43c1c42879aa56c6e6e4a13"
 [[sources.outputs]]
 kind = "source"
 path = "src/descriptor.rs"
-hash = "4ad26b6989a28c125a647ebbf862bc985ebd43e03e133d95eb961e4e848169bd"
+hash = "59694204f2a6e1b802c44aa2de4af6a9d5b50e2e9a799c9d131d054ed650e93c"
 
 [[sources]]
 path = ".mds/source/diagnostics.rs.md"
@@ -190,11 +190,11 @@ hash = "320a013a9399e54ea9e22ec3e5e42fae8322eec94e108cac6df915817f21fa06"
 [[sources]]
 path = ".mds/test/parser_generation_mvp.rs.md"
 adapter = "rs"
-hash = "b1df0c1be6f94c18e597eeeefa3ed193738d97eec23ee8fb7fce53178961c193"
+hash = "9d1346efca066c8786726901a66182e13f7c7d219b22eebb68c1d2bc60c72dee"
 [[sources.outputs]]
 kind = "test"
 path = "tests/parser_generation_mvp_test.rs"
-hash = "3cd26f4afd019dcb895476b3eff4e6aac3170b83241411851594597cc0fc0d67"
+hash = "a5935e1d38b424348eb6f7b6101b9fc0f5d9eea9a2e69daa1d11bb8f20a8e2ee"
 
 [[assets]]
 path = ".mds/source/descriptors/languages/angular.toml"

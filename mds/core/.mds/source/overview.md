@@ -31,7 +31,7 @@ This package is authored under `mds/core/.mds/source/` and synchronized into pac
 
 - Source / Types / Test output paths are deterministic from authoring path plus descriptor file rules; arbitrary `file=` style output redirection is not part of the model.
 - Built-in descriptors for TypeScript, Python, Rust, and overlay / framework variants define aliases, suffix matching, output naming, lexical rules, scaffold defaults, and default quality profiles from TOML instead of Rust language branches.
-- Workspace-local `.mds/descriptors/*.toml` files extend or override descriptor behavior for generation, `mds new`, quality operations, and LSP validation without recompiling mds.
+- Workspace-local `.mds/descriptors/languages/*.toml` files extend or override language descriptor behavior, and `.mds/descriptors/linters/*.toml` files extend or override tool execution behavior for generation, `mds new`, quality operations, and LSP validation without recompiling mds.
 - Current built-in language defaults remain: `foo.ts.md -> src/foo.ts / src/foo.types.ts / tests/foo.test.ts`, `pkg/foo.py.md -> src/pkg/foo.py / src/pkg/foo.pyi / tests/pkg/test_foo.py`, and `foo.rs.md -> src/foo.rs / src/foo.types.rs / tests/foo.test.rs` unless a descriptor says otherwise.
 
 ## Quality And Diagnostics
