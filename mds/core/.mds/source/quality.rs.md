@@ -376,6 +376,10 @@ fn capture_message(
         .unwrap_or_else(|| raw_line.to_string())
 }
 
+````
+
+````rs
+
 fn apply_line_offset(line: usize, offset: isize) -> usize {
     if offset >= 0 {
         line.saturating_add(offset as usize)
@@ -383,6 +387,10 @@ fn apply_line_offset(line: usize, offset: isize) -> usize {
         line.saturating_sub(offset.unsigned_abs())
     }
 }
+
+````
+
+````rs
 
 fn needs_tempfile(behavior: &ToolBehavior) -> bool {
     matches!(behavior.input_mode(), ToolInputMode::TempFile)

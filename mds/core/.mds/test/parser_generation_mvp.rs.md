@@ -411,6 +411,66 @@ fn check_config_can_disable_doc_comment_validation() {
 
 ````rs
 #[test]
+fn workspace_descriptor_toml_controls_doc_comment_validation() {
+    let temp = TestDir::new();
+    write_fixture(temp.path());
+    fs::create_dir_all(temp.path().join(".mds/descriptors")).unwrap();
+    fs::write(
+        temp.path().join(".mds/descriptors/ts.toml"),
+        r#"id = "ts"
+aliases = ["typescript"]
+match_suffixes = ["ts"]
+
+[language]
+primary_ext = "ts"
+
+[files.source]
+strip_lang_ext = false
+prefix = ""
+suffix = ""
+extension = "ts"
+
+[files.types]
+strip_lang_ext = true
+prefix = ""
+suffix = ".types"
+extension = "ts"
+
+[files.test]
+strip_lang_ext = true
+prefix = ""
+suffix = ".test"
+extension = "ts"
+
+[syntax]
+top_level_keywords = ["export const ", "const "]
+comment_prefixes = ["//", "/*", "*"]
+doc_comment_prefixes = ["///"]
+
+[[syntax.imports]]
+starts_with = "import "
+"#,
+    )
+    .unwrap();
+    fs::write(
+        temp.path().join("pkg/src-md/foo/doc-comment.ts.md"),
+        "# Doc comment\n\n## Purpose\n\nBroken doc comment.\n\n## Source\n\n```ts\n/// Configured via descriptor TOML.\nexport const broken = 1;\n```\n",
+    )
+    .unwrap();
+
+    let check = execute(CliRequest {
+        cwd: temp.path().to_path_buf(),
+        package: None,
+        verbose: false,
+        command: Command::Check,
+    });
+    assert_eq!(check.exit_code, 1);
+    assert!(check.stderr.contains("contains a doc comment"));
+}
+````
+
+````rs
+#[test]
 fn rejects_unterminated_code_fence() {
     let temp = TestDir::new();
     write_fixture(temp.path());

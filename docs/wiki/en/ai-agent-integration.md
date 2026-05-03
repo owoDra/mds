@@ -133,7 +133,7 @@ Make `key()` return `"new-cli"` and define accepted aliases in `parse()`.
 ### 5. Build and verify
 
 ```bash
-./.github/script/sync-build.sh && cd .build/rust && cargo build && cargo test
+cargo run -p mds-cli -- build --verbose && ./.github/script/sync-self-hosted-rust.sh && cd .build/rust && cargo build && cargo test
 ```
 
 build.rs automatically detects manifest.toml and registers it in the template registry. No changes to the init logic are needed.

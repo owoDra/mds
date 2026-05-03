@@ -27,7 +27,8 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 rustup component add rustfmt clippy
 
 # Install mds for development
-./.github/script/sync-build.sh
+cargo run -p mds-cli -- build --verbose
+./.github/script/sync-self-hosted-rust.sh
 cargo install --path .build/rust/mds-cli
 
 # Verify
@@ -58,7 +59,8 @@ mds/
 ### Rust build
 
 ```bash
-./.github/script/sync-build.sh
+cargo run -p mds-cli -- build --verbose
+./.github/script/sync-self-hosted-rust.sh
 cd .build/rust
 cargo build                # Debug build
 cargo build --release      # Release build
@@ -76,7 +78,8 @@ cargo build -p mds-cli     # CLI only
 ### Run all tests
 
 ```bash
-./.github/script/sync-build.sh
+cargo run -p mds-cli -- build --verbose
+./.github/script/sync-self-hosted-rust.sh
 cd .build/rust
 cargo test
 ```
@@ -100,7 +103,8 @@ cargo test -p mds-cli -- args                    # CLI argument tests only
 ### Formatting
 
 ```bash
-./.github/script/sync-build.sh
+cargo run -p mds-cli -- build --verbose
+./.github/script/sync-self-hosted-rust.sh
 cd .build/rust
 cargo fmt              # Auto-format
 cargo fmt --check      # Check diff only
@@ -116,7 +120,8 @@ cargo clippy -- -D warnings   # Treat warnings as errors
 ### Batch execution
 
 ```bash
-./.github/script/sync-build.sh
+cargo run -p mds-cli -- build --verbose
+./.github/script/sync-self-hosted-rust.sh
 cd .build/rust
 cargo fmt --check && cargo clippy -- -D warnings && cargo test
 ```
@@ -128,7 +133,8 @@ In VSCode, you can run the "mds: Check All" task for the same checks.
 How to run commands under development with sample packages.
 
 ```bash
-./.github/script/sync-build.sh
+cargo run -p mds-cli -- build --verbose
+./.github/script/sync-self-hosted-rust.sh
 cd .build/rust
 
 # Structure inspection
@@ -191,13 +197,14 @@ cargo test -p mds-core -- --nocapture test_name
 
 ## Checklist for Code Changes
 
-1. Run `.github/script/sync-build.sh` to update `.build/rust/`
-2. Format with `cargo fmt` in `.build/rust`
-3. Confirm no warnings with `cargo clippy` in `.build/rust`
-4. Confirm all tests pass with `cargo test` in `.build/rust`
-4. Add tests for new features
-5. Update documentation if needed
-6. Verify with sample projects
+1. Run `cargo run -p mds-cli -- build --verbose` to update package-local generated `src/` / `tests/`
+2. Run `./.github/script/sync-self-hosted-rust.sh` to rebuild `.build/rust/` for this repository
+3. Format with `cargo fmt` in `.build/rust`
+4. Confirm no warnings with `cargo clippy` in `.build/rust`
+5. Confirm all tests pass with `cargo test` in `.build/rust`
+6. Add tests for new features
+7. Update documentation if needed
+8. Verify with sample projects
 
 ## Related Documentation
 

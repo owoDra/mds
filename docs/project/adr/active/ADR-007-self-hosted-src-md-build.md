@@ -34,11 +34,11 @@ mds は Markdown を設計書兼ソースの正本として扱う。一方で、
 
 ## 結果
 
-- 開発者は package 配下の `.mds/source/` と `.mds/test/` を編集し、`.github/script/sync-build.sh` で package 内の生成 `src/` / `tests/` と `.build/rust/` を再生成して Cargo commands を実行する。
+- 開発者は package 配下の `.mds/source/` と `.mds/test/` を編集し、まず `cargo run -p mds-cli -- build --verbose` で package 内の生成 `src/` / `tests/` を更新する。mds 自身の self-hosted Rust workspace が必要なときだけ repo-local helper `./.github/script/sync-self-hosted-rust.sh` で `.build/rust/` を再生成して Cargo commands を実行する。
 - `.build/` は Git 管理しない。
 - `crates/` を参照する新規資料や開発手順は追加しない。
 - 既存の `docs/project/specs` は移行前資料として扱い、新しい実装設計は package 配下の `.mds/source/overview.md` または implementation md に置く。
-- bootstrap と同期処理は今後 mds 本体機能として改善する余地を残す。
+- bootstrap と `.build/rust` mirror 同期は repo-local helper として改善する余地を残す。一般利用向け `mds build` には self-hosted 専用処理を既定で持ち込まない。
 
 ## 関連資料
 

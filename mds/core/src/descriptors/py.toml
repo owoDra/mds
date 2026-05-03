@@ -58,6 +58,7 @@ required = ["python3"]
 [syntax]
 top_level_keywords = ["def ", "async def ", "class "]
 comment_prefixes = ["#"]
+doc_string_delimiters = ["\"\"\"", "'''"]
 
 [[syntax.imports]]
 starts_with = "import "

@@ -36,6 +36,7 @@ top_level_keywords = [
   "export default ",
 ]
 comment_prefixes = ["//", "/*", "*"]
+doc_comment_prefixes = ["/**", "///"]
 
 [[syntax.imports]]
 starts_with = "import "

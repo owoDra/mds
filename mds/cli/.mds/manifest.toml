@@ -1,0 +1,45 @@
+[[sources]]
+path = ".mds/source/args.rs.md"
+adapter = "rs"
+hash = "7c750ab6bc11c6c9a1bff86e41cc50063e517d78e5ba0ab14381cb1251435b7a"
+[[sources.outputs]]
+kind = "source"
+path = "src/args.rs"
+hash = "8fac69b01a019cf41aa0a16d491536169f82d4be0c5ebe75a8333614ae57c6c9"
+
+[[sources]]
+path = ".mds/source/lib.rs.md"
+adapter = "rs"
+hash = "43be458fbb35de9db3ce1e241ccb6672923a6e7a8a40ce3f113aa52187cf7a2a"
+[[sources.outputs]]
+kind = "source"
+path = "src/lib.rs"
+hash = "1d75ca774c58359a2cc58b53372eb14d9f5d69efba58bdcac19f359f16d7b364"
+
+[[sources]]
+path = ".mds/source/main.rs.md"
+adapter = "rs"
+hash = "cef6d083025d3ba853acca06de8b875426bacbd91f0beda6e2db399a1f4e3b45"
+[[sources.outputs]]
+kind = "source"
+path = "src/main.rs"
+hash = "27b69457e33a65450ef8e2347521f8c0e27f0cc89ada0b01a24d0df5abe3db39"
+
+[[sources]]
+path = ".mds/source/wizard.rs.md"
+adapter = "rs"
+hash = "11249ca67e42d4e6264fef398ab2584233b4d75dc95e858402c5766ae9a1d8d2"
+[[sources.outputs]]
+kind = "source"
+path = "src/wizard.rs"
+hash = "0a3cfcaa9c6fce875b1cabbe7b9bd6d1967258738fd8eba962449753719ef146"
+
+[[sources]]
+path = ".mds/test/args.rs.md"
+adapter = "rs"
+hash = "7dca53bb5bbc66e1853620f4669b5df743bbdf3f72df2ae2ab63be291414aec2"
+[[sources.outputs]]
+kind = "test"
+path = "tests/args_test.rs"
+hash = "710dbf92c806bd7649f45991f165fdd5bc86bb19863d5ec1f9fd04bca7ab869b"
+

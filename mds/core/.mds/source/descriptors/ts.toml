@@ -77,6 +77,7 @@ top_level_keywords = [
 	"enum ",
 ]
 comment_prefixes = ["//", "/*", "*"]
+doc_comment_prefixes = ["/**"]
 
 [[syntax.imports]]
 starts_with = "import "

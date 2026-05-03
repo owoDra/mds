@@ -10,7 +10,8 @@ git clone https://github.com/owo-x-project/owox-mds.git
 cd mds
 
 # 2. Rust のビルドと確認
-./.github/script/sync-build.sh
+cargo run -p mds-cli -- build --verbose
+./.github/script/sync-self-hosted-rust.sh
 cd .build/rust
 cargo build
 cargo test
@@ -53,7 +54,8 @@ git checkout -b feature/your-feature-name
 ### 4. テストを実行する
 
 ```bash
-./.github/script/sync-build.sh
+cargo run -p mds-cli -- build --verbose
+./.github/script/sync-self-hosted-rust.sh
 cd .build/rust
 cargo test
 cargo clippy
@@ -63,7 +65,8 @@ cargo fmt --check
 一括実行する場合は VSCode タスクも利用できます:
 
 ```bash
-./.github/script/sync-build.sh
+cargo run -p mds-cli -- build --verbose
+./.github/script/sync-self-hosted-rust.sh
 cd .build/rust
 cargo fmt --check && cargo clippy -- -D warnings && cargo test
 ```

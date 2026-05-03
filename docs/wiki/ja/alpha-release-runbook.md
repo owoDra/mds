@@ -66,7 +66,8 @@ npx @vscode/vsce publish --pre-release
 
 ```bash
 # Build platform binaries
-./.github/script/sync-build.sh
+cargo run -p mds-cli -- build --verbose
+./.github/script/sync-self-hosted-rust.sh
 cargo --manifest-path .build/rust/Cargo.toml build --release
 
 # Create GitHub Release with binaries

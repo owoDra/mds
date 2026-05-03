@@ -20,7 +20,9 @@ use std::path::{Path, PathBuf};
 use serde::Deserialize;
 
 use crate::model::{Lang, OutputKind};
+````
 
+````rs
 mod descriptor_registry {
     include!(concat!(env!("OUT_DIR"), "/descriptor_registry.rs"));
 }
@@ -121,6 +123,10 @@ pub(crate) struct SyntaxSection {
     pub top_level_keywords: Vec<String>,
     #[serde(default)]
     pub comment_prefixes: Vec<String>,
+    #[serde(default)]
+    pub doc_comment_prefixes: Vec<String>,
+    #[serde(default)]
+    pub doc_string_delimiters: Vec<String>,
 }
 ````
 
@@ -275,6 +281,18 @@ impl Descriptor {
             .any(|prefix| trimmed.starts_with(prefix))
     }
 
+    pub fn matches_doc_comment_line(&self, trimmed: &str) -> bool {
+        self.syntax
+            .doc_comment_prefixes
+            .iter()
+            .any(|prefix| trimmed.starts_with(prefix))
+            || self
+                .syntax
+                .doc_string_delimiters
+                .iter()
+                .any(|delimiter| trimmed.starts_with(delimiter))
+    }
+
     pub fn render_source_block(&self, matched_suffix: Option<&str>) -> String {
         let fence_lang = match self.scaffold.fence_lang.as_deref() {
             Some("matched-suffix") => matched_suffix.unwrap_or(&self.language.primary_ext),
@@ -398,25 +416,49 @@ fn default_input_mode() -> String {
     "tempfile".to_string()
 }
 
+````
+
+````rs
+
 fn default_output_mode() -> String {
     "none".to_string()
 }
+
+````
+
+````rs
 
 fn default_path_group() -> String {
     "path".to_string()
 }
 
+````
+
+````rs
+
 fn default_line_group() -> String {
     "line".to_string()
 }
+
+````
+
+````rs
 
 fn default_message_group() -> String {
     "message".to_string()
 }
 
+````
+
+````rs
+
 fn default_column_group() -> String {
     "column".to_string()
 }
+
+````
+
+````rs
 
 fn default_severity_value() -> String {
     "error".to_string()
@@ -488,6 +530,7 @@ pub(crate) fn descriptor_for_markdown_name(name: &str) -> Option<Descriptor> {
 pub(crate) fn matched_markdown_suffix(name: &str) -> Option<String> {
     registry().matched_markdown_suffix(name).map(str::to_string)
 }
+
 ````
 
 ````rs
@@ -497,9 +540,17 @@ pub fn set_workspace_descriptor_root(root: Option<&Path>) {
     });
 }
 
+````
+
+````rs
+
 fn registry() -> DescriptorRegistry {
     load_registry(active_descriptor_root().as_deref())
 }
+
+````
+
+````rs
 
 fn active_descriptor_root() -> Option<PathBuf> {
     let configured = DESCRIPTOR_ROOT.with(|storage| storage.borrow().clone());
@@ -509,9 +560,17 @@ fn active_descriptor_root() -> Option<PathBuf> {
     std::env::current_dir().ok()
 }
 
+````
+
+````rs
+
 thread_local! {
     static DESCRIPTOR_ROOT: RefCell<Option<PathBuf>> = const { RefCell::new(None) };
 }
+
+````
+
+````rs
 
 fn load_registry(root: Option<&Path>) -> DescriptorRegistry {
     let mut by_id = HashMap::new();
@@ -562,6 +621,9 @@ fn load_registry(root: Option<&Path>) -> DescriptorRegistry {
     }
 }
 
+````
+
+````rs
 fn register_alias(alias_to_id: &mut HashMap<String, String>, alias: &str, id: &str) {
     if let Some(existing) = alias_to_id.insert(alias.to_string(), id.to_string()) {
         assert_eq!(
@@ -570,7 +632,9 @@ fn register_alias(alias_to_id: &mut HashMap<String, String>, alias: &str, id: &s
         );
     }
 }
+````
 
+````rs
 fn load_workspace_descriptors(root: &Path) -> Vec<Descriptor> {
     let mut descriptors = Vec::new();
     for path in collect_descriptor_files(root) {
@@ -585,14 +649,18 @@ fn load_workspace_descriptors(root: &Path) -> Vec<Descriptor> {
     }
     descriptors
 }
+````
 
+````rs
 fn collect_descriptor_files(root: &Path) -> Vec<PathBuf> {
     let mut files = Vec::new();
     collect_descriptor_files_into(root, &mut files);
     files.sort();
     files
 }
+````
 
+````rs
 fn collect_descriptor_files_into(root: &Path, files: &mut Vec<PathBuf>) {
     let Ok(entries) = fs::read_dir(root) else {
         return;

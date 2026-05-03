@@ -596,17 +596,7 @@ fn is_comment_line(lang: &Lang, trimmed: &str) -> bool {
 
 ````rs
 fn is_doc_comment_line(lang: &Lang, trimmed: &str) -> bool {
-    match lang {
-        Lang::Python => trimmed.starts_with("\"\"\"") || trimmed.starts_with("'''"),
-        Lang::Rust => {
-            trimmed.starts_with("///")
-                || trimmed.starts_with("//!")
-                || trimmed.starts_with("/**")
-                || trimmed.starts_with("/*!")
-        }
-        Lang::TypeScript => trimmed.starts_with("/**"),
-        Lang::Other(_) => trimmed.starts_with("/**") || trimmed.starts_with("///"),
-    }
+    crate::descriptor::builtin_descriptor(lang).matches_doc_comment_line(trimmed)
 }
 ````
 

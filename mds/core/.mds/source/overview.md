@@ -6,7 +6,7 @@ Rust core library for parsing, validating, generating, and initializing mds proj
 
 ## Architecture
 
-This package is authored under `mds/core/.mds/source/` and synchronized into package `src/` / `tests/` and `.build/rust/mds/core/` before Cargo commands. Package metadata is read from `../Cargo.toml`; mds does not use a package root `index.md`.
+This package is authored under `mds/core/.mds/source/` and synchronized into package `src/` / `tests/` by `mds build`. The repo-local helper `./.github/script/sync-self-hosted-rust.sh` mirrors those generated files into `.build/rust/mds/core/` before Cargo commands. Package metadata is read from `../Cargo.toml`; mds does not use a package root `index.md`.
 
 ## Source Of Truth Scope
 
@@ -89,6 +89,7 @@ This package is authored under `mds/core/.mds/source/` and synchronized into pac
 
 | Name | Version | Summary |
 | --- | --- | --- |
+| regex | 1 |  |
 | serde | 1 |  |
 | serde_json | 1 |  |
 | toml | 0.8 |  |

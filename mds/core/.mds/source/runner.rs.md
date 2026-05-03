@@ -98,9 +98,9 @@ fn execute_inner(request: CliRequest) -> Result<RunState, String> {
     if let Command::Doctor { format } = request.command {
         run_doctor(&packages, format, &mut state);
     } else {
-        for package in packages {
+        for package in &packages {
             run_package(
-                &package,
+                package,
                 request.command.clone(),
                 request.verbose,
                 &mut state,

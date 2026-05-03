@@ -249,6 +249,10 @@ fn init_quality_from_defaults(descriptor: &descriptor::Descriptor) -> InitQualit
     }
 }
 
+````
+
+````rs
+
 fn empty_init_quality() -> InitQuality {
     InitQuality {
         type_check: None,
@@ -259,6 +263,10 @@ fn empty_init_quality() -> InitQuality {
         optional: Vec::new(),
     }
 }
+
+````
+
+````rs
 
 fn ts_quality(descriptor: &descriptor::Descriptor, tools: &[TypeScriptTool]) -> InitQuality {
     let has = |tool| tools.contains(&tool);
@@ -397,6 +405,10 @@ fn apply_profile(
         add_unique(optional, value);
     }
 }
+
+````
+
+````rs
 
 fn add_unique(values: &mut Vec<String>, value: &str) {
     if !values.iter().any(|current| current == value) {

@@ -79,7 +79,8 @@ The workspace state defined in `state.rs` is the foundation for all capabilities
 ### Build
 
 ```bash
-./.github/script/sync-build.sh
+cargo run -p mds-cli -- build --verbose
+./.github/script/sync-self-hosted-rust.sh
 cd .build/rust
 cargo build -p mds-lsp
 ```

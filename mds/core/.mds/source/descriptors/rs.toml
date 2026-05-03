@@ -80,6 +80,7 @@ top_level_keywords = [
 	"mod ",
 ]
 comment_prefixes = ["//", "/*", "*"]
+doc_comment_prefixes = ["///", "//!", "/**", "/*!"]
 
 [[syntax.imports]]
 starts_with = "use "

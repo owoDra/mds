@@ -77,7 +77,8 @@ src-md/mds/lsp/
 ### ビルド
 
 ```bash
-./.github/script/sync-build.sh
+cargo run -p mds-cli -- build --verbose
+./.github/script/sync-self-hosted-rust.sh
 cd .build/rust
 cargo build -p mds-lsp
 ```

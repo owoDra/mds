@@ -34,9 +34,9 @@
 ## Self-hosted Build 同期
 
 - いつ行うか: package 配下の `.mds/source/` / `.mds/test/`、`cargo run -p mds-cli -- build --verbose`、Rust package metadata、`.build/` 配置を変更するとき。
-- 何で検証するか: `cargo run -p mds-cli -- build --verbose` を実行し、`.build/rust/` で `cargo fmt --check` と `cargo test` を実行する。
-- 期待する結果: package 配下の `.mds/source/` / `.mds/test/` の implementation md と package metadata から package 内の生成 `src/` / `tests/` と `.build/rust/` の Cargo workspace が再生成され、生成物を手編集せずに build / test できる。descriptor の special file 規則も守られ、Rust の `build.rs.md` は package root の `build.rs` へ生成される。
-- 問題があった際にどうするか: `.build/` や生成 `src/` / `tests/` を直接修正せず、package 配下の `.mds/source/` / `.mds/test/` または同期処理を修正する。
+- 何で検証するか: `cargo run -p mds-cli -- build --verbose` で package 内の生成 `src/` / `tests/` を更新し、この repo では続けて `./.github/script/sync-self-hosted-rust.sh` を実行したうえで `.build/rust/` で `cargo fmt --check` と `cargo test` を実行する。
+- 期待する結果: package 配下の `.mds/source/` / `.mds/test` の implementation md と package metadata から package 内の生成 `src/` / `tests/` が再生成される。repo-local helper はその生成物から `.build/rust/` の Cargo workspace mirror を再構築し、生成物を手編集せずに build / test できる。descriptor の special file 規則も守られ、Rust の `build.rs.md` は package root の `build.rs` へ生成される。
+- 問題があった際にどうするか: `.build/` や生成 `src/` / `tests/` を直接修正せず、package 配下の `.mds/source/` / `.mds/test` または repo-local helper を修正する。
 
 ## Language Adapter 動作
 

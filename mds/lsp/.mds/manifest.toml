@@ -1,0 +1,135 @@
+[[sources]]
+path = ".mds/source/capabilities/code_action.rs.md"
+adapter = "rs"
+hash = "cc45019a54b1a9bcc7852d6364f60dce599ffc6bed9fcddffd6d9f26d69f3419"
+[[sources.outputs]]
+kind = "source"
+path = "src/capabilities/code_action.rs"
+hash = "9fdc42786ce4716baff20545ab8422ad72668f8bbc3c939f838b60ac825f58a0"
+
+[[sources]]
+path = ".mds/source/capabilities/completion.rs.md"
+adapter = "rs"
+hash = "5df5a4225959ce61c72f1a9db5e87f4136cfd6f8d320d468775d36b074934170"
+[[sources.outputs]]
+kind = "source"
+path = "src/capabilities/completion.rs"
+hash = "76c919205e8c5444dc61db80a0d287d9e607706e4d76ee2059aa9efae1bead35"
+
+[[sources]]
+path = ".mds/source/capabilities/diagnostics.rs.md"
+adapter = "rs"
+hash = "2c8e5e05c676f652fdd46634bc93db9493d0c1ced98a516635ee940b05a50754"
+[[sources.outputs]]
+kind = "source"
+path = "src/capabilities/diagnostics.rs"
+hash = "f9750f26adeeb64282d199382f62cad9083c2416ef3102bde0e80a02152bcd51"
+
+[[sources]]
+path = ".mds/source/capabilities/hover.rs.md"
+adapter = "rs"
+hash = "23e29babc49229921d6658c4520cee5a14198f5d7aa5191199f54a9ba31038a6"
+[[sources.outputs]]
+kind = "source"
+path = "src/capabilities/hover.rs"
+hash = "68b81e74633d8dbec30650a317165ef84a79c91f6c5b41a5e0932c4eb52685d5"
+
+[[sources]]
+path = ".mds/source/capabilities/mod.rs.md"
+adapter = "rs"
+hash = "c1942abf2f0964d2e445e86ee3ed33050960218020e275ff574219bfae0d2b6b"
+[[sources.outputs]]
+kind = "source"
+path = "src/capabilities/mod.rs"
+hash = "f17d2e724ab6faf46f263f89946f1be987555b68aa564e1222b8208c47d16091"
+
+[[sources]]
+path = ".mds/source/capabilities/navigation.rs.md"
+adapter = "rs"
+hash = "c520c978e6e3dd7b7dbdcf61b57677d34f56632cccd65d3c55fd22588d2d6231"
+[[sources.outputs]]
+kind = "source"
+path = "src/capabilities/navigation.rs"
+hash = "0efa50343a62c16eed8d42da2bb2304297557d4d15ae8959ff242a80c0eeb98c"
+
+[[sources]]
+path = ".mds/source/capabilities/symbols.rs.md"
+adapter = "rs"
+hash = "adafa8ae9c48a857626cd999f33c37b12b2c754c89c4c5a993ec43644af9af24"
+[[sources.outputs]]
+kind = "source"
+path = "src/capabilities/symbols.rs"
+hash = "8f473eb9b70c992894c65a335dc5e20e80a1b6e2c358e2fb1ab236f03fd249f1"
+
+[[sources]]
+path = ".mds/source/convert.rs.md"
+adapter = "rs"
+hash = "1bac0bfd63a6392f681f85ba0afa3b803075d9caeb4571f0dfb1e50c989b29d1"
+[[sources.outputs]]
+kind = "source"
+path = "src/convert.rs"
+hash = "d88ef686f88dcb1c8d1e2253dfbe2c0266cd3dab05a4a4bfcadd5b436ea51edb"
+
+[[sources]]
+path = ".mds/source/labels.rs.md"
+adapter = "rs"
+hash = "ef9bc4053eb3d62d593751f9bacf636b635e1b05054bd9aa60d2c66a8f81b7a0"
+[[sources.outputs]]
+kind = "source"
+path = "src/labels.rs"
+hash = "5892e9a9cb9ba0a5849d0c5b0f4469cef46c17e7862fc1085258b5bdb56ed548"
+
+[[sources]]
+path = ".mds/source/lib.rs.md"
+adapter = "rs"
+hash = "b87e7d4a997c40c749dcce9f923d191a28297a8ee8fd7b530a181bff41c32db4"
+[[sources.outputs]]
+kind = "source"
+path = "src/lib.rs"
+hash = "759f17733a5eeb9f9f74a4153a7d9f722c16d1c1c5123af060927af7f9a69b85"
+
+[[sources]]
+path = ".mds/source/main.rs.md"
+adapter = "rs"
+hash = "d86ecb11092b354597b2eb2e0de4bb49e8cab386c9a1df737bec51cd88970da0"
+[[sources.outputs]]
+kind = "source"
+path = "src/main.rs"
+hash = "5ccbfa35e0158f84c399489a3dbfe7b87e28d565584b5c771033501d6ae9079a"
+
+[[sources]]
+path = ".mds/source/server.rs.md"
+adapter = "rs"
+hash = "d32c833fb0cf235a34d7168bb2931c0c2784eb34d1b8f5f49ef2a58ada9713ef"
+[[sources.outputs]]
+kind = "source"
+path = "src/server.rs"
+hash = "0d7257ef0e5365f96b5e76efbdb8f7d95e95621e0e6d6a3d92538e2213881db8"
+
+[[sources]]
+path = ".mds/source/state.rs.md"
+adapter = "rs"
+hash = "88ed21607d6a9d47d6087cdc360ddea3982c19233e5fef7712cc1a7339cec5f1"
+[[sources.outputs]]
+kind = "source"
+path = "src/state.rs"
+hash = "a54605917e6d0c31262504e343d4f4cf97b29eccbb04b803dd69244b5db47bd2"
+
+[[sources]]
+path = ".mds/test/capabilities.rs.md"
+adapter = "rs"
+hash = "508e461330a97f6df52920fe0fa64276842b8cb2f942f32e7ce8b3ad6b3456df"
+[[sources.outputs]]
+kind = "test"
+path = "tests/capabilities_test.rs"
+hash = "7eba8596ece15af9bf80f8f3ad69422a00748ad8c8420daf9cf44640807ab178"
+
+[[sources]]
+path = ".mds/test/diagnostics.rs.md"
+adapter = "rs"
+hash = "13afc8cb260ed4d5ee3a0d708d682279fc8792af9d132d8c2ae6f80808226751"
+[[sources.outputs]]
+kind = "test"
+path = "tests/diagnostics_test.rs"
+hash = "7286c9dff67ecb6fa1eb269003eb8ffbfc6d60ec545f2232785f5370932b17c4"
+

@@ -28,7 +28,8 @@ curl -fsSL https://raw.githubusercontent.com/owo-x-project/owox-mds/main/install
 ### ソースからビルド（開発者向け）
 
 ```bash
-./.github/script/sync-build.sh
+cargo run -p mds-cli -- build --verbose
+./.github/script/sync-self-hosted-rust.sh
 cd .build/rust
 cargo build -p mds-lsp --release
 cp target/release/mds-lsp /usr/local/bin/
