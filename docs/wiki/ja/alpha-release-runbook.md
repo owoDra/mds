@@ -7,83 +7,66 @@
 ## Prerequisites
 
 - Rust toolchain (stable)
-- `@vscode/vsce` (for VS Code extension)
-- GitHub secrets configured: `CARGO_REGISTRY_TOKEN`, `VSCE_PAT`
+- Node.js 24+ and npm
+- GitHub secret configured: `VSCE_PAT`
+- GitHub Actions environment configured: `release`
 
-## Local Verification (before publishing)
+## Local Verification (before tagging)
 
 ```bash
-# 1. Full quality gate
-cd crates && cargo fmt --check && cargo clippy -- -D warnings && cargo test
+# Rust packages
+cargo fmt --check
+cargo clippy -- -D warnings
+cargo test
+cargo build -p mds-cli -p mds-lsp
 
-# 2. Examples smoke test
-cargo run -p mds-cli -- check --package ../examples/minimal-ts --verbose
+# VS Code extension
+cd editors/vscode
+npm install
+npm run compile
+cd ../..
 
-# 3. Release dry run
-cargo build --release
-./.github/script/generate-release-artifacts.sh
+# Release helper syntax
+bash -n install.sh
+bash -n .github/script/package-vscode.sh
 ```
 
 ## Automated Release (recommended)
 
-Use the GitHub Actions workflow:
-
-1. Go to **Actions → Alpha Release**
-2. Click **Run workflow**
-3. Set `dry_run: true` for first verification
-4. After verification, re-run with `dry_run: false`
-
-## Manual Release (step-by-step)
-
-### 1. Cargo Crates (dependency order)
+Create and push a `v*` tag. The `Release` GitHub Actions workflow builds all release artifacts and publishes them.
 
 ```bash
-cd crates
-
-# Publish independent crates first
-cargo publish -p mds-core
-cargo publish -p mds-lang-rs
-
-# Wait for crates.io index propagation (~30s)
-sleep 30
-
-# Publish dependent crates
-cargo publish -p mds-cli
-cargo publish -p mds-lsp
+git tag v0.1.0-alpha.1
+git push origin v0.1.0-alpha.1
 ```
 
-### 2. VS Code Extension
+The workflow performs the following:
+
+- Builds `mds` and `mds-lsp` for `linux-x64`, `darwin-x64`, `darwin-arm64`, and `win32-x64`.
+- Uploads GitHub Release assets such as `mds-v0.1.0-alpha.1-x86_64-unknown-linux-gnu.tar.gz` and `.sha256` files.
+- Packages platform-specific VSIX files with bundled `mds-lsp` under `server/<target>/`.
+- Publishes the VS Code extension with `VSCE_PAT`.
+
+## Manual Dry Run
+
+Use manual workflow dispatch with `dry_run: true` to build artifacts without publishing GitHub Release assets or Marketplace packages.
+
+## Manual Release Fallback
+
+Manual release should only be used when GitHub Actions is unavailable.
 
 ```bash
-cd editors/vscode
-npm install
-npm run compile
-npx @vscode/vsce package --pre-release --out ../../.build/node/vscode
-npx @vscode/vsce publish --pre-release
-```
+# Example for the current host only
+cargo build --release -p mds-cli -p mds-lsp
+mkdir -p dist
+cp target/release/mds dist/
+cp target/release/mds-lsp dist/
+tar -czf mds-v0.1.0-alpha.1-<target>.tar.gz -C dist .
 
-### 3. GitHub Release
-
-```bash
-# Build platform binaries
-cargo run -p mds-cli -- build --verbose
-./.github/script/sync-self-hosted-rust.sh
-cargo --manifest-path .build/rust/Cargo.toml build --release
-
-# Create GitHub Release with binaries
 gh release create v0.1.0-alpha.1 \
-  .build/rust/target/release/mds \
-  .build/rust/target/release/mds-lsp \
+  mds-v0.1.0-alpha.1-<target>.tar.gz \
   --title "v0.1.0-alpha.1" \
   --prerelease
 ```
 
-### 4. Generate and Verify Release Artifacts
-
-```bash
-# Generate checksums, SBOM, provenance
-./.github/script/generate-release-artifacts.sh
-
-# Verify release gate
-./.github/script/release-check.sh --manifest release.mds.toml --verbose
-```
+Do not publish `mds-core` as a standalone crate for this release flow. It is linked into `mds` and `mds-lsp` as an internal workspace dependency.

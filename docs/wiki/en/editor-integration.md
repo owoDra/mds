@@ -19,12 +19,20 @@ mds provides `mds-lsp`, a server compliant with the Language Server Protocol (LS
 
 ## Installation
 
-### install.sh (recommended)
-
-The install script installs both `mds` and `mds-lsp`:
+### VS Code Marketplace (recommended for VS Code)
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/owo-x-project/owox-mds/main/install.sh | sh
+code --install-extension owo-x-project.mds
+```
+
+The Marketplace extension is published as a platform-specific package and includes the matching `mds-lsp` binary. VS Code users usually do not need a separate LSP install.
+
+### install.sh (for other editors)
+
+The install script installs both `mds` and `mds-lsp` from GitHub Releases:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/owo-x-project/owox-mds/latest/install.sh | sh
 ```
 
 ### Build from source (for developers)
@@ -47,7 +55,7 @@ mds-lsp --version   # Display version (if not supported, starts waiting on stdio
 
 ## VSCode
 
-### Installing the extension
+### Developing the extension locally
 
 ```bash
 cd editors/vscode
@@ -65,7 +73,7 @@ During development, launch via VSCode's "Extension Development Host":
 
 | Setting | Default | Description |
 | --- | --- | --- |
-| `mds.lsp.path` | `""` | Path to the mds-lsp binary. If empty, searches PATH |
+| `mds.lsp.path` | `""` | Path to the mds-lsp binary. If empty, uses the bundled server first, then searches PATH |
 | `mds.lsp.enabled` | `true` | Enable/disable the LSP server |
 | `mds.lsp.logLevel` | `"info"` | Log level: error, warn, info, debug, trace |
 | `mds.lsp.additionalLanguages` | `[]` | Additional language extensions (e.g., `[".go.md", ".java.md"]`) |
@@ -202,8 +210,10 @@ Validation is automatically executed when files are opened or edited.
 
 ### LSP server does not start
 
+If you installed the Marketplace extension, first check the "mds Language Server" Output channel. The bundled server should be used automatically.
+
 ```bash
-# Check if mds-lsp is in PATH
+# For non-VS Code editors or custom mds.lsp.path, check if mds-lsp is in PATH
 which mds-lsp
 
 # Manual startup test (Ctrl+C to exit)

@@ -20,8 +20,8 @@ Write real code — TypeScript, Python, Rust — inside Markdown code blocks, th
 ## Quick Start
 
 ```bash
-# Install
-curl -fsSL https://raw.githubusercontent.com/owo-x-project/owox-mds/main/install.sh | sh
+# Install the latest GitHub Releases binary
+curl -fsSL https://raw.githubusercontent.com/owo-x-project/owox-mds/latest/install.sh | sh
 
 # Basic usage
 mds init --package ./path/to/package
@@ -32,9 +32,13 @@ mds build --package ./path/to/package
 
 VS Code extension: `code --install-extension owo-x-project.mds`
 
+The installer downloads the platform-specific GitHub Releases archive and installs both `mds` and `mds-lsp`. The Marketplace VS Code extension already includes the matching `mds-lsp` binary, so no separate LSP install is needed for VS Code.
+
 See [examples/](examples/) for minimal working configurations.
 
-## Requirements\n\nNo runtime dependencies — mds is a single static binary.
+## Requirements
+
+No runtime dependencies for the prebuilt `mds` CLI binary. Language-specific checks still use the toolchain configured for that language, such as Node.js, Python, or Rust.
 
 ## Documentation
 

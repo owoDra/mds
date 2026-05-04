@@ -1,8 +1,8 @@
 #!/bin/sh
 # mds installer script
 # Usage:
-#   curl -fsSL https://raw.githubusercontent.com/owo-x-project/owox-mds/main/install.sh | sh
-#   curl -fsSL https://raw.githubusercontent.com/owo-x-project/owox-mds/main/install.sh | sh -s -- --version 0.3.0
+#   curl -fsSL https://raw.githubusercontent.com/owo-x-project/owox-mds/latest/install.sh | sh
+#   curl -fsSL https://raw.githubusercontent.com/owo-x-project/owox-mds/latest/install.sh | sh -s -- --version 0.1.0-alpha.1
 set -e
 
 REPO="owo-x-project/owox-mds"
@@ -23,7 +23,7 @@ while [ $# -gt 0 ]; do
     --help)
       echo "mds installer"
       echo ""
-      echo "Usage: curl -fsSL https://raw.githubusercontent.com/$REPO/main/install.sh | sh -s -- [OPTIONS]"
+      echo "Usage: curl -fsSL https://raw.githubusercontent.com/$REPO/latest/install.sh | sh -s -- [OPTIONS]"
       echo ""
       echo "Options:"
       echo "  --version VERSION    Install a specific version (default: latest)"
@@ -86,6 +86,10 @@ get_latest_version() {
   fi
 }
 
+normalize_version() {
+  VERSION="$(printf '%s' "$VERSION" | sed 's/^v//')"
+}
+
 # Download and install
 install() {
   detect_platform
@@ -98,10 +102,15 @@ install() {
       exit 1
     fi
   fi
+  normalize_version
 
   echo "Installing mds v${VERSION} for ${TARGET}..."
 
-  ARCHIVE_NAME="mds-v${VERSION}-${TARGET}.tar.gz"
+  if [ "$OS" = "windows" ]; then
+    ARCHIVE_NAME="mds-v${VERSION}-${TARGET}.zip"
+  else
+    ARCHIVE_NAME="mds-v${VERSION}-${TARGET}.tar.gz"
+  fi
   DOWNLOAD_URL="https://github.com/$REPO/releases/download/v${VERSION}/${ARCHIVE_NAME}"
 
   # Create temp directory
@@ -117,7 +126,18 @@ install() {
   fi
 
   # Extract
-  tar -xzf "$TMP_DIR/$ARCHIVE_NAME" -C "$TMP_DIR"
+  if [ "$OS" = "windows" ]; then
+    if command -v powershell.exe >/dev/null 2>&1; then
+      powershell.exe -NoProfile -Command "Expand-Archive -LiteralPath '$TMP_DIR/$ARCHIVE_NAME' -DestinationPath '$TMP_DIR' -Force"
+    elif command -v unzip >/dev/null 2>&1; then
+      unzip -q "$TMP_DIR/$ARCHIVE_NAME" -d "$TMP_DIR"
+    else
+      echo "Error: powershell.exe or unzip is required to extract Windows release archives"
+      exit 1
+    fi
+  else
+    tar -xzf "$TMP_DIR/$ARCHIVE_NAME" -C "$TMP_DIR"
+  fi
 
   # Install binaries
   mkdir -p "$INSTALL_DIR"

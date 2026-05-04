@@ -4,31 +4,36 @@ This page explains how mds is distributed.
 
 ## Principle
 
-mds is distributed as a single static binary built in Rust. No runtime dependencies required.
+mds is distributed as pre-built native binaries built in Rust. The CLI has no runtime dependencies; editor integrations use the `mds-lsp` binary.
 
 ## Distribution Channels
 
 | Channel | Method |
 | --- | --- |
-| GitHub Releases | Platform-specific binaries (recommended) |
-| install.sh | One-liner install via `curl -fsSL .../install.sh \| sh` |
+| GitHub Releases | Platform-specific archives containing `mds` and `mds-lsp` (recommended) |
+| install.sh | One-liner install that downloads the matching GitHub Releases archive |
+| VS Code Marketplace | Platform-specific extension packages with bundled `mds-lsp` |
 
 ## Installation
 
 ```bash
-# Recommended: install script
-curl -fsSL https://raw.githubusercontent.com/owo-x-project/owox-mds/main/install.sh | sh
+# Recommended: install the latest GitHub Releases archive
+curl -fsSL https://raw.githubusercontent.com/owo-x-project/owox-mds/latest/install.sh | sh
 
 # Specific version
-curl -fsSL .../install.sh | sh -s -- --version 0.3.0
+curl -fsSL https://raw.githubusercontent.com/owo-x-project/owox-mds/latest/install.sh | sh -s -- --version 0.1.0-alpha.1
 ```
 
-## Self-Update
+The release assets are named by tag and Rust target triple, for example:
 
-```bash
-mds update              # Update to latest
-mds update --version 0.4.0  # Update to specific version
-```
+- `mds-v0.1.0-alpha.1-x86_64-unknown-linux-gnu.tar.gz`
+- `mds-v0.1.0-alpha.1-x86_64-apple-darwin.tar.gz`
+- `mds-v0.1.0-alpha.1-aarch64-apple-darwin.tar.gz`
+- `mds-v0.1.0-alpha.1-x86_64-pc-windows-msvc.zip`
+
+## Updating
+
+Run the installer again. Use `--version` to pin a specific release.
 
 ## Version Pinning
 
@@ -37,7 +42,7 @@ Specify the mds version for a project in `mds.config.toml`:
 ```toml
 [package]
 enabled = true
-mds_version = "0.3.0"
+mds_version = "0.1.0-alpha.1"
 ```
 
 `mds doctor` detects version mismatches and warns.
@@ -47,7 +52,15 @@ mds_version = "0.3.0"
 | Binary | Purpose |
 | --- | --- |
 | `mds` | Main CLI command |
-| `mds-lsp` | Language Server (for editor integration) |
+| `mds-lsp` | Language Server for non-VS Code editors or custom VS Code `mds.lsp.path` |
+
+## VS Code Extension
+
+```bash
+code --install-extension owo-x-project.mds
+```
+
+The Marketplace extension is published as platform-specific packages and includes the matching `mds-lsp` binary under `server/<target>/`. VS Code users usually do not need a separate `mds-lsp` install.
 
 ## Pre-Release Quality Checks
 

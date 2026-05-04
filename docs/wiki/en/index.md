@@ -71,7 +71,7 @@ If you are reading for the first time, the following order is recommended.
 | [Language Adapters](language-adapters.md) | Explains where language-specific differences for TypeScript, Python, and Rust are handled. |
 | [Quality Checks](quality.md) | Explains structural checks, static analysis, auto-fix, testing, and environment diagnostics. |
 | [Package Info Sync](package-sync.md) | Explains the mechanism for syncing `package.md` from package information. |
-| [Distribution Policy](distribution.md) | Explains distribution policies via Cargo, npm, Python packages, and native executables. |
+| [Distribution Policy](distribution.md) | Explains GitHub Releases binaries, the installer, and VS Code Marketplace packages. |
 | [Troubleshooting](troubleshooting.md) | Explains common problems and how to verify them. |
 | [AI Agent Integration](ai-agent-integration.md) | Explains configuration generation and extension methods for AI coding agents. |
 | [Editor Integration (LSP)](editor-integration.md) | Explains real-time diagnostics, navigation, completion via LSP server, and the VSCode extension. |

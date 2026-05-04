@@ -69,7 +69,7 @@ mds は、Markdown を設計、実装、テストの正本として扱い、Mark
 | [言語アダプター](language-adapters.md) | TypeScript、Python、Rust ごとの差分をどこで扱うかを説明します。 |
 | [品質検査](quality.md) | 構造検査、静的検査、自動修正、テスト、環境診断を説明します。 |
 | [パッケージ情報同期](package-sync.md) | パッケージ情報から `package.md` を同期する仕組みを説明します。 |
-| [配布方針](distribution.md) | Cargo、npm、Python パッケージ、ネイティブ実行ファイルでの配布方針を説明します。 |
+| [配布方針](distribution.md) | GitHub Releases バイナリ、インストーラー、VSCode Marketplace package での配布方針を説明します。 |
 | [トラブルシューティング](troubleshooting.md) | よくある問題と確認方法を説明します。 |
 | [AI エージェント連携](ai-agent-integration.md) | AI コーディングエージェント向け設定の生成と拡張方法を説明します。 |
 | [エディタ統合 (LSP)](editor-integration.md) | LSP サーバーによるリアルタイム診断、ナビゲーション、補完、VSCode 拡張を説明します。 |
