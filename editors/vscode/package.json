@@ -110,6 +110,49 @@
           "description": "Additional language file extensions to activate (e.g., '.go.md', '.java.md')."
         }
       }
+    },
+    "commands": [
+      {
+        "command": "mds.openPreview",
+        "title": "mds: Open Markdown Preview",
+        "category": "mds"
+      },
+      {
+        "command": "mds.openPreviewToSide",
+        "title": "mds: Open Markdown Preview to the Side",
+        "category": "mds"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "mds.openPreviewToSide",
+          "when": "resourceExtname == .md && editorLangId == mds-markdown",
+          "group": "navigation"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "mds.openPreview",
+          "when": "resourceExtname == .md && editorLangId == mds-markdown",
+          "group": "navigation"
+        },
+        {
+          "command": "mds.openPreviewToSide",
+          "when": "resourceExtname == .md && editorLangId == mds-markdown",
+          "group": "navigation"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "mds.openPreview",
+          "when": "editorLangId == mds-markdown"
+        },
+        {
+          "command": "mds.openPreviewToSide",
+          "when": "editorLangId == mds-markdown"
+        }
+      ]
     }
   },
   "scripts": {

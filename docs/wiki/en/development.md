@@ -56,40 +56,40 @@ mds/
 
 ## Build
 
-### Rust build
+### mds-managed package build
 
 ```bash
-cargo run -p mds-cli -- build --verbose
-./.github/script/sync-self-hosted-rust.sh
-cd .build/rust
-cargo build                # Debug build
-cargo build --release      # Release build
+mds package sync
+mds build --verbose
 ```
 
 ### Build specific packages
 
 ```bash
-cargo build -p mds-core    # Core only
-cargo build -p mds-cli     # CLI only
+mds build --package mds/core --verbose
+mds build --package mds/cli --verbose
+mds build --package mds/lsp --verbose
 ```
+
+Use Cargo directly only when bootstrapping a broken mds CLI, producing release binaries, or validating Rust code outside mds-managed packages.
 
 ## Testing
 
 ### Run all tests
 
 ```bash
-cargo run -p mds-cli -- build --verbose
-./.github/script/sync-self-hosted-rust.sh
-cd .build/rust
-cargo test
+mds build --verbose
+mds test --package mds/core
+mds test --package mds/cli
+mds test --package mds/lsp
 ```
 
 ### Run specific tests
 
 ```bash
-cargo test -p mds-core                          # mds-core tests only
-cargo test -p mds-core -- parser_generation      # Filter by name
-cargo test -p mds-cli -- args                    # CLI argument tests only
+mds test --package mds/core                      # mds-core tests only
+mds test --package mds/cli                       # mds-cli tests only
+mds test --package mds/lsp                       # mds-lsp tests only
 ```
 
 ### Writing tests
@@ -103,27 +103,26 @@ cargo test -p mds-cli -- args                    # CLI argument tests only
 ### Formatting
 
 ```bash
-cargo run -p mds-cli -- build --verbose
-./.github/script/sync-self-hosted-rust.sh
-cd .build/rust
-cargo fmt              # Auto-format
-cargo fmt --check      # Check diff only
+mds lint --fix --package mds/core
+mds lint --package mds/core
 ```
 
 ### Static analysis
 
 ```bash
-cargo clippy           # lint
-cargo clippy -- -D warnings   # Treat warnings as errors
+mds lint --package mds/core
+mds lint --package mds/cli
+mds lint --package mds/lsp
 ```
 
 ### Batch execution
 
 ```bash
-cargo run -p mds-cli -- build --verbose
-./.github/script/sync-self-hosted-rust.sh
-cd .build/rust
-cargo fmt --check && cargo clippy -- -D warnings && cargo test
+mds package sync
+mds build --verbose
+mds lint --package mds/core && mds test --package mds/core
+mds lint --package mds/cli && mds test --package mds/cli
+mds lint --package mds/lsp && mds test --package mds/lsp
 ```
 
 In VSCode, you can run the "mds: Check All" task for the same checks.

@@ -54,6 +54,10 @@ Source content.
 ### Uses
 
 Uses content.
+
+##### SharedName
+
+Shared definition.
 "#;
 
     let symbols = document_symbols(text);
@@ -72,6 +76,10 @@ Uses content.
         "should contain Source: {names:?}"
     );
     assert!(names.contains(&"Uses"), "should contain Uses: {names:?}");
+    assert!(
+        names.contains(&"SharedName"),
+        "should contain H5 shared definition: {names:?}"
+    );
 }
 ````
 
@@ -98,6 +106,32 @@ fn test_section_completion_on_heading_prefix() {
     assert!(
         labels.contains(&"Source"),
         "should offer Source: {labels:?}"
+    );
+    assert!(
+        labels.contains(&"Imports"),
+        "should offer Imports: {labels:?}"
+    );
+    assert!(
+        labels.contains(&"Exports"),
+        "should offer Exports: {labels:?}"
+    );
+}
+````
+
+````rs
+#[test]
+fn test_h5_completion_on_heading_prefix() {
+    let text = "##### ";
+    let position = Position {
+        line: 0,
+        character: 6,
+    };
+    let config = mds_core::Config::default();
+    let items = provide_completions(text, position, None, &config);
+    let labels: Vec<&str> = items.iter().map(|i| i.label.as_str()).collect();
+    assert!(
+        labels.contains(&"mds: Shared Definition Section"),
+        "should offer H5 shared definition snippet: {labels:?}"
     );
 }
 ````
@@ -134,6 +168,31 @@ A module.
     assert!(
         !actions.is_empty(),
         "should provide code actions for missing sections"
+    );
+}
+````
+
+````rs
+#[test]
+fn test_code_action_legacy_section_rename() {
+    let text = r#"## Uses
+
+| From | Target | Expose | Summary |
+| --- | --- | --- | --- |
+"#;
+    let uri = Url::parse("file:///test/example.ts.md").unwrap();
+    let config = mds_core::Config::default();
+    let actions = provide_code_actions(&uri, text, &config);
+    let titles: Vec<String> = actions
+        .iter()
+        .filter_map(|action| match action {
+            CodeActionOrCommand::CodeAction(action) => Some(action.title.clone()),
+            CodeActionOrCommand::Command(command) => Some(command.title.clone()),
+        })
+        .collect();
+    assert!(
+        titles.iter().any(|title| title.contains("Rename ## Uses to ## Imports")),
+        "should offer Uses to Imports quick action: {titles:?}"
     );
 }
 ````
@@ -225,6 +284,17 @@ fn test_document_symbols_with_h4() {
     assert!(names.contains(&"Purpose"), "should have Purpose");
     // H4 headings should NOT appear in symbols (only ## and ###)
     assert!(!names.contains(&"Detail"), "should not have H4 heading");
+}
+````
+
+````rs
+#[test]
+fn test_document_symbols_with_h5_shared_definition() {
+    let text = "## Exports\n\n##### greet\n\nShared entrypoint.";
+    let symbols = document_symbols(text);
+    let names: Vec<&str> = symbols.iter().map(|s| s.name.as_str()).collect();
+    assert!(names.contains(&"Exports"), "should have Exports");
+    assert!(names.contains(&"greet"), "should have H5 shared definition");
 }
 ````
 

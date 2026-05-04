@@ -54,40 +54,40 @@ mds/
 
 ## ビルド
 
-### Rust ビルド
+### mds 管理 package のビルド
 
 ```bash
-cargo run -p mds-cli -- build --verbose
-./.github/script/sync-self-hosted-rust.sh
-cd .build/rust
-cargo build                # デバッグビルド
-cargo build --release      # リリースビルド
+mds package sync
+mds build --verbose
 ```
 
 ### 特定パッケージのビルド
 
 ```bash
-cargo build -p mds-core    # コアのみ
-cargo build -p mds-cli     # CLI のみ
+mds build --package mds/core --verbose
+mds build --package mds/cli --verbose
+mds build --package mds/lsp --verbose
 ```
+
+Cargo 直実行は、mds CLI が壊れている場合の bootstrap、release binary 作成、mds 管理外 Rust code の検証に限ります。
 
 ## テスト
 
 ### 全テスト実行
 
 ```bash
-cargo run -p mds-cli -- build --verbose
-./.github/script/sync-self-hosted-rust.sh
-cd .build/rust
-cargo test
+mds build --verbose
+mds test --package mds/core
+mds test --package mds/cli
+mds test --package mds/lsp
 ```
 
 ### 特定のテストを実行
 
 ```bash
-cargo test -p mds-core                          # mds-core のテストのみ
-cargo test -p mds-core -- parser_generation      # 名前で絞り込み
-cargo test -p mds-cli -- args                    # CLI 引数テストのみ
+mds test --package mds/core                      # mds-core のテストのみ
+mds test --package mds/cli                       # mds-cli のテストのみ
+mds test --package mds/lsp                       # mds-lsp のテストのみ
 ```
 
 ### テストの書き方
@@ -101,27 +101,26 @@ cargo test -p mds-cli -- args                    # CLI 引数テストのみ
 ### フォーマット
 
 ```bash
-cargo run -p mds-cli -- build --verbose
-./.github/script/sync-self-hosted-rust.sh
-cd .build/rust
-cargo fmt              # 自動整形
-cargo fmt --check      # 差分確認のみ
+mds lint --fix --package mds/core
+mds lint --package mds/core
 ```
 
 ### 静的解析
 
 ```bash
-cargo clippy           # lint
-cargo clippy -- -D warnings   # 警告をエラーとして扱う
+mds lint --package mds/core
+mds lint --package mds/cli
+mds lint --package mds/lsp
 ```
 
 ### 一括実行
 
 ```bash
-cargo run -p mds-cli -- build --verbose
-./.github/script/sync-self-hosted-rust.sh
-cd .build/rust
-cargo fmt --check && cargo clippy -- -D warnings && cargo test
+mds package sync
+mds build --verbose
+mds lint --package mds/core && mds test --package mds/core
+mds lint --package mds/cli && mds test --package mds/cli
+mds lint --package mds/lsp && mds test --package mds/lsp
 ```
 
 VSCode ではタスク「mds: Check All」で同じ検査を実行できます。

@@ -42,6 +42,19 @@ pub fn provide_hover(
         return hover_section(title.trim());
     }
 
+    if let Some(title) = line_text.strip_prefix("##### ") {
+        return Some(Hover {
+            contents: HoverContents::Markup(MarkupContent {
+                kind: MarkupKind::Markdown,
+                value: format!(
+                    "**Shared definition**: `{}`\n\nH5 sections document reusable exported symbols referenced by `Exports`, `Imports`, and tests.",
+                    title.trim()
+                ),
+            }),
+            range: None,
+        });
+    }
+
     // Hover on Uses table rows: show target module's Purpose
     if line_text.trim_start().starts_with('|') {
         return hover_uses_target(text, position, path, state);
@@ -59,11 +72,12 @@ fn hover_section(title: &str) -> Option<Hover> {
     let description = match title {
         "Purpose" | "目的" => "**Purpose**: Module purpose and responsibility.\n\nDescribe what this module does and why it exists.",
         "Contract" | "契約" => "**Contract**: Public API contract and invariants.\n\nDefine the guarantees this module provides.",
-        "Types" | "型定義" => "**Types**: Type definitions section.\n\nContains a Uses table and code blocks with type/interface definitions.",
-        "Source" | "実装" => "**Source**: Implementation section.\n\nContains a Uses table and code blocks with the main implementation.",
+        "Imports" | "依存" => "**Imports**: Dependency metadata.\n\nRecord imports outside code blocks using From, Target, Symbols, Via, Summary, and Reference columns.",
+        "Exports" | "公開" | "Expose" | "Exposes" | "公開面" => "**Exports**: Public exports.\n\nDefines the module's public surface and shared definitions.",
+        "Types" | "型定義" => "**Types**: Type definitions section.\n\nContains code blocks with type/interface definitions.",
+        "Source" | "実装" => "**Source**: Implementation section.\n\nContains code blocks with the main implementation.",
         "Cases" | "ケース" => "**Cases**: Use cases and examples.\n\nDescribe how this module is used.",
-        "Test" | "テスト" => "**Test**: Test section.\n\nContains a Uses table and code blocks with test code.",
-        "Expose" | "公開" | "Exposes" | "公開面" => "**Expose**: Public exports.\n\nDefines what this module exposes to other modules.",
+        "Test" | "テスト" => "**Test**: Test section.\n\nContains code blocks with test code.",
         _ => return None,
     };
 

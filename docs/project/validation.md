@@ -33,8 +33,8 @@
 
 ## Self-hosted Build 同期
 
-- いつ行うか: package 配下の `.mds/source/` / `.mds/test/`、`cargo run -p mds-cli -- build --verbose`、Rust package metadata、`.build/` 配置を変更するとき。
-- 何で検証するか: `cargo run -p mds-cli -- build --verbose` で package 内の生成 `src/` / `tests/` と `.build/rust/` mirror をまとめて更新し、そのまま `.build/rust/` で `cargo fmt --check` と `cargo test` を実行する。
+- いつ行うか: package 配下の `.mds/source/` / `.mds/test/`、`mds build`、Rust package metadata、`.build/` 配置を変更するとき。
+- 何で検証するか: mds 自身の管理対象 package (`mds/core`、`mds/cli`、`mds/lsp`) では Cargo を直接入口にせず、`mds package sync`、`mds build --verbose`、`mds lint --package <package>`、`mds test --package <package>` を使う。mds CLI 自体が起動不能な場合、bootstrap、release binary 作成、mds の外側にある非管理 Rust workspace の検証だけ Cargo 直実行を例外として扱う。
 - 期待する結果: package 配下の `.mds/source/` / `.mds/test` の implementation md と package metadata から package 内の生成 `src/` / `tests/` が再生成され、同じ command で `.build/rust/` の Cargo workspace mirror も再構築される。生成物を手編集せずに build / test でき、descriptor の special file 規則も守られ、Rust の `build.rs.md` は package root の `build.rs` へ生成される。
 - 問題があった際にどうするか: `.build/` や生成 `src/` / `tests/` を直接修正せず、package 配下の `.mds/source/` / `.mds/test` または `mds build` の mirror 同期処理を修正する。
 
