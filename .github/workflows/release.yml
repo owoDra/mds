@@ -34,11 +34,6 @@ jobs:
             vscode_target: linux-x64
             exe_suffix: ""
             archive_ext: tar.gz
-          - os: macos-13
-            target: x86_64-apple-darwin
-            vscode_target: darwin-x64
-            exe_suffix: ""
-            archive_ext: tar.gz
           - os: macos-latest
             target: aarch64-apple-darwin
             vscode_target: darwin-arm64
@@ -126,8 +121,6 @@ jobs:
       matrix:
         include:
           - vscode_target: linux-x64
-            lsp_binary: mds-lsp
-          - vscode_target: darwin-x64
             lsp_binary: mds-lsp
           - vscode_target: darwin-arm64
             lsp_binary: mds-lsp

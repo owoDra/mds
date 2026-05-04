@@ -2,7 +2,7 @@
 
 ## Version
 
-`0.1.0-alpha.1`
+`0.2.1-alpha`
 
 ## Prerequisites
 
@@ -36,14 +36,14 @@ bash -n .github/script/package-vscode.sh
 Create and push a `v*` tag. The `Release` GitHub Actions workflow builds all release artifacts and publishes them.
 
 ```bash
-git tag v0.1.0-alpha.1
-git push origin v0.1.0-alpha.1
+git tag v0.2.1-alpha
+git push origin v0.2.1-alpha
 ```
 
 The workflow performs the following:
 
-- Builds `mds` and `mds-lsp` for `linux-x64`, `darwin-x64`, `darwin-arm64`, and `win32-x64`.
-- Uploads GitHub Release assets such as `mds-v0.1.0-alpha.1-x86_64-unknown-linux-gnu.tar.gz` and `.sha256` files.
+- Builds `mds` and `mds-lsp` for `linux-x64`, `darwin-arm64`, and `win32-x64`.
+- Uploads GitHub Release assets such as `mds-v0.2.1-alpha-x86_64-unknown-linux-gnu.tar.gz` and `.sha256` files.
 - Packages platform-specific VSIX files with bundled `mds-lsp` under `server/<target>/`.
 - Publishes the VS Code extension with `VSCE_PAT`.
 
@@ -61,11 +61,11 @@ cargo build --release -p mds-cli -p mds-lsp
 mkdir -p dist
 cp target/release/mds dist/
 cp target/release/mds-lsp dist/
-tar -czf mds-v0.1.0-alpha.1-<target>.tar.gz -C dist .
+tar -czf mds-v0.2.1-alpha-<target>.tar.gz -C dist .
 
-gh release create v0.1.0-alpha.1 \
-  mds-v0.1.0-alpha.1-<target>.tar.gz \
-  --title "v0.1.0-alpha.1" \
+gh release create v0.2.1-alpha \
+  mds-v0.2.1-alpha-<target>.tar.gz \
+  --title "v0.2.1-alpha" \
   --prerelease
 ```
 

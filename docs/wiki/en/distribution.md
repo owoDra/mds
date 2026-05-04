@@ -21,15 +21,14 @@ mds is distributed as pre-built native binaries built in Rust. The CLI has no ru
 curl -fsSL https://raw.githubusercontent.com/owo-x-project/owox-mds/latest/install.sh | sh
 
 # Specific version
-curl -fsSL https://raw.githubusercontent.com/owo-x-project/owox-mds/latest/install.sh | sh -s -- --version 0.1.0-alpha.1
+curl -fsSL https://raw.githubusercontent.com/owo-x-project/owox-mds/latest/install.sh | sh -s -- --version 0.2.1-alpha
 ```
 
 The release assets are named by tag and Rust target triple, for example:
 
-- `mds-v0.1.0-alpha.1-x86_64-unknown-linux-gnu.tar.gz`
-- `mds-v0.1.0-alpha.1-x86_64-apple-darwin.tar.gz`
-- `mds-v0.1.0-alpha.1-aarch64-apple-darwin.tar.gz`
-- `mds-v0.1.0-alpha.1-x86_64-pc-windows-msvc.zip`
+- `mds-v0.2.1-alpha-x86_64-unknown-linux-gnu.tar.gz`
+- `mds-v0.2.1-alpha-aarch64-apple-darwin.tar.gz`
+- `mds-v0.2.1-alpha-x86_64-pc-windows-msvc.zip`
 
 ## Updating
 
@@ -42,7 +41,7 @@ Specify the mds version for a project in `mds.config.toml`:
 ```toml
 [package]
 enabled = true
-mds_version = "0.1.0-alpha.1"
+mds_version = "0.2.1-alpha"
 ```
 
 `mds doctor` detects version mismatches and warns.

@@ -12,13 +12,13 @@ This package is authored under `mds/lsp/.mds/source/` and synchronized into pack
 
 | Name | Version |
 | --- | --- |
-| mds-lsp | 0.1.0-alpha.1 |
+| mds-lsp | 0.2.1-alpha |
 
 ### Dependencies
 
 | Name | Version | Summary |
 | --- | --- | --- |
-| mds-core | 0.1.0-alpha.1 |  |
+| mds-core | 0.2.1-alpha |  |
 | serde | 1 |  |
 | serde_json | 1 |  |
 | tokio | 1 |  |

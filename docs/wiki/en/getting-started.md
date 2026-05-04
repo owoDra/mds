@@ -17,7 +17,7 @@ This downloads the matching release archive for your OS / architecture and insta
 To pin a version, pass the release version without or with the leading `v`:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/owo-x-project/owox-mds/latest/install.sh | sh -s -- --version 0.1.0-alpha.1
+curl -fsSL https://raw.githubusercontent.com/owo-x-project/owox-mds/latest/install.sh | sh -s -- --version 0.2.1-alpha
 ```
 
 ### VSCode Extension

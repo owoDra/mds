@@ -806,9 +806,6 @@ function bundledPlatformKey(): string | undefined {
   if (process.platform === 'linux' && process.arch === 'x64') {
     return 'linux-x64';
   }
-  if (process.platform === 'darwin' && process.arch === 'x64') {
-    return 'darwin-x64';
-  }
   if (process.platform === 'darwin' && process.arch === 'arm64') {
     return 'darwin-arm64';
   }

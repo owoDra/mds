@@ -2,7 +2,7 @@
 # mds installer script
 # Usage:
 #   curl -fsSL https://raw.githubusercontent.com/owo-x-project/owox-mds/latest/install.sh | sh
-#   curl -fsSL https://raw.githubusercontent.com/owo-x-project/owox-mds/latest/install.sh | sh -s -- --version 0.1.0-alpha.1
+#   curl -fsSL https://raw.githubusercontent.com/owo-x-project/owox-mds/latest/install.sh | sh -s -- --version 0.2.1-alpha
 set -e
 
 REPO="owo-x-project/owox-mds"
@@ -61,6 +61,11 @@ detect_platform() {
       exit 1
       ;;
   esac
+
+  if [ "$OS" = "darwin" ] && [ "$ARCH" = "x86_64" ]; then
+    echo "Error: macOS x86_64 is not supported by prebuilt mds releases"
+    exit 1
+  fi
 
   if [ "$OS" = "windows" ]; then
     TARGET="${ARCH}-pc-windows-msvc"

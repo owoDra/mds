@@ -36,7 +36,7 @@
 #   4. Publish in order (CI handles automatically)
 
 [release]
-version = "0.1.0-alpha.1"
+version = "0.2.1-alpha"
 channel = "alpha"
 
 # --- Cargo crates ---
@@ -44,32 +44,32 @@ channel = "alpha"
 [[artifacts]]
 name = "mds-core"
 channel = "alpha"
-path = ".build/rust/target/package/mds-core-0.1.0-alpha.1.crate"
-checksum = ".build/release/checksums/mds-core-0.1.0-alpha.1.sha256"
-signature = ".build/release/signatures/mds-core-0.1.0-alpha.1.sig"
-sbom = ".build/release/sbom/mds-core-0.1.0-alpha.1.spdx.json"
-provenance = ".build/release/provenance/mds-core-0.1.0-alpha.1.jsonl"
+path = ".build/rust/target/package/mds-core-0.2.1-alpha.crate"
+checksum = ".build/release/checksums/mds-core-0.2.1-alpha.sha256"
+signature = ".build/release/signatures/mds-core-0.2.1-alpha.sig"
+sbom = ".build/release/sbom/mds-core-0.2.1-alpha.spdx.json"
+provenance = ".build/release/provenance/mds-core-0.2.1-alpha.jsonl"
 smoke = true
 
 [[artifacts]]
 name = "mds-cli"
 channel = "alpha"
-path = ".build/rust/target/package/mds-cli-0.1.0-alpha.1.crate"
-checksum = ".build/release/checksums/mds-cli-0.1.0-alpha.1.sha256"
-signature = ".build/release/signatures/mds-cli-0.1.0-alpha.1.sig"
-sbom = ".build/release/sbom/mds-cli-0.1.0-alpha.1.spdx.json"
-provenance = ".build/release/provenance/mds-cli-0.1.0-alpha.1.jsonl"
+path = ".build/rust/target/package/mds-cli-0.2.1-alpha.crate"
+checksum = ".build/release/checksums/mds-cli-0.2.1-alpha.sha256"
+signature = ".build/release/signatures/mds-cli-0.2.1-alpha.sig"
+sbom = ".build/release/sbom/mds-cli-0.2.1-alpha.spdx.json"
+provenance = ".build/release/provenance/mds-cli-0.2.1-alpha.jsonl"
 smoke = true
 requires_published = "mds-core"
 
 [[artifacts]]
 name = "mds-lsp"
 channel = "alpha"
-path = ".build/rust/target/package/mds-lsp-0.1.0-alpha.1.crate"
-checksum = ".build/release/checksums/mds-lsp-0.1.0-alpha.1.sha256"
-signature = ".build/release/signatures/mds-lsp-0.1.0-alpha.1.sig"
-sbom = ".build/release/sbom/mds-lsp-0.1.0-alpha.1.spdx.json"
-provenance = ".build/release/provenance/mds-lsp-0.1.0-alpha.1.jsonl"
+path = ".build/rust/target/package/mds-lsp-0.2.1-alpha.crate"
+checksum = ".build/release/checksums/mds-lsp-0.2.1-alpha.sha256"
+signature = ".build/release/signatures/mds-lsp-0.2.1-alpha.sig"
+sbom = ".build/release/sbom/mds-lsp-0.2.1-alpha.spdx.json"
+provenance = ".build/release/provenance/mds-lsp-0.2.1-alpha.jsonl"
 smoke = true
 requires_published = "mds-core"
 
@@ -79,8 +79,8 @@ requires_published = "mds-core"
 name = "owo-x-project.mds"
 channel = "alpha"
 path = ".build/node/vscode/"
-checksum = ".build/release/checksums/mds-vscode-0.1.0.sha256"
-signature = ".build/release/signatures/mds-vscode-0.1.0.sig"
-sbom = ".build/release/sbom/mds-vscode-0.1.0.spdx.json"
-provenance = ".build/release/provenance/mds-vscode-0.1.0.jsonl"
+checksum = ".build/release/checksums/mds-vscode-0.2.1-alpha.sha256"
+signature = ".build/release/signatures/mds-vscode-0.2.1-alpha.sig"
+sbom = ".build/release/sbom/mds-vscode-0.2.1-alpha.spdx.json"
+provenance = ".build/release/provenance/mds-vscode-0.2.1-alpha.jsonl"
 smoke = true
