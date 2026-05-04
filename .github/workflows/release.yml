@@ -1,0 +1,185 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run (skip GitHub Release and Marketplace publish)"
+        required: true
+        default: "true"
+        type: choice
+        options:
+          - "true"
+          - "false"
+
+permissions:
+  contents: write
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  build-binaries:
+    name: Build ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            vscode_target: linux-x64
+            exe_suffix: ""
+            archive_ext: tar.gz
+          - os: macos-13
+            target: x86_64-apple-darwin
+            vscode_target: darwin-x64
+            exe_suffix: ""
+            archive_ext: tar.gz
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            vscode_target: darwin-arm64
+            exe_suffix: ""
+            archive_ext: tar.gz
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            vscode_target: win32-x64
+            exe_suffix: ".exe"
+            archive_ext: zip
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Build CLI and LSP
+        run: cargo build --release --target ${{ matrix.target }} -p mds-cli -p mds-lsp
+
+      - name: Stage binaries
+        shell: bash
+        run: |
+          mkdir -p dist release-assets
+          cp "target/${{ matrix.target }}/release/mds${{ matrix.exe_suffix }}" "dist/mds${{ matrix.exe_suffix }}"
+          cp "target/${{ matrix.target }}/release/mds-lsp${{ matrix.exe_suffix }}" "dist/mds-lsp${{ matrix.exe_suffix }}"
+
+      - name: Package Unix archive
+        if: matrix.archive_ext == 'tar.gz'
+        shell: bash
+        run: |
+          archive="mds-${{ github.ref_name }}-${{ matrix.target }}.tar.gz"
+          tar -czf "release-assets/$archive" -C dist .
+          shasum -a 256 "release-assets/$archive" > "release-assets/$archive.sha256"
+
+      - name: Package Windows archive
+        if: matrix.archive_ext == 'zip'
+        shell: pwsh
+        run: |
+          $archive = "mds-${{ github.ref_name }}-${{ matrix.target }}.zip"
+          Compress-Archive -Path dist/* -DestinationPath "release-assets/$archive"
+          Get-FileHash "release-assets/$archive" -Algorithm SHA256 | ForEach-Object { "$($_.Hash.ToLower())  $archive" } | Set-Content "release-assets/$archive.sha256"
+
+      - name: Upload release assets
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-assets-${{ matrix.target }}
+          path: release-assets/*
+
+      - name: Upload LSP binary for VS Code
+        uses: actions/upload-artifact@v4
+        with:
+          name: lsp-${{ matrix.vscode_target }}
+          path: target/${{ matrix.target }}/release/mds-lsp${{ matrix.exe_suffix }}
+
+  github-release:
+    name: Publish GitHub Release
+    needs: build-binaries
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/') && (github.event_name == 'push' || inputs.dry_run == 'false')
+    steps:
+      - name: Download release assets
+        uses: actions/download-artifact@v4
+        with:
+          pattern: release-assets-*
+          path: release-assets
+          merge-multiple: true
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release-assets/*
+          generate_release_notes: true
+          prerelease: ${{ contains(github.ref_name, '-') || startsWith(github.ref_name, 'v0.') }}
+
+  vscode:
+    name: Publish VS Code ${{ matrix.vscode_target }}
+    needs: build-binaries
+    runs-on: ubuntu-latest
+    environment: release
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        include:
+          - vscode_target: linux-x64
+            lsp_binary: mds-lsp
+          - vscode_target: darwin-x64
+            lsp_binary: mds-lsp
+          - vscode_target: darwin-arm64
+            lsp_binary: mds-lsp
+          - vscode_target: win32-x64
+            lsp_binary: mds-lsp.exe
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Install dependencies
+        run: npm install
+        working-directory: editors/vscode
+
+      - name: Download LSP binary
+        uses: actions/download-artifact@v4
+        with:
+          name: lsp-${{ matrix.vscode_target }}
+          path: lsp-bin
+
+      - name: Package VSIX with bundled LSP
+        shell: bash
+        run: |
+          args=(--target "${{ matrix.vscode_target }}" --lsp-binary "lsp-bin/${{ matrix.lsp_binary }}")
+          if [[ "${{ contains(github.ref_name, '-') || startsWith(github.ref_name, 'v0.') }}" == "true" ]]; then
+            args+=(--pre-release)
+          fi
+          ./.github/script/package-vscode.sh "${args[@]}"
+
+      - name: Upload VSIX artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vscode-${{ matrix.vscode_target }}
+          path: .build/node/vscode/*.vsix
+
+      - name: Publish VS Code Extension
+        if: startsWith(github.ref, 'refs/tags/') && (github.event_name == 'push' || inputs.dry_run == 'false')
+        shell: bash
+        run: |
+          vsix_files=(.build/node/vscode/*.vsix)
+          vsix="${vsix_files[0]}"
+          args=(publish --packagePath "$vsix")
+          if [[ "${{ contains(github.ref_name, '-') || startsWith(github.ref_name, 'v0.') }}" == "true" ]]; then
+            args+=(--pre-release)
+          fi
+          npx @vscode/vsce "${args[@]}"
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+
+      - name: Dry run summary
+        if: github.event_name == 'workflow_dispatch' && inputs.dry_run == 'true'
+        run: ls -la .build/node/vscode/*.vsix

@@ -591,7 +591,7 @@ export async function activate(context: vscode.ExtensionContext) {
     return;
   }
 
-  const serverPath = resolveServerPath(config);
+  const serverPath = resolveServerPath(config, context.extensionPath);
   if (!serverPath) {
     vscode.window.showWarningMessage(
       'mds-lsp binary not found. Install with: cargo install --git https://github.com/owo-x-project/owox-mds mds-lsp, or set mds.lsp.path in settings.'
@@ -732,7 +732,8 @@ export async function deactivate(): Promise<void> {
 }
 
 function resolveServerPath(
-  config: vscode.WorkspaceConfiguration
+  config: vscode.WorkspaceConfiguration,
+  extensionPath: string
 ): string | undefined {
   const configPath = config.get<string>('path', '');
   if (configPath) {
@@ -742,6 +743,19 @@ function resolveServerPath(
   const { execFileSync } = require('child_process');
   const path = require('path');
   const fs = require('fs');
+
+  const platformKey = bundledPlatformKey();
+  if (platformKey) {
+    const bundled = path.join(
+      extensionPath,
+      'server',
+      platformKey,
+      process.platform === 'win32' ? 'mds-lsp.exe' : 'mds-lsp'
+    );
+    if (fs.existsSync(bundled)) {
+      return bundled;
+    }
+  }
 
   // Try to find mds-lsp in PATH
   try {
@@ -785,5 +799,21 @@ function resolveServerPath(
     }
   }
 
+  return undefined;
+}
+
+function bundledPlatformKey(): string | undefined {
+  if (process.platform === 'linux' && process.arch === 'x64') {
+    return 'linux-x64';
+  }
+  if (process.platform === 'darwin' && process.arch === 'x64') {
+    return 'darwin-x64';
+  }
+  if (process.platform === 'darwin' && process.arch === 'arm64') {
+    return 'darwin-arm64';
+  }
+  if (process.platform === 'win32' && process.arch === 'x64') {
+    return 'win32-x64';
+  }
   return undefined;
 }

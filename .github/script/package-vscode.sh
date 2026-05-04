@@ -6,11 +6,32 @@ SOURCE_DIR="$ROOT/editors/vscode"
 BUILD_DIR="$ROOT/.build/node/vscode"
 PACKAGE_DIR="$BUILD_DIR/package"
 PRE_RELEASE=false
+TARGET=""
+LSP_BINARY=""
 
-for arg in "$@"; do
-  case "$arg" in
-    --pre-release) PRE_RELEASE=true ;;
-    *) echo "unknown flag: $arg" >&2; exit 1 ;;
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --pre-release)
+      PRE_RELEASE=true
+      shift
+      ;;
+    --target)
+      TARGET="${2:-}"
+      if [[ -z "$TARGET" ]]; then
+        echo "--target requires a value" >&2
+        exit 1
+      fi
+      shift 2
+      ;;
+    --lsp-binary)
+      LSP_BINARY="${2:-}"
+      if [[ -z "$LSP_BINARY" ]]; then
+        echo "--lsp-binary requires a value" >&2
+        exit 1
+      fi
+      shift 2
+      ;;
+    *) echo "unknown flag: $1" >&2; exit 1 ;;
   esac
 done
 
@@ -30,10 +51,30 @@ cp -R "$SOURCE_DIR/snippets" "$PACKAGE_DIR/snippets"
 cp -R "$SOURCE_DIR/syntaxes" "$PACKAGE_DIR/syntaxes"
 cp -R "$BUILD_DIR/out" "$PACKAGE_DIR/out"
 
+if [[ -n "$LSP_BINARY" ]]; then
+  if [[ -z "$TARGET" ]]; then
+    echo "--lsp-binary requires --target" >&2
+    exit 1
+  fi
+  if [[ ! -f "$LSP_BINARY" ]]; then
+    echo "LSP binary not found: $LSP_BINARY" >&2
+    exit 1
+  fi
+  mkdir -p "$PACKAGE_DIR/server/$TARGET"
+  cp "$LSP_BINARY" "$PACKAGE_DIR/server/$TARGET/$(basename "$LSP_BINARY")"
+  if [[ "$TARGET" != win32-* ]]; then
+    chmod +x "$PACKAGE_DIR/server/$TARGET/$(basename "$LSP_BINARY")"
+  fi
+fi
+
 (cd "$PACKAGE_DIR" && npm install --omit=dev --ignore-scripts --package-lock=false)
 
-if [[ "$PRE_RELEASE" == "true" ]]; then
-  (cd "$PACKAGE_DIR" && npx @vscode/vsce package --pre-release --out "$BUILD_DIR")
-else
-  (cd "$PACKAGE_DIR" && npx @vscode/vsce package --out "$BUILD_DIR")
+VSCE_ARGS=(package --out "$BUILD_DIR")
+if [[ -n "$TARGET" ]]; then
+  VSCE_ARGS+=(--target "$TARGET")
 fi
+if [[ "$PRE_RELEASE" == "true" ]]; then
+  VSCE_ARGS+=(--pre-release)
+fi
+
+(cd "$PACKAGE_DIR" && npx @vscode/vsce "${VSCE_ARGS[@]}")
