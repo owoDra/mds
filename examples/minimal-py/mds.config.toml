@@ -4,7 +4,6 @@ enabled = true
 allow_raw_source = false
 
 [roots]
-markdown = "src-md"
 source = "src"
 types = "src"
 test = "tests"
@@ -12,6 +11,6 @@ test = "tests"
 [quality.py]
 linter = "ruff check"
 fixer = "ruff format"
-test_runner = "pytest"
+test_runner = ""
 required = ["python3", "ruff", "pytest"]
 optional = []

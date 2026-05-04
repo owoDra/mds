@@ -1,0 +1,828 @@
+[[sources]]
+path = ".mds/source/adapter.rs.md"
+adapter = "rs"
+hash = "05136421a26863e20c70f49e24d82354e0ae78fec856747d98a760c1e1ab5f9c"
+[[sources.outputs]]
+kind = "source"
+path = "src/adapter.rs"
+hash = "29836d637cb35d78ef438117a0f1b955e65766cb942b2bd9822b9e8d987bc20e"
+
+[[sources]]
+path = ".mds/source/build.rs.md"
+adapter = "rs"
+hash = "e7d5be00a33079298e28722fa61597d8876d3d580c952c85a1a0bdc767f50964"
+[[sources.outputs]]
+kind = "source"
+path = "build.rs"
+hash = "cd28ba408722280d339022d1dd235b393dab87fd1135381e1eee54493a040a15"
+
+[[sources]]
+path = ".mds/source/config.rs.md"
+adapter = "rs"
+hash = "eb13b86c45361aa3bb40fa3462899e8ccc9197959433d2d8602a70e6ddb170c6"
+[[sources.outputs]]
+kind = "source"
+path = "src/config.rs"
+hash = "f26e5899cc567eb7b466ca571f1f638afa26843a8b692dfba62ba0c032eb5b79"
+
+[[sources]]
+path = ".mds/source/descriptor.rs.md"
+adapter = "rs"
+hash = "f84ab503d6dc85c562cdd3082d2006be69b5e48dd8f04e67b87295b641ba780a"
+[[sources.outputs]]
+kind = "source"
+path = "src/descriptor.rs"
+hash = "733e7d08c6294f8c4e034e3d41f192a42a40ef37550e325419c7a0950e46035b"
+
+[[sources]]
+path = ".mds/source/diagnostics.rs.md"
+adapter = "rs"
+hash = "a4858235c9282e768b5f76815f8143f2cfc5276bbc5c1b77fa0de2c4165e508e"
+[[sources.outputs]]
+kind = "source"
+path = "src/diagnostics.rs"
+hash = "20aacf1e666ff50e26802384d043ae4aac00748b1f8ffb732ea1f8af65a596d4"
+
+[[sources]]
+path = ".mds/source/diff.rs.md"
+adapter = "rs"
+hash = "654b20cf813bcffe7e5e255550f5217e87a3049756625d2bcdf9c2657e3d60cd"
+[[sources.outputs]]
+kind = "source"
+path = "src/diff.rs"
+hash = "987a43014ab59ed15bbc58572956dd80702ca9dce0c8fce028020606cbf44037"
+
+[[sources]]
+path = ".mds/source/doctor.rs.md"
+adapter = "rs"
+hash = "7eb8f80f7c8430a114b9757d29f87887046acbecad460606473e916912ddf15f"
+[[sources.outputs]]
+kind = "source"
+path = "src/doctor.rs"
+hash = "79af2639d392029399ddf72c270aa08a71b843dd572c8db5c7928e980b70828b"
+
+[[sources]]
+path = ".mds/source/fs_utils.rs.md"
+adapter = "rs"
+hash = "fdd28850a2768fac4ab225efd7508841756f5e1a96f66e3e279e9200c83bad76"
+[[sources.outputs]]
+kind = "source"
+path = "src/fs_utils.rs"
+hash = "622cb96acdaf4f82aa0efee95fc53b0c876dbfa0ac168411a3758f4894ce5a6b"
+
+[[sources]]
+path = ".mds/source/generation.rs.md"
+adapter = "rs"
+hash = "a085794cf445ab95c68601b1ad743952204b7b909101cff372e39b1f55fa9d7c"
+[[sources.outputs]]
+kind = "source"
+path = "src/generation.rs"
+hash = "a73a4bb5890de7bd3321f67c4d0f003cc0cd8cb89faa150bd796482cd38279a8"
+
+[[sources]]
+path = ".mds/source/hash.rs.md"
+adapter = "rs"
+hash = "510fa815bbecb5bbfedd528f25ed8d7f2a8e4907e4a04b46758247d7ddaf1078"
+[[sources.outputs]]
+kind = "source"
+path = "src/hash.rs"
+hash = "84445a01b5213c977c7bcd3692edfec82cf7fd25510b750c13a93014626d6c45"
+
+[[sources]]
+path = ".mds/source/init/mod.rs.md"
+adapter = "rs"
+hash = "3998274b3b26072c1bc3b0d27327fb249893c941dca77f4b244a901a1537cb12"
+[[sources.outputs]]
+kind = "source"
+path = "src/init/mod.rs"
+hash = "2d15cc92c0edafa9c83c2bfc14009d950b977252dbb5ced8865bbd2313199c9b"
+
+[[sources]]
+path = ".mds/source/lib.rs.md"
+adapter = "rs"
+hash = "893ae9e5f9f605779fb97205bc5bc6c4e266258c05deb1646022961fcdc1a96d"
+[[sources.outputs]]
+kind = "source"
+path = "src/lib.rs"
+hash = "852eee3925269fb427a30df262d2fbccb8265b605835c1e8bac1536123d7de98"
+
+[[sources]]
+path = ".mds/source/manifest.rs.md"
+adapter = "rs"
+hash = "9c1f7f56637a0537dccf4f0ba7655edf981f2c97d3d0a14ef2d61c3878c4256b"
+[[sources.outputs]]
+kind = "source"
+path = "src/manifest.rs"
+hash = "91e9737eed885d21ce24195512934c777fe2d6f8f616161c981b5a1369171fbd"
+
+[[sources]]
+path = ".mds/source/markdown.rs.md"
+adapter = "rs"
+hash = "5b24b73052e456e89f720e09c0b02fd57b8fe7623cb8d70109b04eea87cf2092"
+[[sources.outputs]]
+kind = "source"
+path = "src/markdown.rs"
+hash = "4ed9d2c3a5a0b948a47d8903de9aca4af8055db030a803c6b9cd5c56559de6d5"
+
+[[sources]]
+path = ".mds/source/model.rs.md"
+adapter = "rs"
+hash = "02c93f2cabd5c54c797c848c2255588b95e8c5b49aa5584c3c3f0cc24a81738a"
+[[sources.outputs]]
+kind = "source"
+path = "src/model.rs"
+hash = "5792fcce45eb2813c73ef8da6b308c93ee980b280d2ff611f736a299a34612d0"
+
+[[sources]]
+path = ".mds/source/new.rs.md"
+adapter = "rs"
+hash = "6ff2646f4ee6ef366897202e7e22cfcff6f96bc6ea506b0f9a7b39e597b10bd1"
+[[sources.outputs]]
+kind = "source"
+path = "src/new.rs"
+hash = "25cebbbeeee1303d33890a88ce9fcb5837850d8ef1e7ed2f8db3d982e3d6525a"
+
+[[sources]]
+path = ".mds/source/package.rs.md"
+adapter = "rs"
+hash = "d54c367b35b23e68a8ed35c3c172faaf166394a8fc7d189649b3f478a4a066ff"
+[[sources.outputs]]
+kind = "source"
+path = "src/package.rs"
+hash = "2db90980a6268427e8e0a71c1d58be26f079c5f410c02f343046608bcb8f7b8e"
+
+[[sources]]
+path = ".mds/source/package_sync.rs.md"
+adapter = "rs"
+hash = "fc9467485ec58c6ed9cd076afdd028de7e9cb8c78f5043efd9b65727d289ce4b"
+[[sources.outputs]]
+kind = "source"
+path = "src/package_sync.rs"
+hash = "02b3ea7b525a66b1f3818edfd4d6ea284e946cdcb3b8a48a3eb0b28224f39106"
+
+[[sources]]
+path = ".mds/source/quality.rs.md"
+adapter = "rs"
+hash = "623565b7b592d4f3d17e7239c8d7acff2be8473b4509a1f260707fb39160b5a2"
+[[sources.outputs]]
+kind = "source"
+path = "src/quality.rs"
+hash = "8b1ed9411f8337817ced9c0585ceb13a603f93f9121248068c201183c1f61955"
+
+[[sources]]
+path = ".mds/source/runner.rs.md"
+adapter = "rs"
+hash = "d7803610924e5fa4760146e5ab5baa0e90c843c1258b993ca6874cbc354b1c7d"
+[[sources.outputs]]
+kind = "source"
+path = "src/runner.rs"
+hash = "07113d2c94b20ee13fc33a71cde2b2135b785036f1604b7d0ae6bca89deccfd2"
+
+[[sources]]
+path = ".mds/source/table.rs.md"
+adapter = "rs"
+hash = "de52957bdc07f02742ea20295ae5d9c7511dceac6338bf3891d3a74b079168ec"
+[[sources.outputs]]
+kind = "source"
+path = "src/table.rs"
+hash = "96469eb97be92a015c3683796fec001c2f086433ae1d9747a47ae4efc39da907"
+
+[[sources]]
+path = ".mds/test/parser_generation_mvp.rs.md"
+adapter = "rs"
+hash = "309450bc389df161ec4b1e27efe21e9c9dbdea440a0225af79b9705c5b0ceeed"
+[[sources.outputs]]
+kind = "test"
+path = "tests/parser_generation_mvp_test.rs"
+hash = "e573761d377c775863ac4d0d02d3e1b2fa85c7b6492cd605aae6d296314bd9d9"
+
+[[assets]]
+path = ".mds/source/descriptors/languages/base/c.toml"
+hash = "4e411428ccb50ac4ee572227c30658251cc214d64044ebe0b5ada981e3c1ac97"
+[[assets.outputs]]
+path = "src/descriptors/languages/base/c.toml"
+hash = "4e411428ccb50ac4ee572227c30658251cc214d64044ebe0b5ada981e3c1ac97"
+
+[[assets]]
+path = ".mds/source/descriptors/languages/base/cpp.toml"
+hash = "215949f5de7232ec645155419d8dc03bde145bfc69d32378ff9e958362c1406b"
+[[assets.outputs]]
+path = "src/descriptors/languages/base/cpp.toml"
+hash = "215949f5de7232ec645155419d8dc03bde145bfc69d32378ff9e958362c1406b"
+
+[[assets]]
+path = ".mds/source/descriptors/languages/base/cs.toml"
+hash = "ca78e3535f5f3eac311863984a200b364aacfb5b83efa8574f77d1731ccbeca8"
+[[assets.outputs]]
+path = "src/descriptors/languages/base/cs.toml"
+hash = "ca78e3535f5f3eac311863984a200b364aacfb5b83efa8574f77d1731ccbeca8"
+
+[[assets]]
+path = ".mds/source/descriptors/languages/base/css.toml"
+hash = "739e62661dac5bced4c8201813aaeff2dca09f309bb9329ed58c5f91626a3b72"
+[[assets.outputs]]
+path = "src/descriptors/languages/base/css.toml"
+hash = "739e62661dac5bced4c8201813aaeff2dca09f309bb9329ed58c5f91626a3b72"
+
+[[assets]]
+path = ".mds/source/descriptors/languages/base/dart.toml"
+hash = "0705e0885cbf4f71787b3c8551cb05758bcf23ba0eb172b34a2b762f5b023fc1"
+[[assets.outputs]]
+path = "src/descriptors/languages/base/dart.toml"
+hash = "0705e0885cbf4f71787b3c8551cb05758bcf23ba0eb172b34a2b762f5b023fc1"
+
+[[assets]]
+path = ".mds/source/descriptors/languages/base/go.toml"
+hash = "32bdea9cb1f3e072e1cde747951fe192452a57f1e33bdd387d84f425fc2929a0"
+[[assets.outputs]]
+path = "src/descriptors/languages/base/go.toml"
+hash = "32bdea9cb1f3e072e1cde747951fe192452a57f1e33bdd387d84f425fc2929a0"
+
+[[assets]]
+path = ".mds/source/descriptors/languages/base/html.toml"
+hash = "bb2817216f90afceea98c81b02ac0febefab123ac06000e9dc893903c2e5af9f"
+[[assets.outputs]]
+path = "src/descriptors/languages/base/html.toml"
+hash = "bb2817216f90afceea98c81b02ac0febefab123ac06000e9dc893903c2e5af9f"
+
+[[assets]]
+path = ".mds/source/descriptors/languages/base/java.toml"
+hash = "0f87c35b71a15bf19d7654cd5c1391d57028727d4f78f26d6dee9eb05a137a3a"
+[[assets.outputs]]
+path = "src/descriptors/languages/base/java.toml"
+hash = "0f87c35b71a15bf19d7654cd5c1391d57028727d4f78f26d6dee9eb05a137a3a"
+
+[[assets]]
+path = ".mds/source/descriptors/languages/base/js.toml"
+hash = "c978240792aa840a3be75817e402c17411913e805769e776811920f3b7ffb1e4"
+[[assets.outputs]]
+path = "src/descriptors/languages/base/js.toml"
+hash = "c978240792aa840a3be75817e402c17411913e805769e776811920f3b7ffb1e4"
+
+[[assets]]
+path = ".mds/source/descriptors/languages/base/mojo.toml"
+hash = "b912344d5b80a2dee04875b695d3ff5b5041832e1abed9719560e70e87b630be"
+[[assets.outputs]]
+path = "src/descriptors/languages/base/mojo.toml"
+hash = "b912344d5b80a2dee04875b695d3ff5b5041832e1abed9719560e70e87b630be"
+
+[[assets]]
+path = ".mds/source/descriptors/languages/base/py.toml"
+hash = "5ebb3ed10597b7d9e7e61a8922cff0c9dec3219e5c88d13462347a940f0a609d"
+[[assets.outputs]]
+path = "src/descriptors/languages/base/py.toml"
+hash = "5ebb3ed10597b7d9e7e61a8922cff0c9dec3219e5c88d13462347a940f0a609d"
+
+[[assets]]
+path = ".mds/source/descriptors/languages/base/rs.toml"
+hash = "0ce42c34bef5caeb1e9d74bd14a008473422d1ceb825a9c221808f5100e7e82b"
+[[assets.outputs]]
+path = "src/descriptors/languages/base/rs.toml"
+hash = "0ce42c34bef5caeb1e9d74bd14a008473422d1ceb825a9c221808f5100e7e82b"
+
+[[assets]]
+path = ".mds/source/descriptors/languages/base/ruby.toml"
+hash = "b9f2a4a52b01b86aaa857d211ee453aecf268f371525bde4072c81f1d9de6577"
+[[assets.outputs]]
+path = "src/descriptors/languages/base/ruby.toml"
+hash = "b9f2a4a52b01b86aaa857d211ee453aecf268f371525bde4072c81f1d9de6577"
+
+[[assets]]
+path = ".mds/source/descriptors/languages/base/scss.toml"
+hash = "fc66995e4041100ca94e5cf38c3f54e9e73b7ec23f162ff06a32432354a2f19b"
+[[assets.outputs]]
+path = "src/descriptors/languages/base/scss.toml"
+hash = "fc66995e4041100ca94e5cf38c3f54e9e73b7ec23f162ff06a32432354a2f19b"
+
+[[assets]]
+path = ".mds/source/descriptors/languages/base/sql.toml"
+hash = "69174739b3fe11dc8f6e75c83c0cd29f79022b3e84e8bb767f9ec05e55bddd9e"
+[[assets.outputs]]
+path = "src/descriptors/languages/base/sql.toml"
+hash = "69174739b3fe11dc8f6e75c83c0cd29f79022b3e84e8bb767f9ec05e55bddd9e"
+
+[[assets]]
+path = ".mds/source/descriptors/languages/base/ts.toml"
+hash = "69079277100bab60f2c9c83de7e2279d9202c7a3709a09e20abe42b9ec9a61fe"
+[[assets.outputs]]
+path = "src/descriptors/languages/base/ts.toml"
+hash = "69079277100bab60f2c9c83de7e2279d9202c7a3709a09e20abe42b9ec9a61fe"
+
+[[assets]]
+path = ".mds/source/descriptors/languages/base/zig.toml"
+hash = "6c56dbc96bd7689d879a51e6fb5d5911930ffd00a4de240cfeed1a227c39ad68"
+[[assets.outputs]]
+path = "src/descriptors/languages/base/zig.toml"
+hash = "6c56dbc96bd7689d879a51e6fb5d5911930ffd00a4de240cfeed1a227c39ad68"
+
+[[assets]]
+path = ".mds/source/descriptors/languages/overlays/angular.toml"
+hash = "5445d1f3e4bfef95c30b6bda95d7497932307c4591bead0dd19664a94e872edd"
+[[assets.outputs]]
+path = "src/descriptors/languages/overlays/angular.toml"
+hash = "5445d1f3e4bfef95c30b6bda95d7497932307c4591bead0dd19664a94e872edd"
+
+[[assets]]
+path = ".mds/source/descriptors/languages/overlays/astro.toml"
+hash = "4fb6310abb3398ac2aab917dd2969954d9b5412c5e2565149e5e372f74a3dfff"
+[[assets.outputs]]
+path = "src/descriptors/languages/overlays/astro.toml"
+hash = "4fb6310abb3398ac2aab917dd2969954d9b5412c5e2565149e5e372f74a3dfff"
+
+[[assets]]
+path = ".mds/source/descriptors/languages/overlays/flutter.toml"
+hash = "4abb4b245888e83926ca8acbca799545e8f71ffbedc6a65c2429bc5103bdf89f"
+[[assets.outputs]]
+path = "src/descriptors/languages/overlays/flutter.toml"
+hash = "4abb4b245888e83926ca8acbca799545e8f71ffbedc6a65c2429bc5103bdf89f"
+
+[[assets]]
+path = ".mds/source/descriptors/languages/overlays/jsx.toml"
+hash = "31810e67fa40c2a0054607f91f63c69d176974dac2aa00e695241f720e98aaeb"
+[[assets.outputs]]
+path = "src/descriptors/languages/overlays/jsx.toml"
+hash = "31810e67fa40c2a0054607f91f63c69d176974dac2aa00e695241f720e98aaeb"
+
+[[assets]]
+path = ".mds/source/descriptors/languages/overlays/rails.toml"
+hash = "a02976c290628e253710186fc883be7572d04fccd934024cfeb0f72516e4b9d1"
+[[assets.outputs]]
+path = "src/descriptors/languages/overlays/rails.toml"
+hash = "a02976c290628e253710186fc883be7572d04fccd934024cfeb0f72516e4b9d1"
+
+[[assets]]
+path = ".mds/source/descriptors/languages/overlays/svelte.toml"
+hash = "64ac6a7878b2f26ca738f73dbc4913dfa4b13aaa079c76dbd63edf7d78863ca4"
+[[assets.outputs]]
+path = "src/descriptors/languages/overlays/svelte.toml"
+hash = "64ac6a7878b2f26ca738f73dbc4913dfa4b13aaa079c76dbd63edf7d78863ca4"
+
+[[assets]]
+path = ".mds/source/descriptors/languages/overlays/tsx.toml"
+hash = "f6b4268f315b53c0aead5015b1349ac8e6e17c933332b81787a9bed94c41985a"
+[[assets.outputs]]
+path = "src/descriptors/languages/overlays/tsx.toml"
+hash = "f6b4268f315b53c0aead5015b1349ac8e6e17c933332b81787a9bed94c41985a"
+
+[[assets]]
+path = ".mds/source/descriptors/languages/overlays/vue.toml"
+hash = "716a40eb0eb6320d08d785e7f7dbf7debb9b4d194be7844e2baf29388efd1127"
+[[assets.outputs]]
+path = "src/descriptors/languages/overlays/vue.toml"
+hash = "716a40eb0eb6320d08d785e7f7dbf7debb9b4d194be7844e2baf29388efd1127"
+
+[[assets]]
+path = ".mds/source/descriptors/linters/biome-lint.toml"
+hash = "334e9573e29ebef2704d955afaa65ec3fcc5751765e1ae5bb43c7f9581dbae64"
+[[assets.outputs]]
+path = "src/descriptors/linters/biome-lint.toml"
+hash = "334e9573e29ebef2704d955afaa65ec3fcc5751765e1ae5bb43c7f9581dbae64"
+
+[[assets]]
+path = ".mds/source/descriptors/linters/clippy.toml"
+hash = "57de1adba2c5e12a02570585359b98cf534af8c1a92256c25a834d37b529b4da"
+[[assets.outputs]]
+path = "src/descriptors/linters/clippy.toml"
+hash = "57de1adba2c5e12a02570585359b98cf534af8c1a92256c25a834d37b529b4da"
+
+[[assets]]
+path = ".mds/source/descriptors/linters/eslint.toml"
+hash = "488942c91d47f62197cf5ec2e9ea401450349637a4102cc174ec972aef59964e"
+[[assets.outputs]]
+path = "src/descriptors/linters/eslint.toml"
+hash = "488942c91d47f62197cf5ec2e9ea401450349637a4102cc174ec972aef59964e"
+
+[[assets]]
+path = ".mds/source/descriptors/linters/ruff-check.toml"
+hash = "f1636b63bcda8bc2e247a76d50d7b69e61c3546144c4c8aabd999aeb111bd789"
+[[assets.outputs]]
+path = "src/descriptors/linters/ruff-check.toml"
+hash = "f1636b63bcda8bc2e247a76d50d7b69e61c3546144c4c8aabd999aeb111bd789"
+
+[[assets]]
+path = ".mds/source/descriptors/package-managers/bun.toml"
+hash = "82935db05c51730e1fa9a0aad5306342e324627ba3475331667881e0c776512a"
+[[assets.outputs]]
+path = "src/descriptors/package-managers/bun.toml"
+hash = "82935db05c51730e1fa9a0aad5306342e324627ba3475331667881e0c776512a"
+
+[[assets]]
+path = ".mds/source/descriptors/package-managers/bundler.toml"
+hash = "a5aec41fb72bd3cc9d224ae6ed294199dc278008ff274c22387084b871c321ab"
+[[assets.outputs]]
+path = "src/descriptors/package-managers/bundler.toml"
+hash = "a5aec41fb72bd3cc9d224ae6ed294199dc278008ff274c22387084b871c321ab"
+
+[[assets]]
+path = ".mds/source/descriptors/package-managers/cargo.toml"
+hash = "264f4880689ff00fc745db6c8563a5f2c88d59729cb50dd86674f135fb839739"
+[[assets.outputs]]
+path = "src/descriptors/package-managers/cargo.toml"
+hash = "264f4880689ff00fc745db6c8563a5f2c88d59729cb50dd86674f135fb839739"
+
+[[assets]]
+path = ".mds/source/descriptors/package-managers/cmake.toml"
+hash = "635574d20a6169dcbe162f430336ad8886010d59320e1f9aa2f5f2257a4c6ef3"
+[[assets.outputs]]
+path = "src/descriptors/package-managers/cmake.toml"
+hash = "635574d20a6169dcbe162f430336ad8886010d59320e1f9aa2f5f2257a4c6ef3"
+
+[[assets]]
+path = ".mds/source/descriptors/package-managers/conan.toml"
+hash = "f805759a3b336fa57450ea8c70981b658f044a410b6be2e77bd71f6869867ab9"
+[[assets.outputs]]
+path = "src/descriptors/package-managers/conan.toml"
+hash = "f805759a3b336fa57450ea8c70981b658f044a410b6be2e77bd71f6869867ab9"
+
+[[assets]]
+path = ".mds/source/descriptors/package-managers/dotnet.toml"
+hash = "e5769c0f1647feadaaf81654903273ed74fd4af163b2786318fbff82479af73c"
+[[assets.outputs]]
+path = "src/descriptors/package-managers/dotnet.toml"
+hash = "e5769c0f1647feadaaf81654903273ed74fd4af163b2786318fbff82479af73c"
+
+[[assets]]
+path = ".mds/source/descriptors/package-managers/flutter-pub.toml"
+hash = "392ee36c7ebfbeed31ba2494a5c946367c41169816fc99cca53a17996ea63854"
+[[assets.outputs]]
+path = "src/descriptors/package-managers/flutter-pub.toml"
+hash = "392ee36c7ebfbeed31ba2494a5c946367c41169816fc99cca53a17996ea63854"
+
+[[assets]]
+path = ".mds/source/descriptors/package-managers/hatch.toml"
+hash = "bd778745b3db09ed785e901b6f66d733d5f59f47b11b2ae929b26f048e091dd4"
+[[assets.outputs]]
+path = "src/descriptors/package-managers/hatch.toml"
+hash = "bd778745b3db09ed785e901b6f66d733d5f59f47b11b2ae929b26f048e091dd4"
+
+[[assets]]
+path = ".mds/source/descriptors/package-managers/meson.toml"
+hash = "b2102d12a84818ac16c31754c5882537ac7063cec0c8ffaba1580a7fea08796f"
+[[assets.outputs]]
+path = "src/descriptors/package-managers/meson.toml"
+hash = "b2102d12a84818ac16c31754c5882537ac7063cec0c8ffaba1580a7fea08796f"
+
+[[assets]]
+path = ".mds/source/descriptors/package-managers/npm.toml"
+hash = "623cb29f97de1ed9d8b7198c0ec646fcdb6544a37e8039495ca9d1017b3f10fc"
+[[assets.outputs]]
+path = "src/descriptors/package-managers/npm.toml"
+hash = "623cb29f97de1ed9d8b7198c0ec646fcdb6544a37e8039495ca9d1017b3f10fc"
+
+[[assets]]
+path = ".mds/source/descriptors/package-managers/pdm.toml"
+hash = "6e7a265290844a29f8e87d24914aa5eb88a24a1ed4b7c6832ad0612d25726c60"
+[[assets.outputs]]
+path = "src/descriptors/package-managers/pdm.toml"
+hash = "6e7a265290844a29f8e87d24914aa5eb88a24a1ed4b7c6832ad0612d25726c60"
+
+[[assets]]
+path = ".mds/source/descriptors/package-managers/pnpm.toml"
+hash = "2375a79d93531261d88a3ecb48ed32f6b6ce89028e5fa5cc7128936714f4ab0e"
+[[assets.outputs]]
+path = "src/descriptors/package-managers/pnpm.toml"
+hash = "2375a79d93531261d88a3ecb48ed32f6b6ce89028e5fa5cc7128936714f4ab0e"
+
+[[assets]]
+path = ".mds/source/descriptors/package-managers/poetry.toml"
+hash = "a64e9d98d67c20d80d2b747a9b2f376503afb92feff57d25a98769c7b4effa81"
+[[assets.outputs]]
+path = "src/descriptors/package-managers/poetry.toml"
+hash = "a64e9d98d67c20d80d2b747a9b2f376503afb92feff57d25a98769c7b4effa81"
+
+[[assets]]
+path = ".mds/source/descriptors/package-managers/pub.toml"
+hash = "01e48ce71b07f7e7dc9a16e60c14963e0bd59301b359eaf10821c891fdd8cf80"
+[[assets.outputs]]
+path = "src/descriptors/package-managers/pub.toml"
+hash = "01e48ce71b07f7e7dc9a16e60c14963e0bd59301b359eaf10821c891fdd8cf80"
+
+[[assets]]
+path = ".mds/source/descriptors/package-managers/uv.toml"
+hash = "acef9b77298f4b8abb1a4a90d182abe5970e0024ccccc7c3bb36c9039d63ca14"
+[[assets.outputs]]
+path = "src/descriptors/package-managers/uv.toml"
+hash = "acef9b77298f4b8abb1a4a90d182abe5970e0024ccccc7c3bb36c9039d63ca14"
+
+[[assets]]
+path = ".mds/source/descriptors/package-managers/vcpkg.toml"
+hash = "72dfa513fd399856b621d07f437fa9c25c735a63a5b710a6bd9526892cee80ff"
+[[assets.outputs]]
+path = "src/descriptors/package-managers/vcpkg.toml"
+hash = "72dfa513fd399856b621d07f437fa9c25c735a63a5b710a6bd9526892cee80ff"
+
+[[assets]]
+path = ".mds/source/descriptors/package-managers/yarn.toml"
+hash = "0541e3c8d511887700f9433189faf73693877095f08ec2c432dd9214213607f1"
+[[assets.outputs]]
+path = "src/descriptors/package-managers/yarn.toml"
+hash = "0541e3c8d511887700f9433189faf73693877095f08ec2c432dd9214213607f1"
+
+[[assets]]
+path = ".mds/source/descriptors/package-managers/zig-build.toml"
+hash = "f24fe3320402a09e05d3abb24b778a73edcc9614edba49279d41e4213d17c496"
+[[assets.outputs]]
+path = "src/descriptors/package-managers/zig-build.toml"
+hash = "f24fe3320402a09e05d3abb24b778a73edcc9614edba49279d41e4213d17c496"
+
+[[assets]]
+path = ".mds/source/descriptors/tools/lint/clang-tidy.toml"
+hash = "e4bc751bab1da20bb0a1a028a6fc47eeccae6862542655d684f902c04fd9aa35"
+[[assets.outputs]]
+path = "src/descriptors/tools/lint/clang-tidy.toml"
+hash = "e4bc751bab1da20bb0a1a028a6fc47eeccae6862542655d684f902c04fd9aa35"
+
+[[assets]]
+path = ".mds/source/descriptors/tools/lint/dart-analyze.toml"
+hash = "ba0d7d1474cb38cb415b17ea57e60c3249d915255023bf837358972894223f35"
+[[assets.outputs]]
+path = "src/descriptors/tools/lint/dart-analyze.toml"
+hash = "ba0d7d1474cb38cb415b17ea57e60c3249d915255023bf837358972894223f35"
+
+[[assets]]
+path = ".mds/source/descriptors/tools/lint/dotnet-format.toml"
+hash = "1b3ad290fd5173840f42e00f25b56689aaf8833b4758bd03f0c4d22f41061a1a"
+[[assets.outputs]]
+path = "src/descriptors/tools/lint/dotnet-format.toml"
+hash = "1b3ad290fd5173840f42e00f25b56689aaf8833b4758bd03f0c4d22f41061a1a"
+
+[[assets]]
+path = ".mds/source/descriptors/tools/lint/rubocop.toml"
+hash = "562ad2b5e56883d0f20e917851e4d03539de246966ab02a6132c48e693c23806"
+[[assets.outputs]]
+path = "src/descriptors/tools/lint/rubocop.toml"
+hash = "562ad2b5e56883d0f20e917851e4d03539de246966ab02a6132c48e693c23806"
+
+[[assets]]
+path = ".mds/source/descriptors/tools/lint/sqlfluff.toml"
+hash = "e53d029a67880b91e22433f00b3de110100781c21639f0249230cfaa15ea71a5"
+[[assets.outputs]]
+path = "src/descriptors/tools/lint/sqlfluff.toml"
+hash = "e53d029a67880b91e22433f00b3de110100781c21639f0249230cfaa15ea71a5"
+
+[[assets]]
+path = ".mds/source/descriptors/tools/test/cargo-test.toml"
+hash = "6b9069645f9d36c472d4e7159b85207c60d88ac2a1a6de00be9718afec5ca51f"
+[[assets.outputs]]
+path = "src/descriptors/tools/test/cargo-test.toml"
+hash = "6b9069645f9d36c472d4e7159b85207c60d88ac2a1a6de00be9718afec5ca51f"
+
+[[assets]]
+path = ".mds/source/descriptors/tools/test/ctest.toml"
+hash = "7f5fbe74a8e5ec58fdab8c8e9236064f671fe07cd15247ed46bef99b3d05d32a"
+[[assets.outputs]]
+path = "src/descriptors/tools/test/ctest.toml"
+hash = "7f5fbe74a8e5ec58fdab8c8e9236064f671fe07cd15247ed46bef99b3d05d32a"
+
+[[assets]]
+path = ".mds/source/descriptors/tools/test/dart-test.toml"
+hash = "aae3575586d4bf95787035c0633f3fb554a35f09627b3668272a33e4f97e2528"
+[[assets.outputs]]
+path = "src/descriptors/tools/test/dart-test.toml"
+hash = "aae3575586d4bf95787035c0633f3fb554a35f09627b3668272a33e4f97e2528"
+
+[[assets]]
+path = ".mds/source/descriptors/tools/test/dotnet-test.toml"
+hash = "4e0f654734c640c3826d613243b9ceda439ea242143e45893c9cacbb62db63c0"
+[[assets.outputs]]
+path = "src/descriptors/tools/test/dotnet-test.toml"
+hash = "4e0f654734c640c3826d613243b9ceda439ea242143e45893c9cacbb62db63c0"
+
+[[assets]]
+path = ".mds/source/descriptors/tools/test/flutter-test.toml"
+hash = "b56eb454a59842f09c2162d84de1510612d8ffc1ac6caffcebccab2770c62cbc"
+[[assets.outputs]]
+path = "src/descriptors/tools/test/flutter-test.toml"
+hash = "b56eb454a59842f09c2162d84de1510612d8ffc1ac6caffcebccab2770c62cbc"
+
+[[assets]]
+path = ".mds/source/descriptors/tools/test/jest.toml"
+hash = "685fd2ec37833b351f119aa8d188bcefdd9d02bd22df9a577917c6742ef14814"
+[[assets.outputs]]
+path = "src/descriptors/tools/test/jest.toml"
+hash = "685fd2ec37833b351f119aa8d188bcefdd9d02bd22df9a577917c6742ef14814"
+
+[[assets]]
+path = ".mds/source/descriptors/tools/test/nextest.toml"
+hash = "cd42f25c38ddcc807bfb32a1c2f8d25bc6f1cc687ef144080c59c034f1eff7f1"
+[[assets.outputs]]
+path = "src/descriptors/tools/test/nextest.toml"
+hash = "cd42f25c38ddcc807bfb32a1c2f8d25bc6f1cc687ef144080c59c034f1eff7f1"
+
+[[assets]]
+path = ".mds/source/descriptors/tools/test/pytest.toml"
+hash = "a1862cb8be0ce4655df6653338307ce0751160f06f16896201d5dfcc39d1a97a"
+[[assets.outputs]]
+path = "src/descriptors/tools/test/pytest.toml"
+hash = "a1862cb8be0ce4655df6653338307ce0751160f06f16896201d5dfcc39d1a97a"
+
+[[assets]]
+path = ".mds/source/descriptors/tools/test/rspec.toml"
+hash = "6ea5d436aedc31f807013a075b25ad9ad61dabea54200e2f3a79e246a2a994f3"
+[[assets.outputs]]
+path = "src/descriptors/tools/test/rspec.toml"
+hash = "6ea5d436aedc31f807013a075b25ad9ad61dabea54200e2f3a79e246a2a994f3"
+
+[[assets]]
+path = ".mds/source/descriptors/tools/test/unittest.toml"
+hash = "2e3a630e46f89d462d2a287f893b2d58c256e3a4174ca6af76feed3b5ab37332"
+[[assets.outputs]]
+path = "src/descriptors/tools/test/unittest.toml"
+hash = "2e3a630e46f89d462d2a287f893b2d58c256e3a4174ca6af76feed3b5ab37332"
+
+[[assets]]
+path = ".mds/source/descriptors/tools/test/vitest.toml"
+hash = "4616a7e8001fb7cee661b3308af17edc6192d94ab822fc252fc98fe0d7fe0bf0"
+[[assets.outputs]]
+path = "src/descriptors/tools/test/vitest.toml"
+hash = "4616a7e8001fb7cee661b3308af17edc6192d94ab822fc252fc98fe0d7fe0bf0"
+
+[[assets]]
+path = ".mds/source/descriptors/tools/test/zig-test.toml"
+hash = "3f4715ffab087ab8a5f92fcec8015533fb1bd0d9e4b3336adc4479dfdf197111"
+[[assets.outputs]]
+path = "src/descriptors/tools/test/zig-test.toml"
+hash = "3f4715ffab087ab8a5f92fcec8015533fb1bd0d9e4b3336adc4479dfdf197111"
+
+[[assets]]
+path = ".mds/source/descriptors/tools/typecheck/cargo-check.toml"
+hash = "c6f70f8c1bbe9e8f6c1b9143d9d1cbfb7c492b4b52f157b225f6a51133bf6127"
+[[assets.outputs]]
+path = "src/descriptors/tools/typecheck/cargo-check.toml"
+hash = "c6f70f8c1bbe9e8f6c1b9143d9d1cbfb7c492b4b52f157b225f6a51133bf6127"
+
+[[assets]]
+path = ".mds/source/descriptors/tools/typecheck/dart-analyze.toml"
+hash = "aa52d97c7b5129bdd8ad4536571c64ed0b5d4ef78bbb0f108cb26fbaf95a5fa0"
+[[assets.outputs]]
+path = "src/descriptors/tools/typecheck/dart-analyze.toml"
+hash = "aa52d97c7b5129bdd8ad4536571c64ed0b5d4ef78bbb0f108cb26fbaf95a5fa0"
+
+[[assets]]
+path = ".mds/source/descriptors/tools/typecheck/dotnet-build.toml"
+hash = "8024bf7eba5fbab5733d9d469b1c7cf47b8abf1b38b9eba9f6d5fa9e608a9468"
+[[assets.outputs]]
+path = "src/descriptors/tools/typecheck/dotnet-build.toml"
+hash = "8024bf7eba5fbab5733d9d469b1c7cf47b8abf1b38b9eba9f6d5fa9e608a9468"
+
+[[assets]]
+path = ".mds/source/descriptors/tools/typecheck/flutter-analyze.toml"
+hash = "4bac6c7235c45be41a3cd137722a0ff1c229724f796c2b3aa0dcf32eb482d381"
+[[assets.outputs]]
+path = "src/descriptors/tools/typecheck/flutter-analyze.toml"
+hash = "4bac6c7235c45be41a3cd137722a0ff1c229724f796c2b3aa0dcf32eb482d381"
+
+[[assets]]
+path = ".mds/source/descriptors/tools/typecheck/mypy.toml"
+hash = "ee26218f15973ab653152f393760214f06d5807ff392dfab13aab7da82f78817"
+[[assets.outputs]]
+path = "src/descriptors/tools/typecheck/mypy.toml"
+hash = "ee26218f15973ab653152f393760214f06d5807ff392dfab13aab7da82f78817"
+
+[[assets]]
+path = ".mds/source/descriptors/tools/typecheck/steep.toml"
+hash = "b817d9a515adfdb548aef5c225b1289cc593584f149b58e50699f9e68bf3de89"
+[[assets.outputs]]
+path = "src/descriptors/tools/typecheck/steep.toml"
+hash = "b817d9a515adfdb548aef5c225b1289cc593584f149b58e50699f9e68bf3de89"
+
+[[assets]]
+path = ".mds/source/descriptors/tools/typecheck/tsc.toml"
+hash = "fc9b217d9f23eb2b19c71e6093c7a627faa5b8422ddd12c0a95b0eb71419a30d"
+[[assets.outputs]]
+path = "src/descriptors/tools/typecheck/tsc.toml"
+hash = "fc9b217d9f23eb2b19c71e6093c7a627faa5b8422ddd12c0a95b0eb71419a30d"
+
+[[assets]]
+path = ".mds/source/descriptors/tools/typecheck/typeprof.toml"
+hash = "eb445316955534b0ae022c1c8431fef7967198050957d82fbd0d675bdf5490f5"
+[[assets.outputs]]
+path = "src/descriptors/tools/typecheck/typeprof.toml"
+hash = "eb445316955534b0ae022c1c8431fef7967198050957d82fbd0d675bdf5490f5"
+
+[[assets]]
+path = ".mds/source/descriptors/tools/typecheck/zig-build.toml"
+hash = "e5e05ef368b60f58e87a8055fc0b7c91b50248e82d00cce6ea32f53ad1d1bc64"
+[[assets.outputs]]
+path = "src/descriptors/tools/typecheck/zig-build.toml"
+hash = "e5e05ef368b60f58e87a8055fc0b7c91b50248e82d00cce6ea32f53ad1d1bc64"
+
+[[assets]]
+path = ".mds/source/init/templates/claude-code/command-build.md"
+hash = "aaf6b10b24c2526b2f18a27222f86f9127f009724ced689983f44f4ee19cf040"
+[[assets.outputs]]
+path = "src/init/templates/claude-code/command-build.md"
+hash = "aaf6b10b24c2526b2f18a27222f86f9127f009724ced689983f44f4ee19cf040"
+
+[[assets]]
+path = ".mds/source/init/templates/claude-code/command-lint.md"
+hash = "8e4d1388fc24e880a49d9dfd0628d9acb3e73580e94b676e7f79da0a245dd1e8"
+[[assets.outputs]]
+path = "src/init/templates/claude-code/command-lint.md"
+hash = "8e4d1388fc24e880a49d9dfd0628d9acb3e73580e94b676e7f79da0a245dd1e8"
+
+[[assets]]
+path = ".mds/source/init/templates/claude-code/manifest.toml"
+hash = "f044b7a1548817e4e06e9e0a0e1dddfa51eb77f0e821fe51168f4aca8873a356"
+[[assets.outputs]]
+path = "src/init/templates/claude-code/manifest.toml"
+hash = "f044b7a1548817e4e06e9e0a0e1dddfa51eb77f0e821fe51168f4aca8873a356"
+
+[[assets]]
+path = ".mds/source/init/templates/claude-code/rules.md"
+hash = "6c093fd3a364f20c4508901d086de21f2db667ef1e970157bd90e810adaccf73"
+[[assets.outputs]]
+path = "src/init/templates/claude-code/rules.md"
+hash = "6c093fd3a364f20c4508901d086de21f2db667ef1e970157bd90e810adaccf73"
+
+[[assets]]
+path = ".mds/source/init/templates/claude-code/skill.md"
+hash = "51e207c256d7e213cdcde16fccd22410e4c5f4d01a40b98aef2938ce2d9a8c68"
+[[assets.outputs]]
+path = "src/init/templates/claude-code/skill.md"
+hash = "51e207c256d7e213cdcde16fccd22410e4c5f4d01a40b98aef2938ce2d9a8c68"
+
+[[assets]]
+path = ".mds/source/init/templates/codex-cli/instructions.md"
+hash = "17c9cad0385b45026b076267593318a4c0dce872e3b8e7ec5aaa1ec9b74b3309"
+[[assets.outputs]]
+path = "src/init/templates/codex-cli/instructions.md"
+hash = "17c9cad0385b45026b076267593318a4c0dce872e3b8e7ec5aaa1ec9b74b3309"
+
+[[assets]]
+path = ".mds/source/init/templates/codex-cli/manifest.toml"
+hash = "85750b9f81b23a0cc12c2fcad656007f1087272040b9112c0c74e0a1fac37017"
+[[assets.outputs]]
+path = "src/init/templates/codex-cli/manifest.toml"
+hash = "85750b9f81b23a0cc12c2fcad656007f1087272040b9112c0c74e0a1fac37017"
+
+[[assets]]
+path = ".mds/source/init/templates/codex-cli/skill.md"
+hash = "d866f27b145733dc8ae9cddabd3e6ac408b4c184495f6f92db950c26f5014399"
+[[assets.outputs]]
+path = "src/init/templates/codex-cli/skill.md"
+hash = "d866f27b145733dc8ae9cddabd3e6ac408b4c184495f6f92db950c26f5014399"
+
+[[assets]]
+path = ".mds/source/init/templates/github-copilot-cli/command-build.prompt.md"
+hash = "7b69edc77f4d379cbbb77f41993100ec57933d536b28aedb49c211d4aca4d94b"
+[[assets.outputs]]
+path = "src/init/templates/github-copilot-cli/command-build.prompt.md"
+hash = "7b69edc77f4d379cbbb77f41993100ec57933d536b28aedb49c211d4aca4d94b"
+
+[[assets]]
+path = ".mds/source/init/templates/github-copilot-cli/command-check.prompt.md"
+hash = "496c257d4f449701a282541542a1b1d4e098c74343c6b9c0ba1dfa70abd8fb88"
+[[assets.outputs]]
+path = "src/init/templates/github-copilot-cli/command-check.prompt.md"
+hash = "496c257d4f449701a282541542a1b1d4e098c74343c6b9c0ba1dfa70abd8fb88"
+
+[[assets]]
+path = ".mds/source/init/templates/github-copilot-cli/instructions.md"
+hash = "00971b3a66b37e8a856f7eecbb94daf3ff8557ae05e75155ca5619bb1f44f3f8"
+[[assets.outputs]]
+path = "src/init/templates/github-copilot-cli/instructions.md"
+hash = "00971b3a66b37e8a856f7eecbb94daf3ff8557ae05e75155ca5619bb1f44f3f8"
+
+[[assets]]
+path = ".mds/source/init/templates/github-copilot-cli/manifest.toml"
+hash = "cbf5358a5070cc5b66d6e5d0b728bee47f056416c1c0c7d78fad06bcbf1ef597"
+[[assets.outputs]]
+path = "src/init/templates/github-copilot-cli/manifest.toml"
+hash = "cbf5358a5070cc5b66d6e5d0b728bee47f056416c1c0c7d78fad06bcbf1ef597"
+
+[[assets]]
+path = ".mds/source/init/templates/github-copilot-cli/skill.prompt.md"
+hash = "4746c4f59370fe994d525b3d843351acc40bc4fdaf6e1e90f79eee1227858051"
+[[assets.outputs]]
+path = "src/init/templates/github-copilot-cli/skill.prompt.md"
+hash = "4746c4f59370fe994d525b3d843351acc40bc4fdaf6e1e90f79eee1227858051"
+
+[[assets]]
+path = ".mds/source/init/templates/opencode/agent-build.md"
+hash = "9a83dbcbf82b9e22e829e24a31264486ce569102a7a444491b350c78446dc7b9"
+[[assets.outputs]]
+path = "src/init/templates/opencode/agent-build.md"
+hash = "9a83dbcbf82b9e22e829e24a31264486ce569102a7a444491b350c78446dc7b9"
+
+[[assets]]
+path = ".mds/source/init/templates/opencode/agent-check.md"
+hash = "6a42b47178cd56fc1d8b60f3df57aa51de0e96c03619145ab0913d963ca3d948"
+[[assets.outputs]]
+path = "src/init/templates/opencode/agent-check.md"
+hash = "6a42b47178cd56fc1d8b60f3df57aa51de0e96c03619145ab0913d963ca3d948"
+
+[[assets]]
+path = ".mds/source/init/templates/opencode/manifest.toml"
+hash = "367b632c7fabb6d3811b170ccf0b61a3f9dee3aef32f5221b437b60f2e66b3bd"
+[[assets.outputs]]
+path = "src/init/templates/opencode/manifest.toml"
+hash = "367b632c7fabb6d3811b170ccf0b61a3f9dee3aef32f5221b437b60f2e66b3bd"
+
+[[assets]]
+path = ".mds/source/init/templates/opencode/skill.md"
+hash = "ab08bc225b937c31cc2d31c39dff11ad8a076e3d3a955640a819c807e2a81389"
+[[assets.outputs]]
+path = "src/init/templates/opencode/skill.md"
+hash = "ab08bc225b937c31cc2d31c39dff11ad8a076e3d3a955640a819c807e2a81389"
+

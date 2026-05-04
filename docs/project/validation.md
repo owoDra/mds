@@ -19,9 +19,9 @@
 
 ## Markdown 正本構造
 
-- いつ行うか: `index.md`、`package.md`、implementation md、`mds.config.toml` の仕様や parser を変更するとき。
+- いつ行うか: package `index.md`、source `overview.md`、implementation md、`mds.config.toml` の仕様や parser を変更するとき。
 - 何で検証するか: Markdown fixture、構造検査、手元の代表サンプルを使う。
-- 期待する結果: 必須セクション、`Expose`、`Uses`、`Cases`、`Types` / `Source` / `Test` の分離が仕様どおり扱われ、`Types` / `Source` / `Test` の実コードが正本として処理される。
+- 期待する結果: 必須セクション、`Expose`、`Uses`、`Cases`、`Types` / `Source` / `Test` の分離が仕様どおり扱われ、`Types` / `Source` / `Test` の実コードが正本として処理される。default validator では code fence 整合、duplicate H2、Markdown link、import 混在、doc comment / docstring、top-level 実装の fence 分離も確認する。
 - 問題があった際にどうするか: 例外的な入力を暗黙許容せず、仕様化するか明確に reject する。
 
 ## 生成コード整合性
@@ -30,6 +30,13 @@
 - 何で検証するか: fixture から生成した `.ts`、`.py`、`.rs` と期待出力を比較する。
 - 期待する結果: `.md` 内のコードブロックから生成される Source、Types、Test が命名規約と出力先規則に従う。
 - 問題があった際にどうするか: 生成物を手修正せず、正本または generator を修正する。
+
+## Self-hosted Build 同期
+
+- いつ行うか: package 配下の `.mds/source/` / `.mds/test/`、`cargo run -p mds-cli -- build --verbose`、Rust package metadata、`.build/` 配置を変更するとき。
+- 何で検証するか: `cargo run -p mds-cli -- build --verbose` で package 内の生成 `src/` / `tests/` と `.build/rust/` mirror をまとめて更新し、そのまま `.build/rust/` で `cargo fmt --check` と `cargo test` を実行する。
+- 期待する結果: package 配下の `.mds/source/` / `.mds/test` の implementation md と package metadata から package 内の生成 `src/` / `tests/` が再生成され、同じ command で `.build/rust/` の Cargo workspace mirror も再構築される。生成物を手編集せずに build / test でき、descriptor の special file 規則も守られ、Rust の `build.rs.md` は package root の `build.rs` へ生成される。
+- 問題があった際にどうするか: `.build/` や生成 `src/` / `tests/` を直接修正せず、package 配下の `.mds/source/` / `.mds/test` または `mds build` の mirror 同期処理を修正する。
 
 ## Language Adapter 動作
 
@@ -42,14 +49,14 @@
 
 - いつ行うか: `mds.config.toml`、root / subproject 設定、label override、package 有効判定を変更するとき。
 - 何で検証するか: root 設定、subproject 設定、未設定時の built-in default を含む fixture を使う。
-- 期待する結果: built-in default、root、subproject の優先順位が守られ、見た目の語彙変更が意味変更にならない。
+- 期待する結果: built-in default、root、subproject の優先順位が守られ、`[check]` を含む設定の on/off が局所的に反映され、見た目の語彙変更が意味変更にならない。
 - 問題があった際にどうするか: 互換性のために曖昧な優先順位を増やさず、仕様または ADR で判断を確定する。
 
 ## Monorepo 境界
 
 - いつ行うか: package 検出、workspace traversal、subproject 出力、混在 package 対応を変更するとき。
 - 何で検証するか: mds 有効 package、mds 無効 package、複数言語 package が混在する fixture を使う。
-- 期待する結果: `enabled = true`、`package.md`、実体の package 定義による mds package 判定が安定し、対象外 package を壊さない。
+- 期待する結果: `enabled = true` と実体の package 定義による mds package 判定が安定し、対象外 package を壊さない。
 - 問題があった際にどうするか: 対象範囲の誤検出を優先的に修正し、未対応構成は明示的に未対応として扱う。
 
 ## 回帰防止
@@ -61,7 +68,7 @@
 
 ## CLI 振る舞い
 
-- いつ行うか: `mds build`、`mds check`、`mds lint`、`mds lint --fix`、`mds test`、`mds doctor`、`mds package sync`、`mds init` を変更するとき。
+- いつ行うか: `mds build`、`mds typecheck`、`mds lint`、`mds lint --fix`、`mds test`、`mds doctor`、`mds package sync`、`mds init` を変更するとき。
 - 何で検証するか: 正常系、入力不備、対象なし、部分失敗の CLI fixture または統合テストを使う。
 - 期待する結果: 終了コード、標準出力、標準エラー、生成物、破壊的でない失敗動作が予測可能である。
 - 問題があった際にどうするか: ユーザーが次に取るべき行動が分かるエラーへ修正し、曖昧な成功扱いを避ける。
@@ -89,16 +96,16 @@
 
 ## Doctor / Package Sync
 
-- いつ行うか: `mds doctor`、`mds package sync`、package manager hook、配布 wrapper を変更するとき。
-- 何で検証するか: toolchain 有無と最低 version の doctor fixture、npm / Cargo / uv metadata sync fixture、package sync hook fixture、npm / Python wrapper E2E smoke test を使う。
+- いつ行うか: `mds doctor`、`mds package sync`、package manager hook を変更するとき。
+- 何で検証するか: toolchain 有無と最低 version の doctor fixture、Cargo / package metadata sync fixture、package sync hook fixture を使う。
 - 期待する結果: doctor は有効 adapter 分の runtime / toolchain を検出し、environment 不足または最低 version 未満を exit code 4 にし、package sync は手書き領域を壊さず package metadata 由来の管理部分だけを更新し、hook は明示有効化時だけ既定 command `mds package sync --check` を使う。
 - 問題があった際にどうするか: 破壊的な自動更新を止め、`--check` や診断で利用者が次に取るべき対応を示す。
 
 ## 公開前品質
 
-- いつ行うか: npm、Cargo、Python / uvx、native binary の packaging、wrapper、release metadata、publish 前検証を変更するとき。
-- 何で検証するか: 全配布経路の artifact fixture、checksum、署名、SBOM、provenance / attestations、install smoke test、wrapper E2E を使う。
-- 期待する結果: 全 artifact に supply-chain 成果物が紐づき、install 後に `mds --version` 相当と代表 command が動き、欠落や互換性不一致は publish 前 gate を失敗させる。
+- いつ行うか: Cargo、native binary、VS Code extension の packaging、release metadata、publish 前検証を変更するとき。
+- 何で検証するか: 現行配布経路の artifact fixture、checksum、署名、SBOM、provenance / attestations、install smoke test を使う。
+- 期待する結果: 全 artifact に `.build/release/` 配下の supply-chain 成果物が紐づき、install 後に `mds --version` 相当と代表 command が動き、欠落や互換性不一致は publish 前 gate を失敗させる。
 - 問題があった際にどうするか: publish を止め、artifact、wrapper、release metadata、署名または provenance の不足を修正する。
 
 ## ドキュメント同期

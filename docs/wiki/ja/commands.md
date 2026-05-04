@@ -7,19 +7,19 @@
 mds コマンドは、対象パッケージを指定して実行できます。
 
 ```bash
-mds check --package path/to/package
+mds lint --package path/to/package
 ```
 
 `--package` を省略した場合は、現在のディレクトリ以下から mds が有効なパッケージを探します。
 
-## `mds check`
+## `mds lint`
 
-`mds check` は、Markdown の構造、表、設定、生成先を検査します。
+`mds lint` は、Markdown の構造、表、設定、生成先を検査し、その後に code block へ lint を実行します。
 
 主に次の内容を確認します。
 
 - 必須セクションが存在するか
-- `Expose` と `Uses` の表が正しいか
+- `Imports`、`Exports`、`Expose`、`Uses` の表が正しいか
 - 対象言語を判断できるか
 - 生成先がパッケージの外に出ていないか
 - 管理対象ではない既存ファイルを上書きしようとしていないか
@@ -27,7 +27,15 @@ mds check --package path/to/package
 実行例です。
 
 ```bash
-mds check --package path/to/package
+mds lint --package path/to/package
+```
+
+## `mds typecheck`
+
+`mds typecheck` は、対象言語ごとに設定した型検査を Markdown の code block へ実行します。
+
+```bash
+mds typecheck --package path/to/package
 ```
 
 ## `mds build`
@@ -52,7 +60,7 @@ mds build --package path/to/package --dry-run
 
 ## `mds lint`
 
-`mds lint` は、Markdown 内のコードブロックを対象に、言語ごとの検査ツールを実行します。
+`mds lint` は、Markdown 内のコードブロックを対象に、構造検査の後で言語ごとの検査ツールを実行します。
 
 ```bash
 mds lint --package path/to/package
@@ -177,7 +185,9 @@ mds init
 mds init --package path/to/package
 ```
 
-ウィザードでは、初期化モード、言語ツール、AI ターゲット、セットアップオプションを順に選択し、プラン確認後に実行します。
+ウィザードは英語表示で開始します。Label 言語を選択した後は、以降のタイトル、説明文、選択項目、コマンド入力の補足が選択した言語で表示されます。
+
+ウィザードでは、Label 言語、ツールチェーン、AI Kit 生成項目を順に選択します。ツールチェーンでは `package.json`、`pyproject.toml`、`Cargo.toml` を自動検知し、検知された metadata ごとに type check、lint check、test check command の候補を表示して入力を受け付けます。AI Kit では生成が必要かを選び、必要な場合は AI CLI と各 CLI の生成項目を選択します。
 
 従来のフラグ指定方式も引き続き利用できます。
 
@@ -202,16 +212,6 @@ mds new parser.rs.md --force
 生成されるテンプレートには、Purpose、Expose、Uses、Types、Source、Test の全セクションが含まれます。生成先は `src-md/` 配下です。
 
 既存ファイルがある場合は上書きしません。`--force` で強制上書きできます。
-
-## `mds release check`
-
-`mds release check` は、公開前の成果物検査を行います。
-
-```bash
-mds release check --manifest release.mds.toml
-```
-
-公開前検査では、成果物、チェックサム、署名、ソフトウェア部品表、来歴情報、インストール後の動作確認などを扱います。
 
 ## 終了コード
 

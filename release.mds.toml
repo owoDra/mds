@@ -3,44 +3,36 @@
 # This file defines the artifacts, checksums, and supply-chain metadata
 # required by `mds release check` before publishing.
 #
-# See: docs/project/specs/shared/SPEC-release-prepublish-quality.md
+# See: mds/core/.mds/source/release_quality.rs.md and docs/project/tech-stack.md
 #
 # Usage:
-#   mds release check --manifest release.mds.toml --verbose
+#   ./.github/script/release-check.sh --manifest release.mds.toml --verbose
 #
 # Prerequisites:
-#   cd crates && cargo build --release
-#   ./scripts/generate-release-artifacts.sh
+#   cargo run -p mds-cli -- build --verbose && ./.github/script/sync-self-hosted-rust.sh && cd .build/rust && cargo build --release
+#   ./.github/script/generate-release-artifacts.sh
 #
 # Cargo publish order (依存順):
 #   1. mds-core       (依存なし)
-#   2. mds-lang-rs    (依存なし)
-#   3. crates.io index 更新を待つ (30秒以上)
-#   4. cargo publish --dry-run -p mds-cli && cargo publish --dry-run -p mds-lsp
+#   2. crates.io index 更新を待つ (30秒以上)
+#   3. cargo publish --dry-run -p mds-cli && cargo publish --dry-run -p mds-lsp
 #      ↑ ここで mds-core が resolve できなければ中止
-#   5. mds-cli        (mds-core に依存)
-#   6. mds-lsp        (mds-core に依存)
+#   4. mds-cli        (mds-core に依存)
+#   5. mds-lsp        (mds-core に依存)
 #
 # Note: mds-cli and mds-lsp require mds-core to be published on crates.io
 # before their .crate files can be produced via `cargo package`.
 # The CI workflow handles this sequential ordering automatically,
 # including a dry-run verification step after mds-core is published.
 #
-# npm publish (--tag alpha):
-#   cd packages && npm publish --workspaces --tag alpha
-#
-# Python publish (--index testpypi):
-#   cd python/mds_cli && uv publish --index testpypi
-#   cd python/mds_lang_py && uv publish --index testpypi
-#
 # VS Code extension:
 #   cd editors/vscode && npx @vscode/vsce package
 #   npx @vscode/vsce publish --pre-release
 #
 # Full workflow:
-#   1. cargo build --release
-#   2. ./scripts/generate-release-artifacts.sh [--sign]
-#   3. mds release check --manifest release.mds.toml --verbose
+#   1. cargo run -p mds-cli -- build --verbose && ./.github/script/sync-self-hosted-rust.sh && cd .build/rust && cargo build --release
+#   2. ./.github/script/generate-release-artifacts.sh [--sign]
+#   3. ./.github/script/release-check.sh --manifest release.mds.toml --verbose
 #   4. Publish in order (CI handles automatically)
 
 [release]
@@ -52,127 +44,43 @@ channel = "alpha"
 [[artifacts]]
 name = "mds-core"
 channel = "alpha"
-path = "crates/target/package/mds-core-0.1.0-alpha.1.crate"
-checksum = ".release/checksums/mds-core-0.1.0-alpha.1.sha256"
-signature = ".release/signatures/mds-core-0.1.0-alpha.1.sig"
-sbom = ".release/sbom/mds-core-0.1.0-alpha.1.spdx.json"
-provenance = ".release/provenance/mds-core-0.1.0-alpha.1.jsonl"
-smoke = true
-
-[[artifacts]]
-name = "mds-lang-rs"
-channel = "alpha"
-path = "crates/target/package/mds-lang-rs-0.1.0-alpha.1.crate"
-checksum = ".release/checksums/mds-lang-rs-0.1.0-alpha.1.sha256"
-signature = ".release/signatures/mds-lang-rs-0.1.0-alpha.1.sig"
-sbom = ".release/sbom/mds-lang-rs-0.1.0-alpha.1.spdx.json"
-provenance = ".release/provenance/mds-lang-rs-0.1.0-alpha.1.jsonl"
+path = ".build/rust/target/package/mds-core-0.1.0-alpha.1.crate"
+checksum = ".build/release/checksums/mds-core-0.1.0-alpha.1.sha256"
+signature = ".build/release/signatures/mds-core-0.1.0-alpha.1.sig"
+sbom = ".build/release/sbom/mds-core-0.1.0-alpha.1.spdx.json"
+provenance = ".build/release/provenance/mds-core-0.1.0-alpha.1.jsonl"
 smoke = true
 
 [[artifacts]]
 name = "mds-cli"
 channel = "alpha"
-path = "crates/target/package/mds-cli-0.1.0-alpha.1.crate"
-checksum = ".release/checksums/mds-cli-0.1.0-alpha.1.sha256"
-signature = ".release/signatures/mds-cli-0.1.0-alpha.1.sig"
-sbom = ".release/sbom/mds-cli-0.1.0-alpha.1.spdx.json"
-provenance = ".release/provenance/mds-cli-0.1.0-alpha.1.jsonl"
+path = ".build/rust/target/package/mds-cli-0.1.0-alpha.1.crate"
+checksum = ".build/release/checksums/mds-cli-0.1.0-alpha.1.sha256"
+signature = ".build/release/signatures/mds-cli-0.1.0-alpha.1.sig"
+sbom = ".build/release/sbom/mds-cli-0.1.0-alpha.1.spdx.json"
+provenance = ".build/release/provenance/mds-cli-0.1.0-alpha.1.jsonl"
 smoke = true
 requires_published = "mds-core"
 
 [[artifacts]]
 name = "mds-lsp"
 channel = "alpha"
-path = "crates/target/package/mds-lsp-0.1.0-alpha.1.crate"
-checksum = ".release/checksums/mds-lsp-0.1.0-alpha.1.sha256"
-signature = ".release/signatures/mds-lsp-0.1.0-alpha.1.sig"
-sbom = ".release/sbom/mds-lsp-0.1.0-alpha.1.spdx.json"
-provenance = ".release/provenance/mds-lsp-0.1.0-alpha.1.jsonl"
+path = ".build/rust/target/package/mds-lsp-0.1.0-alpha.1.crate"
+checksum = ".build/release/checksums/mds-lsp-0.1.0-alpha.1.sha256"
+signature = ".build/release/signatures/mds-lsp-0.1.0-alpha.1.sig"
+sbom = ".build/release/sbom/mds-lsp-0.1.0-alpha.1.spdx.json"
+provenance = ".build/release/provenance/mds-lsp-0.1.0-alpha.1.jsonl"
 smoke = true
 requires_published = "mds-core"
-
-# --- npm packages ---
-
-[[artifacts]]
-name = "@owox-mds/cli"
-channel = "alpha"
-path = "packages/cli/"
-checksum = ".release/checksums/mds-cli-npm-0.1.0-alpha.1.sha256"
-signature = ".release/signatures/mds-cli-npm-0.1.0-alpha.1.sig"
-sbom = ".release/sbom/mds-cli-npm-0.1.0-alpha.1.spdx.json"
-provenance = ".release/provenance/mds-cli-npm-0.1.0-alpha.1.jsonl"
-smoke = true
-
-[[artifacts]]
-name = "@owox-mds/core"
-channel = "alpha"
-path = "packages/core/"
-checksum = ".release/checksums/mds-core-npm-0.1.0-alpha.1.sha256"
-signature = ".release/signatures/mds-core-npm-0.1.0-alpha.1.sig"
-sbom = ".release/sbom/mds-core-npm-0.1.0-alpha.1.spdx.json"
-provenance = ".release/provenance/mds-core-npm-0.1.0-alpha.1.jsonl"
-smoke = true
-
-[[artifacts]]
-name = "@owox-mds/lang-ts"
-channel = "alpha"
-path = "packages/lang-ts/"
-checksum = ".release/checksums/mds-lang-ts-npm-0.1.0-alpha.1.sha256"
-signature = ".release/signatures/mds-lang-ts-npm-0.1.0-alpha.1.sig"
-sbom = ".release/sbom/mds-lang-ts-npm-0.1.0-alpha.1.spdx.json"
-provenance = ".release/provenance/mds-lang-ts-npm-0.1.0-alpha.1.jsonl"
-smoke = true
-
-[[artifacts]]
-name = "@owox-mds/lang-py"
-channel = "alpha"
-path = "packages/lang-py/"
-checksum = ".release/checksums/mds-lang-py-npm-0.1.0-alpha.1.sha256"
-signature = ".release/signatures/mds-lang-py-npm-0.1.0-alpha.1.sig"
-sbom = ".release/sbom/mds-lang-py-npm-0.1.0-alpha.1.spdx.json"
-provenance = ".release/provenance/mds-lang-py-npm-0.1.0-alpha.1.jsonl"
-smoke = true
-
-[[artifacts]]
-name = "@owox-mds/lang-rs"
-channel = "alpha"
-path = "packages/lang-rs/"
-checksum = ".release/checksums/mds-lang-rs-npm-0.1.0-alpha.1.sha256"
-signature = ".release/signatures/mds-lang-rs-npm-0.1.0-alpha.1.sig"
-sbom = ".release/sbom/mds-lang-rs-npm-0.1.0-alpha.1.spdx.json"
-provenance = ".release/provenance/mds-lang-rs-npm-0.1.0-alpha.1.jsonl"
-smoke = true
-
-# --- Python packages ---
-
-[[artifacts]]
-name = "mds-cli (Python)"
-channel = "alpha"
-path = "python/mds_cli/"
-checksum = ".release/checksums/mds-cli-py-0.1.0a1.sha256"
-signature = ".release/signatures/mds-cli-py-0.1.0a1.sig"
-sbom = ".release/sbom/mds-cli-py-0.1.0a1.spdx.json"
-provenance = ".release/provenance/mds-cli-py-0.1.0a1.jsonl"
-smoke = true
-
-[[artifacts]]
-name = "mds-lang-py"
-channel = "alpha"
-path = "python/mds_lang_py/"
-checksum = ".release/checksums/mds-lang-py-0.1.0a1.sha256"
-signature = ".release/signatures/mds-lang-py-0.1.0a1.sig"
-sbom = ".release/sbom/mds-lang-py-0.1.0a1.spdx.json"
-provenance = ".release/provenance/mds-lang-py-0.1.0a1.jsonl"
-smoke = true
 
 # --- VS Code extension ---
 
 [[artifacts]]
 name = "owo-x-project.mds"
 channel = "alpha"
-path = "editors/vscode/"
-checksum = ".release/checksums/mds-vscode-0.1.0.sha256"
-signature = ".release/signatures/mds-vscode-0.1.0.sig"
-sbom = ".release/sbom/mds-vscode-0.1.0.spdx.json"
-provenance = ".release/provenance/mds-vscode-0.1.0.jsonl"
+path = ".build/node/vscode/"
+checksum = ".build/release/checksums/mds-vscode-0.1.0.sha256"
+signature = ".build/release/signatures/mds-vscode-0.1.0.sig"
+sbom = ".build/release/sbom/mds-vscode-0.1.0.spdx.json"
+provenance = ".build/release/provenance/mds-vscode-0.1.0.jsonl"
 smoke = true

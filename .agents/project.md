@@ -13,18 +13,10 @@ Rust, TypeScript, Python
 monorepo
 
 ## Subprojects
-- `crates/mds-core`: Rust core library
-- `crates/mds-cli`: native CLI
-- `crates/mds-lang-rs`: Rust language adapter
-- `crates/mds-lsp`: Language Server Protocol implementation
-- `packages/core`: npm core package
-- `packages/cli`: npm CLI package
-- `packages/lang-ts`: TypeScript language adapter
-- `packages/lang-py`: Python language adapter for npm distribution
-- `packages/lang-rs`: Rust language adapter for npm distribution
-- `python/mds_cli`: Python package distribution
-- `python/mds_lang_py`: Python language adapter distribution
-- `editors/vscode`: VS Code extension
+- `mds-core`: Rust core library package; Markdown source lives in `mds/core/src-md`
+- `mds-cli`: native CLI package; Markdown source lives in `mds/cli/src-md`
+- `mds-lsp`: Language Server Protocol package; Markdown source lives in `mds/lsp/src-md`
+- `editors/vscode`: VS Code extension package; Markdown source context lives in `editors/vscode/src-md`
 
 ## Teams
 - Rust implementation team

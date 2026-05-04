@@ -9,19 +9,19 @@ This page explains the purpose and usage of mds commands.
 mds commands can be run by specifying the target package.
 
 ```bash
-mds check --package path/to/package
+mds lint --package path/to/package
 ```
 
 If `--package` is omitted, mds searches for enabled packages under the current directory.
 
-## `mds check`
+## `mds lint`
 
-`mds check` inspects Markdown structure, tables, configuration, and generation targets.
+`mds lint` inspects Markdown structure, tables, configuration, generation targets, and then runs configured linters on Markdown code blocks.
 
 It mainly verifies the following.
 
 - Whether required sections exist
-- Whether `Expose` and `Uses` tables are correct
+- Whether `Imports`, `Exports`, `Expose`, and `Uses` tables are correct
 - Whether the target language can be determined
 - Whether generation targets escape outside the package
 - Whether it would overwrite existing files that are not managed
@@ -29,7 +29,15 @@ It mainly verifies the following.
 Example execution.
 
 ```bash
-mds check --package path/to/package
+mds lint --package path/to/package
+```
+
+## `mds typecheck`
+
+`mds typecheck` runs the configured type checker for each language against Markdown code blocks.
+
+```bash
+mds typecheck --package path/to/package
 ```
 
 ## `mds build`
@@ -54,7 +62,7 @@ When generating for the first time or after changing generation rules, use this 
 
 ## `mds lint`
 
-`mds lint` runs language-specific checking tools on code blocks within Markdown.
+`mds lint` runs language-specific checking tools on code blocks within Markdown after structural validation.
 
 ```bash
 mds lint --package path/to/package
@@ -179,7 +187,9 @@ mds init
 mds init --package path/to/package
 ```
 
-The wizard guides you through selecting initialization mode, language tools, AI targets, and setup options, then executes after plan confirmation.
+The wizard starts in English. After choosing the label language, subsequent titles, descriptions, options, and command-input help are displayed in the selected language.
+
+The wizard guides you through label language, toolchain commands, and AI Kit generation items. For toolchains, it detects `package.json`, `pyproject.toml`, and `Cargo.toml`, then asks for type check, lint check, and test check commands for each detected metadata file. For AI Kit generation, it asks whether AI Kit files are needed, which AI CLIs to initialize, and which items to generate for each CLI.
 
 The traditional flag-based approach remains available.
 
@@ -204,16 +214,6 @@ The language is determined from the file name suffix.
 The generated template includes all sections: Purpose, Expose, Uses, Types, Source, and Test. The output destination is under `src-md/`.
 
 Existing files are not overwritten. Use `--force` to force overwrite.
-
-## `mds release check`
-
-`mds release check` performs pre-publication artifact inspection.
-
-```bash
-mds release check --manifest release.mds.toml
-```
-
-Pre-publication inspection covers artifacts, checksums, signatures, software bill of materials, provenance information, and post-installation verification.
 
 ## Exit Codes
 

@@ -4,7 +4,7 @@
 
 This page explains the environment setup, build, test, and debug procedures for participating in mds development.
 
-If you are using mds to operate a project, refer to [Getting Started](getting-started.md). Installing via a package manager is the easiest (`cargo install mds-cli` / `npm install -g @owox-mds/cli` / `pip install mds-cli`).
+If you are using mds to operate a project, refer to [Getting Started](getting-started.md). The easiest installation is via `curl -fsSL https://raw.githubusercontent.com/owo-x-project/owox-mds/main/install.sh | sh`.
 
 The following are procedures for cloning the repository and developing.
 
@@ -13,12 +13,7 @@ The following are procedures for cloning the repository and developing.
 | Tool | Version | Purpose |
 | --- | --- | --- |
 | Rust | 1.86 or later | Building and testing core processing |
-| Node.js | 24 or later | Building and testing npm packages |
-| Python | 3.13 or later | Building and testing Python packages |
-| uv | Latest | Python dependency management |
 | Git | Latest | Version control |
-
-You do not need to set up all language environments at once. You can start with Rust only.
 
 ## Environment Setup
 
@@ -31,64 +26,32 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 # Add quality tools
 rustup component add rustfmt clippy
 
-# Verify build
-cd crates
-cargo build
-```
+# Install mds for development
+cargo run -p mds-cli -- build --verbose
+./.github/script/sync-self-hosted-rust.sh
+cargo install --path .build/rust/mds-cli
 
-### Node.js environment (when working with TypeScript)
-
-```bash
-# Install Node.js 24+ (example using nvm)
-nvm install 24
-nvm use 24
-
-# Install npm package dependencies
-cd packages
-npm install
-```
-
-### Python environment (when working with Python)
-
-```bash
-# Install uv
-python3 -m pip install --user uv
-
-# Install Python package dependencies
-cd python/mds_cli
-uv sync
+# Verify
+mds --version
 ```
 
 ## Repository Structure
 
 ```
 mds/
-├── crates/                  # Rust workspace
-│   ├── mds-core/            # Core library (parsing, validation, generation, init)
-│   │   ├── src/
-│   │   │   ├── adapter/     # Language adapters
-│   │   │   ├── config/      # mds.config.toml parsing
-│   │   │   ├── diagnostics/ # Diagnostic messages
-│   │   │   ├── generation/  # Code generation
-│   │   │   ├── init/        # mds init implementation
-│   │   │   ├── markdown/    # Markdown parsing
-│   │   │   ├── model/       # Data models
-│   │   │   └── ...
-│   │   └── tests/           # Integration tests
-│   ├── mds-cli/             # CLI entry point
-│   │   └── src/
-│   │       ├── main.rs      # Main function
-│   │       ├── args/        # Argument parsing
-│   │       └── wizard.rs    # Interactive init wizard
-│   └── mds-lang-rs/         # Rust language adapter
-├── packages/                # npm package distribution
-├── python/                  # Python package distribution
+├── src-md/                  # Markdown source of truth for mds itself
+│   ├── index.md             # Source root design
+│   ├── mds/core/            # Core library source of truth
+│   ├── mds/cli/             # CLI source of truth
+│   └── mds/lsp/             # LSP source of truth
+├── .build/                  # Generated artifacts (not tracked)
+│   └── rust/                # Generated Cargo workspace
+├── editors/vscode/          # VS Code extension
 ├── docs/
 │   ├── project/             # Design source of truth (requirements, specs, ADRs)
 │   └── wiki/ja/             # User-facing documentation
 ├── examples/                # Sample projects
-├── result/                  # Output for operation verification
-└── Makefile                 # Development task shortcuts
+└── .vscode/tasks.json       # Development task definitions
 ```
 
 ## Build
@@ -96,7 +59,9 @@ mds/
 ### Rust build
 
 ```bash
-cd crates
+cargo run -p mds-cli -- build --verbose
+./.github/script/sync-self-hosted-rust.sh
+cd .build/rust
 cargo build                # Debug build
 cargo build --release      # Release build
 ```
@@ -113,7 +78,9 @@ cargo build -p mds-cli     # CLI only
 ### Run all tests
 
 ```bash
-cd crates
+cargo run -p mds-cli -- build --verbose
+./.github/script/sync-self-hosted-rust.sh
+cd .build/rust
 cargo test
 ```
 
@@ -128,7 +95,7 @@ cargo test -p mds-cli -- args                    # CLI argument tests only
 ### Writing tests
 
 - Unit tests are placed in `#[cfg(test)]` within the target module
-- Integration tests are placed in `crates/*/tests/`
+- Integration tests are placed in `src-md/*/tests/*.rs.md` and synchronized to `.build/rust/*/tests/`
 - E2E tests verify through CLI binary execution
 
 ## Quality Checks
@@ -136,7 +103,9 @@ cargo test -p mds-cli -- args                    # CLI argument tests only
 ### Formatting
 
 ```bash
-cd crates
+cargo run -p mds-cli -- build --verbose
+./.github/script/sync-self-hosted-rust.sh
+cd .build/rust
 cargo fmt              # Auto-format
 cargo fmt --check      # Check diff only
 ```
@@ -148,36 +117,40 @@ cargo clippy           # lint
 cargo clippy -- -D warnings   # Treat warnings as errors
 ```
 
-### Batch execution (Makefile)
+### Batch execution
 
 ```bash
-make check             # Run fmt --check + clippy + test in batch
-make fmt               # Auto-format
-make lint              # clippy only
-make test              # Tests only
+cargo run -p mds-cli -- build --verbose
+./.github/script/sync-self-hosted-rust.sh
+cd .build/rust
+cargo fmt --check && cargo clippy -- -D warnings && cargo test
 ```
+
+In VSCode, you can run the "mds: Check All" task for the same checks.
 
 ## Running mds Commands for Verification
 
 How to run commands under development with sample packages.
 
 ```bash
-cd crates
+cargo run -p mds-cli -- build --verbose
+./.github/script/sync-self-hosted-rust.sh
+cd .build/rust
 
 # Structure inspection
-cargo run -p mds-cli -- check --package ../examples/minimal-ts
+cargo run -p mds-cli -- check --package ../../examples/minimal-ts
 
 # Generation preview
-cargo run -p mds-cli -- build --package ../examples/minimal-ts --dry-run
+cargo run -p mds-cli -- build --package ../../examples/minimal-ts --dry-run
 
 # Execute generation
-cargo run -p mds-cli -- build --package ../examples/minimal-ts
+cargo run -p mds-cli -- build --package ../../examples/minimal-ts
 
 # Interactive initialization
 cargo run -p mds-cli -- init --package /tmp/test-project
 
 # Environment diagnosis
-cargo run -p mds-cli -- doctor --package ../examples/minimal-ts
+cargo run -p mds-cli -- doctor --package ../../examples/minimal-ts
 ```
 
 ## Debugging
@@ -187,7 +160,7 @@ cargo run -p mds-cli -- doctor --package ../examples/minimal-ts
 Use the `--verbose` flag for detailed output.
 
 ```bash
-cargo run -p mds-cli -- check --package ../examples/minimal-ts --verbose
+cargo run -p mds-cli -- check --package ../../examples/minimal-ts --verbose
 ```
 
 ### Using a debugger
@@ -203,12 +176,12 @@ Example `launch.json`:
     {
       "type": "lldb",
       "request": "launch",
-      "name": "Debug mds check",
+      "name": "Debug mds lint",
       "cargo": {
         "args": ["build", "-p", "mds-cli"],
         "filter": { "kind": "bin", "name": "mds" }
       },
-      "args": ["check", "--package", "../examples/minimal-ts", "--verbose"]
+      "args": ["check", "--package", "../../examples/minimal-ts", "--verbose"]
     }
   ]
 }
@@ -224,12 +197,14 @@ cargo test -p mds-core -- --nocapture test_name
 
 ## Checklist for Code Changes
 
-1. Format with `cargo fmt`
-2. Confirm no warnings with `cargo clippy`
-3. Confirm all tests pass with `cargo test`
-4. Add tests for new features
-5. Update documentation if needed
-6. Verify with sample projects
+1. Run `cargo run -p mds-cli -- build --verbose` to update package-local generated `src/` / `tests/`
+2. Run `./.github/script/sync-self-hosted-rust.sh` to rebuild `.build/rust/` for this repository
+3. Format with `cargo fmt` in `.build/rust`
+4. Confirm no warnings with `cargo clippy` in `.build/rust`
+5. Confirm all tests pass with `cargo test` in `.build/rust`
+6. Add tests for new features
+7. Update documentation if needed
+8. Verify with sample projects
 
 ## Related Documentation
 

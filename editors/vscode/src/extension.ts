@@ -25,10 +25,9 @@ interface LanguageInfo {
 
 /**
  * Registry of known languages.
- * Add entries here to support new languages automatically.
+ * Core languages are always available; additional languages are added dynamically.
  */
 const LANGUAGE_REGISTRY: Record<string, LanguageInfo> = {
-  // Core languages (supported by mds-core Lang enum)
   ts: {
     ext: '.ts.md',
     languageId: 'typescript',
@@ -47,21 +46,121 @@ const LANGUAGE_REGISTRY: Record<string, LanguageInfo> = {
     labels: ['rust', 'rs'],
     virtualExt: '.rs',
   },
-  // Add new languages here when mds-core gains support.
-  // Example:
-  // go: {
-  //   ext: '.go.md',
-  //   languageId: 'go',
-  //   labels: ['go', 'golang'],
-  //   virtualExt: '.go',
-  // },
+  go: {
+    ext: '.go.md',
+    languageId: 'go',
+    labels: ['go', 'golang'],
+    virtualExt: '.go',
+  },
+  java: {
+    ext: '.java.md',
+    languageId: 'java',
+    labels: ['java'],
+    virtualExt: '.java',
+  },
+  kt: {
+    ext: '.kt.md',
+    languageId: 'kotlin',
+    labels: ['kotlin', 'kt'],
+    virtualExt: '.kt',
+  },
+  swift: {
+    ext: '.swift.md',
+    languageId: 'swift',
+    labels: ['swift'],
+    virtualExt: '.swift',
+  },
+  rb: {
+    ext: '.rb.md',
+    languageId: 'ruby',
+    labels: ['ruby', 'rb'],
+    virtualExt: '.rb',
+  },
+  cs: {
+    ext: '.cs.md',
+    languageId: 'csharp',
+    labels: ['csharp', 'cs', 'c#'],
+    virtualExt: '.cs',
+  },
+  cpp: {
+    ext: '.cpp.md',
+    languageId: 'cpp',
+    labels: ['cpp', 'c++'],
+    virtualExt: '.cpp',
+  },
+  c: {
+    ext: '.c.md',
+    languageId: 'c',
+    labels: ['c'],
+    virtualExt: '.c',
+  },
+  zig: {
+    ext: '.zig.md',
+    languageId: 'zig',
+    labels: ['zig'],
+    virtualExt: '.zig',
+  },
+  lua: {
+    ext: '.lua.md',
+    languageId: 'lua',
+    labels: ['lua'],
+    virtualExt: '.lua',
+  },
+  sh: {
+    ext: '.sh.md',
+    languageId: 'shellscript',
+    labels: ['bash', 'sh', 'shell'],
+    virtualExt: '.sh',
+  },
+  php: {
+    ext: '.php.md',
+    languageId: 'php',
+    labels: ['php'],
+    virtualExt: '.php',
+  },
+  dart: {
+    ext: '.dart.md',
+    languageId: 'dart',
+    labels: ['dart'],
+    virtualExt: '.dart',
+  },
+  elixir: {
+    ext: '.ex.md',
+    languageId: 'elixir',
+    labels: ['elixir', 'ex'],
+    virtualExt: '.ex',
+  },
+  scala: {
+    ext: '.scala.md',
+    languageId: 'scala',
+    labels: ['scala'],
+    virtualExt: '.scala',
+  },
 };
+
+/** Dynamically create a LanguageInfo for any unknown extension */
+function createDynamicLanguageInfo(key: string): LanguageInfo {
+  return {
+    ext: `.${key}.md`,
+    languageId: key,
+    labels: [key],
+    virtualExt: `.${key}`,
+  };
+}
 
 /** Alias map for normalizing language keys */
 const LANG_ALIASES: Record<string, string> = {
   typescript: 'ts',
   python: 'py',
   rust: 'rs',
+  golang: 'go',
+  kotlin: 'kt',
+  csharp: 'cs',
+  'c++': 'cpp',
+  ruby: 'rb',
+  bash: 'sh',
+  shell: 'sh',
+  elixir: 'elixir',
 };
 
 function normalizeLangKey(key: string): string {
@@ -127,9 +226,31 @@ async function discoverLanguages(
     // Workspace search not available
   }
 
+  // From actual .{ext}.md files in mds authoring roots
+  try {
+    for (const pattern of [
+      '**/src-md/**/*.md',
+      '**/.mds/source/**/*.md',
+      '**/.mds/test/**/*.md',
+    ]) {
+      const mdFiles = await vscode.workspace.findFiles(
+        pattern,
+        '{**/node_modules/**,**/target/**}'
+      );
+      for (const uri of mdFiles) {
+        const fileName = uri.path.split('/').pop() || '';
+        const m = fileName.match(/\.(\w+)\.md$/);
+        if (m) {
+          langKeys.add(normalizeLangKey(m[1]));
+        }
+      }
+    }
+  } catch {
+    // Workspace search not available
+  }
+
   return [...langKeys]
-    .map((k) => LANGUAGE_REGISTRY[k])
-    .filter((info): info is LanguageInfo => !!info);
+    .map((k) => LANGUAGE_REGISTRY[k] || createDynamicLanguageInfo(k));
 }
 
 // ============================================================
@@ -437,6 +558,30 @@ function registerVirtualDocumentProvider(
 }
 
 // ============================================================
+// mds File Detection
+// ============================================================
+
+/**
+ * Determine if a file URI is an mds-managed file.
+ * True if: in an mds authoring root, or matches a known .{ext}.md pattern.
+ */
+function isMdsFile(uri: vscode.Uri, extPattern: string): boolean {
+  const path = uri.fsPath;
+  // Files in legacy src-md/ or fixed .mds/source/.mds/test directories
+  if (/[/\\](?:src-md|\.mds[/\\](?:source|test))[/\\]/.test(path)) {
+    return true;
+  }
+  // Files matching known mds extension patterns (e.g., .ts.md, .go.md)
+  if (extPattern) {
+    const re = new RegExp(`(?:${extPattern})$`);
+    if (re.test(path)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+// ============================================================
 // Activation
 // ============================================================
 
@@ -446,10 +591,10 @@ export async function activate(context: vscode.ExtensionContext) {
     return;
   }
 
-  const serverPath = resolveServerPath(config);
+  const serverPath = resolveServerPath(config, context.extensionPath);
   if (!serverPath) {
     vscode.window.showWarningMessage(
-      'mds-lsp binary not found. Install it or set mds.lsp.path in settings.'
+      'mds-lsp binary not found. Install with: cargo install --git https://github.com/owo-x-project/owox-mds mds-lsp, or set mds.lsp.path in settings.'
     );
     return;
   }
@@ -480,6 +625,9 @@ export async function activate(context: vscode.ExtensionContext) {
       { scheme: 'file', language: 'mds-markdown' },
       { scheme: 'file', pattern: '**/mds.config.toml' },
       { scheme: 'file', pattern: '**/package.md' },
+      { scheme: 'file', pattern: '**/src-md/**/*.md' },
+      { scheme: 'file', pattern: '**/.mds/source/**/*.md' },
+      { scheme: 'file', pattern: '**/.mds/test/**/*.md' },
     ];
   for (const lang of activeLanguages) {
     documentSelector.push({ scheme: 'file', pattern: `**/*${lang.ext}` });
@@ -489,6 +637,9 @@ export async function activate(context: vscode.ExtensionContext) {
   const fileEvents = [
     vscode.workspace.createFileSystemWatcher('**/mds.config.toml'),
     vscode.workspace.createFileSystemWatcher('**/package.md'),
+    vscode.workspace.createFileSystemWatcher('**/src-md/**/*.md'),
+    vscode.workspace.createFileSystemWatcher('**/.mds/source/**/*.md'),
+    vscode.workspace.createFileSystemWatcher('**/.mds/test/**/*.md'),
   ];
   for (const lang of activeLanguages) {
     fileEvents.push(
@@ -554,6 +705,23 @@ export async function activate(context: vscode.ExtensionContext) {
     })
   );
 
+  // Auto-associate .md files in mds authoring roots with mds-markdown language
+  const mdsExtPattern = activeLanguages.map((l) => l.ext).join('|').replace(/\./g, '\\.');
+  context.subscriptions.push(
+    vscode.workspace.onDidOpenTextDocument((doc) => {
+      if (doc.languageId === 'markdown' && isMdsFile(doc.uri, mdsExtPattern)) {
+        vscode.languages.setTextDocumentLanguage(doc, 'mds-markdown');
+      }
+    })
+  );
+
+  // Set language for already-open documents
+  for (const doc of vscode.workspace.textDocuments) {
+    if (doc.languageId === 'markdown' && isMdsFile(doc.uri, mdsExtPattern)) {
+      vscode.languages.setTextDocumentLanguage(doc, 'mds-markdown');
+    }
+  }
+
   await client.start();
 }
 
@@ -564,15 +732,32 @@ export async function deactivate(): Promise<void> {
 }
 
 function resolveServerPath(
-  config: vscode.WorkspaceConfiguration
+  config: vscode.WorkspaceConfiguration,
+  extensionPath: string
 ): string | undefined {
   const configPath = config.get<string>('path', '');
   if (configPath) {
     return configPath;
   }
 
-  // Try to find mds-lsp in PATH
   const { execFileSync } = require('child_process');
+  const path = require('path');
+  const fs = require('fs');
+
+  const platformKey = bundledPlatformKey();
+  if (platformKey) {
+    const bundled = path.join(
+      extensionPath,
+      'server',
+      platformKey,
+      process.platform === 'win32' ? 'mds-lsp.exe' : 'mds-lsp'
+    );
+    if (fs.existsSync(bundled)) {
+      return bundled;
+    }
+  }
+
+  // Try to find mds-lsp in PATH
   try {
     const cmd = process.platform === 'win32' ? 'where' : 'which';
     const result = execFileSync(cmd, ['mds-lsp'], {
@@ -580,12 +765,55 @@ function resolveServerPath(
       timeout: 5000,
     }).trim();
     if (result) {
-      // Return the first line (which/where may return multiple)
       return result.split('\n')[0].trim();
     }
   } catch {
     // Not found in PATH
   }
 
+  // Try to find mds-lsp next to the mds binary
+  try {
+    const cmd = process.platform === 'win32' ? 'where' : 'which';
+    const mdsPath = execFileSync(cmd, ['mds'], {
+      encoding: 'utf-8',
+      timeout: 5000,
+    }).trim().split('\n')[0].trim();
+    if (mdsPath) {
+      const lspPath = path.join(path.dirname(mdsPath), 'mds-lsp');
+      const lspPathExt = process.platform === 'win32' ? lspPath + '.exe' : lspPath;
+      if (fs.existsSync(lspPathExt)) {
+        return lspPathExt;
+      }
+    }
+  } catch {
+    // mds not found in PATH either
+  }
+
+  // Try common cargo install location
+  const home = process.env.HOME || process.env.USERPROFILE || '';
+  if (home) {
+    const cargoLsp = path.join(home, '.cargo', 'bin', 'mds-lsp');
+    const cargoLspExt = process.platform === 'win32' ? cargoLsp + '.exe' : cargoLsp;
+    if (fs.existsSync(cargoLspExt)) {
+      return cargoLspExt;
+    }
+  }
+
+  return undefined;
+}
+
+function bundledPlatformKey(): string | undefined {
+  if (process.platform === 'linux' && process.arch === 'x64') {
+    return 'linux-x64';
+  }
+  if (process.platform === 'darwin' && process.arch === 'x64') {
+    return 'darwin-x64';
+  }
+  if (process.platform === 'darwin' && process.arch === 'arm64') {
+    return 'darwin-arm64';
+  }
+  if (process.platform === 'win32' && process.arch === 'x64') {
+    return 'win32-x64';
+  }
   return undefined;
 }

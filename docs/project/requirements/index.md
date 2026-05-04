@@ -29,11 +29,11 @@
 ## 参照
 
 - `REQ-core-markdown-source-of-truth.md`: Markdown を正本、生成コードを派生物として扱う要求
-- `REQ-platform-multi-ecosystem-distribution.md`: npm / Cargo / uv を横断する配布要求
+- `REQ-platform-multi-ecosystem-distribution.md`: Cargo / native binary と VS Code 拡張を中心にした配布要求
 - `REQ-adapter-required-language-adapters.md`: TypeScript / Python / Rust の必須 language adapter 要求
 - `REQ-config-toml-fixed-config.md`: `mds.config.toml` 固定と設定継承の要求
 - `REQ-monorepo-package-boundary.md`: monorepo での package 単位の mds 対象判定要求
-- `REQ-doc-model-markdown-document-types.md`: `index.md`、`package.md`、implementation md の文書種別要求
+- `REQ-doc-model-markdown-document-types.md`: `overview.md`、implementation md の文書種別要求
 - `REQ-implementation-one-md-one-feature.md`: 1 implementation md が 1 機能を扱う要求
 - `REQ-metadata-expose-uses.md`: `Expose` と `Uses` による公開面と依存の明示要求
 - `REQ-generation-code-output-rules.md`: Source / Types / Test の生成コード出力要求

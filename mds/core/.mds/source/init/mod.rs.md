@@ -1,0 +1,820 @@
+# src/init/mod.rs
+
+## Purpose
+
+Migrated implementation source for `src/init/mod.rs`.
+
+## Contract
+
+- Preserve the behavior of the pre-migration Rust source.
+- This file is synchronized into `.build/rust/mds/core/src/init/mod.rs`.
+
+## Imports
+
+| From | Target | Symbols | Via | Summary | Reference |
+| --- | --- | --- | --- | --- | --- |
+| builtin | std | fs | - | - | - |
+| builtin | std::path | Path | - | - | - |
+| builtin | std::path | PathBuf | - | - | - |
+| builtin | std::process | Command as ProcessCommand | - | - | - |
+| internal | crate | descriptor | - | - | [../descriptor.rs.md#source](../descriptor.rs.md#source) |
+| internal | crate::diagnostics | Diagnostic | - | - | [../diagnostics.rs.md#source](../diagnostics.rs.md#source) |
+| internal | crate::diagnostics | RunState | - | - | [../diagnostics.rs.md#source](../diagnostics.rs.md#source) |
+| internal | crate::fs_utils | is_mds_managed_file | - | - | [../fs_utils.rs.md#source](../fs_utils.rs.md#source) |
+| external | crate::model | AgentKitCategory | - | - | - |
+| external | crate::model | AiTarget | - | - | - |
+| external | crate::model | InitOptions | - | - | - |
+| external | crate::model | InitQualityCommands | - | - | - |
+| external | crate::model | LabelPreset | - | - | - |
+| external | crate::model | Lang | - | - | - |
+| external | crate::model | PythonTool | - | - | - |
+| external | crate::model | RustTool | - | - | - |
+| external | crate::model | TypeScriptTool | - | - | - |
+
+
+## Source
+
+
+````rs
+mod template_registry {
+    include!(concat!(env!("OUT_DIR"), "/template_registry.rs"));
+}
+````
+
+````rs
+pub(crate) fn run_init(
+    cwd: &Path,
+    package: Option<&Path>,
+    options: &InitOptions,
+    verbose: bool,
+    state: &mut RunState,
+) -> Result<(), String> {
+    let root = package.map_or_else(|| cwd.to_path_buf(), |path| cwd.join(path));
+    let mut files = Vec::new();
+    let detected_package_manager = descriptor::detect_package_manager(&root);
+
+    if !options.ai_only {
+        if detected_package_manager.is_none() {
+            state.diagnostics.push(Diagnostic::error(
+                Some(root.clone()),
+                "mds init requires an existing recognized package manager metadata file",
+            ));
+            return Ok(());
+        }
+        files.extend(project_files(&root, options));
+    }
+    files.extend(ai_files(&root, options, options.label_preset));
+
+    state.stdout.push_str("Init plan:\n");
+    for file in &files {
+        state
+            .stdout
+            .push_str(&format!("- write {}\n", file.path.display()));
+    }
+
+    let setup_actions = setup_actions(&root, options, detected_package_manager.as_ref());
+    if !setup_actions.is_empty() {
+        state.stdout.push_str("Setup plan:\n");
+        for action in &setup_actions {
+            state.stdout.push_str(&format!(
+                "- {}: {}{}\n",
+                action.kind,
+                action.command.join(" "),
+                action
+                    .install_hint
+                    .map(|hint| format!(" (install: {hint})"))
+                    .unwrap_or_default()
+            ));
+        }
+    }
+
+    if !options.yes {
+        state
+            .stdout
+            .push_str("No changes written. Re-run with --yes to apply the init plan.\n");
+        return Ok(());
+    }
+
+    for file in files {
+        write_planned_file(&file, options.force, state)?;
+    }
+
+    for action in setup_actions {
+        run_setup_action(&root, &action, verbose, state);
+    }
+
+    if !state.has_errors() && !state.environment_missing {
+        if !options.targets.is_empty() {
+            state.stdout.push_str(&ai_post_init_guide(&options.targets));
+        }
+        state.stdout.push_str("init ok\n");
+    }
+    Ok(())
+}
+````
+
+````rs
+struct PlannedFile {
+    path: PathBuf,
+    content: String,
+}
+````
+
+````rs
+struct SetupAction {
+    kind: &'static str,
+    command: Vec<String>,
+    install_hint: Option<&'static str>,
+}
+````
+
+````rs
+fn project_files(root: &Path, options: &InitOptions) -> Vec<PlannedFile> {
+    let name = root
+        .file_name()
+        .and_then(|name| name.to_str())
+        .filter(|name| !name.is_empty())
+        .unwrap_or("mds-project");
+    let preset = options.label_preset;
+    let l_name = preset.section_label("name");
+    let l_summary = preset.section_label("summary");
+    let l_purpose = preset.section_label("purpose");
+    let l_exposes = preset.section_label("exposes");
+    let l_kind = preset.section_label("kind");
+    let l_target = preset.section_label("target");
+    let pkg_name = sanitize_package_name(name);
+    vec![
+        PlannedFile {
+            path: root.join("mds.config.toml"),
+            content: project_config(options),
+        },
+        PlannedFile {
+            path: root.join(".mds/source/overview.md"),
+            content: format!(
+                "<!-- Generated by mds init. -->\n# Source Overview\n\n## {l_purpose}\n\nDescribe the `.mds/source/` hierarchy.\n\n## Architecture\n\nMarkdown files in this directory are the source of truth.\n\n### Package Summary\n\n| {l_name} | Version |\n| --- | --- |\n| {pkg_name} | 0.1.0 |\n\n## {l_exposes}\n\n| {l_kind} | {l_name} | {l_target} | {l_summary} |\n| --- | --- | --- | --- |\n\n### Dependencies\n\n| {l_name} | Version | {l_summary} |\n| --- | --- | --- |\n\n### Dev Dependencies\n\n| {l_name} | Version | {l_summary} |\n| --- | --- | --- |\n\n## Rules\n\n- Keep one source md per feature.\n",
+            ),
+        },
+        PlannedFile {
+            path: root.join(".mds/test/overview.md"),
+            content: format!(
+                "<!-- Generated by mds init. -->\n# Test Overview\n\n## {l_purpose}\n\nDescribe the `.mds/test/` hierarchy.\n\n## Architecture\n\nMarkdown files in this directory define test intent and executable test code.\n\n## Rules\n\n- Keep one test md per verification target.\n- Use `Covers` to point at the source module id being verified.\n",
+            ),
+        },
+        PlannedFile {
+            path: root.join(".mds/reference/overview.md"),
+            content: "# Source Overview Example\n\n## Purpose\n\nDescribe the source hierarchy and package-level intent.\n\n## Architecture\n\nSummarize how source markdown maps to generated code.\n\n### Package Summary\n\n| Name | Version |\n| --- | --- |\n| example-package | 0.1.0 |\n\n## Exposes\n\n| Kind | Name | Target | Summary |\n| --- | --- | --- | --- |\n| source | greet | greet.ts.md | Greeting feature |\n\n### Dependencies\n\n| Name | Version | Summary |\n| --- | --- | --- |\n\n### Dev Dependencies\n\n| Name | Version | Summary |\n| --- | --- | --- |\n\n## Rules\n\n- Keep one source md per feature.\n"
+                .to_string(),
+        },
+        PlannedFile {
+            path: root.join(".mds/reference/index.md"),
+            content: "# Directory Index Example\n\n## Purpose\n\nSummarize the feature set in this subdirectory.\n\n## Architecture\n\nExplain how this subtree is partitioned.\n\n## Exposes\n\n| Kind | Name | Target | Summary |\n| --- | --- | --- | --- |\n| source | greet | greet.ts.md | Greeting entrypoint |\n| source | format-name | format-name.ts.md | Name formatter |\n\n## Rules\n\n- Keep targets relative to this directory.\n"
+                .to_string(),
+        },
+        PlannedFile {
+            path: root.join(".mds/reference/impl.md"),
+            content: "# greet\n\n## Purpose\n\nProvide the greeting entrypoint.\n\n## Contract\n\n- Return a greeting string for the supplied name.\n\n## Exports\n\n| Name | Visibility | Summary |\n| --- | --- | --- |\n| greet | public | Public greeting function |\n\n##### greet\n\nShared entrypoint referenced from tests and other modules.\n\n## Imports\n\n| From | Target | Symbols | Via | Summary | Reference |\n| --- | --- | --- | --- | --- | --- |\n| internal | ./format-name | formatName | - | Name formatter | [./format-name.ts.md#format-name](./format-name.ts.md#format-name) |\n\n## Types\n\n```ts\nexport type Greeting = string;\n```\n\n## Source\n\n```ts\nexport function greet(name: string): Greeting {\n  return `Hello, ${formatName(name)}`;\n}\n```\n\n## Cases\n\n- Returns a stable greeting for a valid name.\n"
+                .to_string(),
+        },
+        PlannedFile {
+            path: root.join(".mds/reference/test.md"),
+            content: "# greet test\n\n## Purpose\n\nVerify the greeting behavior.\n\n## Covers\n\n- greet\n\n## Imports\n\n| From | Target | Symbols | Via | Summary | Reference |\n| --- | --- | --- | --- | --- | --- |\n| internal | ./greet | greet | - | Function under test | [./greet.ts.md#greet](./greet.ts.md#greet) |\n| external | vitest | describe, expect, it | - | Test helpers | - |\n\n## Cases\n\n- Returns `Hello, Ada` for `Ada`.\n\n## Test\n\n```ts\ndescribe('greet', () => {\n  it('returns a greeting', () => {\n    expect(greet('Ada')).toBe('Hello, Ada');\n  });\n});\n```\n"
+                .to_string(),
+        },
+    ]
+}
+````
+
+````rs
+fn project_config(options: &InitOptions) -> String {
+    let mut content = "# Generated by mds init.\n[package]\nenabled = true\nallow_raw_source = false\n\n[roots]\nsource = \"src\"\ntypes = \"src\"\ntest = \"tests\"\n".to_string();
+    content.push_str(&render_quality(
+        "ts",
+        quality_for_lang(options, Lang::TypeScript),
+    ));
+    content.push_str(&render_quality(
+        "py",
+        quality_for_lang(options, Lang::Python),
+    ));
+    content.push_str(&render_quality("rs", quality_for_lang(options, Lang::Rust)));
+    if !options.label_preset.labels().is_empty() {
+        content.push_str("\n[labels]\n");
+        for (key, value) in options.label_preset.labels() {
+            content.push_str(&format!("{key} = \"{value}\"\n"));
+        }
+    }
+    content
+}
+````
+
+````rs
+struct InitQuality {
+    type_check: Option<String>,
+    lint: Option<String>,
+    fix: Option<String>,
+    test: Option<String>,
+    required: Vec<String>,
+    optional: Vec<String>,
+}
+````
+
+````rs
+fn quality_for_lang(options: &InitOptions, lang: Lang) -> InitQuality {
+    if let Some(commands) = options
+        .quality_commands
+        .iter()
+        .find(|commands| commands.lang == lang)
+    {
+        return custom_quality(commands);
+    }
+    let descriptor = descriptor::builtin_descriptor(&lang);
+    match lang {
+        Lang::TypeScript => ts_quality(&descriptor, &options.ts_tools),
+        Lang::Python => py_quality(&descriptor, &options.py_tools),
+        Lang::Rust => rs_quality(&descriptor, &options.rs_tools),
+        Lang::Other(_) => init_quality_from_defaults(&descriptor),
+    }
+}
+````
+
+````rs
+fn custom_quality(commands: &InitQualityCommands) -> InitQuality {
+    InitQuality {
+        type_check: commands.type_check.clone(),
+        lint: commands.lint.clone(),
+        fix: None,
+        test: commands.test.clone(),
+        required: Vec::new(),
+        optional: Vec::new(),
+    }
+}
+````
+
+````rs
+fn init_quality_from_defaults(descriptor: &descriptor::Descriptor) -> InitQuality {
+    InitQuality {
+        type_check: descriptor.default_typecheck_command().map(str::to_string),
+        lint: descriptor.default_lint_command().map(str::to_string),
+        fix: descriptor.default_fix_command().map(str::to_string),
+        test: descriptor.default_test_command().map(str::to_string),
+        required: Vec::new(),
+        optional: Vec::new(),
+    }
+}
+
+````
+
+````rs
+
+fn empty_init_quality() -> InitQuality {
+    InitQuality {
+        type_check: None,
+        lint: None,
+        fix: None,
+        test: None,
+        required: Vec::new(),
+        optional: Vec::new(),
+    }
+}
+
+````
+
+````rs
+
+fn ts_quality(descriptor: &descriptor::Descriptor, tools: &[TypeScriptTool]) -> InitQuality {
+    let has = |tool| tools.contains(&tool);
+    let mut quality = empty_init_quality();
+    apply_profile(
+        &mut quality.type_check,
+        &mut quality.required,
+        &mut quality.optional,
+        descriptor.typecheck_profile("tsc"),
+    );
+    apply_profile(
+        &mut quality.lint,
+        &mut quality.required,
+        &mut quality.optional,
+        if has(TypeScriptTool::Eslint) {
+            descriptor.lint_profile("eslint")
+        } else if has(TypeScriptTool::Biome) {
+            descriptor.lint_profile("biome")
+        } else {
+            None
+        },
+    );
+    apply_profile(
+        &mut quality.fix,
+        &mut quality.required,
+        &mut quality.optional,
+        if has(TypeScriptTool::Prettier) {
+            descriptor.fix_profile("prettier")
+        } else if has(TypeScriptTool::Biome) {
+            descriptor.fix_profile("biome")
+        } else {
+            None
+        },
+    );
+    apply_profile(
+        &mut quality.test,
+        &mut quality.required,
+        &mut quality.optional,
+        if has(TypeScriptTool::Jest) {
+            descriptor.test_profile("jest")
+        } else if has(TypeScriptTool::Vitest) {
+            descriptor.test_profile("vitest")
+        } else {
+            None
+        },
+    );
+    quality
+}
+````
+
+````rs
+fn py_quality(descriptor: &descriptor::Descriptor, tools: &[PythonTool]) -> InitQuality {
+    let has = |tool| tools.contains(&tool);
+    let mut quality = empty_init_quality();
+    apply_profile(
+        &mut quality.type_check,
+        &mut quality.required,
+        &mut quality.optional,
+        descriptor.typecheck_profile("mypy"),
+    );
+    apply_profile(
+        &mut quality.lint,
+        &mut quality.required,
+        &mut quality.optional,
+        has(PythonTool::Ruff)
+            .then(|| descriptor.lint_profile("ruff"))
+            .flatten(),
+    );
+    apply_profile(
+        &mut quality.fix,
+        &mut quality.required,
+        &mut quality.optional,
+        if has(PythonTool::Black) {
+            descriptor.fix_profile("black")
+        } else if has(PythonTool::Ruff) {
+            descriptor.fix_profile("ruff")
+        } else {
+            None
+        },
+    );
+    apply_profile(
+        &mut quality.test,
+        &mut quality.required,
+        &mut quality.optional,
+        if has(PythonTool::Unittest) {
+            descriptor.test_profile("unittest")
+        } else if has(PythonTool::Pytest) {
+            descriptor.test_profile("pytest")
+        } else {
+            None
+        },
+    );
+    quality
+}
+````
+
+````rs
+fn rs_quality(descriptor: &descriptor::Descriptor, tools: &[RustTool]) -> InitQuality {
+    let has = |tool| tools.contains(&tool);
+    let mut quality = empty_init_quality();
+    apply_profile(
+        &mut quality.type_check,
+        &mut quality.required,
+        &mut quality.optional,
+        descriptor.typecheck_profile("cargo-check"),
+    );
+    apply_profile(
+        &mut quality.lint,
+        &mut quality.required,
+        &mut quality.optional,
+        has(RustTool::Clippy)
+            .then(|| descriptor.lint_profile("clippy"))
+            .flatten(),
+    );
+    apply_profile(
+        &mut quality.fix,
+        &mut quality.required,
+        &mut quality.optional,
+        has(RustTool::Rustfmt)
+            .then(|| descriptor.fix_profile("rustfmt"))
+            .flatten(),
+    );
+    apply_profile(
+        &mut quality.test,
+        &mut quality.required,
+        &mut quality.optional,
+        if has(RustTool::Nextest) {
+            descriptor.test_profile("nextest")
+        } else if has(RustTool::CargoTest) {
+            descriptor.test_profile("cargo-test")
+        } else {
+            None
+        },
+    );
+    quality
+}
+````
+
+````rs
+fn apply_profile(
+    target: &mut Option<String>,
+    required: &mut Vec<String>,
+    optional: &mut Vec<String>,
+    profile: Option<&descriptor::ToolProfile>,
+) {
+    let Some(profile) = profile else {
+        return;
+    };
+    *target = Some(profile.command.clone());
+    for value in &profile.required {
+        add_unique(required, value);
+    }
+    for value in &profile.optional {
+        add_unique(optional, value);
+    }
+}
+
+````
+
+````rs
+
+fn add_unique(values: &mut Vec<String>, value: &str) {
+    if !values.iter().any(|current| current == value) {
+        values.push(value.to_string());
+    }
+}
+````
+
+````rs
+fn render_quality(lang: &str, quality: InitQuality) -> String {
+    let mut content = format!("\n[quality.{lang}]\n");
+    if quality.type_check.is_some() {
+        content.push_str(&format!(
+            "type_checker = {}\n",
+            render_optional_owned_command(quality.type_check.as_deref())
+        ));
+    }
+    content.push_str(&format!(
+        "linter = {}\nfixer = {}\ntest_runner = {}\nrequired = [{}]\noptional = [{}]\n",
+        render_optional_command(quality.lint.as_deref()),
+        render_optional_command(quality.fix.as_deref()),
+        render_optional_command(quality.test.as_deref()),
+        render_string_array(&quality.required),
+        render_string_array(&quality.optional),
+    ));
+    content
+}
+````
+
+````rs
+fn render_optional_command(command: Option<&str>) -> String {
+    command
+        .map(|command| format!("\"{command}\""))
+        .unwrap_or_else(|| "false".to_string())
+}
+````
+
+````rs
+fn render_optional_owned_command(command: Option<&str>) -> String {
+    command
+        .filter(|command| !command.trim().is_empty())
+        .map(|command| format!("\"{command}\""))
+        .unwrap_or_else(|| "false".to_string())
+}
+````
+
+````rs
+fn render_string_array(values: &[String]) -> String {
+    values
+        .iter()
+        .map(|value| format!("\"{value}\""))
+        .collect::<Vec<_>>()
+        .join(", ")
+}
+````
+
+````rs
+fn ai_files(root: &Path, options: &InitOptions, label_preset: LabelPreset) -> Vec<PlannedFile> {
+    let mut files = Vec::new();
+    if options.target_categories.is_empty() {
+        for target in &options.targets {
+            for file in ai_target_files(root, *target, &options.categories, label_preset) {
+                files.push(file);
+            }
+        }
+        return files;
+    }
+    for target in &options.target_categories {
+        for file in ai_target_files(root, target.target, &target.categories, label_preset) {
+            files.push(file);
+        }
+    }
+    files
+}
+````
+
+````rs
+fn ai_target_files(
+    root: &Path,
+    target: AiTarget,
+    categories: &[AgentKitCategory],
+    label_preset: LabelPreset,
+) -> Vec<PlannedFile> {
+    let entries = template_registry::templates_for_target(target.key());
+    entries
+        .iter()
+        .filter(|entry| {
+            AgentKitCategory::parse(entry.category).is_some_and(|cat| categories.contains(&cat))
+        })
+        .map(|entry| PlannedFile {
+            path: root.join(entry.output_path),
+            content: apply_label_preset(entry.content, label_preset),
+        })
+        .collect()
+}
+````
+
+Replace `{{PLACEHOLDER}}` tokens in skill templates with the chosen preset labels.
+
+````rs
+fn apply_label_preset(content: &str, preset: LabelPreset) -> String {
+    let mut result = content.to_string();
+    let replacements: &[(&str, &str)] = &[
+        ("{{PURPOSE}}", "purpose"),
+        ("{{CONTRACT}}", "contract"),
+        ("{{TYPES}}", "types"),
+        ("{{SOURCE}}", "source"),
+        ("{{CASES}}", "cases"),
+        ("{{TEST}}", "test"),
+        ("{{COVERS}}", "covers"),
+        ("{{IMPORTS}}", "imports"),
+        ("{{EXPORTS}}", "exports"),
+        ("{{EXPOSE}}", "expose"),
+        ("{{FROM}}", "from"),
+        ("{{TARGET}}", "target"),
+        ("{{SYMBOLS}}", "symbols"),
+        ("{{VIA}}", "via"),
+        ("{{SUMMARY}}", "summary"),
+        ("{{REFERENCE}}", "reference"),
+        ("{{NAME}}", "name"),
+        ("{{VISIBILITY}}", "visibility"),
+    ];
+    for (placeholder, key) in replacements {
+        let label = preset.section_label(key);
+        result = result.replace(placeholder, &label);
+    }
+    result
+}
+````
+
+````rs
+fn ai_post_init_guide(targets: &[AiTarget]) -> String {
+    let mut guide = String::new();
+    guide.push_str("\nIntegration guide:\n");
+    for target in targets {
+        match target {
+            AiTarget::ClaudeCode => {
+                guide.push_str(
+                    "  Claude Code: Add `@.claude/rules/mds.md` to your CLAUDE.md for auto-loading\n",
+                );
+            }
+            AiTarget::CodexCli => {
+                guide.push_str(
+                    "  Codex CLI: Add mds section to your AGENTS.md or reference .codex/instructions.md\n",
+                );
+            }
+            AiTarget::Opencode => {
+                guide.push_str("  Opencode: Agents are auto-discovered from .opencode/agents/\n");
+            }
+            AiTarget::GithubCopilotCli => {
+                guide.push_str(
+                    "  GitHub Copilot: Instructions auto-apply to matching paths via applyTo frontmatter\n",
+                );
+            }
+        }
+    }
+    guide
+}
+````
+
+````rs
+fn write_planned_file(file: &PlannedFile, force: bool, state: &mut RunState) -> Result<(), String> {
+    if file.path.exists() && !is_mds_managed_file(&file.path) && !force {
+        state.diagnostics.push(Diagnostic::error(
+            Some(file.path.clone()),
+            "refusing to overwrite non-managed file during init; re-run with --force after reviewing the diff",
+        ));
+        return Ok(());
+    }
+    if let Some(parent) = file.path.parent() {
+        fs::create_dir_all(parent)
+            .map_err(|error| format!("failed to create {}: {error}", parent.display()))?;
+    }
+    fs::write(&file.path, &file.content)
+        .map_err(|error| format!("failed to write {}: {error}", file.path.display()))?;
+    state.generated.push(file.path.clone());
+    Ok(())
+}
+````
+
+````rs
+fn setup_actions(
+    _root: &Path,
+    options: &InitOptions,
+    package_manager: Option<&descriptor::PackageManagerManifest>,
+) -> Vec<SetupAction> {
+    let mut actions = Vec::new();
+    if options.install_project_deps {
+        if let Some(command) = package_manager.and_then(|manager| manager.command("install")) {
+            actions.push(SetupAction {
+                kind: "project-deps",
+                command: split_command(command),
+                install_hint: None,
+            });
+        }
+    }
+    if options.install_toolchains {
+        for (tool, hint) in [
+            (
+                "node",
+                "install Node.js 24+ from nodejs.org or a trusted version manager",
+            ),
+            ("rustc", "rustup toolchain install stable"),
+            ("cargo", "rustup toolchain install stable"),
+            (
+                "python3",
+                "install Python 3.13+ from python.org or a trusted package manager",
+            ),
+            ("uv", "python3 -m pip install --user uv"),
+        ] {
+            push_toolchain_check(&mut actions, tool, hint);
+        }
+        for tool in selected_quality_tools(options) {
+            push_toolchain_check(&mut actions, &tool, quality_tool_hint(&tool));
+        }
+    }
+    if options.install_ai_cli {
+        for (tool, hint) in [
+            ("claude", "npm install -g @anthropic-ai/claude-code"),
+            ("codex", "npm install -g @openai/codex"),
+            ("opencode", "npm install -g opencode-ai"),
+            (
+                "gh",
+                "install GitHub CLI, then gh extension install github/gh-copilot",
+            ),
+        ] {
+            actions.push(SetupAction {
+                kind: "ai-cli-check",
+                command: vec![tool.to_string(), "--version".to_string()],
+                install_hint: Some(hint),
+            });
+        }
+    }
+    actions
+}
+````
+
+````rs
+fn selected_quality_tools(options: &InitOptions) -> Vec<String> {
+    let mut tools = Vec::new();
+    for quality in [
+        ts_quality(
+            &descriptor::descriptor_for_key("ts").expect("ts descriptor"),
+            &options.ts_tools,
+        ),
+        py_quality(
+            &descriptor::descriptor_for_key("py").expect("py descriptor"),
+            &options.py_tools,
+        ),
+        rs_quality(
+            &descriptor::descriptor_for_key("rs").expect("rs descriptor"),
+            &options.rs_tools,
+        ),
+    ] {
+        for tool in quality.required.into_iter().chain(quality.optional) {
+            add_unique(&mut tools, &tool);
+        }
+    }
+    tools
+}
+````
+
+````rs
+fn push_toolchain_check(actions: &mut Vec<SetupAction>, tool: &str, hint: &'static str) {
+    if actions.iter().any(|action| {
+        action.kind == "toolchain-check" && action.command.first().is_some_and(|name| name == tool)
+    }) {
+        return;
+    }
+    actions.push(SetupAction {
+        kind: "toolchain-check",
+        command: vec![tool.to_string(), "--version".to_string()],
+        install_hint: Some(hint),
+    });
+}
+````
+
+````rs
+fn quality_tool_hint(tool: &str) -> &'static str {
+    match tool {
+        "tsc" => "npm install --save-dev typescript",
+        "eslint" => "npm install --save-dev eslint",
+        "prettier" => "npm install --save-dev prettier",
+        "biome" => "npm install --save-dev @biomejs/biome",
+        "vitest" => "npm install --save-dev vitest",
+        "jest" => "npm install --save-dev jest",
+        "mypy" => "uv add --dev mypy",
+        "ruff" => "uv add --dev ruff",
+        "black" => "uv add --dev black",
+        "pytest" => "uv add --dev pytest",
+        "rustfmt" => "rustup component add rustfmt",
+        "clippy-driver" => "rustup component add clippy",
+        "cargo-nextest" => "cargo install cargo-nextest",
+        "node" => "install Node.js 24+ from nodejs.org or a trusted version manager",
+        "python3" => "install Python 3.13+ from python.org or a trusted package manager",
+        "rustc" | "cargo" => "rustup toolchain install stable",
+        "uv" => "python3 -m pip install --user uv",
+        _ => "install the selected quality tool from its official source",
+    }
+}
+````
+
+````rs
+fn split_command(command: &str) -> Vec<String> {
+    command.split_whitespace().map(ToOwned::to_owned).collect()
+}
+````
+
+````rs
+fn run_setup_action(root: &Path, action: &SetupAction, verbose: bool, state: &mut RunState) {
+    if action.command.is_empty() {
+        return;
+    }
+    if verbose {
+        state.stdout.push_str(&format!(
+            "running setup action: {}\n",
+            action.command.join(" ")
+        ));
+    }
+    let mut command = ProcessCommand::new(&action.command[0]);
+    command.args(&action.command[1..]).current_dir(root);
+    match command.output() {
+        Ok(output) if output.status.success() => {
+            state
+                .stdout
+                .push_str(&format!("setup ok: {}\n", action.command.join(" ")));
+        }
+        Ok(output) => {
+            let detail = String::from_utf8_lossy(&output.stderr);
+            state.diagnostics.push(Diagnostic::error(
+                None,
+                format!(
+                    "setup action failed: {}{}{}",
+                    action.command.join(" "),
+                    if detail.trim().is_empty() {
+                        String::new()
+                    } else {
+                        format!(": {}", detail.trim())
+                    },
+                    action
+                        .install_hint
+                        .map(|hint| format!("; install hint: {hint}"))
+                        .unwrap_or_default()
+                ),
+            ));
+        }
+        Err(error) => {
+            state.environment_missing = true;
+            state.diagnostics.push(Diagnostic::error(
+                None,
+                format!(
+                    "setup action could not start: {}: {error}{}",
+                    action.command.join(" "),
+                    action
+                        .install_hint
+                        .map(|hint| format!("; install hint: {hint}"))
+                        .unwrap_or_default()
+                ),
+            ));
+        }
+    }
+}
+````
+
+````rs
+fn sanitize_package_name(name: &str) -> String {
+    name.chars()
+        .map(|ch| {
+            if ch.is_ascii_alphanumeric() || ch == '-' || ch == '_' {
+                ch.to_ascii_lowercase()
+            } else {
+                '-'
+            }
+        })
+        .collect()
+}
+````
+
+

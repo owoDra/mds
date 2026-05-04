@@ -1,0 +1,11 @@
+# Codex CLI template manifest
+
+[[file]]
+template = "instructions.md"
+output_path = ".codex/instructions.md"
+category = "instructions"
+
+[[file]]
+template = "skill.md"
+output_path = ".codex/skills/mds.md"
+category = "skills"

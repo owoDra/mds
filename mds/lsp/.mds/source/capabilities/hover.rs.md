@@ -1,0 +1,130 @@
+# src/capabilities/hover.rs
+
+## Purpose
+
+Migrated implementation source for `src/capabilities/hover.rs`.
+
+## Contract
+
+- Preserve the behavior of the pre-migration Rust source.
+- This file is synchronized into `.build/rust/mds/lsp/src/capabilities/hover.rs`.
+
+## Imports
+
+| From | Target | Symbols | Via | Summary | Reference |
+| --- | --- | --- | --- | --- | --- |
+| builtin | std::path | Path | - | - | - |
+| external | mds_core::markdown | sections_with_labels | - | - | [../../../../core/.mds/source/markdown.rs.md#source](../../../../core/.mds/source/markdown.rs.md#source) |
+| external | mds_core::markdown | source_markdown_root | - | - | [../../../../core/.mds/source/markdown.rs.md#source](../../../../core/.mds/source/markdown.rs.md#source) |
+| external | mds_core::model | Lang | - | - | [../../../../core/.mds/source/model.rs.md#source](../../../../core/.mds/source/model.rs.md#source) |
+| external | tower_lsp::lsp_types | * | - | - | - |
+| internal | crate::convert | line_at | - | - | [../convert.rs.md#source](../convert.rs.md#source) |
+| internal | crate::convert | word_at_position | - | - | [../convert.rs.md#source](../convert.rs.md#source) |
+| internal | crate::state | WorkspaceState | - | - | [../state.rs.md#source](../state.rs.md#source) |
+
+
+## Source
+
+
+Provide hover information for mds Markdown files.
+
+````rs
+pub fn provide_hover(
+    text: &str,
+    position: Position,
+    path: &Path,
+    state: &WorkspaceState,
+) -> Option<Hover> {
+    let line_text = line_at(text, position.line)?;
+
+    // Hover on section headings: show section description
+    if let Some(title) = line_text.strip_prefix("## ") {
+        return hover_section(title.trim());
+    }
+
+    // Hover on Uses table rows: show target module's Purpose
+    if line_text.trim_start().starts_with('|') {
+        return hover_uses_target(text, position, path, state);
+    }
+
+    None
+}
+
+````
+
+Hover information for section headings.
+
+````rs
+fn hover_section(title: &str) -> Option<Hover> {
+    let description = match title {
+        "Purpose" | "目的" => "**Purpose**: Module purpose and responsibility.\n\nDescribe what this module does and why it exists.",
+        "Contract" | "契約" => "**Contract**: Public API contract and invariants.\n\nDefine the guarantees this module provides.",
+        "Types" | "型定義" => "**Types**: Type definitions section.\n\nContains a Uses table and code blocks with type/interface definitions.",
+        "Source" | "実装" => "**Source**: Implementation section.\n\nContains a Uses table and code blocks with the main implementation.",
+        "Cases" | "ケース" => "**Cases**: Use cases and examples.\n\nDescribe how this module is used.",
+        "Test" | "テスト" => "**Test**: Test section.\n\nContains a Uses table and code blocks with test code.",
+        "Expose" | "公開" | "Exposes" | "公開面" => "**Expose**: Public exports.\n\nDefines what this module exposes to other modules.",
+        _ => return None,
+    };
+
+    Some(Hover {
+        contents: HoverContents::Markup(MarkupContent {
+            kind: MarkupKind::Markdown,
+            value: description.to_string(),
+        }),
+        range: None,
+    })
+}
+
+````
+
+
+
+Hover information for a Uses table target. Show the target module's Purpose section.
+
+````rs
+fn hover_uses_target(
+    text: &str,
+    position: Position,
+    path: &Path,
+    state: &WorkspaceState,
+) -> Option<Hover> {
+    let word = word_at_position(text, position)?;
+    if word.is_empty() {
+        return None;
+    }
+
+    let pkg_state = state.package_for_path(path)?;
+    let package = &pkg_state.package;
+    let markdown_root = source_markdown_root(package);
+
+    // Try to find the target file
+    let lang = Lang::from_path(path)?;
+    let ext = match &lang {
+        Lang::TypeScript => ".ts.md".to_string(),
+        Lang::Python => ".py.md".to_string(),
+        Lang::Rust => ".rs.md".to_string(),
+        Lang::Other(e) => format!(".{e}.md"),
+    };
+
+    let target_path = markdown_root.join(format!("{word}{ext}"));
+    let file_text = std::fs::read_to_string(&target_path).ok()?;
+    let sections = sections_with_labels(&file_text, &package.config.label_overrides);
+
+    let purpose = sections.get("Purpose")?;
+    let module_name = target_path
+        .file_stem()
+        .and_then(|s| s.to_str())
+        .unwrap_or(&word);
+
+    let hover_text = format!("### {module_name}\n\n{purpose}");
+
+    Some(Hover {
+        contents: HoverContents::Markup(MarkupContent {
+            kind: MarkupKind::Markdown,
+            value: hover_text,
+        }),
+        range: None,
+    })
+}
+````

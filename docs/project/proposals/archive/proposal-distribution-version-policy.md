@@ -2,7 +2,7 @@
 
 ## 状態
 
-archived: 2026-04-26 に採用し、`docs/project/specs/shared/SPEC-distribution-and-versions.md` と `docs/project/tech-stack.md` へ昇格した。
+archived: 2026-04-26 に採用し、`docs/project/specs/shared/SPEC-distribution-and-versions.md` と `docs/project/tech-stack.md` へ昇格した。2026-05-01 時点の現行構成では `packages/` と `python/` 配布単位は扱わない。
 
 ## 背景
 
@@ -12,11 +12,8 @@ archived: 2026-04-26 に採用し、`docs/project/specs/shared/SPEC-distribution
 
 - 最低対応 version は最新寄せで固定する。
 - Rust は 1.86+、Node.js は 24+、Python は 3.13+ を最低対応候補とする。
-- npm は `@owox-mds/cli`、`@owox-mds/core`、`@owox-mds/lang-ts`、`@owox-mds/lang-py`、`@owox-mds/lang-rs` を配布単位候補とする。
 - Cargo は native CLI と Rust language adapter を Rust crate として扱う。
-- uv / uvx は Python 利用者向け CLI wrapper と Python language adapter を扱う。
-- Rust core の言語横断契約を正とし、npm / Python wrapper は同じ CLI / core 契約を呼び出す。
-- wrapper は独自の仕様差分を持たず、配布・起動・adapter 接続だけを担う。
+- Rust core の言語横断契約を正とする。
 - toolchain は Prettier、ESLint、Vitest、Ruff、Pytest、rustfmt、clippy、cargo test の最新安定系列を対象にする。
 
 ## 代替案
@@ -48,11 +45,6 @@ archived: 2026-04-26 に採用し、`docs/project/specs/shared/SPEC-distribution
 
 - `../specs/shared/SPEC-distribution-and-versions.md`
 - `../tech-stack.md`
-- `../specs/packages-cli/index.md`
-- `../specs/packages-core/index.md`
-- `../specs/python-mds/index.md`
-- `../specs/python-mds-lang-py/index.md`
-- `../specs/packages-lang-rs/index.md`
 - `../validation.md`
 
 ## 関連資料

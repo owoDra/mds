@@ -19,16 +19,20 @@ mds provides `mds-lsp`, a server compliant with the Language Server Protocol (LS
 
 ## Installation
 
-### cargo install (recommended)
+### install.sh (recommended)
+
+The install script installs both `mds` and `mds-lsp`:
 
 ```bash
-cargo install mds-lsp
+curl -fsSL https://raw.githubusercontent.com/owo-x-project/owox-mds/main/install.sh | sh
 ```
 
 ### Build from source (for developers)
 
 ```bash
-cd crates
+cargo run -p mds-cli -- build --verbose
+./.github/script/sync-self-hosted-rust.sh
+cd .build/rust
 cargo build -p mds-lsp --release
 cp target/release/mds-lsp /usr/local/bin/
 ```

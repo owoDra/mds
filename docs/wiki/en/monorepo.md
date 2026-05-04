@@ -29,7 +29,7 @@ Non-target packages are never automatically included in generation or modificati
 To target only a specific package, specify `--package`.
 
 ```bash
-mds check --package packages/example
+mds lint --package packages/example
 ```
 
 If `--package` is omitted, mds searches for enabled packages under the current directory.
@@ -59,4 +59,4 @@ Additionally, it does not overwrite existing files that lack an mds management h
 - Separate implementation Markdown into the default `src-md` directory.
 - Avoid mixing responsibilities between generated code and hand-written code.
 - Verify the generation plan with `mds build --dry-run` on the first run.
-- Run `mds check` first for continuous inspection.
+- Run `mds lint` first for continuous inspection.

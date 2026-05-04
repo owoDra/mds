@@ -10,7 +10,7 @@ related:
 
 ## 目標
 
-mds は init、build、check、lint、test、doctor、package sync、release check の各操作を CLI から実行できること。
+mds は init、build、typecheck、lint、test、doctor、package sync の各操作を CLI から実行できること。
 
 ## 根拠
 
@@ -20,11 +20,10 @@ Markdown 正本からの派生コード生成、検査、品質確認、package 
 
 - `mds build` で Markdown 内のコードブロックとメタ情報から派生コードを生成すること
 - `mds init` で project 初期化、AI agent kit 生成、開発環境セットアップを実行すること
-- `mds check` で構造、参照、表を検証すること
-- `mds lint`、`mds lint --fix`、`mds test` で adapter 経由の品質確認と自動修正を行うこと
+- `mds lint` で構造、参照、表を検証し、必要に応じて linter を実行すること
+- `mds typecheck`、`mds lint`、`mds lint --fix`、`mds test` で descriptor 経由の品質確認と自動修正を行うこと
 - `mds doctor` で環境を確認すること
-- `mds package sync` で package metadata から `package.md` を更新すること
-- `mds release check` で公開前品質 gate を確認すること
+- `mds package sync` は package metadata が正であることを示し、Markdown package metadata を生成しないこと
 
 ## 対象外
 
@@ -37,7 +36,7 @@ Markdown 正本からの派生コード生成、検査、品質確認、package 
 
 - 各コマンドの正常系、入力不備、対象なし、部分失敗の挙動が仕様化される
 - 失敗時に終了コードとエラー出力から次の対応が分かる
-- `package sync` が package metadata と `package.md` の整合性を保てる
+- `package sync` が Markdown package metadata を正本として扱わない
 
 ## 制約 / 品質条件
 

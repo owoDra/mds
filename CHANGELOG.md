@@ -12,11 +12,9 @@
 - `mds new <name.lang.md>` コマンド — 実装 Markdown のスキャフォールド生成
 - CONTRIBUTING.md — コントリビューター向けの入口ドキュメント
 - 開発ガイド（docs/wiki/ja/development.md）— ビルド、テスト、デバッグ手順
-- Makefile — 開発タスクのショートカット
 - .vscode/tasks.json — VSCode タスク定義
 - サンプルプロジェクト（examples/minimal-ts, minimal-py, minimal-rs）
 - .editorconfig — エディタ横断の統一設定
-- .githooks/pre-commit — コミット前の自動品質チェック
 - GitHub Issue / PR テンプレート
 
 ### Changed

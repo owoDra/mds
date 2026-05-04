@@ -4,7 +4,6 @@ enabled = true
 allow_raw_source = false
 
 [roots]
-markdown = "src-md"
 source = "src"
 types = "src"
 test = "tests"
@@ -12,6 +11,6 @@ test = "tests"
 [quality.rs]
 linter = "cargo clippy"
 fixer = "rustfmt"
-test_runner = "cargo test"
+test_runner = "cargo test --lib"
 required = ["rustc", "cargo", "rustfmt"]
 optional = ["clippy-driver"]

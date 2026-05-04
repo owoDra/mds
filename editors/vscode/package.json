@@ -1,7 +1,7 @@
 {
   "name": "mds",
-  "displayName": "mds - Markdown Design System",
-  "description": "Language support for mds (Markdown Design System) implementation files",
+  "displayName": "mds - Markdown Source",
+  "description": "Language support for mds (Markdown Source) implementation files",
   "version": "0.1.0",
   "publisher": "owo-x-project",
   "license": "MIT",
@@ -24,7 +24,8 @@
   ],
   "activationEvents": [
     "workspaceContains:**/mds.config.toml",
-    "onLanguage:mds-markdown"
+    "onLanguage:mds-markdown",
+    "onLanguage:markdown"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -37,7 +38,22 @@
         "extensions": [
           ".ts.md",
           ".py.md",
-          ".rs.md"
+          ".rs.md",
+          ".go.md",
+          ".java.md",
+          ".kt.md",
+          ".swift.md",
+          ".rb.md",
+          ".cs.md",
+          ".cpp.md",
+          ".c.md",
+          ".zig.md",
+          ".lua.md",
+          ".sh.md",
+          ".php.md",
+          ".dart.md",
+          ".ex.md",
+          ".scala.md"
         ],
         "configuration": "./language-configuration.json"
       }
@@ -99,6 +115,7 @@
   "scripts": {
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
+    "package:build": "../../.github/script/package-vscode.sh --pre-release",
     "watch": "tsc -watch -p ./"
   },
   "dependencies": {

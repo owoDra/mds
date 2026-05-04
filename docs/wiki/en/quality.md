@@ -12,12 +12,12 @@ By combining Markdown structure, dependency, generation target, code block, and 
 
 ## Structural Inspection
 
-`mds check` inspects the structure of Markdown.
+`mds lint` inspects the structure of Markdown before running configured linters.
 
 It primarily verifies:
 
 - Whether required sections exist
-- Whether `Expose` and `Uses` tables are correct
+- Whether `Imports`, `Exports`, `Expose`, and `Uses` tables are correct
 - Whether the target language can be determined from the implementation Markdown filename
 - Whether the generation target stays within the package boundary
 - Whether there is a risk of overwriting hand-written files at the generation target
@@ -63,21 +63,15 @@ mds doctor --package path/to/package
 
 The diagnostics verify required execution environments and tools based on the language adapters enabled for the target package and the `[quality.*]` settings. Unselected tools are not treated as missing.
 
-## Pre-release Inspection
-
-`mds release check` inspects artifacts before publication.
-
-Pre-release inspection covers distribution artifacts, checksums, signatures, software bill of materials, provenance information, and basic post-install operation verification.
-
 ## Recommended Verification Order
 
 During development, verifying in the following order makes it easier to isolate issues:
 
-1. `mds check`
+1. `mds lint`
 2. `mds build --dry-run`
 3. `mds build`
-4. `mds lint`
+4. `mds typecheck`
 5. `mds test`
 6. `mds doctor`
 
-Before publication, run `mds release check` in addition to the above.
+For this repository's own release flow, run `./.github/script/release-check.sh --manifest release.mds.toml` in addition to the above.

@@ -1,0 +1,16 @@
+[package]
+enabled = true
+allow_raw_source = false
+
+[roots]
+source = "src"
+types = "src"
+test = "tests"
+excludes = []
+
+[quality.rs]
+linter = "cargo clippy -- -D warnings"
+fixer = "cargo fmt"
+test_runner = "cargo test --lib"
+required = ["rustc", "cargo", "rustfmt"]
+optional = ["clippy-driver"]
