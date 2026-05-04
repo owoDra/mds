@@ -138,7 +138,7 @@ fn run_self_update(version: Option<&str>) -> std::process::ExitCode {
 
     println!("Updating mds from {VERSION} to {target_version}...");
 
-    let install_script = format!("https://raw.githubusercontent.com/{repo}/main/install.sh");
+    let install_script = format!("https://raw.githubusercontent.com/{repo}/latest/install.sh");
 
     let status = ProcessCommand::new("sh")
         .arg("-c")
@@ -159,7 +159,7 @@ fn run_self_update(version: Option<&str>) -> std::process::ExitCode {
         Err(e) => {
             eprintln!("error: failed to run update: {e}");
             eprintln!("hint: You can manually update with:");
-            eprintln!("  curl -fsSL https://raw.githubusercontent.com/{repo}/main/install.sh | sh");
+            eprintln!("  curl -fsSL https://raw.githubusercontent.com/{repo}/latest/install.sh | sh");
             exit_code(1)
         }
     }

@@ -6,13 +6,19 @@ This page explains the prerequisites for trying mds and the basic execution step
 
 ## Installation
 
-Install with the one-liner script (recommended):
+Install the latest platform-specific binary from GitHub Releases with the one-liner script (recommended):
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/owo-x-project/owox-mds/main/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/owo-x-project/owox-mds/latest/install.sh | sh
 ```
 
-This installs both `mds` and `mds-lsp` to `~/.local/bin`.
+This downloads the matching release archive for your OS / architecture and installs both `mds` and `mds-lsp` to `~/.local/bin` by default.
+
+To pin a version, pass the release version without or with the leading `v`:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/owo-x-project/owox-mds/latest/install.sh | sh -s -- --version 0.1.0-alpha.1
+```
 
 ### VSCode Extension
 
@@ -22,17 +28,19 @@ Search for **"mds"** in the Marketplace, or install with the following command.
 code --install-extension owo-x-project.mds
 ```
 
+The Marketplace extension is published as a platform-specific package and includes the matching `mds-lsp` binary. You only need to install `mds-lsp` separately when using another editor or when overriding `mds.lsp.path`.
+
 ## Prerequisites
 
 mds is a tool under development. It is currently released as an alpha version.
 
 ## Required Runtime Environment
 
-No runtime dependencies — mds is a single static binary.
+No runtime dependencies are required for the pre-built `mds` CLI binary.
 
 | Purpose | Requirements |
 | --- | --- |
-| Running mds commands | None (pre-built binary) |
+| Running mds commands | None (pre-built binary from GitHub Releases) |
 | TypeScript checking, fixing, testing | Node.js 24 or later, plus your chosen ESLint, Prettier, Biome, Vitest, Jest, etc. |
 | Python checking, fixing, testing | Python 3.13 or later, plus your chosen Ruff, Black, Pytest, unittest, etc. |
 | Rust checking, fixing, testing | Rust 1.86 or later, Cargo, plus your chosen rustfmt, Clippy, cargo-nextest, etc. |

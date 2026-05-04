@@ -28,7 +28,9 @@
 
 ## 配布と最低対応バージョン
 
-- mds の現行配布面は Cargo crate、native binary、VS Code extension package の 3 系統です。
-- bootstrap の公式経路は `npx`、Cargo、`uvx` です。
+- mds の現行利用者向け配布面は GitHub Releases の native binary archive と VS Code extension package の 2 系統です。
+- GitHub Releases の native binary archive は `mds` と `mds-lsp` を含み、`install.sh` が OS / architecture に合う archive を取得します。
+- VS Code extension package は platform-specific package として公開し、対応する `mds-lsp` binary を同封します。
+- `mds-core` は単独配布せず、`mds-cli` / `mds-lsp` の内部 workspace dependency として binary に link します。
 - runtime と toolchain の最低対応は Rust 1.86+、Node.js 24+、Python 3.13+ を基準にします。
 - release 前品質 gate は `release.mds.toml` と `./.github/script/release-check.sh` を基準にし、checksum、signature、SBOM、provenance、install smoke test の欠落を許容しません。

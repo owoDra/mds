@@ -103,7 +103,7 @@
 
 ## 公開前品質
 
-- いつ行うか: Cargo、native binary、VS Code extension の packaging、release metadata、publish 前検証を変更するとき。
+- いつ行うか: GitHub Releases native binary archive、VS Code extension の packaging、release metadata、publish 前検証を変更するとき。
 - 何で検証するか: 現行配布経路の artifact fixture、checksum、署名、SBOM、provenance / attestations、install smoke test を使う。
 - 期待する結果: 全 artifact に `.build/release/` 配下の supply-chain 成果物が紐づき、install 後に `mds --version` 相当と代表 command が動き、欠落や互換性不一致は publish 前 gate を失敗させる。
 - 問題があった際にどうするか: publish を止め、artifact、wrapper、release metadata、署名または provenance の不足を修正する。

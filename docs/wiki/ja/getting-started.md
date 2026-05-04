@@ -4,13 +4,19 @@
 
 ## インストール
 
-インストールスクリプトでインストールします（推奨）:
+GitHub Releases の platform 別バイナリをインストールスクリプトで取得します（推奨）:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/owo-x-project/owox-mds/main/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/owo-x-project/owox-mds/latest/install.sh | sh
 ```
 
-`mds` と `mds-lsp` が `~/.local/bin` にインストールされます。
+OS / architecture に合う release archive を取得し、既定では `mds` と `mds-lsp` が `~/.local/bin` にインストールされます。
+
+バージョンを固定する場合は、先頭の `v` あり / なしのどちらでも指定できます。
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/owo-x-project/owox-mds/latest/install.sh | sh -s -- --version 0.1.0-alpha.1
+```
 
 ### VSCode 拡張
 
@@ -20,17 +26,19 @@ Marketplace で **"mds"** を検索するか、以下のコマンドでインス
 code --install-extension owo-x-project.mds
 ```
 
+Marketplace 版の拡張は platform-specific package として公開され、対応する `mds-lsp` バイナリを同封しています。別エディタで LSP を使う場合や `mds.lsp.path` を明示的に上書きする場合だけ、`mds-lsp` を別途用意してください。
+
 ## 前提
 
 mds は開発中のツールです。現在アルファ版として公開されています。
 
 ## 必要な実行環境
 
-ランタイム依存なし — mds は単一の静的バイナリです。
+ビルド済み `mds` CLI バイナリ自体にはランタイム依存はありません。
 
 | 用途 | 必要なもの |
 | --- | --- |
-| mds コマンドの実行 | なし（ビルド済みバイナリ） |
+| mds コマンドの実行 | なし（GitHub Releases のビルド済みバイナリ） |
 | TypeScript の検査、修正、テスト | Node.js 24 以上と、選択した ESLint、Prettier、Biome、Vitest、Jest など |
 | Python の検査、修正、テスト | Python 3.13 以上と、選択した Ruff、Black、Pytest、unittest など |
 | Rust の検査、修正、テスト | Rust 1.86 以上、Cargo と、選択した rustfmt、Clippy、cargo-nextest など |

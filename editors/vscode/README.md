@@ -13,19 +13,15 @@ Language support for [mds](https://github.com/owo-x-project/owox-mds) implementa
 ## Requirements
 
 - VS Code 1.85+
-- `mds-lsp` binary installed:
-  ```bash
-  curl -fsSL https://raw.githubusercontent.com/owo-x-project/owox-mds/main/install.sh | sh
-  # or
-  curl -fsSL https://raw.githubusercontent.com/owo-x-project/owox-mds/main/install.sh | sh
-  ```
+- Marketplace builds include the matching `mds-lsp` binary for the current platform
+- Optional: install `mds-lsp` separately only when using a custom `mds.lsp.path` or local development build
 
 ## Configuration
 
 | Setting | Default | Description |
 | --- | --- | --- |
 | `mds.lsp.enabled` | `true` | Enable/disable the mds language server |
-| `mds.lsp.path` | `""` | Path to the mds-lsp binary (uses PATH if empty) |
+| `mds.lsp.path` | `""` | Path to the mds-lsp binary. If empty, uses the bundled server first, then PATH |
 | `mds.lsp.logLevel` | `"info"` | Log level for the language server |
 | `mds.lsp.additionalLanguages` | `[]` | Additional language extensions (e.g., `.go.md`) |
 
