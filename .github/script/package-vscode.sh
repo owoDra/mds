@@ -41,7 +41,7 @@ mkdir -p "$PACKAGE_DIR" "$BUILD_DIR"
 (cd "$SOURCE_DIR" && npm run compile)
 
 cp "$SOURCE_DIR/package.json" "$PACKAGE_DIR/package.json"
-node -e "const fs=require('fs'); const p='${PACKAGE_DIR}/package.json'; const pkg=require(p); if (pkg.scripts) delete pkg.scripts.vscode_prepublish; if (pkg.scripts) delete pkg.scripts['vscode:prepublish']; fs.writeFileSync(p, JSON.stringify(pkg, null, 2) + '\n');"
+node -e "const fs=require('fs'); const p='${PACKAGE_DIR}/package.json'; const pkg=require(p); if (pkg.scripts) delete pkg.scripts.vscode_prepublish; if (pkg.scripts) delete pkg.scripts['vscode:prepublish']; pkg.version = String(pkg.version).split(/[+-]/)[0]; fs.writeFileSync(p, JSON.stringify(pkg, null, 2) + '\n');"
 cp "$SOURCE_DIR/README.md" "$PACKAGE_DIR/README.md"
 cp "$SOURCE_DIR/CHANGELOG.md" "$PACKAGE_DIR/CHANGELOG.md"
 cp "$SOURCE_DIR/LICENSE" "$PACKAGE_DIR/LICENSE"
