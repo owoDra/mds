@@ -3,7 +3,7 @@ name = "mds-lsp"
 description = "Language Server Protocol implementation for mds Markdown files."
 edition.workspace = true
 license.workspace = true
-version = "0.1.0-alpha.1"
+version = "0.2.1-alpha"
 repository.workspace = true
 homepage.workspace = true
 documentation.workspace = true
@@ -17,7 +17,7 @@ name = "mds-lsp"
 path = "src/main.rs"
 
 [dependencies]
-mds-core = { path = "../core", version = "0.1.0-alpha.1" }
+mds-core = { path = "../core", version = "0.2.1-alpha" }
 tower-lsp = "0.20"
 tokio = { version = "1", features = ["full"] }
 tracing = "0.1"

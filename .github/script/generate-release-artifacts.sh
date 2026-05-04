@@ -21,7 +21,7 @@ if ROOT="$(git -C "$SCRIPT_DIR" rev-parse --show-toplevel 2>/dev/null)"; then
 else
   ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 fi
-VERSION="0.1.0-alpha.1"
+VERSION="0.2.1-alpha"
 SIGN=false
 
 for arg in "$@"; do
@@ -155,10 +155,10 @@ echo "=== VS Code extension ==="
 echo "[mds-vscode]"
 "$ROOT/.github/script/package-vscode.sh" --pre-release
 VSCODE_DIR="$ROOT/.build/node/vscode"
-generate_checksum "$VSCODE_DIR" "$RELEASE_DIR/checksums/mds-vscode-0.1.0.sha256"
-generate_signature "$VSCODE_DIR" "$RELEASE_DIR/signatures/mds-vscode-0.1.0.sig"
-generate_sbom "mds-vscode" "0.1.0" "$RELEASE_DIR/sbom/mds-vscode-0.1.0.spdx.json" "application"
-generate_provenance "mds-vscode" "0.1.0" "$RELEASE_DIR/provenance/mds-vscode-0.1.0.jsonl"
+generate_checksum "$VSCODE_DIR" "$RELEASE_DIR/checksums/mds-vscode-${VERSION}.sha256"
+generate_signature "$VSCODE_DIR" "$RELEASE_DIR/signatures/mds-vscode-${VERSION}.sig"
+generate_sbom "mds-vscode" "$VERSION" "$RELEASE_DIR/sbom/mds-vscode-${VERSION}.spdx.json" "application"
+generate_provenance "mds-vscode" "$VERSION" "$RELEASE_DIR/provenance/mds-vscode-${VERSION}.jsonl"
 
 echo ""
 echo "=== Done ==="

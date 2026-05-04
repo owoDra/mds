@@ -40,14 +40,14 @@ This package is authored under `mds/cli/.mds/source/` and synchronized into pack
 
 | Name | Version |
 | --- | --- |
-| mds-cli | 0.1.0-alpha.1 |
+| mds-cli | 0.2.1-alpha |
 
 ### Dependencies
 
 | Name | Version | Summary |
 | --- | --- | --- |
 | crossterm | 0.27 |  |
-| mds-core | 0.1.0-alpha.1 |  |
+| mds-core | 0.2.1-alpha |  |
 | ratatui | 0.26 |  |
 
 ### Dev Dependencies

@@ -2,7 +2,7 @@
   "name": "mds",
   "displayName": "mds - Markdown Source",
   "description": "Language support for mds (Markdown Source) implementation files",
-  "version": "0.1.0",
+  "version": "0.2.1-alpha",
   "publisher": "owo-x-project",
   "license": "MIT",
   "repository": {

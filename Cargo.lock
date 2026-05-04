@@ -536,7 +536,7 @@ dependencies = [
 
 [[package]]
 name = "mds-cli"
-version = "0.1.0-alpha.1"
+version = "0.2.1-alpha"
 dependencies = [
  "crossterm",
  "mds-core",
@@ -545,7 +545,7 @@ dependencies = [
 
 [[package]]
 name = "mds-core"
-version = "0.1.0-alpha.1"
+version = "0.2.1-alpha"
 dependencies = [
  "regex",
  "serde",
@@ -556,7 +556,7 @@ dependencies = [
 
 [[package]]
 name = "mds-lsp"
-version = "0.1.0-alpha.1"
+version = "0.2.1-alpha"
 dependencies = [
  "mds-core",
  "serde",

@@ -82,7 +82,7 @@ This package is authored under `mds/core/.mds/source/` and synchronized into pac
 
 | Name | Version |
 | --- | --- |
-| mds-core | 0.1.0-alpha.1 |
+| mds-core | 0.2.1-alpha |
 
 ### Dependencies
 
