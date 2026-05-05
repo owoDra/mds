@@ -111,7 +111,7 @@ fn plan_source_assets(package: &Package, state: &mut RunState) -> Vec<GeneratedF
         let Ok(relative) = path.strip_prefix(&source_root) else {
             continue;
         };
-        if matches!(relative.file_name(), Some(name) if name == OsStr::new("overview.md") || name == OsStr::new("index.md"))
+        if matches!(relative.file_name(), Some(name) if name == OsStr::new("overview.md"))
         {
             continue;
         }
@@ -226,5 +226,4 @@ pub(crate) fn plan_output(
     })
 }
 ````
-
 

@@ -21,6 +21,7 @@
 - `mds.config.toml` の `[check]` は validator の有効 / 無効を切り替えられるが、正本の意味や canonical 構造は変更しない。
 - 設定ファイルは `mds.config.toml` 固定とし、セクションの意味や必須構造は設定で変更しない。
 - `Exports` は公開面を示し、`Imports` は依存を示す。互換期間だけ `Expose` / `Uses` も読める。
+- package / directory root の `Imports` / `Exports` は `index.md` ではなく、言語ごとの root module md に置く。Rust は package root を `lib.rs.md`、submodule root を `mod.rs.md`、TypeScript は `index.ts.md` などで表す。
 
 ## 責務分離
 
@@ -32,7 +33,8 @@
 - `mds init` は project 初期化、AI agent kit 生成、開発環境セットアップの入口を担う。
 - AI CLI template plugin は AI CLI 固有の instruction、skill、command、workflow、docs 生成差分を担い、任意コマンド実行は行わない。
 - package root に mds 用の `index.md` は置かず、package metadata は `Cargo.toml`、`package.json`、`pyproject.toml` などの実体 metadata を正とする。
-- source root の `overview.md` は source hierarchy と package 単位の設計、責務、公開面、ルールを説明する。
+- source root の `overview.md` は source hierarchy と package 単位の設計、責務、ルールを説明し、`Imports` / `Exports` は持たない。
+- package root module md は `Imports` / `Exports` だけを持てる metadata-only source md とし、`Source` section がない場合は生成コードを出さない。
 - implementation md は `Purpose`、`Contract`、`Types`、`Source`、`Cases`、`Test` を持ち、`Types`、`Source`、`Test` には生成元となる実コードを置く 1 機能の正本とする。
 
 ## Workspace 構成

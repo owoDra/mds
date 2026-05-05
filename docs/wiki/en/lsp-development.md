@@ -79,13 +79,11 @@ The workspace state defined in `state.rs` is the foundation for all capabilities
 ### Build
 
 ```bash
-cargo run -p mds-cli -- build --verbose
-./.github/script/sync-self-hosted-rust.sh
-cd .build/rust
-cargo build -p mds-lsp
+mds package sync
+mds build --verbose
 ```
 
-Release build:
+Release binary builds are the exception where Cargo is used directly:
 
 ```bash
 cargo build -p mds-lsp --release
@@ -95,18 +93,20 @@ cargo build -p mds-lsp --release
 
 ```bash
 # mds-lsp tests only
-cargo test -p mds-lsp
+mds test --package mds/lsp
 
-# All crate tests
-cargo test
+# Check generated package state first when changing Markdown sources
+mds build --package mds/lsp --verbose
 ```
 
 ### Code quality checks
 
 ```bash
-# Format check + Clippy + tests
-cargo fmt --check && cargo clippy -- -D warnings && cargo test
+# Lint + tests through mds package configuration
+mds lint --package mds/lsp && mds test --package mds/lsp
 ```
+
+For mds-managed packages under `mds/*`, use mds commands as the normal build, test, and lint entrypoints. Use Cargo directly only when bootstrapping a broken mds CLI, producing release binaries, or validating non-mds-managed Rust workspaces.
 
 ## Debugging
 

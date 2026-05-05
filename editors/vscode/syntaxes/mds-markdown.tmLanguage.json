@@ -29,7 +29,7 @@
   ],
   "repository": {
     "mds-section-heading": {
-      "match": "^(##)\\s+(Purpose|Contract|Types|Source|Cases|Test|Expose|Exposes|目的|契約|型定義|実装|ケース|テスト|公開|公開面)\\s*$",
+      "match": "^(##)\\s+(Purpose|Contract|Imports|Exports|Types|Source|Cases|Test|Expose|Exposes|目的|契約|依存|型定義|実装|ケース|テスト|公開|公開面)\\s*$",
       "captures": {
         "1": {
           "name": "punctuation.definition.heading.markdown.mds"
@@ -41,16 +41,16 @@
       "name": "markup.heading.2.mds"
     },
     "mds-subsection-heading": {
-      "match": "^(###)\\s+(Uses|使用)\\s*$",
+      "match": "^(#{5})\\s+(.+)\\s*$",
       "captures": {
         "1": {
           "name": "punctuation.definition.heading.markdown.mds"
         },
         "2": {
-          "name": "entity.name.section.uses.mds"
+          "name": "entity.name.section.shared-definition.mds"
         }
       },
-      "name": "markup.heading.3.mds"
+      "name": "markup.heading.5.mds"
     },
     "mds-table": {
       "begin": "^\\s*(\\|)",
@@ -71,7 +71,7 @@
           "name": "constant.language.use-from.mds"
         },
         {
-          "match": "\\b(From|Target|Expose|Summary|Name|Version|取得元|対象|公開|概要|名前|バージョン)\\b",
+          "match": "\\b(From|Target|Symbols|Via|Summary|Reference|Name|Visibility|Version|取得元|対象|識別子|経由|概要|参照|名前|公開範囲|バージョン)\\b",
           "name": "support.type.table-header.mds"
         },
         {

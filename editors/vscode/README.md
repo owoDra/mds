@@ -6,13 +6,14 @@ Language support for [mds](https://github.com/owo-x-project/owox-mds) implementa
 
 - **Syntax highlighting** for mds Markdown files with embedded code blocks
 - **Language Server** integration via `mds-lsp` for real-time diagnostics
+- **Markdown preview** commands for mds implementation Markdown files
 - **Snippets** for common mds section structures
-- **Code block detection** with proper embedded language support
+- **Code block detection** with embedded language support through stable virtual documents
+- **Authoring assistance** for `Imports`, `Exports`, H5 shared definitions, and quick fixes
 - **Any language** — automatically detects all `.{ext}.md` files in `src-md/` and `.mds/source/`, plus test docs under `.mds/test/`
 
 ## Requirements
 
-- VS Code 1.85+
 - Marketplace builds include the matching `mds-lsp` binary for the current platform
 - Optional: install `mds-lsp` separately only when using a custom `mds.lsp.path` or local development build
 

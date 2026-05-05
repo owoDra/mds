@@ -77,13 +77,11 @@ src-md/mds/lsp/
 ### ビルド
 
 ```bash
-cargo run -p mds-cli -- build --verbose
-./.github/script/sync-self-hosted-rust.sh
-cd .build/rust
-cargo build -p mds-lsp
+mds package sync
+mds build --verbose
 ```
 
-リリースビルド:
+リリース用バイナリ作成は Cargo を直接使う例外です:
 
 ```bash
 cargo build -p mds-lsp --release
@@ -93,18 +91,20 @@ cargo build -p mds-lsp --release
 
 ```bash
 # mds-lsp のテストのみ
-cargo test -p mds-lsp
+mds test --package mds/lsp
 
-# 全クレートのテスト
-cargo test
+# Markdown 正本を変えたときは生成状態も確認
+mds build --package mds/lsp --verbose
 ```
 
 ### コード品質チェック
 
 ```bash
-# フォーマットチェック + Clippy + テスト
-cargo fmt --check && cargo clippy -- -D warnings && cargo test
+# mds package 設定経由の lint + test
+mds lint --package mds/lsp && mds test --package mds/lsp
 ```
+
+`mds/*` 配下の mds 管理 package では、通常の build / test / lint 入口として Cargo を直接使わず mds command を使います。Cargo 直実行は、mds CLI が壊れている場合の bootstrap、release binary 作成、mds 管理外 Rust workspace の検証に限ります。
 
 ## デバッグ
 

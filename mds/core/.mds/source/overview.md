@@ -23,8 +23,9 @@ This package is authored under `mds/core/.mds/source/` and synchronized into pac
 
 ### Migrated Markdown Model Rules
 
-- `overview.md` explains package-level intent, `index.md` explains a directory boundary, implementation markdown explains one feature, and test markdown explains one verification unit.
-- `Expose`, `Exposes`, `Uses`, package dependency tables, and related metadata stay in canonical Markdown table shapes so humans and parsers read the same source.
+- `overview.md` explains package-level intent and hierarchy rules, implementation markdown explains one feature, root module markdown explains package or directory `Imports` / `Exports`, and test markdown explains one verification unit.
+- `index.md` is not an mds document concept; language-specific root module markdown such as `lib.rs.md`, `mod.rs.md`, or `index.ts.md` owns root import/export surface instead.
+- `Imports`, `Exports`, package dependency tables, and related metadata stay in canonical Markdown table shapes so humans and parsers read the same source.
 - Obsidian-readable authoring remains a constraint: headings, tables, and fenced code blocks stay standard Markdown first, and machine-only metadata stays subordinate to readable prose.
 
 ### Migrated Generation And Adapter Rules
@@ -99,15 +100,10 @@ This package is authored under `mds/core/.mds/source/` and synchronized into pac
 | Name | Version | Summary |
 | --- | --- | --- |
 
-## Exposes
-
-| Kind | Name | Target | Summary |
-| --- | --- | --- | --- |
-| module | mds-core | ../../.build/rust/mds-core | Generated Cargo package. |
-
 ## Rules
 
 - Keep package-level source design in this overview.
+- Keep package-level Imports / Exports in `lib.rs.md`.
 - Keep implementation code in `*.rs.md` files.
 - Do not edit generated files under `../src`, `../tests`, or `.build/rust/mds-core`.
 - Do not add new project-level spec documents for behavior already covered by this package overview or implementation markdown.

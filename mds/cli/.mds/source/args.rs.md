@@ -399,7 +399,7 @@ pub fn print_usage() {
     eprintln!("  mds lint [--package <path>] [--fix]       Run linters on code blocks");
     eprintln!("  mds test [--package <path>]               Run tests from code blocks");
     eprintln!("  mds doctor [--package <path>]             Diagnose environment");
-    eprintln!("  mds package sync [--package <path>]       Sync package index.md");
+    eprintln!("  mds package sync [--package <path>]       Sync package overview snapshot");
     eprintln!();
     eprintln!("Init options:");
     eprintln!("  --ai                      AI agent kit only (skip project files)");

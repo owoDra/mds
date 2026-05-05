@@ -14,12 +14,6 @@ curl -fsSL https://raw.githubusercontent.com/owo-x-project/owox-mds/latest/insta
 
 This downloads the matching release archive for your OS / architecture and installs both `mds` and `mds-lsp` to `~/.local/bin` by default.
 
-To pin a version, pass the release version without or with the leading `v`:
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/owo-x-project/owox-mds/latest/install.sh | sh -s -- --version 0.2.1-alpha
-```
-
 ### VSCode Extension
 
 Search for **"mds"** in the Marketplace, or install with the following command.

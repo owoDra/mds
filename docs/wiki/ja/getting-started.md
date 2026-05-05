@@ -12,12 +12,6 @@ curl -fsSL https://raw.githubusercontent.com/owo-x-project/owox-mds/latest/insta
 
 OS / architecture に合う release archive を取得し、既定では `mds` と `mds-lsp` が `~/.local/bin` にインストールされます。
 
-バージョンを固定する場合は、先頭の `v` あり / なしのどちらでも指定できます。
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/owo-x-project/owox-mds/latest/install.sh | sh -s -- --version 0.2.1-alpha
-```
-
 ### VSCode 拡張
 
 Marketplace で **"mds"** を検索するか、以下のコマンドでインストールできます。

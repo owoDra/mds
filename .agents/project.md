@@ -28,3 +28,8 @@ monorepo
 - Codex CLI
 - Opencode
 - GitHub Copilot CLI
+
+## Validation Policy
+- `mds/core`、`mds/cli`、`mds/lsp` など mds 管理 package の build / test / lint は mds command を入口にする。
+- 通常は `mds package sync`、`mds build`、`mds lint --package <package>`、`mds test --package <package>` を使う。
+- Cargo 直実行は mds CLI 起動不能時の bootstrap、release binary 作成、mds 管理外 Rust workspace 検証に限る。

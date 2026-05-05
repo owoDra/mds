@@ -12,7 +12,8 @@ Work with the mds (Markdown Source) system where Markdown is the single source o
 
 ```sh
 mds new <name.lang.md>  # Create new implementation markdown from template
-mds new overview.md        # Create new overview markdown for a directory
+mds new overview.md        # Create hierarchy overview markdown without Imports / Exports
+mds new index.ts.md        # Create language root module markdown for Imports / Exports
 mds lint               # Validate markdown structure
 mds build --dry-run     # Preview generation output
 mds build               # Generate code from markdown
@@ -27,12 +28,12 @@ mds test                # Run tests on generated outputs
 3. Record dependencies in Uses and write implementation-only code blocks
 4. Run `mds lint` → `mds build --dry-run` → `mds build`
 
-Always use `mds new` to scaffold new files. Example: `mds new greet.ts.md`, `mds new sub/overview.md`
+Always use `mds new` to scaffold new files. Example: `mds new greet.ts.md`, `mds new sub/overview.md`, `mds new index.ts.md`
 
 ## Format References
 
 - See `.mds/reference/overview.md` for source overview format
-- See `.mds/reference/index.md` for directory index format
+- See `.mds/reference/root-module.md` for package or directory root Imports / Exports format
 - See `.mds/reference/impl.md` for source implementation md format
 - See `.mds/reference/test.md` for test md format
 

@@ -270,6 +270,10 @@ interface CodeBlock {
   index: number;
 }
 
+interface EmbeddedDocumentProvider extends vscode.TextDocumentContentProvider {
+  refresh(uri: vscode.Uri): void;
+}
+
 function parseCodeBlocks(document: vscode.TextDocument): CodeBlock[] {
   const blocks: CodeBlock[] = [];
   const openRe = /^\s*```(\w+)(?:\s.*)?$/;
@@ -357,6 +361,8 @@ const shadowCache = new Map<
   { content: string; doc: vscode.TextDocument }
 >();
 
+let embeddedProvider: EmbeddedDocumentProvider | undefined;
+
 function shadowCacheKey(sourceUri: string, blockIndex: number): string {
   return `${sourceUri}#${blockIndex}`;
 }
@@ -379,15 +385,82 @@ async function getOrCreateShadowDoc(
   }
 
   try {
-    const doc = await vscode.workspace.openTextDocument({
-      language: block.languageId,
-      content,
-    });
+    const doc = await vscode.workspace.openTextDocument(embeddedBlockUri(document, block));
+    if (doc.languageId !== block.languageId) {
+      await vscode.languages.setTextDocumentLanguage(doc, block.languageId);
+    }
     shadowCache.set(key, { content, doc });
     return doc;
   } catch {
     return undefined;
   }
+}
+
+function embeddedBlockUri(
+  document: vscode.TextDocument,
+  block: CodeBlock
+): vscode.Uri {
+  const sourcePath = document.uri.path.replace(/\.md$/, '');
+  return vscode.Uri.from({
+    scheme: 'mds-embedded',
+    authority: document.uri.authority,
+    path: `${sourcePath}.block${block.index}${block.virtualExt}`,
+    query: new URLSearchParams({
+      source: document.uri.toString(),
+      block: block.index.toString(),
+      startLine: block.startLine.toString(),
+      endLine: block.endLine.toString(),
+    }).toString(),
+  });
+}
+
+function sourcePositionFromEmbedded(
+  block: CodeBlock,
+  position: vscode.Position
+): vscode.Position {
+  return new vscode.Position(position.line + block.startLine, position.character);
+}
+
+function sourceRangeFromEmbedded(
+  block: CodeBlock,
+  range: vscode.Range
+): vscode.Range {
+  return new vscode.Range(
+    sourcePositionFromEmbedded(block, range.start),
+    sourcePositionFromEmbedded(block, range.end)
+  );
+}
+
+function mapEmbeddedLocationToSource(
+  sourceDocument: vscode.TextDocument,
+  block: CodeBlock,
+  location: vscode.Location
+): vscode.Location {
+  const embeddedUri = embeddedBlockUri(sourceDocument, block).toString();
+  if (location.uri.toString() !== embeddedUri) {
+    return location;
+  }
+  return new vscode.Location(
+    sourceDocument.uri,
+    sourceRangeFromEmbedded(block, location.range)
+  );
+}
+
+function mapCompletionItemToSource(
+  block: CodeBlock,
+  item: vscode.CompletionItem
+): vscode.CompletionItem {
+  const textEdit = item.textEdit;
+  if (textEdit instanceof vscode.TextEdit) {
+    item.textEdit = new vscode.TextEdit(
+      sourceRangeFromEmbedded(block, textEdit.range),
+      textEdit.newText
+    );
+  }
+  item.additionalTextEdits = item.additionalTextEdits?.map(
+    (edit) => new vscode.TextEdit(sourceRangeFromEmbedded(block, edit.range), edit.newText)
+  );
+  return item;
 }
 
 /**
@@ -430,7 +503,13 @@ function registerEmbeddedLanguageProviders(
                 virtualPos,
                 context.triggerCharacter
               );
-            return result || undefined;
+            if (!result) {
+              return undefined;
+            }
+            result.items = result.items.map((item) =>
+              mapCompletionItemToSource(block, item)
+            );
+            return result;
           } catch {
             return undefined;
           }
@@ -504,7 +583,9 @@ function registerEmbeddedLanguageProviders(
               shadowDoc.uri,
               virtualPos
             );
-          return locations || undefined;
+          return locations?.map((location) =>
+            mapEmbeddedLocationToSource(document, block, location)
+          ) || undefined;
         } catch {
           return undefined;
         }
@@ -522,9 +603,13 @@ function registerVirtualDocumentProvider(
 ): void {
   const scheme = 'mds-embedded';
 
-  const provider = new (class implements vscode.TextDocumentContentProvider {
-    onDidChangeEmitter = new vscode.EventEmitter<vscode.Uri>();
-    onDidChange = this.onDidChangeEmitter.event;
+  embeddedProvider = new (class implements EmbeddedDocumentProvider {
+    private readonly onDidChangeEmitter = new vscode.EventEmitter<vscode.Uri>();
+    readonly onDidChange = this.onDidChangeEmitter.event;
+
+    refresh(uri: vscode.Uri): void {
+      this.onDidChangeEmitter.fire(uri);
+    }
 
     provideTextDocumentContent(uri: vscode.Uri): string {
       const params = new URLSearchParams(uri.query);
@@ -553,7 +638,26 @@ function registerVirtualDocumentProvider(
   })();
 
   context.subscriptions.push(
-    vscode.workspace.registerTextDocumentContentProvider(scheme, provider)
+    vscode.workspace.registerTextDocumentContentProvider(scheme, embeddedProvider)
+  );
+}
+
+function registerPreviewCommands(context: vscode.ExtensionContext): void {
+  async function preview(command: string, uri?: vscode.Uri): Promise<void> {
+    const target = uri || vscode.window.activeTextEditor?.document.uri;
+    if (!target) {
+      return;
+    }
+    await vscode.commands.executeCommand(command, target);
+  }
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand('mds.openPreview', (uri?: vscode.Uri) =>
+      preview('markdown.showPreview', uri)
+    ),
+    vscode.commands.registerCommand('mds.openPreviewToSide', (uri?: vscode.Uri) =>
+      preview('markdown.showPreviewToSide', uri)
+    )
   );
 }
 
@@ -661,6 +765,7 @@ export async function activate(context: vscode.ExtensionContext) {
   );
 
   // Register embedded language support
+  registerPreviewCommands(context);
   registerVirtualDocumentProvider(context);
   registerEmbeddedLanguageProviders(context);
 
@@ -672,6 +777,10 @@ export async function activate(context: vscode.ExtensionContext) {
       // Invalidate shadow docs for changed source
       for (const key of shadowCache.keys()) {
         if (key.startsWith(uriStr + '#')) {
+          const cached = shadowCache.get(key);
+          if (cached) {
+            embeddedProvider?.refresh(cached.doc.uri);
+          }
           shadowCache.delete(key);
         }
       }

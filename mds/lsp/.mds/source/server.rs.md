@@ -170,7 +170,17 @@ fn build_workspace_index(package: &mds_core::Package) -> WorkspaceIndex {
             .entry(stem.clone())
             .or_default()
             .push(path.clone());
-        file_exposes.entry(path.clone()).or_default().push(stem);
+        file_exposes.entry(path.clone()).or_default().push(stem.clone());
+
+        if let Ok(text) = std::fs::read_to_string(&path) {
+            for exposed in exported_names_from_text(&text) {
+                expose_index
+                    .entry(exposed.clone())
+                    .or_default()
+                    .push(path.clone());
+                file_exposes.entry(path.clone()).or_default().push(exposed);
+            }
+        }
 
         docs.insert(path, doc);
     }
@@ -180,6 +190,49 @@ fn build_workspace_index(package: &mds_core::Package) -> WorkspaceIndex {
         expose_index,
         file_exposes,
     }
+}
+
+````
+
+Extract public names from `Exports` tables and H5 shared definition sections.
+
+````rs
+fn exported_names_from_text(text: &str) -> Vec<String> {
+    let mut names = Vec::new();
+    let mut in_exports = false;
+
+    for line in text.lines() {
+        if let Some(title) = line.strip_prefix("## ") {
+            let title = title.trim();
+            in_exports = matches!(title, "Exports" | "Expose" | "Exposes" | "公開" | "公開面");
+            continue;
+        }
+
+        if let Some(title) = line.strip_prefix("##### ") {
+            let name = title.trim();
+            if !name.is_empty() {
+                names.push(name.to_string());
+            }
+            continue;
+        }
+
+        if in_exports && line.trim_start().starts_with('|') {
+            let cells: Vec<&str> = line.trim().trim_matches('|').split('|').map(str::trim).collect();
+            if let Some(name) = cells.first() {
+                if !name.is_empty()
+                    && *name != "Name"
+                    && *name != "名前"
+                    && !name.chars().all(|c| c == '-')
+                {
+                    names.push((*name).to_string());
+                }
+            }
+        }
+    }
+
+    names.sort();
+    names.dedup();
+    names
 }
 
 #[tower_lsp::async_trait]
@@ -469,5 +522,3 @@ impl LanguageServer for MdsLanguageServer {
     }
 }
 ````
-
-

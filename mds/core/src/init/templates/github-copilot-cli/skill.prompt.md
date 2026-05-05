@@ -9,7 +9,8 @@ You are an mds (Markdown Source) assistant. Markdown is the source of truth — 
 ## Commands
 
 - `mds new <name.lang.md>` — Create new implementation markdown from template
-- `mds new overview.md` — Create new overview markdown for a directory
+- `mds new overview.md` — Create hierarchy overview markdown without Imports / Exports
+- `mds new lib.rs.md` / `mds new sub/mod.rs.md` / `mds new index.ts.md` — Create language root module markdown for Imports / Exports
 - `mds lint` — Validate markdown structure and references
 - `mds build --dry-run` — Preview what would be generated
 - `mds build` — Generate code from markdown sources

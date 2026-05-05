@@ -82,6 +82,33 @@ pub fn document_symbols(text: &str) -> Vec<SymbolInformation> {
                     container_name: None,
                 });
             }
+        } else if let Some(title) = line.strip_prefix("##### ") {
+            let title = title.trim();
+            if !title.is_empty() {
+                #[allow(deprecated)]
+                symbols.push(SymbolInformation {
+                    name: title.to_string(),
+                    kind: SymbolKind::FUNCTION,
+                    tags: None,
+                    deprecated: None,
+                    location: Location {
+                        uri: Url::parse("file:///").unwrap_or_else(|_| {
+                            Url::parse("untitled:symbol").expect("fallback URI")
+                        }),
+                        range: Range {
+                            start: Position {
+                                line: idx as u32,
+                                character: 0,
+                            },
+                            end: Position {
+                                line: idx as u32,
+                                character: line.len() as u32,
+                            },
+                        },
+                    },
+                    container_name: Some("shared definitions".to_string()),
+                });
+            }
         }
     }
 
