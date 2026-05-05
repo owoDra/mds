@@ -18,7 +18,8 @@ This skill helps you work with the mds (Markdown Source) system. mds treats Mark
 
 ```sh
 mds new <name.lang.md>  # Create new implementation markdown from template
-mds new overview.md        # Create new overview markdown for a directory
+mds new overview.md        # Create hierarchy overview markdown without Imports / Exports
+mds new index.ts.md        # Create language root module markdown for Imports / Exports
 mds lint               # Validate markdown structure and references
 mds build --dry-run     # Preview what would be generated
 mds build               # Generate code from markdown sources
@@ -45,13 +46,14 @@ mds new greet.ts.md                    # New TypeScript feature
 mds new utils/helper.py.md             # New Python feature in subdirectory
 mds new parser.rs.md                   # New Rust feature
 mds new sub/overview.md                   # New source overview for subdirectory
+mds new sub/mod.rs.md                     # New Rust directory root Imports / Exports
 mds new greet.ts.md --package ./my-pkg # Specify target package
 ```
 
 ## Format References
 
 - See `.mds/reference/overview.md` for source overview format
-- See `.mds/reference/index.md` for directory index format
+- See `.mds/reference/root-module.md` for package or directory root Imports / Exports format
 - See `.mds/reference/impl.md` for source implementation md format
 - See `.mds/reference/test.md` for test md format
 

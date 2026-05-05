@@ -159,7 +159,10 @@ pub fn parse_impl_doc(
     let covers = covers_from_section(sections.get("Covers"));
 
     let code = extract_all_code_blocks(&text);
-    if package.config.check.code_blocks_required && code.trim().is_empty() {
+    if package.config.check.code_blocks_required
+        && code.trim().is_empty()
+        && !is_module_root_metadata_doc(path)
+    {
         state.diagnostics.push(Diagnostic::error(
             Some(path.to_path_buf()),
             "implementation md requires at least one code block",
@@ -189,6 +192,15 @@ pub fn parse_impl_doc(
         covers,
         normalized_input,
     })
+}
+````
+
+````rs
+fn is_module_root_metadata_doc(path: &Path) -> bool {
+    matches!(
+        path.file_name().and_then(|name| name.to_str()),
+        Some("lib.rs.md" | "mod.rs.md" | "index.ts.md" | "index.js.md" | "__init__.py.md")
+    )
 }
 ````
 
@@ -230,7 +242,7 @@ fn has_source_impl_docs(root: &Path) -> bool {
         matches!(path.extension().and_then(|ext| ext.to_str()), Some("md"))
             && !matches!(
                 path.file_name().and_then(|name| name.to_str()),
-                Some("overview.md" | "index.md")
+                Some("overview.md")
             )
     })
 }
@@ -505,7 +517,7 @@ fn render_imports_section(
     };
     let Some(rows) = parse_table_with_labels(
         section,
-        &["From", "Target", "Symbols", "Via", "Summary", "Reference"],
+        &["From", "Target", "Symbols", "Via", "Summary"],
         path,
         label_overrides,
         state,
@@ -968,5 +980,3 @@ fn should_validate_local_link(target: &str) -> bool {
     clean.ends_with(".md") || clean.contains('/')
 }
 ````
-
-

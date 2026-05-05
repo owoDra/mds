@@ -33,14 +33,9 @@ This package is authored under `mds/lsp/.mds/source/` and synchronized into pack
 | --- | --- | --- |
 | tempfile | 3 |  |
 
-## Exposes
-
-| Kind | Name | Target | Summary |
-| --- | --- | --- | --- |
-| module | mds-lsp | ../../.build/rust/mds-lsp | Generated Cargo package. |
-
 ## Rules
 
 - Keep package-level source design in this overview.
+- Keep package-level Imports / Exports in `lib.rs.md`.
 - Keep implementation code in `*.rs.md` files.
 - Do not edit generated files under `../src`, `../tests`, or `.build/rust/mds-lsp`.

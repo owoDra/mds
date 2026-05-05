@@ -15,12 +15,17 @@ import / export と shared definition を code block の暗黙構造から切り
 
 - implementation md の `Imports`
 - implementation md の `Exports`
+- package root module md / directory root module md の `Imports`
+- package root module md / directory root module md の `Exports`
 - H5 shared definition 見出し
 
 ## パターン
 
 - `## Imports` と `## Exports` を canonical H2 section とする。
 - 行単位の関係は Markdown table で表す。
+- `overview.md` には `Imports` / `Exports` を置かない。
+- package / directory root の公開面は、`index.md` ではなく言語別 root module md に置く。
+- root module md は `Source` section がなくてもよく、その場合は metadata-only source md として扱う。
 - shared definition は H5 見出しで表し、同一ファイル内外からリンク可能にする。
 - import-only code block は正規形にしない。
 - 使わない cell や section は削除せず `-` で skip する。

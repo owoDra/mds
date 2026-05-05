@@ -55,15 +55,10 @@ This package is authored under `mds/cli/.mds/source/` and synchronized into pack
 | Name | Version | Summary |
 | --- | --- | --- |
 
-## Exposes
-
-| Kind | Name | Target | Summary |
-| --- | --- | --- | --- |
-| module | mds-cli | ../../.build/rust/mds-cli | Generated Cargo package. |
-
 ## Rules
 
 - Keep package-level source design in this overview.
+- Keep package-level Imports / Exports in `lib.rs.md`.
 - Keep implementation code in `*.rs.md` files.
 - Do not edit generated files under `../src`, `../tests`, or `.build/rust/mds-cli`.
 - Do not add new docs/project spec documents for CLI behavior already described here.

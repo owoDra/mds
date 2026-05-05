@@ -92,7 +92,7 @@ pub fn validate_config_text(path: &Path, text: &str) -> Vec<lsp_types::Diagnosti
 
 ````
 
-Validate legacy package index text and return LSP diagnostics.
+Validate package overview text and return LSP diagnostics.
 
 ````rs
 #[allow(dead_code)]
@@ -111,7 +111,7 @@ pub fn validate_package_md_text(
         if !sections.contains_key(required) {
             state.diagnostics.push(mds_core::Diagnostic::error(
                 Some(path.to_path_buf()),
-                format!("index.md requires ## {required}"),
+                format!("package overview requires ## {required}"),
             ));
         }
     }
@@ -128,7 +128,7 @@ pub fn validate_package_md_text(
         {
             state.diagnostics.push(mds_core::Diagnostic::error(
                 Some(path.to_path_buf()),
-                "index.md Package section requires Name and Version table columns",
+                "package overview Package section requires Name and Version table columns",
             ));
         }
     }
@@ -191,5 +191,4 @@ fn validate_code_block_languages(
     }
 }
 ````
-
 

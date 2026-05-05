@@ -10,7 +10,7 @@ Markdown is the source of truth. Generated code must not be edited directly.
 ## Workflow
 
 - Use `mds new <name.lang.md>` to create new source markdown files in `.mds/source/` (never create them manually). Create matching test markdown in `.mds/test/` when behavior needs executable verification and add `Covers` for the source module id
-- Use `mds new overview.md` or `mds new sub/overview.md` to create new overview files under `.mds/source/` or `.mds/test/`, depending on whether you are documenting source or tests
+- Use `mds new overview.md` or `mds new sub/overview.md` for hierarchy overviews, and use language root module markdown such as `mds new lib.rs.md`, `mds new sub/mod.rs.md`, or `mds new index.ts.md` for package or directory Imports / Exports
 - Run `mds package sync` after package metadata changes
 - Run `mds lint` before any generation-sensitive changes
 - Run `mds build --dry-run` before writing generated outputs

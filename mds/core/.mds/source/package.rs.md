@@ -30,7 +30,6 @@ Migrated implementation source for `src/package.rs`.
 | internal | crate::markdown | validate_markdown_links | - | - | [markdown.rs.md#source](markdown.rs.md#source) |
 | internal | crate::model | Package | - | - | [model.rs.md#source](model.rs.md#source) |
 | internal | crate::model | PackageMetadata | - | - | [model.rs.md#source](model.rs.md#source) |
-| internal | crate::table | parse_table_with_labels | - | - | [table.rs.md#source](table.rs.md#source) |
 
 
 ## Source
@@ -646,7 +645,7 @@ pub fn rust_expose_modules(package: &Package, state: &mut RunState) -> Vec<Vec<S
     let Ok(files) = collect_files(&markdown_root, false) else {
         return Vec::new();
     };
-    let mut modules = Vec::new();
+    let modules = Vec::new();
     for path in files
         .into_iter()
         .filter(|path| !is_excluded(&package.root, path, &package.config.excludes))
@@ -656,32 +655,7 @@ pub fn rust_expose_modules(package: &Package, state: &mut RunState) -> Vec<Vec<S
             continue;
         };
         validate_markdown_links(&path, &text, state);
-        let sections = sections_with_labels(&text, &package.config.label_overrides);
-        let Some(exposes_section) = sections.get("Exposes") else {
-            continue;
-        };
-        let Some(rows) = parse_table_with_labels(
-            exposes_section,
-            &["Kind", "Name", "Target", "Summary"],
-            &path,
-            &package.config.label_overrides,
-            state,
-        ) else {
-            continue;
-        };
-        for row in rows {
-            let target = row.get("target").map(String::as_str).unwrap_or_default();
-            if target.is_empty() {
-                continue;
-            }
-            modules.push(
-                target
-                    .split('/')
-                    .filter(|part| !part.is_empty())
-                    .map(ToOwned::to_owned)
-                    .collect(),
-            );
-        }
+        validate_markdown_links(&path, &text, state);
     }
     modules
 }
@@ -712,29 +686,13 @@ pub fn validate_index_docs(package: &Package, state: &mut RunState) {
             }
         };
         let sections = sections_with_labels(&text, &package.config.label_overrides);
-        for required in ["Purpose", "Architecture", "Exposes", "Rules"] {
+        for required in ["Purpose", "Architecture", "Rules"] {
             if !sections.contains_key(required) {
                 state.diagnostics.push(Diagnostic::error(
                     Some(path.clone()),
                     format!("source overview requires ## {required}"),
                 ));
             }
-        }
-        if let Some(exposes_section) = sections.get("Exposes") {
-            let Some(rows) = parse_table_with_labels(
-                exposes_section,
-                &["Kind", "Name", "Target", "Summary"],
-                &path,
-                &package.config.label_overrides,
-                state,
-            ) else {
-                state.diagnostics.push(Diagnostic::error(
-                    Some(path.clone()),
-                    "source overview Exposes section requires Kind, Name, Target, and Summary table columns",
-                ));
-                continue;
-            };
-            validate_expose_rows(&rows, &path, state);
         }
     }
 }
@@ -775,5 +733,3 @@ pub fn validate_expose_rows(rows: &[HashMap<String, String>], path: &Path, state
     }
 }
 ````
-
-

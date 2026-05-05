@@ -18,7 +18,8 @@ Work with the mds (Markdown Source) system where Markdown is the single source o
 
 ```sh
 mds new <name.lang.md>  # Create new implementation markdown from template
-mds new overview.md        # Create new overview markdown for a directory
+mds new overview.md        # Create hierarchy overview markdown without Imports / Exports
+mds new index.ts.md        # Create language root module markdown for Imports / Exports
 mds lint               # Validate markdown structure
 mds build --dry-run     # Preview generation
 mds build               # Generate code

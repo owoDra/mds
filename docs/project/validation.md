@@ -19,7 +19,7 @@
 
 ## Markdown 正本構造
 
-- いつ行うか: package `index.md`、source `overview.md`、implementation md、`mds.config.toml` の仕様や parser を変更するとき。
+- いつ行うか: package root module md、source `overview.md`、implementation md、`mds.config.toml` の仕様や parser を変更するとき。
 - 何で検証するか: Markdown fixture、構造検査、手元の代表サンプルを使う。
 - 期待する結果: 必須セクション、`Expose`、`Uses`、`Cases`、`Types` / `Source` / `Test` の分離が仕様どおり扱われ、`Types` / `Source` / `Test` の実コードが正本として処理される。default validator では code fence 整合、duplicate H2、Markdown link、import 混在、doc comment / docstring、top-level 実装の fence 分離も確認する。
 - 問題があった際にどうするか: 例外的な入力を暗黙許容せず、仕様化するか明確に reject する。

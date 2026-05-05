@@ -17,11 +17,12 @@ self-hosted 移行では特に次の問題が目立った。
 
 - package root に `mds.config.toml` がある場合、Markdown 正本 root は `.mds/source/` と `.mds/test/` を固定で解決する。
 - 現行の `roots.markdown` による任意 directory 指定は廃止し、doc kind と root の関係を convention で固定する。
-- `.mds/source/overview.md` は source rule と dependency snapshot、`.mds/test/overview.md` は test rule を担う。
+- `.mds/source/overview.md` は source rule と dependency snapshot、`.mds/test/overview.md` は test rule を担う。`overview.md` には `Imports` / `Exports` を置かない。
+- package / directory root の `Imports` / `Exports` は `index.md` ではなく、Rust の `lib.rs.md` / `mod.rs.md`、TypeScript の `index.ts.md` など言語別 root module md に置く。
 
 2. implementation md と test md を完全分離する。
 
-- `.mds/source/**/*.md` は source implementation md とし、`Purpose`、`Contract`、`Expose`、`Uses`、`Types`、`Source`、`Cases` を扱う。
+- `.mds/source/**/*.md` は source implementation md とし、`Purpose`、`Contract`、`Expose`、`Uses`、`Types`、`Source`、`Cases` を扱う。root module md は `Source` section なしの metadata-only source md として、`Imports` / `Exports` だけを持てる。
 - `.mds/test/**/*.md` は test md とし、`Purpose`、`Covers`、`Uses`、`Cases`、`Test` を扱う。
 - `.mds/source` 側に `Test` code block を置くこと、`.mds/test` 側に `Source` / `Types` code block を置くことを禁止する。
 - source と test は file 名の一致ではなく、論理 module id と `Covers` 参照で結び付ける。
@@ -80,6 +81,7 @@ self-hosted 移行では特に次の問題が目立った。
 - test md の canonical section は `Covers` を新設する。
 - generated test root の canonical は authoring model では固定せず、language descriptor が言語ごとに定義する。
 - dependency snapshot managed section の唯一の writer は `mds package sync` とする。
+- `overview.md` は `Imports` / `Exports` を持たず、package / directory root の import / export surface は言語別 root module md に置く。
 - dependency snapshot が stale な場合、`mds lint` と `mds build` はともに error で止める。
 - package manager post hook の既定 command は `mds package sync` とする。
 - language descriptor の継承は明示的な `extends` を使う。

@@ -10,9 +10,9 @@
 | 正本 | 人間と AI エージェントが参照する一次情報。mds では実コードを含む `.md` を正本とする。 |
 | 生成コード | `.md` 内の `Types`、`Source`、`Test` などのコードブロックとメタ情報から生成される `.ts`、`.py`、`.rs` などの派生物。 |
 | language adapter | 言語ごとの import 生成、lint、lint --fix、test runner 接続、出力規則を担う部品。 |
-| `index.md` | package root の package metadata、overview、architecture、navigation を担当する文書。 |
-| `overview.md` | `src-md/` など source root の overview、architecture、navigation を担当する文書。 |
+| package root module md | package / directory root の `Imports`、`Exports` を担当する言語別 Markdown。Rust は `lib.rs.md` / `mod.rs.md`、TypeScript は `index.ts.md` などを使う。 |
+| `overview.md` | `.mds/source` / `.mds/test` の overview、architecture、navigation、ルールを担当する文書。`Imports` / `Exports` は置かない。 |
 | implementation md | 1 機能 1 実装を表す `*.{lang-ext}.md` 形式の文書。設計説明だけでなく、実装レベルの `Types`、`Source`、`Test` コードを含む。 |
-| Exports | 実装 md または index が公開面を表すための表形式メタ情報。互換期間だけ Expose も読める。 |
+| Exports | implementation md または package root module md が公開面を表すための表形式メタ情報。互換期間だけ Expose も読める。 |
 | Imports | `Types`、`Source`、`Test` ごとの依存を表す表形式メタ情報。互換期間だけ Uses も読める。 |
 | Cases | 人間と AI 向けに期待結果を要約する実装 md セクション。 |
