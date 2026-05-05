@@ -8,6 +8,7 @@ PACKAGE_DIR="$BUILD_DIR/package"
 PRE_RELEASE=false
 TARGET=""
 LSP_BINARY=""
+PACKAGE_VERSION=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -31,6 +32,14 @@ while [[ $# -gt 0 ]]; do
       fi
       shift 2
       ;;
+    --version)
+      PACKAGE_VERSION="${2:-}"
+      if [[ -z "$PACKAGE_VERSION" ]]; then
+        echo "--version requires a value" >&2
+        exit 1
+      fi
+      shift 2
+      ;;
     *) echo "unknown flag: $1" >&2; exit 1 ;;
   esac
 done
@@ -41,7 +50,7 @@ mkdir -p "$PACKAGE_DIR" "$BUILD_DIR"
 (cd "$SOURCE_DIR" && npm run compile)
 
 cp "$SOURCE_DIR/package.json" "$PACKAGE_DIR/package.json"
-node -e "const fs=require('fs'); const p='${PACKAGE_DIR}/package.json'; const pkg=require(p); if (pkg.scripts) delete pkg.scripts.vscode_prepublish; if (pkg.scripts) delete pkg.scripts['vscode:prepublish']; pkg.version = String(pkg.version).split(/[+-]/)[0]; fs.writeFileSync(p, JSON.stringify(pkg, null, 2) + '\n');"
+PACKAGE_VERSION="$PACKAGE_VERSION" node -e "const fs=require('fs'); const p='${PACKAGE_DIR}/package.json'; const explicitVersion=process.env.PACKAGE_VERSION; const pkg=require(p); if (pkg.scripts) delete pkg.scripts.vscode_prepublish; if (pkg.scripts) delete pkg.scripts['vscode:prepublish']; pkg.version = String(explicitVersion || pkg.version).replace(/^v/, '').split(/[+-]/)[0]; fs.writeFileSync(p, JSON.stringify(pkg, null, 2) + '\n');"
 cp "$SOURCE_DIR/README.md" "$PACKAGE_DIR/README.md"
 cp "$SOURCE_DIR/CHANGELOG.md" "$PACKAGE_DIR/CHANGELOG.md"
 cp "$SOURCE_DIR/LICENSE" "$PACKAGE_DIR/LICENSE"

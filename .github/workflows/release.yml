@@ -148,6 +148,13 @@ jobs:
         shell: bash
         run: |
           args=(--target "${{ matrix.vscode_target }}" --lsp-binary "lsp-bin/${{ matrix.lsp_binary }}")
+          version="${GITHUB_REF_NAME:-}"
+          if [[ "$version" == v* ]]; then
+            version="${version#v}"
+            version="${version%%+*}"
+            version="${version%%-*}"
+            args+=(--version "$version")
+          fi
           if [[ "${{ contains(github.ref_name, '-') || startsWith(github.ref_name, 'v0.') }}" == "true" ]]; then
             args+=(--pre-release)
           fi
