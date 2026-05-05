@@ -53,7 +53,7 @@ pub fn parse_table_with_labels(
             continue;
         }
         for header in &canonical {
-            if !required_canonical.contains(header) {
+            if !required_canonical.contains(header) && header != "reference" {
                 state.diagnostics.push(Diagnostic::warning(
                     Some(path.to_path_buf()),
                     format!("ignoring unsupported table column `{header}`"),

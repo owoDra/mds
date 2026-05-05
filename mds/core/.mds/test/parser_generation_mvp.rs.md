@@ -1372,6 +1372,7 @@ fn init_ai_plan_does_not_write_without_yes() {
 #[test]
 fn init_generates_selected_ai_agent_kit_and_project_skeleton() {
     let temp = TestDir::new();
+    write_init_package_metadata(temp.path());
     let result = execute(CliRequest {
         cwd: temp.path().to_path_buf(),
         package: None,
@@ -1389,6 +1390,7 @@ fn init_generates_selected_ai_agent_kit_and_project_skeleton() {
     assert!(temp.path().join("mds.config.toml").exists());
     assert!(!temp.path().join("index.md").exists());
     assert!(temp.path().join(".mds/source/overview.md").exists());
+    assert!(temp.path().join(".mds/source/index.ts.md").exists());
     assert!(temp.path().join(".mds/test/overview.md").exists());
     assert!(temp.path().join(".claude/rules/mds.md").exists());
     assert!(!temp.path().join(".claude/commands/mds-check.md").exists());
@@ -1404,6 +1406,12 @@ fn init_generates_selected_ai_agent_kit_and_project_skeleton() {
     assert!(config.contains("linter = \"eslint\""));
     assert!(config.contains("fixer = \"prettier --write\""));
     assert!(config.contains("test_runner = \"vitest run\""));
+    let overview = fs::read_to_string(temp.path().join(".mds/source/overview.md")).unwrap();
+    assert!(!overview.contains("## Exposes"));
+    let root_module = fs::read_to_string(temp.path().join(".mds/source/index.ts.md")).unwrap();
+    assert!(root_module.contains("## Exports"));
+    assert!(root_module.contains("## Imports"));
+    assert!(!root_module.contains("## Source"));
 }
 ````
 
@@ -1411,6 +1419,7 @@ fn init_generates_selected_ai_agent_kit_and_project_skeleton() {
 #[test]
 fn init_writes_selected_quality_tool_config() {
     let temp = TestDir::new();
+    write_init_package_metadata(temp.path());
     let result = execute(CliRequest {
         cwd: temp.path().to_path_buf(),
         package: None,
@@ -1450,6 +1459,7 @@ fn init_writes_selected_quality_tool_config() {
 #[test]
 fn init_writes_custom_quality_commands() {
     let temp = TestDir::new();
+    write_init_package_metadata(temp.path());
     let result = execute(CliRequest {
         cwd: temp.path().to_path_buf(),
         package: None,
@@ -1481,6 +1491,7 @@ fn init_writes_custom_quality_commands() {
 #[test]
 fn init_generates_ai_categories_per_target() {
     let temp = TestDir::new();
+    write_init_package_metadata(temp.path());
     let result = execute(CliRequest {
         cwd: temp.path().to_path_buf(),
         package: None,
@@ -1516,6 +1527,7 @@ fn init_generates_ai_categories_per_target() {
 #[test]
 fn init_can_disable_language_quality_tools() {
     let temp = TestDir::new();
+    write_init_package_metadata(temp.path());
     let result = execute(CliRequest {
         cwd: temp.path().to_path_buf(),
         package: None,
@@ -1550,6 +1562,7 @@ fn init_can_disable_language_quality_tools() {
 #[test]
 fn init_setup_plan_uses_selected_quality_tools() {
     let temp = TestDir::new();
+    write_init_package_metadata(temp.path());
     let result = execute(CliRequest {
         cwd: temp.path().to_path_buf(),
         package: None,
@@ -1610,6 +1623,7 @@ fn init_refuses_nonmanaged_overwrite_without_force() {
 #[test]
 fn init_reports_setup_partial_failures() {
     let temp = TestDir::new();
+    write_init_package_metadata(temp.path());
     let result = execute(CliRequest {
         cwd: temp.path().to_path_buf(),
         package: None,
@@ -1653,6 +1667,35 @@ fn new_creates_source_doc_under_fixed_authoring_root() {
     assert_eq!(result.exit_code, 0, "{}", result.stderr);
     assert!(temp.path().join(".mds/source/greet.ts.md").exists());
     assert!(!temp.path().join("src-md/greet.ts.md").exists());
+}
+````
+
+````rs
+#[test]
+fn new_creates_metadata_only_root_module_doc() {
+    let temp = TestDir::new();
+    fs::write(
+        temp.path().join("mds.config.toml"),
+        "[package]\nenabled = true\nallow_raw_source = false\n",
+    )
+    .unwrap();
+
+    let result = execute(CliRequest {
+        cwd: temp.path().to_path_buf(),
+        package: None,
+        verbose: false,
+        command: Command::New {
+            options: mds_core::NewOptions {
+                name: "index.ts.md".to_string(),
+                force: false,
+            },
+        },
+    });
+    assert_eq!(result.exit_code, 0, "{}", result.stderr);
+    let content = fs::read_to_string(temp.path().join(".mds/source/index.ts.md")).unwrap();
+    assert!(content.contains("## Exports"));
+    assert!(content.contains("## Imports"));
+    assert!(!content.contains("## Source"));
 }
 ````
 
@@ -2101,6 +2144,16 @@ impl Drop for TestDir {
 ````
 
 ````rs
+fn write_init_package_metadata(root: &Path) {
+    fs::write(
+        root.join("package.json"),
+        "{\n  \"name\": \"init-fixture\",\n  \"version\": \"0.1.0\"\n}\n",
+    )
+    .unwrap();
+}
+````
+
+````rs
 fn write_fixture(root: &Path) {
     let package = root.join("pkg");
     fs::create_dir_all(package.join("src-md/foo")).unwrap();
@@ -2198,5 +2251,3 @@ fn impl_doc(
     )
 }
 ````
-
-
