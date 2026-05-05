@@ -50,7 +50,7 @@ mkdir -p "$PACKAGE_DIR" "$BUILD_DIR"
 (cd "$SOURCE_DIR" && npm run compile)
 
 cp "$SOURCE_DIR/package.json" "$PACKAGE_DIR/package.json"
-PACKAGE_VERSION="$PACKAGE_VERSION" node -e "const fs=require('fs'); const p='${PACKAGE_DIR}/package.json'; const explicitVersion=process.env.PACKAGE_VERSION; const pkg=require(p); if (pkg.scripts) delete pkg.scripts.vscode_prepublish; if (pkg.scripts) delete pkg.scripts['vscode:prepublish']; pkg.version = String(explicitVersion || pkg.version).replace(/^v/, '').split(/[+-]/)[0]; fs.writeFileSync(p, JSON.stringify(pkg, null, 2) + '\n');"
+PACKAGE_VERSION="$PACKAGE_VERSION" node -e "const fs=require('fs'); const p='${PACKAGE_DIR}/package.json'; const explicitVersion=process.env.PACKAGE_VERSION; const pkg=require(p); if (pkg.scripts) delete pkg.scripts.vscode_prepublish; if (pkg.scripts) delete pkg.scripts['vscode:prepublish']; const rawVersion=String(explicitVersion || pkg.version).replace(/^v/, ''); const versionMatch=rawVersion.match(/^(\d+\.\d+\.\d+)/); if (!versionMatch) { throw new Error('Invalid VS Code extension version source: ' + rawVersion); } pkg.version = versionMatch[1]; fs.writeFileSync(p, JSON.stringify(pkg, null, 2) + '\n');"
 cp "$SOURCE_DIR/README.md" "$PACKAGE_DIR/README.md"
 cp "$SOURCE_DIR/CHANGELOG.md" "$PACKAGE_DIR/CHANGELOG.md"
 cp "$SOURCE_DIR/LICENSE" "$PACKAGE_DIR/LICENSE"
