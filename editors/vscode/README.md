@@ -14,7 +14,6 @@ Language support for [mds](https://github.com/owo-x-project/owox-mds) implementa
 
 ## Requirements
 
-- VS Code 1.85+
 - Marketplace builds include the matching `mds-lsp` binary for the current platform
 - Optional: install `mds-lsp` separately only when using a custom `mds.lsp.path` or local development build
 
