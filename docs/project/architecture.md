@@ -12,7 +12,7 @@
 
 ## 不変条件
 
-- `.md` が設計書兼ソースの正本であり、implementation md には実装レベルのコードを含め、生成コードはその派生物とする。
+- `.md` が設計書兼ソースの正本であり、source md は設計だけの spec state から実装コードを含む impl state へ移行でき、生成コードは impl state の `Types` / `Source` / `Test` から派生する。
 - mds は設計説明から AI にコードを書かせる仕組みではなく、Markdown 内のコードブロックとメタ情報を generator / language adapter が処理する仕組みとする。
 - mds 自身の package 編集入口は各 package の `.mds/source/` と `.mds/test/` とし、`.build/` は生成物置き場として Git 管理しない。
 - 1 つの implementation md は 1 機能だけを扱う。
@@ -21,6 +21,7 @@
 - `mds.config.toml` の `[check]` は validator の有効 / 無効を切り替えられるが、正本の意味や canonical 構造は変更しない。
 - 設定ファイルは `mds.config.toml` 固定とし、セクションの意味や必須構造は設定で変更しない。
 - `Exports` は公開面を示し、`Imports` は依存を示す。互換期間だけ `Expose` / `Uses` も読める。
+- 他ファイルから参照される公開定義は `Exports` の table row だけでなく H5 shared definition と説明文を持ち、Markdown 上で直接リンクできる。
 - package / directory root の `Imports` / `Exports` は `index.md` ではなく、言語ごとの root module md に置く。Rust は package root を `lib.rs.md`、submodule root を `mod.rs.md`、TypeScript は `index.ts.md` などで表す。
 - 言語、framework、quality tool、package manager、AI kit target ごとの分岐はコードへハードコードせず、descriptor TOML または template manifest の自動検知結果を唯一の定義情報として処理する。
 - parser、generator、LSP、AI kit 生成は built-in / workspace descriptor と template subdirectory を registry として自動検知し、`.mds` file 判定、code fence 補完、import / export 生成、skill / command / instruction 生成を個別言語分岐なしで行う。
@@ -37,9 +38,9 @@
 - AI CLI template plugin は AI CLI 固有の instruction、skill、command、workflow、docs 生成差分を担い、任意コマンド実行は行わない。
 - AI CLI template plugin は `src/init/templates/<target>/manifest.toml` と template file を自動検知して生成対象を決め、target 名や出力 path の分岐を実装コードへ固定しない。
 - package root に mds 用の `index.md` は置かず、package metadata は `Cargo.toml`、`package.json`、`pyproject.toml` などの実体 metadata を正とする。
-- source root の `overview.md` は source hierarchy と package 単位の設計、責務、ルールを説明し、`Imports` / `Exports` は持たない。
+- source root の `overview.md` は source hierarchy と package 単位の設計、責務、ルールを説明し、`Imports` / `Exports` や overview 専用の surface section は持たない。公開面の正本は package / directory root module md または source md の `Exports` に置く。
 - package root module md は `Imports` / `Exports` だけを持てる metadata-only source md とし、`Source` section がない場合は生成コードを出さない。
-- implementation md は `Purpose`、`Contract`、`Types`、`Source`、`Cases`、`Test` を持ち、`Types`、`Source`、`Test` には生成元となる実コードを置く 1 機能の正本とする。
+- source md は `Purpose`、`Contract`、`Exports`、`Imports`、`Cases` を持ち、`Source` / `Types` の生成対象コードがない間は spec state として設計・仕様を表す。`Source` / `Types` に生成元コードが入ると impl state となり、1 機能の実装正本として扱う。
 
 ## Workspace 構成
 

@@ -27,6 +27,8 @@ import / export と shared definition を code block の暗黙構造から切り
 - package / directory root の公開面は、`index.md` ではなく言語別 root module md に置く。
 - root module md は `Source` section がなくてもよく、その場合は metadata-only source md として扱う。
 - shared definition は H5 見出しで表し、同一ファイル内外からリンク可能にする。
+- `Exports` の `Summary` は公開定義の読解入口として必須にし、空欄や `-` で省略しない。
+- `Imports.Reference` から参照される internal 定義は、参照先に H5 shared definition と説明文を必ず置く。
 - import-only code block は正規形にしない。
 - 使わない cell や section は削除せず `-` で skip する。
 - `From = internal` の row は target に definition 箇所への Markdown link を置き、必要なら section fragment まで指定する。
@@ -40,7 +42,7 @@ import / export と shared definition を code block の暗黙構造から切り
 
 - import statement は descriptor-based renderer が `From`、`Target`、`Symbols`、`Via` から復元する。
 - `Reference` は `internal` と参照可能な `external` dependency に付け、定義元の Markdown location を示す。
-- 他モジュールや他 package から参照される主要な class / type / function は H5 shared definition 見出しと説明を置いて強調する。
+- 他モジュールや他 package から参照される主要な class / type / function は H5 shared definition 見出しと説明を置いて強調する。overview 専用の surface section は設けず、公開面は root module md または source md の `Exports` に集約する。
 
 ## 根拠
 

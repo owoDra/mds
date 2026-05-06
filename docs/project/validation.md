@@ -22,6 +22,7 @@
 - いつ行うか: package root module md、source `overview.md`、implementation md、`mds.config.toml` の仕様や parser を変更するとき。
 - 何で検証するか: Markdown fixture、構造検査、手元の代表サンプルを使う。
 - 期待する結果: 必須セクション、`Expose`、`Uses`、`Cases`、`Types` / `Source` / `Test` の分離が仕様どおり扱われ、`Types` / `Source` / `Test` の実コードが正本として処理される。default validator では code fence 整合、duplicate H2、Markdown link、import 混在、doc comment / docstring、top-level 実装の fence 分離も確認する。
+- 期待する結果: source md の spec state / impl state が内容ベースで判定され、spec state は生成対象コードなしでも設計正本として受理され、impl state は生成対象コードと documentation section を持つ。`Exports.Summary`、参照される H5 shared definition、H5 直下の説明文も検査される。
 - 問題があった際にどうするか: 例外的な入力を暗黙許容せず、仕様化するか明確に reject する。
 
 ## 生成コード整合性
