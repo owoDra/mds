@@ -19,6 +19,7 @@ Migrated implementation source for `src/generation.rs`.
 | internal | crate::adapter | output_relative_path | - | - | [adapter.rs.md#source](adapter.rs.md#source) |
 | internal | crate::descriptor | output_root | - | - | [descriptor.rs.md#source](descriptor.rs.md#source) |
 | internal | crate::descriptor | OutputRoot | - | - | [descriptor.rs.md#source](descriptor.rs.md#source) |
+| internal | crate::descriptor | lang_for_markdown_path | - | - | [descriptor.rs.md#source](descriptor.rs.md#source) |
 | internal | crate::diagnostics | Diagnostic | - | - | [diagnostics.rs.md#source](diagnostics.rs.md#source) |
 | internal | crate::diagnostics | RunState | - | - | [diagnostics.rs.md#source](diagnostics.rs.md#source) |
 | internal | crate::fs_utils | collect_files | - | - | [fs_utils.rs.md#source](fs_utils.rs.md#source) |
@@ -32,7 +33,6 @@ Migrated implementation source for `src/generation.rs`.
 | internal | crate::model | GeneratedFile | - | - | [model.rs.md#source](model.rs.md#source) |
 | internal | crate::model | GeneratedKind | - | - | [model.rs.md#source](model.rs.md#source) |
 | internal | crate::model | ImplDoc | - | - | [model.rs.md#source](model.rs.md#source) |
-| internal | crate::model | Lang | - | - | [model.rs.md#source](model.rs.md#source) |
 | internal | crate::model | OutputKind | - | - | [model.rs.md#source](model.rs.md#source) |
 | internal | crate::model | Package | - | - | [model.rs.md#source](model.rs.md#source) |
 
@@ -116,7 +116,7 @@ fn plan_source_assets(package: &Package, state: &mut RunState) -> Vec<GeneratedF
             continue;
         }
         if path.extension() == Some(OsStr::new("md"))
-            && Lang::from_path(&path).is_some()
+            && lang_for_markdown_path(&path).is_some()
             && !is_template_asset_markdown(relative)
         {
             continue;
@@ -226,4 +226,3 @@ pub(crate) fn plan_output(
     })
 }
 ````
-

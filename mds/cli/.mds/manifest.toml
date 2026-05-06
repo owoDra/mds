@@ -28,11 +28,11 @@ hash = "2cbdc637a3a4c6b4f9908617ff90662f8991ef605f625361c3d5f2edfd6675d1"
 [[sources]]
 path = ".mds/source/wizard.rs.md"
 adapter = "rs"
-hash = "02417d183f44d6beb74651c145b4b715df9afe5f7ce710150cfd7f35d55e1adb"
+hash = "6f5ce7767c63925507898dcc5519faa7604338a82f10554d8e6301ef917dbc3c"
 [[sources.outputs]]
 kind = "source"
 path = "src/wizard.rs"
-hash = "b94e7542acd18def21ae94d2dc480df6fbcde9248057d6a68b42772ecc28fee6"
+hash = "17630280ad6e6a8bac738165b0f335fea464da89f1115a5c2170be5d7a20c46e"
 
 [[sources]]
 path = ".mds/test/args.rs.md"

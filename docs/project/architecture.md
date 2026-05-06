@@ -22,6 +22,8 @@
 - 設定ファイルは `mds.config.toml` 固定とし、セクションの意味や必須構造は設定で変更しない。
 - `Exports` は公開面を示し、`Imports` は依存を示す。互換期間だけ `Expose` / `Uses` も読める。
 - package / directory root の `Imports` / `Exports` は `index.md` ではなく、言語ごとの root module md に置く。Rust は package root を `lib.rs.md`、submodule root を `mod.rs.md`、TypeScript は `index.ts.md` などで表す。
+- 言語、framework、quality tool、package manager、AI kit target ごとの分岐はコードへハードコードせず、descriptor TOML または template manifest の自動検知結果を唯一の定義情報として処理する。
+- parser、generator、LSP、AI kit 生成は built-in / workspace descriptor と template subdirectory を registry として自動検知し、`.mds` file 判定、code fence 補完、import / export 生成、skill / command / instruction 生成を個別言語分岐なしで行う。
 
 ## 責務分離
 
@@ -29,9 +31,11 @@
 - Rust core は言語横断の中核処理を担う。
 - CLI は native binary として mds の各コマンドを提供する。
 - language adapter は言語固有の import 生成、lint、lint --fix、test runner 接続、ファイル名規約、出力規則を担う。
+- language adapter の言語固有差分は descriptor TOML の定義として表し、core / LSP / AI kit generator は descriptor ID や拡張子ごとの `match` 分岐を持たない。
 - npm wrapper は native CLI の配布と起動だけを担い、Markdown model や core の意味体系を変更しない。
 - `mds init` は project 初期化、AI agent kit 生成、開発環境セットアップの入口を担う。
 - AI CLI template plugin は AI CLI 固有の instruction、skill、command、workflow、docs 生成差分を担い、任意コマンド実行は行わない。
+- AI CLI template plugin は `src/init/templates/<target>/manifest.toml` と template file を自動検知して生成対象を決め、target 名や出力 path の分岐を実装コードへ固定しない。
 - package root に mds 用の `index.md` は置かず、package metadata は `Cargo.toml`、`package.json`、`pyproject.toml` などの実体 metadata を正とする。
 - source root の `overview.md` は source hierarchy と package 単位の設計、責務、ルールを説明し、`Imports` / `Exports` は持たない。
 - package root module md は `Imports` / `Exports` だけを持てる metadata-only source md とし、`Source` section がない場合は生成コードを出さない。

@@ -473,6 +473,7 @@ impl Descriptor {
         self.tool_profiles.lint.get(key)
     }
 
+    #[allow(dead_code)]
     pub fn typecheck_profile(&self, key: &str) -> Option<&ToolProfile> {
         self.tool_profiles.typecheck.get(key)
     }
@@ -483,6 +484,22 @@ impl Descriptor {
 
     pub fn test_profile(&self, key: &str) -> Option<&ToolProfile> {
         self.tool_profiles.test.get(key)
+    }
+
+    pub fn lint_profile_for_command(&self, command: &str) -> Option<&ToolProfile> {
+        profile_for_command(&self.tool_profiles.lint, command)
+    }
+
+    pub fn typecheck_profile_for_command(&self, command: &str) -> Option<&ToolProfile> {
+        profile_for_command(&self.tool_profiles.typecheck, command)
+    }
+
+    pub fn fix_profile_for_command(&self, command: &str) -> Option<&ToolProfile> {
+        profile_for_command(&self.tool_profiles.fix, command)
+    }
+
+    pub fn test_profile_for_command(&self, command: &str) -> Option<&ToolProfile> {
+        profile_for_command(&self.tool_profiles.test, command)
     }
 
     fn all_match_suffixes(&self) -> Vec<&str> {
@@ -501,6 +518,15 @@ impl LinePattern {
         line.starts_with(&self.starts_with)
             && self.contains.iter().all(|needle| line.contains(needle))
     }
+}
+````
+
+````rs
+fn profile_for_command<'a>(
+    profiles: &'a HashMap<String, ToolProfile>,
+    command: &str,
+) -> Option<&'a ToolProfile> {
+    profiles.values().find(|profile| profile.command == command)
 }
 ````
 
@@ -791,13 +817,7 @@ impl PackageManagerManifest {
     }
 
     pub fn resolved_lang(&self) -> Lang {
-        match self.lang.as_str() {
-            "ts" | "typescript" => Lang::TypeScript,
-            "py" | "python" => Lang::Python,
-            "rs" | "rust" => Lang::Rust,
-            other if !other.is_empty() => Lang::Other(other.to_string()),
-            _ => Lang::TypeScript,
-        }
+        Lang::Other(self.lang.clone())
     }
 
     pub fn command(&self, kind: &str) -> Option<&str> {
@@ -876,6 +896,69 @@ pub(crate) fn builtin_descriptor(lang: &Lang) -> Descriptor {
 ````rs
 pub(crate) fn descriptor_for_key(key: &str) -> Option<Descriptor> {
     registry().descriptor_for_key(key).cloned()
+}
+````
+
+````rs
+pub(crate) fn builtin_language_descriptors() -> Vec<Descriptor> {
+    let mut descriptors: Vec<Descriptor> = descriptor_registry::BUILTIN_DESCRIPTORS
+        .iter()
+        .map(|entry| toml::from_str(entry.content).expect("built-in descriptor must parse"))
+        .collect();
+    descriptors.sort_by(|left, right| left.id.cmp(&right.id));
+    descriptors
+}
+````
+
+````rs
+pub fn lang_for_markdown_path(path: &Path) -> Option<Lang> {
+    let name = path.file_name()?.to_string_lossy();
+    let descriptor = descriptor_for_markdown_name(&name)?;
+    Some(Lang::Other(descriptor.id))
+}
+````
+
+````rs
+pub fn markdown_suffix_for_lang(lang: &Lang) -> Option<String> {
+    let descriptor = descriptor_for_key(lang.key())?;
+    descriptor
+        .match_suffixes
+        .first()
+        .cloned()
+        .or(Some(descriptor.language.primary_ext))
+        .map(|suffix| format!(".{suffix}.md"))
+}
+````
+
+````rs
+pub fn fence_labels_for_lang(lang: &Lang) -> Vec<String> {
+    let Some(descriptor) = descriptor_for_key(lang.key()) else {
+        return vec![lang.key().to_string()];
+    };
+    let mut labels = descriptor.match_suffixes;
+    for alias in descriptor.aliases {
+        if !labels.contains(&alias) {
+            labels.push(alias);
+        }
+    }
+    if !labels.contains(&descriptor.language.primary_ext) {
+        labels.push(descriptor.language.primary_ext);
+    }
+    labels
+}
+````
+
+````rs
+pub fn all_fence_label_completions() -> Vec<(String, String)> {
+    let mut labels = Vec::new();
+    for descriptor in builtin_language_descriptors() {
+        for label in fence_labels_for_lang(&Lang::Other(descriptor.id.clone())) {
+            labels.push((label, descriptor.id.clone()));
+        }
+    }
+    labels.sort();
+    labels.dedup();
+    labels
 }
 ````
 
@@ -1316,5 +1399,3 @@ fn strip_md_extension(path: &Path) -> PathBuf {
     path.with_file_name(stripped)
 }
 ````
-
-

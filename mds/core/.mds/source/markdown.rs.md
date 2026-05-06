@@ -27,6 +27,7 @@ Migrated implementation source for `src/markdown.rs`.
 | internal | crate::model | Lang | - | - | [model.rs.md#source](model.rs.md#source) |
 | internal | crate::model | Package | - | - | [model.rs.md#source](model.rs.md#source) |
 | internal | crate::table | parse_table_with_labels | - | - | [table.rs.md#source](table.rs.md#source) |
+| internal | crate::descriptor | lang_for_markdown_path | - | - | [descriptor.rs.md#source](descriptor.rs.md#source) |
 
 
 ## Source
@@ -54,7 +55,7 @@ pub fn load_implementation_docs(
         if is_template_asset_markdown(&path) {
             continue;
         }
-        let Some(lang) = Lang::from_path(&path) else {
+        let Some(lang) = lang_for_markdown_path(&path) else {
             continue;
         };
         if !package.config.adapters.get(&lang).copied().unwrap_or(true) {

@@ -313,19 +313,14 @@ fn is_supported_top_level_table(section: &str) -> bool {
 
 ````rs
 fn lang_from_key(key: &str) -> Option<Lang> {
-    match key {
-        "ts" | "typescript" => Some(Lang::TypeScript),
-        "py" | "python" => Some(Lang::Python),
-        "rs" | "rust" => Some(Lang::Rust),
-        other
-            if !other.is_empty()
-                && other
-                    .chars()
-                    .all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_') =>
-        {
-            Some(Lang::Other(other.to_string()))
-        }
-        _ => None,
+    if !key.is_empty()
+        && key
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_')
+    {
+        Some(Lang::Other(key.to_string()))
+    } else {
+        None
     }
 }
 ````

@@ -16,6 +16,8 @@ Migrated implementation source for `src/capabilities/diagnostics.rs`.
 | builtin | std::path | Path | - | - | - |
 | external | mds_core::config | merge_config_file | - | - | [../../../../core/.mds/source/config.rs.md#source](../../../../core/.mds/source/config.rs.md#source) |
 | external | mds_core::descriptor | set_workspace_descriptor_root | - | - | [../../../../core/.mds/source/descriptor.rs.md#source](../../../../core/.mds/source/descriptor.rs.md#source) |
+| external | mds_core::descriptor | fence_labels_for_lang | - | - | [../../../../core/.mds/source/descriptor.rs.md#source](../../../../core/.mds/source/descriptor.rs.md#source) |
+| external | mds_core::descriptor | lang_for_markdown_path | - | - | [../../../../core/.mds/source/descriptor.rs.md#source](../../../../core/.mds/source/descriptor.rs.md#source) |
 | external | mds_core::diagnostics | RunState | - | - | [../../../../core/.mds/source/diagnostics.rs.md#source](../../../../core/.mds/source/diagnostics.rs.md#source) |
 | external | mds_core::markdown | extract_all_code_blocks | - | - | [../../../../core/.mds/source/markdown.rs.md#source](../../../../core/.mds/source/markdown.rs.md#source) |
 | external | mds_core::markdown | sections_with_labels | - | - | [../../../../core/.mds/source/markdown.rs.md#source](../../../../core/.mds/source/markdown.rs.md#source) |
@@ -54,7 +56,7 @@ pub fn validate_impl_md_text(
     }
 
     // Check language matching with file extension
-    if let Some(ref lang) = Lang::from_path(path) {
+    if let Some(ref lang) = lang_for_markdown_path(path) {
         validate_code_block_languages(text, lang, path, &mut state);
     }
 
@@ -147,16 +149,7 @@ fn validate_code_block_languages(
     path: &Path,
     state: &mut RunState,
 ) {
-    let expected_labels: Vec<String> = match expected_lang {
-        Lang::TypeScript => vec![
-            "typescript".to_string(),
-            "ts".to_string(),
-            "tsx".to_string(),
-        ],
-        Lang::Python => vec!["python".to_string(), "py".to_string()],
-        Lang::Rust => vec!["rust".to_string(), "rs".to_string()],
-        Lang::Other(ext) => vec![ext.clone()],
-    };
+    let expected_labels = fence_labels_for_lang(expected_lang);
 
     for (idx, line) in text.lines().enumerate() {
         let trimmed = line.trim_start();
@@ -191,4 +184,3 @@ fn validate_code_block_languages(
     }
 }
 ````
-

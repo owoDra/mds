@@ -9,6 +9,7 @@
 | [minimal-ts](minimal-ts/) | TypeScript の最小構成 |
 | [minimal-py](minimal-py/) | Python の最小構成 |
 | [minimal-rs](minimal-rs/) | Rust の最小構成 |
+| [descriptor-catalog](descriptor-catalog/) | built-in descriptor coverage catalog |
 
 ## 使い方
 
@@ -16,7 +17,7 @@
 cd <repo-root>
 
 # 構造検査
-cargo run --manifest-path Cargo.toml -p mds-cli -- check --package examples/minimal-ts
+cargo run --manifest-path Cargo.toml -p mds-cli -- lint --package examples/minimal-ts
 
 # 生成プレビュー
 cargo run --manifest-path Cargo.toml -p mds-cli -- build --package examples/minimal-ts --dry-run

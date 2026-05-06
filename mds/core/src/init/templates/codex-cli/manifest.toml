@@ -9,3 +9,8 @@ category = "instructions"
 template = "skill.md"
 output_path = ".codex/skills/mds.md"
 category = "skills"
+
+[[file]]
+template = "language-skill.md"
+output_path = ".codex/skills/mds-{{LANG_ID}}.md"
+category = "skills"

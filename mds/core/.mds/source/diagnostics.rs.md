@@ -21,7 +21,6 @@ Migrated implementation source for `src/diagnostics.rs`.
 
 ````rs
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
-
 pub enum Severity {
     Warning,
     Error,

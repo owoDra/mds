@@ -12,6 +12,11 @@ output_path = ".claude/skills/mds/SKILL.md"
 category = "skills"
 
 [[file]]
+template = "language-skill.md"
+output_path = ".claude/skills/mds-{{LANG_ID}}/SKILL.md"
+category = "skills"
+
+[[file]]
 template = "command-build.md"
 output_path = ".claude/commands/mds-build.md"
 category = "commands"

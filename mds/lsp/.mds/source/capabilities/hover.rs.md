@@ -14,9 +14,10 @@ Migrated implementation source for `src/capabilities/hover.rs`.
 | From | Target | Symbols | Via | Summary | Reference |
 | --- | --- | --- | --- | --- | --- |
 | builtin | std::path | Path | - | - | - |
+| external | mds_core::descriptor | lang_for_markdown_path | - | - | [../../../../core/.mds/source/descriptor.rs.md#source](../../../../core/.mds/source/descriptor.rs.md#source) |
+| external | mds_core::descriptor | markdown_suffix_for_lang | - | - | [../../../../core/.mds/source/descriptor.rs.md#source](../../../../core/.mds/source/descriptor.rs.md#source) |
 | external | mds_core::markdown | sections_with_labels | - | - | [../../../../core/.mds/source/markdown.rs.md#source](../../../../core/.mds/source/markdown.rs.md#source) |
 | external | mds_core::markdown | source_markdown_root | - | - | [../../../../core/.mds/source/markdown.rs.md#source](../../../../core/.mds/source/markdown.rs.md#source) |
-| external | mds_core::model | Lang | - | - | [../../../../core/.mds/source/model.rs.md#source](../../../../core/.mds/source/model.rs.md#source) |
 | external | tower_lsp::lsp_types | * | - | - | - |
 | internal | crate::convert | line_at | - | - | [../convert.rs.md#source](../convert.rs.md#source) |
 | internal | crate::convert | word_at_position | - | - | [../convert.rs.md#source](../convert.rs.md#source) |
@@ -113,13 +114,8 @@ fn hover_uses_target(
     let markdown_root = source_markdown_root(package);
 
     // Try to find the target file
-    let lang = Lang::from_path(path)?;
-    let ext = match &lang {
-        Lang::TypeScript => ".ts.md".to_string(),
-        Lang::Python => ".py.md".to_string(),
-        Lang::Rust => ".rs.md".to_string(),
-        Lang::Other(e) => format!(".{e}.md"),
-    };
+    let lang = lang_for_markdown_path(path)?;
+    let ext = markdown_suffix_for_lang(&lang)?;
 
     let target_path = markdown_root.join(format!("{word}{ext}"));
     let file_text = std::fs::read_to_string(&target_path).ok()?;

@@ -10,38 +10,38 @@ hash = "29836d637cb35d78ef438117a0f1b955e65766cb942b2bd9822b9e8d987bc20e"
 [[sources]]
 path = ".mds/source/build.rs.md"
 adapter = "rs"
-hash = "e7d5be00a33079298e28722fa61597d8876d3d580c952c85a1a0bdc767f50964"
+hash = "6899f852d1e9c30cf5274a9d66d3d7d494b67f965b0e08a62f63fc64de735ded"
 [[sources.outputs]]
 kind = "source"
 path = "build.rs"
-hash = "cd28ba408722280d339022d1dd235b393dab87fd1135381e1eee54493a040a15"
+hash = "78eb6a316addafa8ba0d309fc1726038a918ae1d67ce4831632f8d73af77087b"
 
 [[sources]]
 path = ".mds/source/config.rs.md"
 adapter = "rs"
-hash = "eb13b86c45361aa3bb40fa3462899e8ccc9197959433d2d8602a70e6ddb170c6"
+hash = "8e5de657b9c860df88b02c069c450e8c102d2f0e11653d18a99bddb8fc8481de"
 [[sources.outputs]]
 kind = "source"
 path = "src/config.rs"
-hash = "f26e5899cc567eb7b466ca571f1f638afa26843a8b692dfba62ba0c032eb5b79"
+hash = "4a4d5964c243835ba1998f8037b3cec5d8481012957f2a9534876b25986bd855"
 
 [[sources]]
 path = ".mds/source/descriptor.rs.md"
 adapter = "rs"
-hash = "f84ab503d6dc85c562cdd3082d2006be69b5e48dd8f04e67b87295b641ba780a"
+hash = "40f9b612b4df57706d80722321813b74ec6a907b051c3a606d7ae73ed0189ce7"
 [[sources.outputs]]
 kind = "source"
 path = "src/descriptor.rs"
-hash = "733e7d08c6294f8c4e034e3d41f192a42a40ef37550e325419c7a0950e46035b"
+hash = "1ce914691e0edfc749fc0e09b212dbfaadc6028d807cffc40f702954aa84e2b2"
 
 [[sources]]
 path = ".mds/source/diagnostics.rs.md"
 adapter = "rs"
-hash = "a4858235c9282e768b5f76815f8143f2cfc5276bbc5c1b77fa0de2c4165e508e"
+hash = "7257d0eed673b4b0c7ecb01675fe4d955dddc80373a464e345ff762ec35c48dc"
 [[sources.outputs]]
 kind = "source"
 path = "src/diagnostics.rs"
-hash = "20aacf1e666ff50e26802384d043ae4aac00748b1f8ffb732ea1f8af65a596d4"
+hash = "7fb1bbc94b4771517997e7b8a27c194972f09dbf7e3306bb08df3de79945d3e2"
 
 [[sources]]
 path = ".mds/source/diff.rs.md"
@@ -73,11 +73,11 @@ hash = "622cb96acdaf4f82aa0efee95fc53b0c876dbfa0ac168411a3758f4894ce5a6b"
 [[sources]]
 path = ".mds/source/generation.rs.md"
 adapter = "rs"
-hash = "1518ccb07a421b716ebfd8277ace5fdbc99fb80b6396b997c673fe35ddf4ea48"
+hash = "9ea59e9c3e2934d260b3bb7d74fe8b2d62e27bbf80d90f0e7db877426ad48fa3"
 [[sources.outputs]]
 kind = "source"
 path = "src/generation.rs"
-hash = "7bc35cddb952504108119bf0a582436abf068f8a4f041a169d6899bc72a88d33"
+hash = "cb032abb99cd23ca9035782881be46b2af77aad4ca17bd501a6499eec0d69809"
 
 [[sources]]
 path = ".mds/source/hash.rs.md"
@@ -91,11 +91,11 @@ hash = "84445a01b5213c977c7bcd3692edfec82cf7fd25510b750c13a93014626d6c45"
 [[sources]]
 path = ".mds/source/init/mod.rs.md"
 adapter = "rs"
-hash = "074e9d7441351cb73d9e39d386e3fc321f6fcfdf6b3e0e4190cb4a1bd95acff5"
+hash = "151caaf8e588b170490c5e8bd8b25ff3242608c9bf908919a0b5d74d6a3e10d7"
 [[sources.outputs]]
 kind = "source"
 path = "src/init/mod.rs"
-hash = "20ff91704898a57c802b710c9dd75efadbbc75a3b02489eefcb1becedc63eab7"
+hash = "b37fde84baf2045abb7b1d91c19c6e0a4a41d41e0a92b258b027942268a87d00"
 
 [[sources]]
 path = ".mds/source/lib.rs.md"
@@ -118,20 +118,20 @@ hash = "91e9737eed885d21ce24195512934c777fe2d6f8f616161c981b5a1369171fbd"
 [[sources]]
 path = ".mds/source/markdown.rs.md"
 adapter = "rs"
-hash = "69e2791770305561b370be387c445d32843094bed06b77eb189f955e1a5487b1"
+hash = "126d5ac3a7cb9eb43ab52ce456cc82f8b655849e6a1e649dac8e34194514b416"
 [[sources.outputs]]
 kind = "source"
 path = "src/markdown.rs"
-hash = "7739c4fd48d528284264b124cd60ac509209965651d61ab08f6759c33cbf23d4"
+hash = "0bc8bacb110d02e725c45abe827de687ff701bd040a2a04888d6412ca53297d0"
 
 [[sources]]
 path = ".mds/source/model.rs.md"
 adapter = "rs"
-hash = "02c93f2cabd5c54c797c848c2255588b95e8c5b49aa5584c3c3f0cc24a81738a"
+hash = "4e850dd8c21b634c89b2535a08632eacc427f51be7d818e935cc9352782374db"
 [[sources.outputs]]
 kind = "source"
 path = "src/model.rs"
-hash = "5792fcce45eb2813c73ef8da6b308c93ee980b280d2ff611f736a299a34612d0"
+hash = "38b38f9e7093f9c9dd2a6d07987d6208ada31d62d61a79f95623d030019db5b1"
 
 [[sources]]
 path = ".mds/source/new.rs.md"
@@ -190,11 +190,11 @@ hash = "a5934c9f20bbe9ca424c63ad961525cfb328a61f09299aab35a4fb558dcdcbb8"
 [[sources]]
 path = ".mds/test/parser_generation_mvp.rs.md"
 adapter = "rs"
-hash = "162d516d9a492b8a92ada535cff3e7af01ced25af644e6d83b579bb47bf972c0"
+hash = "fe18104aa2ec7b512c15f977564d8d664beb38fce26ed51f1e9c1712cb7f3eed"
 [[sources.outputs]]
 kind = "test"
 path = "tests/parser_generation_mvp_test.rs"
-hash = "b9d9fc76d390e9376fdafcc1ca48c7831027bb189064de524686e3c7f8afa57d"
+hash = "5b0d6bc44cc07f9b9d4de92a71e413e446e5475a29dd903b8ac165c027c1cc9b"
 
 [[assets]]
 path = ".mds/source/descriptors/languages/base/c.toml"
@@ -722,11 +722,18 @@ path = "src/init/templates/claude-code/command-lint.md"
 hash = "8e4d1388fc24e880a49d9dfd0628d9acb3e73580e94b676e7f79da0a245dd1e8"
 
 [[assets]]
+path = ".mds/source/init/templates/claude-code/language-skill.md"
+hash = "c98d58e083ad8bef6093ee725c9bd008319874f4d990e6e6b45fde45b3b25fa6"
+[[assets.outputs]]
+path = "src/init/templates/claude-code/language-skill.md"
+hash = "c98d58e083ad8bef6093ee725c9bd008319874f4d990e6e6b45fde45b3b25fa6"
+
+[[assets]]
 path = ".mds/source/init/templates/claude-code/manifest.toml"
-hash = "f044b7a1548817e4e06e9e0a0e1dddfa51eb77f0e821fe51168f4aca8873a356"
+hash = "5813d9764e9a1a89708188df77956a23d0b2527dcc72e28355249c8b7f3dee18"
 [[assets.outputs]]
 path = "src/init/templates/claude-code/manifest.toml"
-hash = "f044b7a1548817e4e06e9e0a0e1dddfa51eb77f0e821fe51168f4aca8873a356"
+hash = "5813d9764e9a1a89708188df77956a23d0b2527dcc72e28355249c8b7f3dee18"
 
 [[assets]]
 path = ".mds/source/init/templates/claude-code/rules.md"
@@ -750,11 +757,18 @@ path = "src/init/templates/codex-cli/instructions.md"
 hash = "193419b1b197bcefbe28f962294b704373e9c5883e2d6e565e7d14a44a03b079"
 
 [[assets]]
+path = ".mds/source/init/templates/codex-cli/language-skill.md"
+hash = "1f2f62f6faeabbb886b34f09367d667440f678dcf7f1ac1969b03707a0e33937"
+[[assets.outputs]]
+path = "src/init/templates/codex-cli/language-skill.md"
+hash = "1f2f62f6faeabbb886b34f09367d667440f678dcf7f1ac1969b03707a0e33937"
+
+[[assets]]
 path = ".mds/source/init/templates/codex-cli/manifest.toml"
-hash = "85750b9f81b23a0cc12c2fcad656007f1087272040b9112c0c74e0a1fac37017"
+hash = "e1c6ea605eb5b4afd6461718db81fd9803e698cefd2e88b36c9ae76e8493f4bc"
 [[assets.outputs]]
 path = "src/init/templates/codex-cli/manifest.toml"
-hash = "85750b9f81b23a0cc12c2fcad656007f1087272040b9112c0c74e0a1fac37017"
+hash = "e1c6ea605eb5b4afd6461718db81fd9803e698cefd2e88b36c9ae76e8493f4bc"
 
 [[assets]]
 path = ".mds/source/init/templates/codex-cli/skill.md"
@@ -785,11 +799,18 @@ path = "src/init/templates/github-copilot-cli/instructions.md"
 hash = "26a1eb36194bbd6bdd0eeb67b078fb6fe99460314097ac8043c542e38506997c"
 
 [[assets]]
+path = ".mds/source/init/templates/github-copilot-cli/language-skill.prompt.md"
+hash = "cabcafaf057f8702ad20a21ddffc4e191e40d7acbcf402b8074af9b6f0a97ecc"
+[[assets.outputs]]
+path = "src/init/templates/github-copilot-cli/language-skill.prompt.md"
+hash = "cabcafaf057f8702ad20a21ddffc4e191e40d7acbcf402b8074af9b6f0a97ecc"
+
+[[assets]]
 path = ".mds/source/init/templates/github-copilot-cli/manifest.toml"
-hash = "cbf5358a5070cc5b66d6e5d0b728bee47f056416c1c0c7d78fad06bcbf1ef597"
+hash = "2e0335d9c562ed166287e85e954e7ed5167d773dfacdcec6f6e61b32b3ed28ec"
 [[assets.outputs]]
 path = "src/init/templates/github-copilot-cli/manifest.toml"
-hash = "cbf5358a5070cc5b66d6e5d0b728bee47f056416c1c0c7d78fad06bcbf1ef597"
+hash = "2e0335d9c562ed166287e85e954e7ed5167d773dfacdcec6f6e61b32b3ed28ec"
 
 [[assets]]
 path = ".mds/source/init/templates/github-copilot-cli/skill.prompt.md"
@@ -813,11 +834,18 @@ path = "src/init/templates/opencode/agent-check.md"
 hash = "6a42b47178cd56fc1d8b60f3df57aa51de0e96c03619145ab0913d963ca3d948"
 
 [[assets]]
+path = ".mds/source/init/templates/opencode/language-skill.md"
+hash = "2ea18744e2b1dad4673532a6a1a67adfc916be17ed6a27c592c8b90ea3d3088e"
+[[assets.outputs]]
+path = "src/init/templates/opencode/language-skill.md"
+hash = "2ea18744e2b1dad4673532a6a1a67adfc916be17ed6a27c592c8b90ea3d3088e"
+
+[[assets]]
 path = ".mds/source/init/templates/opencode/manifest.toml"
-hash = "367b632c7fabb6d3811b170ccf0b61a3f9dee3aef32f5221b437b60f2e66b3bd"
+hash = "0176eb7c1d6bd322a6c1b500a19e1d72ca8ff579341ec761e8914fc405e83168"
 [[assets.outputs]]
 path = "src/init/templates/opencode/manifest.toml"
-hash = "367b632c7fabb6d3811b170ccf0b61a3f9dee3aef32f5221b437b60f2e66b3bd"
+hash = "0176eb7c1d6bd322a6c1b500a19e1d72ca8ff579341ec761e8914fc405e83168"
 
 [[assets]]
 path = ".mds/source/init/templates/opencode/skill.md"

@@ -14,8 +14,10 @@ Migrated implementation source for `src/capabilities/completion.rs`.
 | From | Target | Symbols | Via | Summary | Reference |
 | --- | --- | --- | --- | --- | --- |
 | builtin | std::path | Path | - | - | - |
+| external | mds_core::descriptor | all_fence_label_completions | - | - | [../../../../core/.mds/source/descriptor.rs.md#source](../../../../core/.mds/source/descriptor.rs.md#source) |
+| external | mds_core::descriptor | fence_labels_for_lang | - | - | [../../../../core/.mds/source/descriptor.rs.md#source](../../../../core/.mds/source/descriptor.rs.md#source) |
+| external | mds_core::descriptor | lang_for_markdown_path | - | - | [../../../../core/.mds/source/descriptor.rs.md#source](../../../../core/.mds/source/descriptor.rs.md#source) |
 | external | mds_core::model | Config | - | - | [../../../../core/.mds/source/model.rs.md#source](../../../../core/.mds/source/model.rs.md#source) |
-| external | mds_core::model | Lang | - | - | [../../../../core/.mds/source/model.rs.md#source](../../../../core/.mds/source/model.rs.md#source) |
 | external | tower_lsp::lsp_types | * | - | - | - |
 | internal | crate::convert | line_at | - | - | [../convert.rs.md#source](../convert.rs.md#source) |
 | internal | crate::labels | resolve_label | - | - | [../labels.rs.md#source](../labels.rs.md#source) |
@@ -172,31 +174,21 @@ Code block language label completions.
 
 ````rs
 fn code_block_language_completions(path: Option<&Path>) -> Vec<CompletionItem> {
-    let detected = path.and_then(Lang::from_path);
+    let detected = path.and_then(lang_for_markdown_path);
+    let recommended = detected
+        .as_ref()
+        .map(fence_labels_for_lang)
+        .unwrap_or_default();
 
-    let languages = [
-        ("typescript", "TypeScript"),
-        ("python", "Python"),
-        ("rust", "Rust"),
-    ];
-
-    languages
-        .iter()
+    all_fence_label_completions()
+        .into_iter()
         .map(|(label, detail)| {
-            let is_recommended = detected
-                .as_ref()
-                .map(|lang| match lang {
-                    Lang::TypeScript => *label == "typescript",
-                    Lang::Python => *label == "python",
-                    Lang::Rust => *label == "rust",
-                    Lang::Other(ext) => *label == ext.as_str(),
-                })
-                .unwrap_or(false);
+            let is_recommended = recommended.contains(&label);
 
             CompletionItem {
                 label: label.to_string(),
                 kind: Some(CompletionItemKind::ENUM_MEMBER),
-                detail: Some(detail.to_string()),
+                detail: Some(detail),
                 sort_text: Some(if is_recommended {
                     format!("0_{label}")
                 } else {
@@ -218,17 +210,12 @@ Snippet completions for common mds patterns.
 ````rs
 fn snippet_completions(path: Option<&Path>, config: &Config) -> Vec<CompletionItem> {
     let mut items = Vec::new();
-    let lang = path.and_then(Lang::from_path);
+    let lang = path.and_then(lang_for_markdown_path);
 
     let lang_label = lang
         .as_ref()
-        .map(|l| match l {
-            Lang::TypeScript => "typescript",
-            Lang::Python => "python",
-            Lang::Rust => "rust",
-            Lang::Other(ext) => ext.as_str(),
-        })
-        .unwrap_or("typescript");
+        .and_then(|l| fence_labels_for_lang(l).into_iter().next())
+        .unwrap_or_else(|| "ts".to_string());
 
     // Full implementation document template
     items.push(CompletionItem {

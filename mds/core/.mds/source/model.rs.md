@@ -407,22 +407,13 @@ pub enum Lang {
 impl Lang {
     pub fn from_path(path: &Path) -> Option<Self> {
         let name = path.file_name()?.to_string_lossy();
-        if name.ends_with(".ts.md") {
-            Some(Self::TypeScript)
-        } else if name.ends_with(".py.md") {
-            Some(Self::Python)
-        } else if name.ends_with(".rs.md") {
-            Some(Self::Rust)
+        let without_md = name.strip_suffix(".md")?;
+        let dot_pos = without_md.rfind('.')?;
+        let ext = &without_md[dot_pos + 1..];
+        if !ext.is_empty() && ext.chars().all(|c| c.is_ascii_alphanumeric() || c == '-') {
+            Some(Self::Other(ext.to_string()))
         } else {
-            let name_str = name.as_ref();
-            let without_md = name_str.strip_suffix(".md")?;
-            let dot_pos = without_md.rfind('.')?;
-            let ext = &without_md[dot_pos + 1..];
-            if !ext.is_empty() && ext.chars().all(|c| c.is_ascii_alphanumeric()) {
-                Some(Self::Other(ext.to_string()))
-            } else {
-                None
-            }
+            None
         }
     }
 
@@ -457,8 +448,8 @@ impl Lang {
         }
     }
 
-    pub fn builtins() -> &'static [Lang] {
-        &[Self::TypeScript, Self::Python, Self::Rust]
+    pub fn builtins() -> Vec<Lang> {
+        Vec::new()
     }
 }
 ````
@@ -514,16 +505,8 @@ impl Default for Config {
             check: CheckConfig::default(),
             mds_version: None,
             roots: Roots::default(),
-            adapters: HashMap::from([
-                (Lang::TypeScript, true),
-                (Lang::Python, true),
-                (Lang::Rust, true),
-            ]),
-            quality: HashMap::from([
-                (Lang::TypeScript, QualityConfig::for_lang(&Lang::TypeScript)),
-                (Lang::Python, QualityConfig::for_lang(&Lang::Python)),
-                (Lang::Rust, QualityConfig::for_lang(&Lang::Rust)),
-            ]),
+            adapters: HashMap::new(),
+            quality: HashMap::new(),
             excludes: Vec::new(),
             package_sync_hook_enabled: false,
             package_sync_hook: None,
@@ -571,21 +554,6 @@ pub struct QualityConfig {
     pub test: Option<String>,
     pub required: Vec<String>,
     pub optional: Vec<String>,
-}
-````
-
-````rs
-impl QualityConfig {
-    fn for_lang(_lang: &Lang) -> Self {
-        Self {
-            type_check: None,
-            lint: None,
-            fix: None,
-            test: None,
-            required: Vec::new(),
-            optional: Vec::new(),
-        }
-    }
 }
 ````
 
@@ -664,5 +632,3 @@ pub enum GeneratedKind {
     Manifest,
 }
 ````
-
-
