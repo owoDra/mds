@@ -9,7 +9,18 @@ Migrated implementation source for `src/hash.rs`.
 - Preserve the behavior of the pre-migration Rust source.
 - This file is synchronized into `.build/rust/mds/core/src/hash.rs`.
 
+## Exports
+
+| Name | Visibility | Summary |
+| --- | --- | --- |
+| hash | internal | Stable content hashing helper. |
+
 ## Source
+
+
+##### hash
+
+Computes hashes used to identify generated outputs derived from Markdown source.
 
 ````rs
 pub(crate) fn sha256(content: &str) -> String {

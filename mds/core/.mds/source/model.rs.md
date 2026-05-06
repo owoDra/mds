@@ -9,6 +9,12 @@ Migrated implementation source for `src/model.rs`.
 - Preserve the behavior of the pre-migration Rust source.
 - This file is synchronized into `.build/rust/mds/core/src/model.rs`.
 
+## Exports
+
+| Name | Visibility | Summary |
+| --- | --- | --- |
+| model | internal | Shared core data model for mds packages and commands. |
+
 ## Imports
 
 | From | Target | Symbols | Via | Summary | Reference |
@@ -19,6 +25,11 @@ Migrated implementation source for `src/model.rs`.
 
 
 ## Source
+
+
+##### model
+
+Defines configuration, package, document, command, and generated-file types shared across core.
 
 
 ````rs

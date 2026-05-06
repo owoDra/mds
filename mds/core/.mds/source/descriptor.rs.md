@@ -9,6 +9,12 @@ Built-in language descriptor registry for output path rules.
 - Preserve the behavior of the current built-in adapters while moving file rules into TOML descriptors.
 - This file is synchronized into `.build/rust/mds/core/src/descriptor.rs`.
 
+## Exports
+
+| Name | Visibility | Summary |
+| --- | --- | --- |
+| descriptor | internal | Descriptor registry and descriptor-driven language/tool behavior. |
+
 ## Imports
 
 | From | Target | Symbols | Via | Summary | Reference |
@@ -24,6 +30,11 @@ Built-in language descriptor registry for output path rules.
 
 
 ## Source
+
+
+##### descriptor
+
+Resolves built-in and workspace descriptors used by parser, generator, lint, LSP, and init flows.
 
 
 ````rs
@@ -170,6 +181,8 @@ pub(crate) struct SpecialFileRule {
 #[derive(Debug, Clone, Deserialize)]
 pub(crate) struct LanguageSection {
     pub primary_ext: String,
+    #[serde(default)]
+    pub root_module_markdown_names: Vec<String>,
 }
 ````
 
@@ -210,6 +223,8 @@ pub(crate) struct SyntaxSection {
     pub imports: Vec<LinePattern>,
     #[serde(default)]
     pub top_level_keywords: Vec<String>,
+    #[serde(default)]
+    pub code_block_merge_prefixes: Vec<String>,
     #[serde(default)]
     pub comment_prefixes: Vec<String>,
     #[serde(default)]
@@ -367,6 +382,20 @@ impl Descriptor {
             .top_level_keywords
             .iter()
             .any(|keyword| line.starts_with(keyword))
+    }
+
+    pub fn matches_code_block_merge_start(&self, line: &str) -> bool {
+        self.syntax
+            .code_block_merge_prefixes
+            .iter()
+            .any(|prefix| line.starts_with(prefix))
+    }
+
+    pub fn is_root_module_markdown_name(&self, name: &str) -> bool {
+        self.language
+            .root_module_markdown_names
+            .iter()
+            .any(|candidate| candidate == name)
     }
 
     pub fn matches_comment_line(&self, trimmed: &str) -> bool {
@@ -965,6 +994,16 @@ pub fn all_fence_label_completions() -> Vec<(String, String)> {
 ````rs
 pub(crate) fn descriptor_for_markdown_name(name: &str) -> Option<Descriptor> {
     registry().descriptor_for_markdown_name(name).cloned()
+}
+````
+
+````rs
+pub fn is_root_module_markdown_path(path: &Path) -> bool {
+    let Some(name) = path.file_name().and_then(|name| name.to_str()) else {
+        return false;
+    };
+    descriptor_for_markdown_name(name)
+        .is_some_and(|descriptor| descriptor.is_root_module_markdown_name(name))
 }
 ````
 

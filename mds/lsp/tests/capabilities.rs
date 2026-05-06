@@ -66,7 +66,6 @@ fn test_section_completion_on_heading_prefix() {
         labels.contains(&"Contract"),
         "should offer Contract: {labels:?}"
     );
-    assert!(labels.contains(&"Types"), "should offer Types: {labels:?}");
     assert!(
         labels.contains(&"Source"),
         "should offer Source: {labels:?}"

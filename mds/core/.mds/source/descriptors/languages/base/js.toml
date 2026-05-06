@@ -4,6 +4,8 @@ match_suffixes = ["js"]
 
 [language]
 primary_ext = "js"
+vscode_id = "javascript"
+root_module_markdown_names = ["index.js.md"]
 
 [files.source]
 strip_lang_ext = false

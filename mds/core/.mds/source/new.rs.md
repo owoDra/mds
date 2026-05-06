@@ -9,6 +9,12 @@ Migrated implementation source for `src/new.rs`.
 - Preserve the behavior of the pre-migration Rust source.
 - This file is synchronized into `.build/rust/mds/core/src/new.rs`.
 
+## Exports
+
+| Name | Visibility | Summary |
+| --- | --- | --- |
+| new | internal | Markdown authoring scaffold generation. |
+
 ## Imports
 
 | From | Target | Symbols | Via | Summary | Reference |
@@ -25,6 +31,11 @@ Migrated implementation source for `src/new.rs`.
 
 
 ## Source
+
+
+##### new
+
+Creates canonical mds source and test Markdown files from descriptor-backed templates.
 
 
 ````rs
@@ -296,7 +307,6 @@ fn generate_impl_template(
     let l_target = label(labels, "target", "Target");
     let l_symbols = label(labels, "symbols", "Symbols");
     let l_via = label(labels, "via", "Via");
-    let l_types = label(labels, "types", "Types");
     let l_reference = label(labels, "reference", "Reference");
     let l_source = label(labels, "source", "Source");
     let l_cases = label(labels, "cases", "Cases");
@@ -328,10 +338,6 @@ fn generate_impl_template(
          | {l_from} | {l_target} | {l_symbols} | {l_via} | {l_summary} | {l_reference} |\n\
          | --- | --- | --- | --- | --- | --- |\n\
          | - | - | - | - | - | - |\n\
-         \n\
-         ## {l_types}\n\
-         \n\
-         -\n\
          \n\
          ## {l_source}\n\
          \n\
@@ -386,4 +392,3 @@ fn generate_test_template(feature_name: &str, labels: &HashMap<String, String>) 
     )
 }
 ````
-

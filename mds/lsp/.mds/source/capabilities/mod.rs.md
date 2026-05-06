@@ -9,28 +9,24 @@ Migrated implementation source for `src/capabilities/mod.rs`.
 - Preserve the behavior of the pre-migration Rust source.
 - This file is synchronized into `.build/rust/mds/lsp/src/capabilities/mod.rs`.
 
+## Exports
+
+| Name | Visibility | Summary |
+| --- | --- | --- |
+| capabilities-root | public | LSP capabilities module surface. |
+
 ## Source
+
+
+##### capabilities-root
+
+Exports all mds LSP capability provider modules from one root.
 
 ````rs
 pub mod code_action;
-````
-
-````rs
 pub mod completion;
-````
-
-````rs
 pub mod diagnostics;
-````
-
-````rs
 pub mod hover;
-````
-
-````rs
 pub mod navigation;
-````
-
-````rs
 pub mod symbols;
 ````

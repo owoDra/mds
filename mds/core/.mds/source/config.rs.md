@@ -9,6 +9,12 @@ Migrated implementation source for `src/config.rs`.
 - Preserve the behavior of the pre-migration Rust source.
 - This file is synchronized into `.build/rust/mds/core/src/config.rs`.
 
+## Exports
+
+| Name | Visibility | Summary |
+| --- | --- | --- |
+| config | internal | mds config loading and merge behavior. |
+
 ## Imports
 
 | From | Target | Symbols | Via | Summary | Reference |
@@ -23,6 +29,11 @@ Migrated implementation source for `src/config.rs`.
 
 
 ## Source
+
+
+##### config
+
+Owns parsing and merging `mds.config.toml` into runtime package configuration.
 
 
 ````rs

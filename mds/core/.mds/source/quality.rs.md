@@ -9,6 +9,12 @@ Migrated implementation source for `src/quality.rs`.
 - Preserve the behavior of the pre-migration Rust source.
 - This file is synchronized into `.build/rust/mds/core/src/quality.rs`.
 
+## Exports
+
+| Name | Visibility | Summary |
+| --- | --- | --- |
+| quality | internal | Descriptor-backed lint, fix, test, and typecheck execution. |
+
 ## Imports
 
 | From | Target | Symbols | Via | Summary | Reference |
@@ -39,6 +45,11 @@ Migrated implementation source for `src/quality.rs`.
 
 
 ## Source
+
+
+##### quality
+
+Runs Markdown state validation and external quality tools through descriptor-defined behavior.
 
 
 ````rs
@@ -517,7 +528,6 @@ fn padded_code_from_markdown(doc: &ImplDoc) -> Result<String, String> {
 fn quality_import_prefix(doc: &ImplDoc) -> String {
     let candidate = match doc.doc_kind {
         DocKind::Source if !doc.source_code.trim().is_empty() => doc.source_code.as_str(),
-        DocKind::Source if !doc.types_code.trim().is_empty() => doc.types_code.as_str(),
         DocKind::Test if !doc.test_code.trim().is_empty() => doc.test_code.as_str(),
         _ => doc.code.as_str(),
     };

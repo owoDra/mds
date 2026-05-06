@@ -330,7 +330,7 @@ fn build_renders_typescript_imports_without_kind_or_code_columns() {
     .unwrap();
     fs::write(
         package.join(".mds/source/greet.ts.md"),
-        "# greet\n\n## Purpose\n\nFixture.\n\n## Contract\n\n- Render a greeting through the formatter.\n\n## Imports\n\n| From | Target | Symbols | Via | Summary |\n| --- | --- | --- | --- | --- |\n| external | ./format-name | formatName | - | formatter |\n\n## Source\n\n```ts\nexport function greet(name: string) {\n  return formatName(name);\n}\n```\n",
+        "# greet\n\n## Purpose\n\nFixture.\n\n## Contract\n\n- Render a greeting through the formatter.\n\n## Imports\n\n| From | Target | Symbols | Via | Summary | Reference |\n| --- | --- | --- | --- | --- | --- |\n| external | ./format-name | formatName | - | formatter | - |\n\n## Source\n\n```ts\nexport function greet(name: string) {\n  return formatName(name);\n}\n```\n",
     )
     .unwrap();
 
@@ -377,7 +377,7 @@ fn build_renders_python_imports_from_internal_markdown_links() {
     .unwrap();
     fs::write(
         package.join(".mds/source/greet.py.md"),
-        "# greet\n\n## Purpose\n\nFixture.\n\n## Contract\n\n- Render a greeting through the formatter.\n\n## Imports\n\n| From | Target | Symbols | Via | Summary |\n| --- | --- | --- | --- | --- |\n| internal | [format_name](./format_name.py.md#format-name) | format_name | - | formatter |\n\n## Source\n\n```py\ndef greet(name: str) -> str:\n    return format_name(name)\n```\n",
+        "# greet\n\n## Purpose\n\nFixture.\n\n## Contract\n\n- Render a greeting through the formatter.\n\n## Imports\n\n| From | Target | Symbols | Via | Summary | Reference |\n| --- | --- | --- | --- | --- | --- |\n| internal | [format_name](./format_name.py.md#format-name) | format_name | - | formatter | [format_name](./format_name.py.md#format-name) |\n\n## Source\n\n```py\ndef greet(name: str) -> str:\n    return format_name(name)\n```\n",
     )
     .unwrap();
 
@@ -847,7 +847,7 @@ fn builds_types_and_test_outputs_from_fixed_authoring_roots() {
     .unwrap();
     fs::write(
         package.join(".mds/source/foo/bar.ts.md"),
-        "# Bar\n\n## Purpose\n\nFixture.\n\n## Contract\n\n- Generate type and source outputs.\n\n## Types\n\n```ts\nexport type Bar = string;\n```\n\n## Source\n\n```ts\nexport const bar: Bar = 'ok';\n```\n",
+        "# Bar\n\n## Purpose\n\nFixture.\n\n## Contract\n\n- Generate source output.\n\n## Source\n\n```ts\nexport type Bar = string;\n```\n\n```ts\nexport const bar: Bar = 'ok';\n```\n",
     )
     .unwrap();
     fs::write(
@@ -866,7 +866,7 @@ fn builds_types_and_test_outputs_from_fixed_authoring_roots() {
     });
     assert_eq!(build.exit_code, 0, "{}", build.stderr);
     assert!(package.join("src/foo/bar.ts").exists());
-    assert!(package.join("src/foo/bar.types.ts").exists());
+    assert!(!package.join("src/foo/bar.types.ts").exists());
     assert!(package.join("tests/foo/bar.test.ts").exists());
 }
 ````
@@ -2555,15 +2555,15 @@ fn all_language_import_doc(descriptor: &LanguageDescriptorExample) -> String {
          | Name | Visibility | Summary |\n\
          | --- | --- | --- |\n\
          | exported_{id} | public | Export marker generated from Source. |\n\n\
-         ##### exported-{id}\n\n\
-         Shared export anchor for `{id}`.\n\n\
-         ## Imports\n\n\
-         | From | Target | Symbols | Via | Summary | Reference |\n\
-         | --- | --- | --- | --- | --- | --- |\n\
-         | internal | {target} | ImportedSymbol | {via} | Dependency import | - |\n\n\
-         ## Source\n\n\
-         ```{suffix}\n\
-         {source}\n\
+          ## Imports\n\n\
+          | From | Target | Symbols | Via | Summary | Reference |\n\
+          | --- | --- | --- | --- | --- | --- |\n\
+          | internal | {target} | ImportedSymbol | {via} | Dependency import | #dep |\n\n\
+          ## Source\n\n\
+          ##### exported-{id}\n\n\
+          Shared export anchor for `{id}`.\n\n\
+          ```{suffix}\n\
+          {source}\n\
          ```\n",
         id = descriptor.id,
         suffix = descriptor.suffix,

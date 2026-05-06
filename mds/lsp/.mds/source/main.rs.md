@@ -9,6 +9,12 @@ Migrated implementation source for `src/main.rs`.
 - Preserve the behavior of the pre-migration Rust source.
 - This file is synchronized into `.build/rust/mds/lsp/src/main.rs`.
 
+## Exports
+
+| Name | Visibility | Summary |
+| --- | --- | --- |
+| main | internal | mds-lsp process entrypoint. |
+
 ## Imports
 
 | From | Target | Symbols | Via | Summary | Reference |
@@ -21,25 +27,16 @@ Migrated implementation source for `src/main.rs`.
 ## Source
 
 
+##### main
+
+Starts the mds language server over standard input and output.
+
+
 ````rs
 mod capabilities;
-````
-
-````rs
 mod convert;
-````
-
-````rs
 mod labels;
-````
-
-````rs
 mod server;
-````
-
-
-
-````rs
 mod state;
 
 #[tokio::main]

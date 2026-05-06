@@ -9,6 +9,12 @@ Migrated implementation source for `src/wizard.rs`.
 - Preserve the behavior of the pre-migration Rust source.
 - This file is synchronized into `.build/rust/mds/cli/src/wizard.rs`.
 
+## Exports
+
+| Name | Visibility | Summary |
+| --- | --- | --- |
+| wizard | internal | Interactive init wizard for mds package setup. |
+
 ## Imports
 
 | From | Target | Symbols | Via | Summary | Reference |
@@ -32,6 +38,11 @@ Migrated implementation source for `src/wizard.rs`.
 
 
 ## Source
+
+
+##### wizard
+
+Collects project setup choices and converts them into init options and quality commands.
 
 
 ````rs

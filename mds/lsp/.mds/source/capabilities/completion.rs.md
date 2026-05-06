@@ -9,6 +9,12 @@ Migrated implementation source for `src/capabilities/completion.rs`.
 - Preserve the behavior of the pre-migration Rust source.
 - This file is synchronized into `.build/rust/mds/lsp/src/capabilities/completion.rs`.
 
+## Exports
+
+| Name | Visibility | Summary |
+| --- | --- | --- |
+| completion | internal | LSP completion provider for mds Markdown authoring. |
+
 ## Imports
 
 | From | Target | Symbols | Via | Summary | Reference |
@@ -24,6 +30,11 @@ Migrated implementation source for `src/capabilities/completion.rs`.
 
 
 ## Source
+
+
+##### completion
+
+Offers descriptor-backed section, table, shared definition, code fence, and document snippets.
 
 
 Provide completion items based on cursor position.
@@ -73,8 +84,8 @@ pub fn provide_completions(
         items.extend(table_column_completions(config));
     }
 
-    // Code block language completion: ``` prefix
-    if prefix.trim_start().starts_with("```") && prefix.trim_start().len() <= 3 {
+    // Code block language completion: any opening backtick fence prefix
+    if is_backtick_fence_prefix(prefix.trim_start()) {
         items.extend(code_block_language_completions(path));
     }
 
@@ -86,6 +97,13 @@ pub fn provide_completions(
 
 ````
 
+````rs
+fn is_backtick_fence_prefix(prefix: &str) -> bool {
+    let marker_len = prefix.chars().take_while(|character| *character == '`').count();
+    marker_len >= 3 && prefix[marker_len..].trim().is_empty()
+}
+````
+
 Section heading completions.
 
 ````rs
@@ -93,7 +111,6 @@ fn section_completions(config: &Config) -> Vec<CompletionItem> {
     let canonical_sections = [
         ("Purpose", "Module purpose and responsibility"),
         ("Contract", "Public API contract and invariants"),
-        ("Types", "Type definitions"),
         ("Source", "Implementation source code"),
         ("Cases", "Use cases and examples"),
         ("Test", "Test code"),
@@ -215,7 +232,8 @@ fn snippet_completions(path: Option<&Path>, config: &Config) -> Vec<CompletionIt
     let lang_label = lang
         .as_ref()
         .and_then(|l| fence_labels_for_lang(l).into_iter().next())
-        .unwrap_or_else(|| "ts".to_string());
+        .or_else(|| all_fence_label_completions().into_iter().map(|(label, _)| label).next())
+        .unwrap_or_else(|| "text".to_string());
 
     // Full implementation document template
     items.push(CompletionItem {
@@ -232,8 +250,6 @@ fn snippet_completions(path: Option<&Path>, config: &Config) -> Vec<CompletionIt
               ## {imports}\n\n| {from} | {target} | {symbols} | {via} | {summary} | {reference} |\n\
               | --- | --- | --- | --- | --- | --- |\n\
               | ${{6:builtin}} | ${{7:target}} | ${{8:Name}} | - | ${{9:description}} | - |\n\n\
-              ## {types}\n\n\
-              ```{lang_label}\n${{7:// type definitions}}\n```\n\n\
               ## {source}\n\n\
               ```{lang_label}\n${{12:// implementation}}\n```\n\n\
              ## {cases}\n\n${{13:Describe use cases}}\n\n\
@@ -243,7 +259,6 @@ fn snippet_completions(path: Option<&Path>, config: &Config) -> Vec<CompletionIt
             contract = resolve_label("contract", config),
             exports = resolve_label("exports", config),
             imports = resolve_label("imports", config),
-            types = resolve_label("types", config),
             source = resolve_label("source", config),
             cases = resolve_label("cases", config),
             test = resolve_label("test", config),
@@ -325,12 +340,11 @@ fn snippet_completions(path: Option<&Path>, config: &Config) -> Vec<CompletionIt
         kind: Some(CompletionItemKind::SNIPPET),
         detail: Some("Add a new mds section".to_string()),
         insert_text: Some(format!(
-            "## ${{1|{purpose},{contract},{imports},{exports},{types},{source},{cases},{test}|}}\n\n${{2:Content}}\n",
+            "## ${{1|{purpose},{contract},{imports},{exports},{source},{cases},{test}|}}\n\n${{2:Content}}\n",
             purpose = resolve_label("purpose", config),
             contract = resolve_label("contract", config),
             imports = resolve_label("imports", config),
             exports = resolve_label("exports", config),
-            types = resolve_label("types", config),
             source = resolve_label("source", config),
             cases = resolve_label("cases", config),
             test = resolve_label("test", config),

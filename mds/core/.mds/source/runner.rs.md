@@ -9,6 +9,12 @@ Migrated implementation source for `src/runner.rs`.
 - Preserve the behavior of the pre-migration Rust source.
 - This file is synchronized into `.build/rust/mds/core/src/runner.rs`.
 
+## Exports
+
+| Name | Visibility | Summary |
+| --- | --- | --- |
+| runner | internal | CLI request execution entrypoint. |
+
 ## Imports
 
 | From | Target | Symbols | Via | Summary | Reference |
@@ -40,6 +46,11 @@ Migrated implementation source for `src/runner.rs`.
 
 
 ## Source
+
+
+##### runner
+
+Dispatches parsed CLI requests to package, build, lint, test, init, and doctor workflows.
 
 
 ````rs

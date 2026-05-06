@@ -9,6 +9,12 @@ Migrated implementation source for `src/main.rs`.
 - Preserve the behavior of the pre-migration Rust source.
 - This file is synchronized into `.build/rust/mds/cli/src/main.rs`.
 
+## Exports
+
+| Name | Visibility | Summary |
+| --- | --- | --- |
+| main | internal | Native mds CLI process entrypoint. |
+
 ## Imports
 
 | From | Target | Symbols | Via | Summary | Reference |
@@ -24,6 +30,11 @@ Migrated implementation source for `src/main.rs`.
 
 
 ## Source
+
+
+##### main
+
+Connects parsed CLI arguments to core execution and process exit handling.
 
 
 ````rs

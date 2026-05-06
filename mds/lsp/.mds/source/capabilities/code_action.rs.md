@@ -9,6 +9,12 @@ Migrated implementation source for `src/capabilities/code_action.rs`.
 - Preserve the behavior of the pre-migration Rust source.
 - This file is synchronized into `.build/rust/mds/lsp/src/capabilities/code_action.rs`.
 
+## Exports
+
+| Name | Visibility | Summary |
+| --- | --- | --- |
+| code-action | internal | LSP code action provider for mds authoring fixes. |
+
 ## Imports
 
 | From | Target | Symbols | Via | Summary | Reference |
@@ -22,6 +28,11 @@ Migrated implementation source for `src/capabilities/code_action.rs`.
 ## Source
 
 
+##### code-action
+
+Provides quick fixes for canonical mds Markdown section and table authoring issues.
+
+
 Provide code actions, or quick fixes, for mds Markdown files.
 
 ````rs
@@ -30,7 +41,7 @@ pub fn provide_code_actions(uri: &Url, text: &str, config: &Config) -> CodeActio
 
     let sections = sections_with_labels(text, &config.label_overrides);
     let required_sections = [
-        "Purpose", "Contract", "Exports", "Imports", "Types", "Source", "Cases", "Test",
+        "Purpose", "Contract", "Exports", "Imports", "Source", "Cases", "Test",
     ];
     let missing: Vec<&str> = required_sections
         .iter()
@@ -125,7 +136,7 @@ fn append_section(buffer: &mut String, section: &str, config: &Config) {
                  | --- | --- | --- | --- | --- | --- |\n\n"
             ));
         }
-        "Types" | "Source" | "Test" => {
+        "Source" | "Test" => {
             buffer.push_str("```\n// TODO: implementation\n```\n\n");
         }
         _ => {

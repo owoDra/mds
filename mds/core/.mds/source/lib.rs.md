@@ -31,9 +31,7 @@ mod package_sync;
 mod quality;
 mod runner;
 pub mod table;
-````
 
-````rs
 pub use diagnostics::{Diagnostic, RunState, Severity};
 pub use model::{
     AgentKitCategory, AiTarget, BuildMode, CliRequest, CliResult, Command, Config, DocKind,

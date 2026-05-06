@@ -9,6 +9,12 @@ Migrated implementation source for `src/generation.rs`.
 - Preserve the behavior of the pre-migration Rust source.
 - This file is synchronized into `.build/rust/mds/core/src/generation.rs`.
 
+## Exports
+
+| Name | Visibility | Summary |
+| --- | --- | --- |
+| generation | internal | Generated file planning and output assembly. |
+
 ## Imports
 
 | From | Target | Symbols | Via | Summary | Reference |
@@ -40,6 +46,11 @@ Migrated implementation source for `src/generation.rs`.
 ## Source
 
 
+##### generation
+
+Plans generated source, test, asset, and manifest files from implementation Markdown documents.
+
+
 ````rs
 pub(crate) fn plan_generation(
     package: &Package,
@@ -62,11 +73,6 @@ fn plan_outputs(package: &Package, doc: &ImplDoc, state: &mut RunState) -> Vec<G
 
     if let Some(file) = plan_output(package, doc, OutputKind::Source, source_body(doc), state) {
         generated.push(file);
-    }
-    if matches!(doc.doc_kind, DocKind::Source) {
-        if let Some(file) = plan_output(package, doc, OutputKind::Types, &doc.types_code, state) {
-            generated.push(file);
-        }
     }
     if let Some(file) = plan_output(package, doc, OutputKind::Test, &doc.test_code, state) {
         generated.push(file);

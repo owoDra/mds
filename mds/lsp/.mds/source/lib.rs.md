@@ -9,24 +9,23 @@ Migrated implementation source for `src/lib.rs`.
 - Preserve the behavior of the pre-migration Rust source.
 - This file is synchronized into `.build/rust/mds/lsp/src/lib.rs`.
 
+## Exports
+
+| Name | Visibility | Summary |
+| --- | --- | --- |
+| lsp-root | public | LSP package root module surface. |
+
 ## Source
+
+
+##### lsp-root
+
+Exports capabilities, conversion helpers, labels, server, and workspace state modules.
 
 ````rs
 pub mod capabilities;
-````
-
-````rs
 pub mod convert;
-````
-
-````rs
 pub mod labels;
-````
-
-````rs
 pub mod server;
-````
-
-````rs
 pub mod state;
 ````

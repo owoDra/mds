@@ -9,6 +9,12 @@ Migrated implementation source for `src/server.rs`.
 - Preserve the behavior of the pre-migration Rust source.
 - This file is synchronized into `.build/rust/mds/lsp/src/server.rs`.
 
+## Exports
+
+| Name | Visibility | Summary |
+| --- | --- | --- |
+| server | internal | LSP server request handling and capability wiring. |
+
 ## Imports
 
 | From | Target | Symbols | Via | Summary | Reference |
@@ -35,6 +41,11 @@ Migrated implementation source for `src/server.rs`.
 
 
 ## Source
+
+
+##### server
+
+Connects workspace state, diagnostics, completions, hover, navigation, symbols, and code actions to tower-lsp.
 
 
 ````rs

@@ -9,6 +9,12 @@ Migrated implementation source for `src/diagnostics.rs`.
 - Preserve the behavior of the pre-migration Rust source.
 - This file is synchronized into `.build/rust/mds/core/src/diagnostics.rs`.
 
+## Exports
+
+| Name | Visibility | Summary |
+| --- | --- | --- |
+| diagnostics | internal | Shared diagnostic model and run state. |
+
 ## Imports
 
 | From | Target | Symbols | Via | Summary | Reference |
@@ -17,6 +23,11 @@ Migrated implementation source for `src/diagnostics.rs`.
 
 
 ## Source
+
+
+##### diagnostics
+
+Provides diagnostics emitted by core commands, validators, and package processing.
 
 
 ````rs

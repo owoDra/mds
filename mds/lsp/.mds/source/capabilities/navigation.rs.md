@@ -9,6 +9,12 @@ Migrated implementation source for `src/capabilities/navigation.rs`.
 - Preserve the behavior of the pre-migration Rust source.
 - This file is synchronized into `.build/rust/mds/lsp/src/capabilities/navigation.rs`.
 
+## Exports
+
+| Name | Visibility | Summary |
+| --- | --- | --- |
+| navigation | internal | Definition and reference navigation for mds Markdown. |
+
 ## Imports
 
 | From | Target | Symbols | Via | Summary | Reference |
@@ -27,7 +33,12 @@ Migrated implementation source for `src/capabilities/navigation.rs`.
 ## Source
 
 
-Resolve Uses table targets to their source markdown files for Go to Definition.
+##### navigation
+
+Resolves Imports, Exports, Markdown Reference links, and H5 anchors into LSP locations.
+
+
+Resolve Imports / Exports table cells and Markdown Reference links for Go to Definition.
 
 ````rs
 pub fn goto_definition(
@@ -38,7 +49,6 @@ pub fn goto_definition(
 ) -> Option<GotoDefinitionResponse> {
     let line_text = line_at(text, position.line)?;
 
-    // Check if cursor is in a Uses table row
     if !line_text.trim_start().starts_with('|') {
         return None;
     }
@@ -49,7 +59,10 @@ pub fn goto_definition(
         return None;
     }
 
-    // Reject path traversal attempts
+    if let Some(location) = markdown_link_location(path, &cell) {
+        return Some(GotoDefinitionResponse::Scalar(location));
+    }
+
     if cell.contains("..") || cell.starts_with('/') || cell.contains('\\') {
         return None;
     }
@@ -76,7 +89,7 @@ pub fn goto_definition(
         let uri = Url::from_file_path(&target_path).ok()?;
         return Some(GotoDefinitionResponse::Scalar(Location {
             uri,
-            range: Range::default(),
+            range: h5_range_for_name(&target_path, &cell).unwrap_or_default(),
         }));
     }
 
@@ -88,7 +101,7 @@ pub fn goto_definition(
             .filter_map(|p| {
                 Url::from_file_path(p).ok().map(|uri| Location {
                     uri,
-                    range: Range::default(),
+                    range: h5_range_for_name(p, &cell).unwrap_or_default(),
                 })
             })
             .collect();
@@ -101,6 +114,85 @@ pub fn goto_definition(
     None
 }
 
+````
+
+````rs
+fn markdown_link_location(source_path: &Path, cell: &str) -> Option<Location> {
+    let (label, target) = markdown_link_parts(cell)?;
+    let (target_file, anchor) = target.split_once('#').unwrap_or((target, ""));
+    if target_file.contains("..") || target_file.starts_with('/') || target_file.contains('\\') {
+        return None;
+    }
+    let target_path = source_path.parent()?.join(target_file);
+    if !target_path.exists() {
+        return None;
+    }
+    let range = if anchor.is_empty() {
+        h5_range_for_name(&target_path, label).unwrap_or_default()
+    } else {
+        heading_range_for_anchor(&target_path, anchor).unwrap_or_default()
+    };
+    Some(Location {
+        uri: Url::from_file_path(target_path).ok()?,
+        range,
+    })
+}
+````
+
+````rs
+fn markdown_link_parts(value: &str) -> Option<(&str, &str)> {
+    let value = value.trim();
+    if !value.starts_with('[') || !value.ends_with(')') {
+        return None;
+    }
+    let middle = value.find("](")?;
+    Some((&value[1..middle], &value[middle + 2..value.len() - 1]))
+}
+````
+
+````rs
+fn h5_range_for_name(path: &Path, name: &str) -> Option<Range> {
+    heading_range_for_anchor(path, &slugify_heading(name))
+}
+````
+
+````rs
+fn heading_range_for_anchor(path: &Path, anchor: &str) -> Option<Range> {
+    let text = std::fs::read_to_string(path).ok()?;
+    for (idx, line) in text.lines().enumerate() {
+        let Some(title) = line.trim_start().strip_prefix('#') else {
+            continue;
+        };
+        let title = title.trim_start_matches('#').trim();
+        if slugify_heading(title) == anchor.trim_start_matches('#') {
+            let char_end = u32::try_from(line.len()).unwrap_or(u32::MAX);
+            return Some(Range {
+                start: Position {
+                    line: idx as u32,
+                    character: 0,
+                },
+                end: Position {
+                    line: idx as u32,
+                    character: char_end,
+                },
+            });
+        }
+    }
+    None
+}
+````
+
+````rs
+fn slugify_heading(value: &str) -> String {
+    value
+        .trim()
+        .to_ascii_lowercase()
+        .chars()
+        .map(|character| if character.is_ascii_alphanumeric() { character } else { '-' })
+        .collect::<String>()
+        .trim_matches('-')
+        .to_string()
+}
 ````
 
 

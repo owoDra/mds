@@ -9,13 +9,28 @@
 - `greet` は `GreetOptions` を受け取り、`"Hello, <name>!"` 形式の文字列を返す。
 - `name` が空文字列の場合でもエラーにせず `"Hello, !"` を返す。
 
+## Exports
+
+| Name | Visibility | Summary |
+| --- | --- | --- |
+| GreetOptions | public | Greeting input data accepted by `greet`. |
+| greet | public | Returns a greeting message from the provided options. |
+
 ## Source
+
+##### GreetOptions
+
+`GreetOptions` carries the name used to build a greeting message.
 
 ```ts
 export interface GreetOptions {
   name: string;
 }
 ```
+
+##### greet
+
+`greet` is the public function referenced by tests and callers that need a formatted greeting.
 
 ```ts
 export function greet(options: GreetOptions): string {

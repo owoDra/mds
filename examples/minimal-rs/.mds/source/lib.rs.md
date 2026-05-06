@@ -14,10 +14,6 @@
 | --- | --- | --- |
 | greet | public | Greeting module |
 
-##### greet
-
-crate root から参照するための module export です。
-
 ## Imports
 
 | From | Target | Symbols | Via | Summary | Reference |
@@ -25,6 +21,10 @@ crate root から参照するための module export です。
 | - | - | - | - | - | - |
 
 ## Source
+
+##### greet
+
+crate root から参照するための module export です。
 
 ````rs
 pub mod greet;
