@@ -9,6 +9,12 @@ Migrated implementation source for `src/adapter.rs`.
 - Preserve the behavior of the pre-migration Rust source.
 - This file is synchronized into `.build/rust/mds/core/src/adapter.rs`.
 
+## Exports
+
+| Name | Visibility | Summary |
+| --- | --- | --- |
+| adapter | internal | Descriptor-backed output path adapter functions. |
+
 ## Imports
 
 | From | Target | Symbols | Via | Summary | Reference |
@@ -22,6 +28,11 @@ Migrated implementation source for `src/adapter.rs`.
 
 
 ## Source
+
+
+##### adapter
+
+Owns output path adaptation between Markdown source paths and generated file paths.
 
 
 Compute the output file path relative to the selected output root. Resolves through the built-in language descriptor.

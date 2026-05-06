@@ -9,6 +9,12 @@ Migrated implementation source for `src/manifest.rs`.
 - Preserve the behavior of the pre-migration Rust source.
 - This file is synchronized into `.build/rust/mds/core/src/manifest.rs`.
 
+## Exports
+
+| Name | Visibility | Summary |
+| --- | --- | --- |
+| manifest | internal | mds manifest planning and synchronization data. |
+
 ## Imports
 
 | From | Target | Symbols | Via | Summary | Reference |
@@ -26,6 +32,11 @@ Migrated implementation source for `src/manifest.rs`.
 
 
 ## Source
+
+
+##### manifest
+
+Builds package manifests that record generated files and their Markdown sources.
 
 
 ````rs

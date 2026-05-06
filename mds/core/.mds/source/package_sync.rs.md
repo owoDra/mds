@@ -9,6 +9,12 @@ Migrated implementation source for `src/package_sync.rs`.
 - Preserve the behavior of the pre-migration Rust source.
 - This file is synchronized into `.build/rust/mds/core/src/package_sync.rs`.
 
+## Exports
+
+| Name | Visibility | Summary |
+| --- | --- | --- |
+| package-sync | internal | Package manifest synchronization command support. |
+
 ## Imports
 
 | From | Target | Symbols | Via | Summary | Reference |
@@ -25,6 +31,11 @@ Migrated implementation source for `src/package_sync.rs`.
 
 
 ## Source
+
+
+##### package-sync
+
+Synchronizes package manifests and optional hooks after Markdown source changes.
 
 
 ````rs
@@ -251,5 +262,4 @@ fn dependency_table(dependencies: &std::collections::HashMap<String, String>) ->
     output
 }
 ````
-
 

@@ -9,6 +9,12 @@ Migrated implementation source for `src/capabilities/symbols.rs`.
 - Preserve the behavior of the pre-migration Rust source.
 - This file is synchronized into `.build/rust/mds/lsp/src/capabilities/symbols.rs`.
 
+## Exports
+
+| Name | Visibility | Summary |
+| --- | --- | --- |
+| symbols | internal | Document symbols for mds Markdown structure. |
+
 ## Imports
 
 | From | Target | Symbols | Via | Summary | Reference |
@@ -18,6 +24,11 @@ Migrated implementation source for `src/capabilities/symbols.rs`.
 
 
 ## Source
+
+
+##### symbols
+
+Extracts section and H5 shared definition symbols for editor navigation outlines.
 
 
 Extract document symbols, or section headings, from mds Markdown. Returns `SymbolInformation` with placeholder URIs, and callers replace those URIs with the actual document URI.

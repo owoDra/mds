@@ -9,6 +9,12 @@ Migrated implementation source for `src/labels.rs`.
 - Preserve the behavior of the pre-migration Rust source.
 - This file is synchronized into `.build/rust/mds/lsp/src/labels.rs`.
 
+## Exports
+
+| Name | Visibility | Summary |
+| --- | --- | --- |
+| labels | internal | Configurable label resolution for LSP authoring helpers. |
+
 ## Imports
 
 | From | Target | Symbols | Via | Summary | Reference |
@@ -17,6 +23,11 @@ Migrated implementation source for `src/labels.rs`.
 
 
 ## Source
+
+
+##### labels
+
+Resolves canonical mds labels and configured label overrides for completions and diagnostics.
 
 
 Resolve a canonical label key to its display form using label overrides.

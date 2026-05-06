@@ -13,6 +13,13 @@
 
 `greet` は名前を受け取り、挨拶メッセージを返します。
 
+## Exports
+
+| Name | Visibility | Summary |
+| --- | --- | --- |
+| GreetOptions | public | Greeting input data accepted by `greet`. |
+| greet | public | Returns a greeting message from the provided options. |
+
 ## Imports
 
 | From | Target | Symbols | Via | Summary | Reference |
@@ -21,11 +28,19 @@
 
 ## Source
 
+##### GreetOptions
+
+`GreetOptions` carries the name used to build a greeting message.
+
 ```py
 @dataclass
 class GreetOptions:
     name: str
 ```
+
+##### greet
+
+`greet` is the public function referenced by tests and callers that need a formatted greeting.
 
 ```py
 def greet(options: GreetOptions) -> str:

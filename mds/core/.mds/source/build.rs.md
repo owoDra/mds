@@ -9,6 +9,12 @@ Migrated implementation source for `build.rs`.
 - Preserve the behavior of the pre-migration Rust source.
 - This file is synchronized into `.build/rust/mds/core/build.rs`.
 
+## Exports
+
+| Name | Visibility | Summary |
+| --- | --- | --- |
+| build-script | internal | Build-time registry generation entrypoint. |
+
 ## Imports
 
 | From | Target | Symbols | Via | Summary | Reference |
@@ -20,6 +26,11 @@ Migrated implementation source for `build.rs`.
 
 
 ## Source
+
+
+##### build-script
+
+Generates descriptor, tool, package-manager, and template registries during Rust builds.
 
 
 ````rs
@@ -44,12 +55,12 @@ fn generate_template_registry(out_dir: &Path) {
     let mut code = String::new();
     code.push_str("/// Auto-generated template registry from manifest.toml files.\n");
     code.push_str("pub(crate) struct TemplateEntry {\n");
+    code.push_str("    pub target: &'static str,\n");
     code.push_str("    pub output_path: &'static str,\n");
     code.push_str("    pub category: &'static str,\n");
     code.push_str("    pub content: &'static str,\n");
     code.push_str("}\n\n");
-
-    let mut targets: Vec<String> = Vec::new();
+    code.push_str("pub(crate) const TEMPLATES: &[TemplateEntry] = &[\n");
 
     if let Ok(entries) = fs::read_dir(templates_dir) {
         let mut dirs: Vec<_> = entries.filter_map(|entry| entry.ok()).collect();
@@ -66,7 +77,6 @@ fn generate_template_registry(out_dir: &Path) {
             }
 
             let target_name = path.file_name().unwrap().to_str().unwrap().to_string();
-            let const_name = target_name.replace('-', "_").to_uppercase();
 
             println!("cargo:rerun-if-changed={}", manifest_path.display());
 
@@ -82,10 +92,6 @@ fn generate_template_registry(out_dir: &Path) {
                 .get("file")
                 .and_then(|value| value.as_array())
                 .unwrap_or_else(|| panic!("no [[file]] entries in {}", manifest_path.display()));
-
-            code.push_str(&format!(
-                "pub(crate) const {const_name}: &[TemplateEntry] = &[\n"
-            ));
 
             for file_entry in files {
                 let template = file_entry
@@ -109,27 +115,18 @@ fn generate_template_registry(out_dir: &Path) {
                 });
 
                 code.push_str("    TemplateEntry {\n");
+                code.push_str(&format!("        target: {:?},\n", target_name));
                 code.push_str(&format!("        output_path: {:?},\n", output_path));
                 code.push_str(&format!("        category: {:?},\n", category));
                 code.push_str(&format!("        content: {:?},\n", content));
                 code.push_str("    },\n");
             }
-
-            code.push_str("];\n\n");
-            targets.push(target_name);
         }
     }
 
-    code.push_str(
-        "pub(crate) fn templates_for_target(target: &str) -> &'static [TemplateEntry] {\n",
-    );
-    code.push_str("    match target {\n");
-    for target in &targets {
-        let const_name = target.replace('-', "_").to_uppercase();
-        code.push_str(&format!("        {:?} => {const_name},\n", target));
-    }
-    code.push_str("        _ => &[],\n");
-    code.push_str("    }\n");
+    code.push_str("];\n\n");
+    code.push_str("pub(crate) fn templates_for_target(target: &str) -> Vec<&'static TemplateEntry> {\n");
+    code.push_str("    TEMPLATES.iter().filter(|entry| entry.target == target).collect()\n");
     code.push_str("}\n");
 
     fs::write(&dest_path, code).unwrap();

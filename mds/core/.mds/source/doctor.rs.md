@@ -9,6 +9,12 @@ Migrated implementation source for `src/doctor.rs`.
 - Preserve the behavior of the pre-migration Rust source.
 - This file is synchronized into `.build/rust/mds/core/src/doctor.rs`.
 
+## Exports
+
+| Name | Visibility | Summary |
+| --- | --- | --- |
+| doctor | internal | Environment and package health inspection. |
+
 ## Imports
 
 | From | Target | Symbols | Via | Summary | Reference |
@@ -22,6 +28,11 @@ Migrated implementation source for `src/doctor.rs`.
 
 
 ## Source
+
+
+##### doctor
+
+Reports mds package health, available tools, and configuration issues.
 
 
 ````rs

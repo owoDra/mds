@@ -9,17 +9,23 @@ Migrated implementation source for `src/server.rs`.
 - Preserve the behavior of the pre-migration Rust source.
 - This file is synchronized into `.build/rust/mds/lsp/src/server.rs`.
 
+## Exports
+
+| Name | Visibility | Summary |
+| --- | --- | --- |
+| server | internal | LSP server request handling and capability wiring. |
+
 ## Imports
 
 | From | Target | Symbols | Via | Summary | Reference |
 | --- | --- | --- | --- | --- | --- |
 | builtin | std::collections | HashMap | - | - | - |
 | builtin | std::path | PathBuf | - | - | - |
+| external | mds_core::descriptor | lang_for_markdown_path | - | - | [../../../core/.mds/source/descriptor.rs.md#source](../../../core/.mds/source/descriptor.rs.md#source) |
 | external | mds_core::diagnostics | RunState | - | - | [../../../core/.mds/source/diagnostics.rs.md#source](../../../core/.mds/source/diagnostics.rs.md#source) |
 | external | mds_core::markdown | load_implementation_docs | - | - | [../../../core/.mds/source/markdown.rs.md#source](../../../core/.mds/source/markdown.rs.md#source) |
 | external | mds_core::markdown | source_markdown_root | - | - | [../../../core/.mds/source/markdown.rs.md#source](../../../core/.mds/source/markdown.rs.md#source) |
 | external | mds_core::markdown | test_markdown_root | - | - | [../../../core/.mds/source/markdown.rs.md#source](../../../core/.mds/source/markdown.rs.md#source) |
-| external | mds_core::model | Lang | - | - | [../../../core/.mds/source/model.rs.md#source](../../../core/.mds/source/model.rs.md#source) |
 | external | mds_core::package | discover_packages | - | - | [../../../core/.mds/source/package.rs.md#source](../../../core/.mds/source/package.rs.md#source) |
 | external | tower_lsp::jsonrpc | Result | - | - | - |
 | external | tower_lsp::lsp_types | * | - | - | - |
@@ -35,6 +41,11 @@ Migrated implementation source for `src/server.rs`.
 
 
 ## Source
+
+
+##### server
+
+Connects workspace state, diagnostics, completions, hover, navigation, symbols, and code actions to tower-lsp.
 
 
 ````rs
@@ -122,7 +133,7 @@ impl MdsLanguageServer {
             capabilities::diagnostics::validate_config_text(&path, text)
         } else if path.ends_with("overview.md") {
             vec![]
-        } else if Lang::from_path(&path).is_some() || self.is_in_authoring_root(&path).await {
+        } else if lang_for_markdown_path(&path).is_some() || self.is_in_authoring_root(&path).await {
             capabilities::diagnostics::validate_impl_md_text(&path, text, &config)
         } else {
             vec![]
@@ -309,7 +320,7 @@ impl LanguageServer for MdsLanguageServer {
         let version = params.text_document.version;
 
         if let Ok(path) = uri.to_file_path() {
-            let lang = Lang::from_path(&path);
+            let lang = lang_for_markdown_path(&path);
             let mut state = self.state.write().await;
             state.open_files.insert(
                 uri.to_string(),

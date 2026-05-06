@@ -16,6 +16,10 @@ Migrated implementation source for `tests/capabilities.rs`.
 - capabilities/symbols
 - convert
 
+## Cases
+
+- LSP capability helpers return stable symbols, completions, code actions, and position conversions.
+
 ## Imports
 
 | From | Target | Symbols | Via | Summary | Reference |
@@ -43,10 +47,6 @@ A module.
 
 Contract.
 
-## Types
-
-Types content.
-
 ## Source
 
 Source content.
@@ -70,7 +70,6 @@ Shared definition.
         names.contains(&"Contract"),
         "should contain Contract: {names:?}"
     );
-    assert!(names.contains(&"Types"), "should contain Types: {names:?}");
     assert!(
         names.contains(&"Source"),
         "should contain Source: {names:?}"
@@ -102,7 +101,6 @@ fn test_section_completion_on_heading_prefix() {
         labels.contains(&"Contract"),
         "should offer Contract: {labels:?}"
     );
-    assert!(labels.contains(&"Types"), "should offer Types: {labels:?}");
     assert!(
         labels.contains(&"Source"),
         "should offer Source: {labels:?}"
@@ -152,6 +150,22 @@ fn test_code_block_language_completion() {
         labels.contains(&"typescript"),
         "should offer typescript: {labels:?}"
     );
+}
+````
+
+````rs
+#[test]
+fn test_code_block_language_completion_with_long_fence() {
+    let text = "````";
+    let position = Position {
+        line: 0,
+        character: 4,
+    };
+    let config = mds_core::Config::default();
+    let path = std::path::Path::new("/test/example.rs.md");
+    let items = provide_completions(text, position, Some(path), &config);
+    let labels: Vec<&str> = items.iter().map(|i| i.label.as_str()).collect();
+    assert!(labels.contains(&"rust"), "should offer rust: {labels:?}");
 }
 ````
 

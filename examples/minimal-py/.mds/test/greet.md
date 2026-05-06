@@ -14,6 +14,10 @@
 | --- | --- | --- | --- | --- | --- |
 | internal | greet | GreetOptions, greet | - | Function under test | [../source/greet.py.md#source](../source/greet.py.md#source) |
 
+## Cases
+
+- `greet` returns the expected greeting for the provided name.
+
 ## Test
 
 ```py

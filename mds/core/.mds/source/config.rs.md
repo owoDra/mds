@@ -9,6 +9,12 @@ Migrated implementation source for `src/config.rs`.
 - Preserve the behavior of the pre-migration Rust source.
 - This file is synchronized into `.build/rust/mds/core/src/config.rs`.
 
+## Exports
+
+| Name | Visibility | Summary |
+| --- | --- | --- |
+| config | internal | mds config loading and merge behavior. |
+
 ## Imports
 
 | From | Target | Symbols | Via | Summary | Reference |
@@ -23,6 +29,11 @@ Migrated implementation source for `src/config.rs`.
 
 
 ## Source
+
+
+##### config
+
+Owns parsing and merging `mds.config.toml` into runtime package configuration.
 
 
 ````rs
@@ -104,6 +115,12 @@ pub fn merge_config_file(config: &mut Config, path: &Path, state: &mut RunState)
                     }
                     "doc_comments_outside_code" | "doc_comment_outside_code" => {
                         config.check.doc_comments_outside_code = bool_value(value, path, key, state)
+                    }
+                    "documented_sections" | "documentation_sections" => {
+                        config.check.documented_sections = bool_value(value, path, key, state)
+                    }
+                    "documented_exports" | "export_documentation" => {
+                        config.check.documented_exports = bool_value(value, path, key, state)
                     }
                     _ => warn_unsupported(path, state, "check config", key),
                 }
@@ -313,19 +330,14 @@ fn is_supported_top_level_table(section: &str) -> bool {
 
 ````rs
 fn lang_from_key(key: &str) -> Option<Lang> {
-    match key {
-        "ts" | "typescript" => Some(Lang::TypeScript),
-        "py" | "python" => Some(Lang::Python),
-        "rs" | "rust" => Some(Lang::Rust),
-        other
-            if !other.is_empty()
-                && other
-                    .chars()
-                    .all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_') =>
-        {
-            Some(Lang::Other(other.to_string()))
-        }
-        _ => None,
+    if !key.is_empty()
+        && key
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_')
+    {
+        Some(Lang::Other(key.to_string()))
+    } else {
+        None
     }
 }
 ````

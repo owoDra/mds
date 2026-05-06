@@ -9,6 +9,12 @@ Migrated implementation source for `src/args.rs`.
 - Preserve the behavior of the pre-migration Rust source.
 - This file is synchronized into `.build/rust/mds/cli/src/args.rs`.
 
+## Exports
+
+| Name | Visibility | Summary |
+| --- | --- | --- |
+| args | internal | CLI argument parsing for mds commands. |
+
 ## Imports
 
 | From | Target | Symbols | Via | Summary | Reference |
@@ -29,6 +35,11 @@ Migrated implementation source for `src/args.rs`.
 
 
 ## Source
+
+
+##### args
+
+Parses command line arguments into core CLI request structures.
 
 
 ````rs

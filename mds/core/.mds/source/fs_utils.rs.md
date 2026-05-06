@@ -9,6 +9,12 @@ Migrated implementation source for `src/fs_utils.rs`.
 - Preserve the behavior of the pre-migration Rust source.
 - This file is synchronized into `.build/rust/mds/core/src/fs_utils.rs`.
 
+## Exports
+
+| Name | Visibility | Summary |
+| --- | --- | --- |
+| fs-utils | internal | Shared filesystem traversal and path guard helpers. |
+
 ## Imports
 
 | From | Target | Symbols | Via | Summary | Reference |
@@ -20,6 +26,11 @@ Migrated implementation source for `src/fs_utils.rs`.
 
 
 ## Source
+
+
+##### fs-utils
+
+Provides common filesystem utilities used by package discovery, generation, and validation.
 
 
 ````rs

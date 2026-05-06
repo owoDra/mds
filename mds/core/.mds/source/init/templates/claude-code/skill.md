@@ -31,7 +31,7 @@ mds test                # Run tests on generated outputs
 
 1. Read existing `.mds/source/` files to understand the current state
 2. Create new markdown files with `mds new <name.lang.md>` (generates correct template)
-3. Record dependencies in Uses; write implementation-only code blocks
+3. Record dependencies in Imports; keep spec-state docs code-free until implementation is ready
 4. Run `mds lint` to validate structure
 5. Run `mds build --dry-run` to preview generation
 6. Run `mds build` to generate code
@@ -71,12 +71,15 @@ Implementation files: `.mds/source/name.{lang}.md` → generates `src/name.{lang
 
 ### Sections
 
-All sections are optional. Recommended structure:
+Document source md as both specification and implementation source:
 
 - `## {{PURPOSE}}` — Feature description (documentation only)
 - `## {{CONTRACT}}` — Behavior guarantees (documentation only)
 - `## {{SOURCE}}` — Implementation code blocks
 - `## {{CASES}}` — Example behaviors (documentation only)
+- Source md without generated `{{TYPES}}` / `{{SOURCE}}` code is spec state; adding generated code makes it impl state
+- `{{EXPORTS}}.{{SUMMARY}}` must describe the public definition; do not use `-`
+- Exported definitions referenced by other files need matching H5 shared definitions with prose
 
 ### {{IMPORTS}} Section
 

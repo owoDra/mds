@@ -30,6 +30,10 @@ Migrated implementation source for `tests/parser_generation_mvp.rs`.
 - runner
 - table
 
+## Cases
+
+- Parser, generation, quality, init, and descriptor regression behavior remains stable.
+
 ## Imports
 
 | From | Target | Symbols | Via | Summary | Reference |
@@ -153,7 +157,7 @@ source_body = '''
     .unwrap();
     fs::write(
         temp.path().join("pkg/src-md/foo/custom.dart.md"),
-        "# Custom\n\n## Purpose\n\nCustom language.\n\n## Source\n\n```dart\nclass Custom {}\n```\n",
+        "# Custom\n\n## Purpose\n\nCustom language.\n\n## Contract\n\n- Compile custom language source.\n\n## Source\n\n```dart\nclass Custom {}\n```\n",
     )
     .unwrap();
 
@@ -326,7 +330,7 @@ fn build_renders_typescript_imports_without_kind_or_code_columns() {
     .unwrap();
     fs::write(
         package.join(".mds/source/greet.ts.md"),
-        "# greet\n\n## Purpose\n\nFixture.\n\n## Imports\n\n| From | Target | Symbols | Via | Summary |\n| --- | --- | --- | --- | --- |\n| external | ./format-name | formatName | - | formatter |\n\n## Source\n\n```ts\nexport function greet(name: string) {\n  return formatName(name);\n}\n```\n",
+        "# greet\n\n## Purpose\n\nFixture.\n\n## Contract\n\n- Render a greeting through the formatter.\n\n## Imports\n\n| From | Target | Symbols | Via | Summary | Reference |\n| --- | --- | --- | --- | --- | --- |\n| external | ./format-name | formatName | - | formatter | - |\n\n## Source\n\n```ts\nexport function greet(name: string) {\n  return formatName(name);\n}\n```\n",
     )
     .unwrap();
 
@@ -368,12 +372,12 @@ fn build_renders_python_imports_from_internal_markdown_links() {
     .unwrap();
     fs::write(
         package.join(".mds/source/format_name.py.md"),
-        "# format_name\n\n## Purpose\n\nFixture.\n\n##### format-name\n\nShared formatter.\n\n## Source\n\n```py\ndef format_name(name: str) -> str:\n    return name\n```\n",
+        "# format_name\n\n## Purpose\n\nFixture.\n\n## Contract\n\n- Return the supplied name.\n\n##### format-name\n\nShared formatter.\n\n## Source\n\n```py\ndef format_name(name: str) -> str:\n    return name\n```\n",
     )
     .unwrap();
     fs::write(
         package.join(".mds/source/greet.py.md"),
-        "# greet\n\n## Purpose\n\nFixture.\n\n## Imports\n\n| From | Target | Symbols | Via | Summary |\n| --- | --- | --- | --- | --- |\n| internal | [format_name](./format_name.py.md#format-name) | format_name | - | formatter |\n\n## Source\n\n```py\ndef greet(name: str) -> str:\n    return format_name(name)\n```\n",
+        "# greet\n\n## Purpose\n\nFixture.\n\n## Contract\n\n- Render a greeting through the formatter.\n\n## Imports\n\n| From | Target | Symbols | Via | Summary | Reference |\n| --- | --- | --- | --- | --- | --- |\n| internal | [format_name](./format_name.py.md#format-name) | format_name | - | formatter | [format_name](./format_name.py.md#format-name) |\n\n## Source\n\n```py\ndef greet(name: str) -> str:\n    return format_name(name)\n```\n",
     )
     .unwrap();
 
@@ -394,12 +398,87 @@ fn build_renders_python_imports_from_internal_markdown_links() {
 
 ````rs
 #[test]
+fn build_renders_imports_and_source_exports_for_all_language_descriptors() {
+    let temp = TestDir::new();
+    let package = temp.path().join("all-language-imports");
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let descriptors = language_descriptor_examples(manifest_dir);
+
+    fs::create_dir_all(package.join(".mds/source")).unwrap();
+    fs::write(
+        package.join("package.json"),
+        "{\"name\":\"all-language-imports\",\"version\":\"0.1.0\"}\n",
+    )
+    .unwrap();
+    fs::write(
+        package.join("mds.config.toml"),
+        "[package]\nenabled = true\nallow_raw_source = false\n\n[check]\nimport_with_implementation = false\ntop_level_fence_required = false\ndoc_comments_outside_code = false\n",
+    )
+    .unwrap();
+    fs::write(
+        package.join(".mds/source/overview.md"),
+        "# Overview\n\n## Purpose\n\nAll language import fixture.\n\n## Architecture\n\nFixture source.\n\n### Package Summary\n\n| Name | Version |\n| --- | --- |\n| all-language-imports | 0.1.0 |\n\n### Dependencies\n\n| Name | Version | Summary |\n| --- | --- | --- |\n\n### Dev Dependencies\n\n| Name | Version | Summary |\n| --- | --- | --- |\n\n## Rules\n\n- Fixture.\n",
+    )
+    .unwrap();
+
+    for descriptor in &descriptors {
+        let dir = package.join(".mds/source").join(&descriptor.id);
+        fs::create_dir_all(&dir).unwrap();
+        fs::write(
+            dir.join(format!("feature.{}.md", descriptor.suffix)),
+            all_language_import_doc(descriptor),
+        )
+        .unwrap();
+    }
+
+    let sync = execute(CliRequest {
+        cwd: package.clone(),
+        package: None,
+        verbose: false,
+        command: Command::PackageSync { check: false },
+    });
+    assert_eq!(sync.exit_code, 0, "{}", sync.stderr);
+
+    let result = execute(CliRequest {
+        cwd: package.clone(),
+        package: None,
+        verbose: false,
+        command: Command::Build {
+            mode: BuildMode::Write,
+        },
+    });
+    assert_eq!(result.exit_code, 0, "{}", result.stderr);
+
+    let generated_sources = generated_texts_under(&package.join("src"));
+    for descriptor in &descriptors {
+        let marker = export_marker(&descriptor.id);
+        let generated = generated_sources
+            .iter()
+            .find(|content| content.contains(&marker))
+            .unwrap_or_else(|| panic!("missing generated source for {}", descriptor.id));
+        if let Some(import) = expected_import_statement(descriptor) {
+            assert!(
+                generated.contains(&import),
+                "{} generated source did not contain import `{}`:\n{}",
+                descriptor.id,
+                import,
+                generated
+            );
+        }
+        assert!(generated.contains(&marker));
+        assert!(!generated.contains("| Name | Visibility | Summary |"));
+    }
+}
+````
+
+````rs
+#[test]
 fn rejects_multiple_top_level_implementations_in_one_code_block() {
     let temp = TestDir::new();
     write_fixture(temp.path());
     fs::write(
         temp.path().join("pkg/src-md/foo/multiple.ts.md"),
-        "# Multiple\n\n## Purpose\n\nMultiple declarations.\n\n## Source\n\n```ts\nexport const first = 1;\nexport const second = 2;\n```\n",
+        "# Multiple\n\n## Purpose\n\nMultiple declarations.\n\n## Contract\n\n- Allow multiple declarations when configured.\n\n## Source\n\n```ts\nexport const first = 1;\nexport const second = 2;\n```\n",
     )
     .unwrap();
 
@@ -448,7 +527,7 @@ fn check_config_can_allow_multiple_top_level_implementations_in_one_code_block()
     .unwrap();
     fs::write(
         temp.path().join("pkg/src-md/foo/multiple.ts.md"),
-        "# Multiple\n\n## Purpose\n\nMultiple declarations.\n\n## Source\n\n```ts\nexport const first = 1;\nexport const second = 2;\n```\n",
+        "# Multiple\n\n## Purpose\n\nMultiple declarations.\n\n## Contract\n\n- Allow multiple declarations when configured.\n\n## Source\n\n```ts\nexport const first = 1;\nexport const second = 2;\n```\n",
     )
     .unwrap();
 
@@ -496,7 +575,7 @@ fn check_config_can_disable_doc_comment_validation() {
     .unwrap();
     fs::write(
         temp.path().join("pkg/src-md/foo/doc-comment.py.md"),
-        "# Doc comment\n\n## Purpose\n\nBroken doc comment.\n\n## Source\n\n```py\ndef broken() -> str:\n    \"\"\"Allow me when the check is disabled.\"\"\"\n    return \"ok\"\n```\n",
+        "# Doc comment\n\n## Purpose\n\nBroken doc comment.\n\n## Contract\n\n- Allow docstrings when configured.\n\n## Source\n\n```py\ndef broken() -> str:\n    \"\"\"Allow me when the check is disabled.\"\"\"\n    return \"ok\"\n```\n",
     )
     .unwrap();
 
@@ -680,6 +759,50 @@ fn package_check_uses_language_metadata_without_markdown_mirror() {
 
 ````rs
 #[test]
+fn accepts_spec_state_source_doc_without_code_blocks() {
+    let temp = TestDir::new();
+    write_fixture(temp.path());
+    fs::write(
+        temp.path().join("pkg/.mds/source/spec-only.ts.md"),
+        "# Spec only\n\n## Purpose\n\nDescribe planned behavior.\n\n## Contract\n\n- Keep the planned boundary stable.\n\n## Exports\n\n| Name | Visibility | Summary |\n| --- | --- | --- |\n| SpecOnly | public | Planned source boundary. |\n\n##### SpecOnly\n\nPlanned source boundary referenced before implementation exists.\n\n## Cases\n\n- Planned behavior is documented before code is generated.\n",
+    )
+    .unwrap();
+
+    let check = execute(CliRequest {
+        cwd: temp.path().to_path_buf(),
+        package: None,
+        verbose: false,
+        command: Command::Lint { fix: false, check: false },
+    });
+    assert_eq!(check.exit_code, 0, "{}", check.stderr);
+}
+````
+
+````rs
+#[test]
+fn rejects_export_without_summary_or_h5_definition() {
+    let temp = TestDir::new();
+    write_fixture(temp.path());
+    fs::write(
+        temp.path().join("pkg/.mds/source/undocumented.ts.md"),
+        "# Undocumented\n\n## Purpose\n\nFixture.\n\n## Contract\n\n- Stable behavior.\n\n## Exports\n\n| Name | Visibility | Summary |\n| --- | --- | --- |\n| Undocumented | public | - |\n\n## Source\n\n```ts\nexport const undocumented = true;\n```\n",
+    )
+    .unwrap();
+
+    let check = execute(CliRequest {
+        cwd: temp.path().to_path_buf(),
+        package: None,
+        verbose: false,
+        command: Command::Lint { fix: false, check: false },
+    });
+    assert_eq!(check.exit_code, 1);
+    assert!(check.stderr.contains("export `Undocumented` requires a non-empty Summary"));
+    assert!(check.stderr.contains("export `Undocumented` requires a matching H5 shared definition"));
+}
+````
+
+````rs
+#[test]
 fn rejects_broken_manifest_before_building() {
     let temp = TestDir::new();
     write_fixture(temp.path());
@@ -724,7 +847,7 @@ fn builds_types_and_test_outputs_from_fixed_authoring_roots() {
     .unwrap();
     fs::write(
         package.join(".mds/source/foo/bar.ts.md"),
-        "# Bar\n\n## Purpose\n\nFixture.\n\n## Types\n\n```ts\nexport type Bar = string;\n```\n\n## Source\n\n```ts\nexport const bar: Bar = 'ok';\n```\n",
+        "# Bar\n\n## Purpose\n\nFixture.\n\n## Contract\n\n- Generate source output.\n\n## Source\n\n```ts\nexport type Bar = string;\n```\n\n```ts\nexport const bar: Bar = 'ok';\n```\n",
     )
     .unwrap();
     fs::write(
@@ -743,7 +866,7 @@ fn builds_types_and_test_outputs_from_fixed_authoring_roots() {
     });
     assert_eq!(build.exit_code, 0, "{}", build.stderr);
     assert!(package.join("src/foo/bar.ts").exists());
-    assert!(package.join("src/foo/bar.types.ts").exists());
+    assert!(!package.join("src/foo/bar.types.ts").exists());
     assert!(package.join("tests/foo/bar.test.ts").exists());
 }
 ````
@@ -1470,7 +1593,7 @@ fn init_writes_custom_quality_commands() {
                 targets: Vec::new(),
                 categories: Vec::new(),
                 quality_commands: vec![InitQualityCommands {
-                    lang: Lang::TypeScript,
+                    lang: Lang::Other("ts".to_string()),
                     type_check: Some("npm run typecheck".to_string()),
                     lint: Some("npm run lint".to_string()),
                     test: Some("npm test".to_string()),
@@ -1519,7 +1642,15 @@ fn init_generates_ai_categories_per_target() {
     assert!(temp.path().join(".claude/rules/mds.md").exists());
     assert!(!temp.path().join(".claude/skills/mds/SKILL.md").exists());
     assert!(temp.path().join(".opencode/skills/mds/SKILL.md").exists());
+    assert!(temp.path().join(".opencode/skills/mds-ts/SKILL.md").exists());
+    assert!(temp.path().join(".opencode/skills/mds-rs/SKILL.md").exists());
+    assert!(!temp.path().join(".claude/skills/mds-ts/SKILL.md").exists());
     assert!(!temp.path().join(".opencode/agents/mds-lint.md").exists());
+    let ts_skill = fs::read_to_string(temp.path().join(".opencode/skills/mds-ts/SKILL.md")).unwrap();
+    assert!(ts_skill.contains("Descriptor import style: `typescript`"));
+    assert!(ts_skill.contains("## Imports"));
+    assert!(ts_skill.contains("## Exports"));
+    assert!(ts_skill.contains("import { ImportedSymbol } from './dep';"));
 }
 ````
 
@@ -2112,6 +2243,83 @@ fn build_write_syncs_self_hosted_rust_mirror() {
 ````
 
 ````rs
+#[test]
+fn descriptor_catalog_example_covers_all_builtin_descriptors() {
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let repo_root = manifest_dir.parent().unwrap().parent().unwrap();
+    let catalog_path = repo_root.join("examples/descriptor-catalog/coverage.toml");
+    let catalog = fs::read_to_string(&catalog_path).unwrap();
+    let catalog: toml::Value = catalog.parse().unwrap();
+
+    assert_eq!(
+        catalog_ids(&catalog, "language_ids"),
+        descriptor_ids(manifest_dir.join("src/descriptors/languages/base")),
+    );
+    assert_eq!(
+        catalog_ids(&catalog, "framework_ids"),
+        descriptor_ids(manifest_dir.join("src/descriptors/languages/overlays")),
+    );
+    assert_eq!(
+        catalog_ids(&catalog, "linter_ids"),
+        descriptor_ids_many(&[
+            manifest_dir.join("src/descriptors/linters"),
+            manifest_dir.join("src/descriptors/tools/lint"),
+        ]),
+    );
+    assert_eq!(
+        catalog_ids(&catalog, "typecheck_tool_ids"),
+        descriptor_ids(manifest_dir.join("src/descriptors/tools/typecheck")),
+    );
+    assert_eq!(
+        catalog_ids(&catalog, "test_tool_ids"),
+        descriptor_ids(manifest_dir.join("src/descriptors/tools/test")),
+    );
+    assert_eq!(
+        catalog_ids(&catalog, "package_manager_ids"),
+        descriptor_ids(manifest_dir.join("src/descriptors/package-managers")),
+    );
+}
+````
+
+````rs
+#[test]
+fn descriptor_samples_example_covers_and_builds_all_language_descriptors() {
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let repo_root = manifest_dir.parent().unwrap().parent().unwrap();
+    let sample_root = repo_root.join("examples/descriptor-samples");
+
+    assert_eq!(
+        sample_descriptor_ids(&sample_root.join(".mds/source")),
+        descriptor_ids_many(&[
+            manifest_dir.join("src/descriptors/languages/base"),
+            manifest_dir.join("src/descriptors/languages/overlays"),
+        ]),
+    );
+
+    let lint = execute(CliRequest {
+        cwd: sample_root.clone(),
+        package: None,
+        verbose: false,
+        command: Command::Lint { fix: false, check: false },
+    });
+    assert_eq!(lint.exit_code, 0, "{}", lint.stderr);
+
+    let build = execute(CliRequest {
+        cwd: sample_root,
+        package: None,
+        verbose: false,
+        command: Command::Build {
+            mode: BuildMode::DryRun,
+        },
+    });
+    assert_eq!(build.exit_code, 0, "{}", build.stderr);
+    assert!(build.stdout.contains("src/sample.ts"));
+    assert!(build.stdout.contains("src/sample.vue"));
+    assert!(build.stdout.contains(".mds/manifest.toml"));
+}
+````
+
+````rs
 struct TestDir {
     path: PathBuf,
 }
@@ -2247,7 +2455,268 @@ fn impl_doc(
     _uses_row: &str,
 ) -> String {
     format!(
-        "# {name}\n\n## Purpose\n\nFixture.\n\n## Source\n\n```{lang}\n{types}\n```\n\n```{lang}\n{source}\n```\n\n```{lang}\n{test}\n```\n"
+        "# {name}\n\n## Purpose\n\nFixture.\n\n## Contract\n\n- Preserve fixture behavior.\n\n## Source\n\n```{lang}\n{types}\n```\n\n```{lang}\n{source}\n```\n\n```{lang}\n{test}\n```\n"
     )
+}
+````
+
+````rs
+fn catalog_ids(catalog: &toml::Value, key: &str) -> std::collections::BTreeSet<String> {
+    catalog
+        .get(key)
+        .and_then(toml::Value::as_array)
+        .unwrap_or_else(|| panic!("missing catalog key `{key}`"))
+        .iter()
+        .map(|value| value.as_str().unwrap().to_string())
+        .collect()
+}
+````
+
+````rs
+fn descriptor_ids(root: PathBuf) -> std::collections::BTreeSet<String> {
+    descriptor_ids_many(&[root])
+}
+````
+
+````rs
+fn descriptor_ids_many(roots: &[PathBuf]) -> std::collections::BTreeSet<String> {
+    let mut ids = std::collections::BTreeSet::new();
+    for root in roots {
+        collect_descriptor_ids(root, &mut ids);
+    }
+    ids
+}
+````
+
+````rs
+fn collect_descriptor_ids(root: &Path, ids: &mut std::collections::BTreeSet<String>) {
+    let Ok(entries) = fs::read_dir(root) else {
+        return;
+    };
+    for entry in entries.filter_map(|entry| entry.ok()) {
+        let path = entry.path();
+        if path.is_dir() {
+            collect_descriptor_ids(&path, ids);
+            continue;
+        }
+        if path.extension().and_then(|value| value.to_str()) != Some("toml") {
+            continue;
+        }
+        let content = fs::read_to_string(&path).unwrap();
+        let parsed: toml::Value = content.parse().unwrap();
+        let id = parsed
+            .get("id")
+            .and_then(toml::Value::as_str)
+            .unwrap_or_else(|| panic!("descriptor missing id: {}", path.display()));
+        ids.insert(id.to_string());
+    }
+}
+````
+
+````rs
+fn sample_descriptor_ids(source_root: &Path) -> std::collections::BTreeSet<String> {
+    let mut ids = std::collections::BTreeSet::new();
+    for entry in fs::read_dir(source_root).unwrap() {
+        let path = entry.unwrap().path();
+        let Some(file_name) = path.file_name().and_then(|value| value.to_str()) else {
+            continue;
+        };
+        let Some(id) = file_name.strip_prefix("sample.").and_then(|value| value.strip_suffix(".md")) else {
+            continue;
+        };
+        ids.insert(id.to_string());
+    }
+    ids
+}
+````
+
+````rs
+#[derive(Debug)]
+struct LanguageDescriptorExample {
+    id: String,
+    suffix: String,
+    import_style: String,
+}
+````
+
+````rs
+fn language_descriptor_examples(manifest_dir: &Path) -> Vec<LanguageDescriptorExample> {
+    let mut examples = Vec::new();
+    for root in [
+        manifest_dir.join("src/descriptors/languages/base"),
+        manifest_dir.join("src/descriptors/languages/overlays"),
+    ] {
+        collect_language_descriptor_examples(&root, &mut examples);
+    }
+    examples.sort_by(|left, right| left.id.cmp(&right.id));
+    examples
+}
+````
+
+````rs
+fn collect_language_descriptor_examples(root: &Path, examples: &mut Vec<LanguageDescriptorExample>) {
+    let Ok(entries) = fs::read_dir(root) else {
+        return;
+    };
+    for entry in entries.filter_map(|entry| entry.ok()) {
+        let path = entry.path();
+        if path.is_dir() {
+            collect_language_descriptor_examples(&path, examples);
+            continue;
+        }
+        if path.extension().and_then(|value| value.to_str()) != Some("toml") {
+            continue;
+        }
+        let content = fs::read_to_string(&path).unwrap();
+        let parsed: toml::Value = content.parse().unwrap();
+        let id = parsed.get("id").and_then(toml::Value::as_str).unwrap();
+        let primary_ext = parsed
+            .get("language")
+            .and_then(|value| value.get("primary_ext"))
+            .and_then(toml::Value::as_str)
+            .unwrap();
+        let suffix = parsed
+            .get("match_suffixes")
+            .and_then(toml::Value::as_array)
+            .and_then(|values| values.first())
+            .and_then(toml::Value::as_str)
+            .unwrap_or(primary_ext);
+        let import_style = parsed
+            .get("imports")
+            .and_then(|value| value.get("style"))
+            .and_then(toml::Value::as_str)
+            .unwrap_or("none");
+        examples.push(LanguageDescriptorExample {
+            id: id.to_string(),
+            suffix: suffix.to_string(),
+            import_style: import_style.to_string(),
+        });
+    }
+}
+````
+
+````rs
+fn all_language_import_doc(descriptor: &LanguageDescriptorExample) -> String {
+    let target = import_target(descriptor);
+    let marker = export_marker(&descriptor.id);
+    let source = source_marker_statement(&descriptor.import_style, &marker);
+    format!(
+        "# {id} import/export fixture\n\n\
+         ## Purpose\n\n\
+          Verify Imports and Exports metadata for `{id}`.\n\n\
+          ## Contract\n\n\
+          - Render descriptor-specific imports and source exports.\n\n\
+          ## Exports\n\n\
+         | Name | Visibility | Summary |\n\
+         | --- | --- | --- |\n\
+         | exported_{id} | public | Export marker generated from Source. |\n\n\
+          ## Imports\n\n\
+          | From | Target | Symbols | Via | Summary | Reference |\n\
+          | --- | --- | --- | --- | --- | --- |\n\
+          | internal | {target} | ImportedSymbol | {via} | Dependency import | #dep |\n\n\
+          ## Source\n\n\
+          ##### exported-{id}\n\n\
+          Shared export anchor for `{id}`.\n\n\
+          ```{suffix}\n\
+          {source}\n\
+         ```\n",
+        id = descriptor.id,
+        suffix = descriptor.suffix,
+        source = source,
+        target = target,
+        via = import_via(descriptor),
+    )
+}
+````
+
+````rs
+fn import_target(descriptor: &LanguageDescriptorExample) -> &'static str {
+    match descriptor.import_style.as_str() {
+        "typescript" => "./dep",
+        "python" | "mojo" => "dep_module",
+        "rust" => "crate::dep_module",
+        "go" => "example.com/fixture/dep",
+        "java" => "com.example.dep",
+        "csharp" => "Example.Dep",
+        "c-include" => "dep/module.h",
+        "dart" => "package:fixture/dep.dart",
+        "ruby" => "./dep_module",
+        "scss" => "dep/module",
+        "zig" => "dep/module.zig",
+        _ => "dep/module",
+    }
+}
+````
+
+````rs
+fn import_via(descriptor: &LanguageDescriptorExample) -> &'static str {
+    match descriptor.import_style.as_str() {
+        "scss" => "as dep",
+        "zig" => "dep",
+        _ => "-",
+    }
+}
+````
+
+````rs
+fn expected_import_statement(descriptor: &LanguageDescriptorExample) -> Option<String> {
+    let target = import_target(descriptor);
+    match descriptor.import_style.as_str() {
+        "typescript" => Some(format!("import {{ ImportedSymbol }} from '{target}';")),
+        "python" | "mojo" => Some(format!("from {target} import ImportedSymbol")),
+        "rust" => Some(format!("use {target}::{{ImportedSymbol}};")),
+        "go" => Some(format!("import \"{target}\"")),
+        "java" => Some(format!("import {target}.ImportedSymbol;")),
+        "csharp" => Some(format!("using {target};")),
+        "c-include" => Some(format!("#include \"{target}\"")),
+        "dart" => Some(format!("import '{target}' show ImportedSymbol;")),
+        "ruby" => Some(format!("require_relative '{target}'")),
+        "scss" => Some(format!("@use '{target}' as dep;")),
+        "zig" => Some(format!("const dep = @import(\"{target}\");")),
+        _ => None,
+    }
+}
+````
+
+````rs
+fn export_marker(id: &str) -> String {
+    format!("MDS_EXPORT_MARKER__{}__", id.replace('-', "_").to_ascii_uppercase())
+}
+````
+
+````rs
+fn source_marker_statement(import_style: &str, marker: &str) -> String {
+    match import_style {
+        "python" | "mojo" | "ruby" => format!("# {marker}"),
+        "sql" => format!("-- {marker}"),
+        "html" => format!("<!-- {marker} -->"),
+        _ => format!("// {marker}"),
+    }
+}
+````
+
+````rs
+fn generated_texts_under(root: &Path) -> Vec<String> {
+    let mut texts = Vec::new();
+    collect_generated_texts(root, &mut texts);
+    texts
+}
+````
+
+````rs
+fn collect_generated_texts(root: &Path, texts: &mut Vec<String>) {
+    let Ok(entries) = fs::read_dir(root) else {
+        return;
+    };
+    for entry in entries.filter_map(|entry| entry.ok()) {
+        let path = entry.path();
+        if path.is_dir() {
+            collect_generated_texts(&path, texts);
+            continue;
+        }
+        if let Ok(content) = fs::read_to_string(&path) {
+            texts.push(content);
+        }
+    }
 }
 ````

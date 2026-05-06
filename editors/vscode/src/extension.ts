@@ -23,120 +23,7 @@ interface LanguageInfo {
   virtualExt: string;
 }
 
-/**
- * Registry of known languages.
- * Core languages are always available; additional languages are added dynamically.
- */
-const LANGUAGE_REGISTRY: Record<string, LanguageInfo> = {
-  ts: {
-    ext: '.ts.md',
-    languageId: 'typescript',
-    labels: ['typescript', 'ts'],
-    virtualExt: '.ts',
-  },
-  py: {
-    ext: '.py.md',
-    languageId: 'python',
-    labels: ['python', 'py'],
-    virtualExt: '.py',
-  },
-  rs: {
-    ext: '.rs.md',
-    languageId: 'rust',
-    labels: ['rust', 'rs'],
-    virtualExt: '.rs',
-  },
-  go: {
-    ext: '.go.md',
-    languageId: 'go',
-    labels: ['go', 'golang'],
-    virtualExt: '.go',
-  },
-  java: {
-    ext: '.java.md',
-    languageId: 'java',
-    labels: ['java'],
-    virtualExt: '.java',
-  },
-  kt: {
-    ext: '.kt.md',
-    languageId: 'kotlin',
-    labels: ['kotlin', 'kt'],
-    virtualExt: '.kt',
-  },
-  swift: {
-    ext: '.swift.md',
-    languageId: 'swift',
-    labels: ['swift'],
-    virtualExt: '.swift',
-  },
-  rb: {
-    ext: '.rb.md',
-    languageId: 'ruby',
-    labels: ['ruby', 'rb'],
-    virtualExt: '.rb',
-  },
-  cs: {
-    ext: '.cs.md',
-    languageId: 'csharp',
-    labels: ['csharp', 'cs', 'c#'],
-    virtualExt: '.cs',
-  },
-  cpp: {
-    ext: '.cpp.md',
-    languageId: 'cpp',
-    labels: ['cpp', 'c++'],
-    virtualExt: '.cpp',
-  },
-  c: {
-    ext: '.c.md',
-    languageId: 'c',
-    labels: ['c'],
-    virtualExt: '.c',
-  },
-  zig: {
-    ext: '.zig.md',
-    languageId: 'zig',
-    labels: ['zig'],
-    virtualExt: '.zig',
-  },
-  lua: {
-    ext: '.lua.md',
-    languageId: 'lua',
-    labels: ['lua'],
-    virtualExt: '.lua',
-  },
-  sh: {
-    ext: '.sh.md',
-    languageId: 'shellscript',
-    labels: ['bash', 'sh', 'shell'],
-    virtualExt: '.sh',
-  },
-  php: {
-    ext: '.php.md',
-    languageId: 'php',
-    labels: ['php'],
-    virtualExt: '.php',
-  },
-  dart: {
-    ext: '.dart.md',
-    languageId: 'dart',
-    labels: ['dart'],
-    virtualExt: '.dart',
-  },
-  elixir: {
-    ext: '.ex.md',
-    languageId: 'elixir',
-    labels: ['elixir', 'ex'],
-    virtualExt: '.ex',
-  },
-  scala: {
-    ext: '.scala.md',
-    languageId: 'scala',
-    labels: ['scala'],
-    virtualExt: '.scala',
-  },
-};
+const LANGUAGE_REGISTRY: Record<string, LanguageInfo> = {};
 
 /** Dynamically create a LanguageInfo for any unknown extension */
 function createDynamicLanguageInfo(key: string): LanguageInfo {
@@ -148,20 +35,7 @@ function createDynamicLanguageInfo(key: string): LanguageInfo {
   };
 }
 
-/** Alias map for normalizing language keys */
-const LANG_ALIASES: Record<string, string> = {
-  typescript: 'ts',
-  python: 'py',
-  rust: 'rs',
-  golang: 'go',
-  kotlin: 'kt',
-  csharp: 'cs',
-  'c++': 'cpp',
-  ruby: 'rb',
-  bash: 'sh',
-  shell: 'sh',
-  elixir: 'elixir',
-};
+const LANG_ALIASES: Record<string, string> = {};
 
 function normalizeLangKey(key: string): string {
   const lower = key.toLowerCase();
@@ -179,7 +53,7 @@ function buildLabelMap(): Map<string, LanguageInfo> {
   return map;
 }
 
-const labelToLang = buildLabelMap();
+let labelToLang = buildLabelMap();
 
 // ============================================================
 // Config-based Language Discovery
@@ -192,7 +66,8 @@ const labelToLang = buildLabelMap();
 async function discoverLanguages(
   config: vscode.WorkspaceConfiguration
 ): Promise<LanguageInfo[]> {
-  const langKeys = new Set<string>(['ts', 'py', 'rs']);
+  await discoverDescriptorLanguages();
+  const langKeys = new Set<string>(Object.keys(LANGUAGE_REGISTRY));
 
   // From user settings (additionalLanguages: ['.go.md', '.java.md'])
   for (const ext of config.get<string[]>('additionalLanguages', [])) {
@@ -253,6 +128,63 @@ async function discoverLanguages(
     .map((k) => LANGUAGE_REGISTRY[k] || createDynamicLanguageInfo(k));
 }
 
+async function discoverDescriptorLanguages(): Promise<void> {
+  try {
+    const files = await vscode.workspace.findFiles(
+      '**/descriptors/languages/**/*.toml',
+      '{**/node_modules/**,**/target/**}'
+    );
+    for (const uri of files) {
+      try {
+        const text = new TextDecoder().decode(await vscode.workspace.fs.readFile(uri));
+        const info = languageInfoFromDescriptor(text);
+        if (info) {
+          LANGUAGE_REGISTRY[normalizeLangKey(info.labels[0])] = info;
+          for (const label of info.labels) {
+            LANG_ALIASES[label.toLowerCase()] = normalizeLangKey(info.labels[0]);
+          }
+        }
+      } catch {
+        // Skip unreadable or incomplete descriptors.
+      }
+    }
+    labelToLang = buildLabelMap();
+  } catch {
+    // Workspace search not available.
+  }
+}
+
+function languageInfoFromDescriptor(text: string): LanguageInfo | undefined {
+  const id = stringField(text, 'id');
+  const primaryExt = sectionStringField(text, 'language', 'primary_ext') || id;
+  if (!id || !primaryExt) {
+    return undefined;
+  }
+  const aliases = arrayField(text, 'aliases');
+  const labels = [...new Set([id, ...aliases, primaryExt])];
+  const vscodeId = sectionStringField(text, 'language', 'vscode_id') || id;
+  return {
+    ext: `.${primaryExt}.md`,
+    languageId: vscodeId,
+    labels,
+    virtualExt: `.${primaryExt}`,
+  };
+}
+
+function stringField(text: string, key: string): string | undefined {
+  return text.match(new RegExp(`^${key}\\s*=\\s*"([^"]+)"`, 'm'))?.[1];
+}
+
+function sectionStringField(text: string, section: string, key: string): string | undefined {
+  const match = text.match(new RegExp(`\\[${section}\\]([\\s\\S]*?)(?:\\n\\[|$)`));
+  return match ? stringField(match[1], key) : undefined;
+}
+
+function arrayField(text: string, key: string): string[] {
+  const values = text.match(new RegExp(`^${key}\\s*=\\s*\\[([^\\]]*)\\]`, 'm'))?.[1] || '';
+  return [...values.matchAll(/"([^"]+)"/g)].map((match) => match[1]);
+}
+
 // ============================================================
 // Code Block Parsing
 // ============================================================
@@ -276,9 +208,8 @@ interface EmbeddedDocumentProvider extends vscode.TextDocumentContentProvider {
 
 function parseCodeBlocks(document: vscode.TextDocument): CodeBlock[] {
   const blocks: CodeBlock[] = [];
-  const openRe = /^\s*```(\w+)(?:\s.*)?$/;
-  const closeRe = /^\s*```\s*$/;
   let inBlock = false;
+  let fenceLen = 0;
   let langId = '';
   let vExt = '';
   let start = 0;
@@ -286,16 +217,17 @@ function parseCodeBlocks(document: vscode.TextDocument): CodeBlock[] {
   for (let i = 0; i < document.lineCount; i++) {
     const text = document.lineAt(i).text;
     if (!inBlock) {
-      const m = openRe.exec(text);
-      if (m) {
-        const label = m[1].toLowerCase();
+      const opened = parseFenceLine(text);
+      if (opened && opened.label) {
+        const label = opened.label.toLowerCase();
         const info = labelToLang.get(label);
         inBlock = true;
+        fenceLen = opened.markerLen;
         langId = info?.languageId || label;
         vExt = info?.virtualExt || `.${label}`;
         start = i + 1;
       }
-    } else if (closeRe.test(text)) {
+    } else if (isClosingFence(text, fenceLen)) {
       if (i > start) {
         blocks.push({
           languageId: langId,
@@ -306,9 +238,26 @@ function parseCodeBlocks(document: vscode.TextDocument): CodeBlock[] {
         });
       }
       inBlock = false;
+      fenceLen = 0;
     }
   }
   return blocks;
+}
+
+function parseFenceLine(text: string): { markerLen: number; label: string } | undefined {
+  const trimmed = text.trimStart();
+  const markerLen = trimmed.match(/^`*/)?.[0].length || 0;
+  if (markerLen < 3) {
+    return undefined;
+  }
+  const rest = trimmed.slice(markerLen).trim();
+  const label = rest.split(/\s+/)[0] || '';
+  return { markerLen, label };
+}
+
+function isClosingFence(text: string, openLen: number): boolean {
+  const parsed = parseFenceLine(text);
+  return !!parsed && parsed.markerLen >= openLen && parsed.label === '';
 }
 
 /** Cached code blocks per document URI */

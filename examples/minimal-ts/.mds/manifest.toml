@@ -1,9 +1,9 @@
 [[sources]]
 path = ".mds/source/greet.ts.md"
 adapter = "ts"
-hash = "f486702f67202efb88e34eeef9ce899e9dcb5b38fee0fe8fff9426f866c77720"
+hash = "90e2d39ddf35ea62c242ca021d510b72130fa73f3bce5653639629271aea5cd4"
 [[sources.outputs]]
 kind = "source"
 path = "src/greet.ts"
-hash = "a64c5650992e7171f2de54663b7b4da90b637b520d815d8b5d063016d35ed918"
+hash = "e5ebfa8e49ca8afd8d88929977bad1c6a51c7c75d695a7486ff409ff3594bab9"
 

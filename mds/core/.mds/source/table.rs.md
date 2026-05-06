@@ -9,6 +9,12 @@ Migrated implementation source for `src/table.rs`.
 - Preserve the behavior of the pre-migration Rust source.
 - This file is synchronized into `.build/rust/mds/core/src/table.rs`.
 
+## Exports
+
+| Name | Visibility | Summary |
+| --- | --- | --- |
+| table | internal | Markdown table parsing utilities. |
+
 ## Imports
 
 | From | Target | Symbols | Via | Summary | Reference |
@@ -20,6 +26,11 @@ Migrated implementation source for `src/table.rs`.
 
 
 ## Source
+
+
+##### table
+
+Parses labeled Markdown tables used by Imports, Exports, Covers, and package metadata.
 
 
 ````rs

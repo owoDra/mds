@@ -4,6 +4,8 @@ match_suffixes = ["ts"]
 
 [language]
 primary_ext = "ts"
+vscode_id = "typescript"
+root_module_markdown_names = ["index.ts.md"]
 
 [files.source]
 strip_lang_ext = false

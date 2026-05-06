@@ -83,9 +83,9 @@ import、use、require などは、原則としてコードブロックの中に
 
 ## 公開面の書き方
 
-公開する関数、型、モジュールなどは `Expose` の表に書きます。
+公開する関数、型、モジュールなどは root module または implementation Markdown の `Exports` 表に書きます。
 
-公開面を表にすることで、実装のどの部分が外部から利用される前提なのかを明確にできます。
+`overview.md` には `Imports`、`Exports`、`Exposes` セクションを置かず、階層の目的、構成、metadata、ルールだけを書きます。
 
 ## 重要な制約
 

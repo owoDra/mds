@@ -9,6 +9,12 @@ Migrated implementation source for `src/convert.rs`.
 - Preserve the behavior of the pre-migration Rust source.
 - This file is synchronized into `.build/rust/mds/lsp/src/convert.rs`.
 
+## Exports
+
+| Name | Visibility | Summary |
+| --- | --- | --- |
+| convert | internal | Conversion helpers between mds and LSP data structures. |
+
 ## Imports
 
 | From | Target | Symbols | Via | Summary | Reference |
@@ -18,6 +24,11 @@ Migrated implementation source for `src/convert.rs`.
 | external | tower_lsp | lsp_types | - | - | - |
 
 ## Source
+
+
+##### convert
+
+Maps diagnostics, line ranges, words, and table cells into LSP-friendly positions and ranges.
 
 Convert an mds-core Diagnostic to an LSP Diagnostic.
 

@@ -14,6 +14,10 @@ Migrated implementation source for `tests/diagnostics.rs`.
 - capabilities/diagnostics
 - convert
 
+## Cases
+
+- LSP diagnostics report Markdown authoring issues with stable locations and messages.
+
 ## Imports
 
 | From | Target | Symbols | Via | Summary | Reference |
@@ -51,13 +55,13 @@ A minimal test module.
 
 Public contract.
 
-{h2} Types
+{h2} Source
 
-### Uses
+{h2} Imports
 
-| From | Target | Expose | Summary |
-| --- | --- | --- | --- |
-| builtin | node:path | join | Path join utility |
+| From | Target | Symbols | Via | Summary | Reference |
+| --- | --- | --- | --- | --- | --- |
+| builtin | node:path | join | - | Path join utility | - |
 
 {fence}typescript
 export type MyType = string;
@@ -65,11 +69,11 @@ export type MyType = string;
 
 {h2} Source
 
-### Uses
+{h2} Imports
 
-| From | Target | Expose | Summary |
-| --- | --- | --- | --- |
-| internal | utils/helper | helper | Helper function |
+| From | Target | Symbols | Via | Summary | Reference |
+| --- | --- | --- | --- | --- | --- |
+| internal | utils/helper | helper | - | Helper function | #helper |
 
 {fence}typescript
 export function main(): void {}
@@ -81,11 +85,11 @@ Basic use case.
 
 {h2} Test
 
-### Uses
+{h2} Imports
 
-| From | Target | Expose | Summary |
-| --- | --- | --- | --- |
-| internal | utils/helper | helper | Helper function |
+| From | Target | Symbols | Via | Summary | Reference |
+| --- | --- | --- | --- | --- | --- |
+| internal | utils/helper | helper | - | Helper function | #helper |
 
 {fence}typescript
 test("it works", () => {});
@@ -102,10 +106,15 @@ test("it works", () => {});
 ````rs
 #[test]
 fn test_missing_sections() {
-    // With the new format, the only requirement is at least one code block
     let text = sample_markdown(r#"{h2} Purpose
 
-A module with no code blocks.
+A module with implementation code but no contract.
+
+{h2} Source
+
+{fence}typescript
+export function main(): void {}
+{fence}
 "#);
 
     let path = fixture_path("missing.ts.md");
@@ -114,8 +123,8 @@ A module with no code blocks.
 
     let messages: Vec<&str> = diags.iter().map(|d| d.message.as_str()).collect();
     assert!(
-        messages.iter().any(|m| m.contains("code block")),
-        "should report missing code block: {messages:?}"
+        messages.iter().any(|m| m.contains("Contract")),
+        "should report missing Contract: {messages:?}"
     );
 }
 ````
@@ -197,7 +206,7 @@ A module.
 
 Contract.
 
-{h2} Types
+{h2} Source
 
 {fence}python
 x = 1
@@ -241,19 +250,69 @@ def test_it(): assert True
 
 ````rs
 #[test]
+fn test_code_block_language_mismatch_warning_with_long_fence() {
+    let text = r#"{h2} Purpose
+
+A module.
+
+{h2} Contract
+
+Contract.
+
+{h2} Source
+
+{fence4}python
+def main(): pass
+{fence4}
+"#.replace("{h2}", "##").replace("{fence4}", "````");
+
+    let path = fixture_path("mismatch.ts.md");
+    let config = Config::default();
+    let diags = diagnostics::validate_impl_md_text(&path, &text, &config);
+    assert!(
+        diags.iter().any(|d| d.message.contains("python") && d.message.contains("ts")),
+        "long fence label should be detected: {diags:?}"
+    );
+}
+````
+
+````rs
+#[test]
+fn test_import_reference_required_for_internal_imports() {
+    let text = sample_markdown(r#"{h2} Purpose
+
+A module.
+
+{h2} Imports
+
+| From | Target | Symbols | Via | Summary | Reference |
+| --- | --- | --- | --- | --- | --- |
+| internal | utils/helper | helper | - | Helper function | - |
+"#);
+    let path = fixture_path("imports.ts.md");
+    let config = Config::default();
+    let diags = diagnostics::validate_impl_md_text(&path, &text, &config);
+    assert!(
+        diags.iter().any(|d| d.message.contains("requires a Markdown Reference")),
+        "internal imports should require Reference links: {diags:?}"
+    );
+}
+````
+
+````rs
+#[test]
 fn test_empty_document_diagnostics() {
     let text = "";
     let path = fixture_path("empty.ts.md");
     let config = Config::default();
     let diags = diagnostics::validate_impl_md_text(&path, text, &config);
-    // Should report missing code block
     assert!(
         !diags.is_empty(),
-        "empty doc should report missing code block: {diags:?}"
+        "empty doc should report missing documentation: {diags:?}"
     );
     assert!(
-        diags.iter().any(|d| d.message.contains("code block")),
-        "should mention code block requirement: {diags:?}"
+        diags.iter().any(|d| d.message.contains("Purpose")),
+        "should mention Purpose requirement: {diags:?}"
     );
 }
 ````

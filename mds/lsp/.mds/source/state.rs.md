@@ -9,6 +9,12 @@ Migrated implementation source for `src/state.rs`.
 - Preserve the behavior of the pre-migration Rust source.
 - This file is synchronized into `.build/rust/mds/lsp/src/state.rs`.
 
+## Exports
+
+| Name | Visibility | Summary |
+| --- | --- | --- |
+| state | internal | Workspace package state and exposed definition index. |
+
 ## Imports
 
 | From | Target | Symbols | Via | Summary | Reference |
@@ -24,6 +30,11 @@ Migrated implementation source for `src/state.rs`.
 | external | tokio::sync | RwLock | - | - | - |
 
 ## Source
+
+
+##### state
+
+Tracks mds packages, parsed documents, and exported definition locations for LSP features.
 
 Open file content tracked by the LSP.
 

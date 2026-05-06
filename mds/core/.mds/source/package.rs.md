@@ -9,6 +9,12 @@ Migrated implementation source for `src/package.rs`.
 - Preserve the behavior of the pre-migration Rust source.
 - This file is synchronized into `.build/rust/mds/core/src/package.rs`.
 
+## Exports
+
+| Name | Visibility | Summary |
+| --- | --- | --- |
+| package | internal | Package discovery and metadata loading. |
+
 ## Imports
 
 | From | Target | Symbols | Via | Summary | Reference |
@@ -33,6 +39,11 @@ Migrated implementation source for `src/package.rs`.
 
 
 ## Source
+
+
+##### package
+
+Finds mds-enabled packages and resolves metadata used by build, lint, test, and init commands.
 
 
 ````rs

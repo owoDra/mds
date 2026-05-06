@@ -11,6 +11,11 @@ output_path = ".opencode/skills/mds/SKILL.md"
 category = "skills"
 
 [[file]]
+template = "language-skill.md"
+output_path = ".opencode/skills/mds-{{LANG_ID}}/SKILL.md"
+category = "skills"
+
+[[file]]
 template = "agent-check.md"
 output_path = ".opencode/agents/mds-lint.md"
 category = "commands"

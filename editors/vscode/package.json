@@ -35,26 +35,6 @@
         "aliases": [
           "mds Markdown"
         ],
-        "extensions": [
-          ".ts.md",
-          ".py.md",
-          ".rs.md",
-          ".go.md",
-          ".java.md",
-          ".kt.md",
-          ".swift.md",
-          ".rb.md",
-          ".cs.md",
-          ".cpp.md",
-          ".c.md",
-          ".zig.md",
-          ".lua.md",
-          ".sh.md",
-          ".php.md",
-          ".dart.md",
-          ".ex.md",
-          ".scala.md"
-        ],
         "configuration": "./language-configuration.json"
       }
     ],
@@ -62,12 +42,7 @@
       {
         "language": "mds-markdown",
         "scopeName": "text.html.markdown.mds",
-        "path": "./syntaxes/mds-markdown.tmLanguage.json",
-        "embeddedLanguages": {
-          "source.ts": "typescript",
-          "source.py": "python",
-          "source.rs": "rust"
-        }
+        "path": "./syntaxes/mds-markdown.tmLanguage.json"
       }
     ],
     "snippets": [

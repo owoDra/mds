@@ -25,12 +25,6 @@ Rust の最小構成サンプルです。
 | Name | Version | Summary |
 | --- | --- | --- |
 
-## Exposes
-
-| Kind | Name | Target | Summary |
-| --- | --- | --- | --- |
-| function | greet | src/greet.rs | 挨拶メッセージを返します。 |
-
 ## Rules
 
 - Keep one implementation md per feature.

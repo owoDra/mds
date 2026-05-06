@@ -4,6 +4,8 @@ match_suffixes = ["rs"]
 
 [language]
 primary_ext = "rs"
+vscode_id = "rust"
+root_module_markdown_names = ["lib.rs.md", "mod.rs.md"]
 
 [files.source]
 strip_lang_ext = false
@@ -79,6 +81,7 @@ top_level_keywords = [
 	"pub mod ",
 	"mod ",
 ]
+code_block_merge_prefixes = ["pub mod ", "mod ", "pub use ", "use "]
 comment_prefixes = ["//", "/*", "*"]
 doc_comment_prefixes = ["///", "//!", "/**", "/*!"]
 

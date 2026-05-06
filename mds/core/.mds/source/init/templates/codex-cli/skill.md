@@ -25,7 +25,7 @@ mds test                # Run tests on generated outputs
 
 1. Read existing `.mds/source/` files to understand the current state
 2. Create new files with `mds new <name.lang.md>` (ensures correct template)
-3. Record dependencies in Uses and write implementation-only code blocks
+3. Record dependencies in Imports; keep spec-state docs code-free until implementation is ready
 4. Run `mds lint` → `mds build --dry-run` → `mds build`
 
 Always use `mds new` to scaffold new files. Example: `mds new greet.ts.md`, `mds new sub/overview.md`, `mds new index.ts.md`
@@ -49,7 +49,10 @@ Test docs: `.mds/test/name.md` → generates language-specific test outputs and 
 - Import/use/require statements are forbidden in code blocks; record dependencies in the Imports section table
 - Each code block must contain exactly one logical unit (type, function, class, impl, etc.) by default
 - Doc comments and docstrings belong in surrounding markdown text, not inside code blocks
-- Sections (## headings) are optional and for documentation only
+- `Purpose` documents every source md; `Contract` documents impl-state behavior
+- Source md without `Types` / `Source` code is spec state; adding generated code makes it impl state
+- `Exports.Summary` must describe the public definition; do not use `-`
+- Exported definitions referenced by other files need matching H5 shared definitions with prose
 
 ### Example
 

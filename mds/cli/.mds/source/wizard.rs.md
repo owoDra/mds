@@ -9,6 +9,12 @@ Migrated implementation source for `src/wizard.rs`.
 - Preserve the behavior of the pre-migration Rust source.
 - This file is synchronized into `.build/rust/mds/cli/src/wizard.rs`.
 
+## Exports
+
+| Name | Visibility | Summary |
+| --- | --- | --- |
+| wizard | internal | Interactive init wizard for mds package setup. |
+
 ## Imports
 
 | From | Target | Symbols | Via | Summary | Reference |
@@ -32,6 +38,11 @@ Migrated implementation source for `src/wizard.rs`.
 
 
 ## Source
+
+
+##### wizard
+
+Collects project setup choices and converts them into init options and quality commands.
 
 
 ````rs
@@ -257,8 +268,8 @@ impl WizardState {
                 .iter()
                 .enumerate()
                 .map(|(i, target)| SelectItem {
-                    label: ai_target_label(*target).into(),
-                    description: ai_target_description(*target, japanese).into(),
+                    label: ai_target_label(*target),
+                    description: ai_target_description(*target, japanese),
                     selected: self.ai_targets[i],
                 })
                 .collect(),
@@ -966,31 +977,33 @@ fn localized<'a>(japanese: bool, english: &'a str, japanese_text: &'a str) -> &'
 ````
 
 ````rs
-fn ai_target_label(target: AiTarget) -> &'static str {
-    match target {
-        AiTarget::ClaudeCode => "Claude Code",
-        AiTarget::CodexCli => "Codex CLI",
-        AiTarget::Opencode => "Opencode",
-        AiTarget::GithubCopilotCli => "GitHub Copilot",
-    }
+fn ai_target_label(target: AiTarget) -> String {
+    target
+        .key()
+        .split('-')
+        .map(|part| {
+            if part == "cli" {
+                "CLI".to_string()
+            } else {
+                let mut chars = part.chars();
+                match chars.next() {
+                    Some(first) => first.to_uppercase().collect::<String>() + chars.as_str(),
+                    None => String::new(),
+                }
+            }
+        })
+        .collect::<Vec<_>>()
+        .join(" ")
 }
 ````
 
 ````rs
-fn ai_target_description(target: AiTarget, japanese: bool) -> &'static str {
-    match (target, japanese) {
-        (AiTarget::ClaudeCode, false) => "Generate project instructions for Claude Code.",
-        (AiTarget::CodexCli, false) => "Generate project instructions for Codex CLI.",
-        (AiTarget::Opencode, false) => "Generate project instructions for Opencode.",
-        (AiTarget::GithubCopilotCli, false) => {
-            "Generate project instructions for GitHub Copilot CLI."
-        }
-        (AiTarget::ClaudeCode, true) => "Claude Code 向けのプロジェクト指示を生成します。",
-        (AiTarget::CodexCli, true) => "Codex CLI 向けのプロジェクト指示を生成します。",
-        (AiTarget::Opencode, true) => "Opencode 向けのプロジェクト指示を生成します。",
-        (AiTarget::GithubCopilotCli, true) => {
-            "GitHub Copilot CLI 向けのプロジェクト指示を生成します。"
-        }
+fn ai_target_description(target: AiTarget, japanese: bool) -> String {
+    let label = ai_target_label(target);
+    if japanese {
+        format!("{label} 向けのプロジェクト指示を生成します。")
+    } else {
+        format!("Generate project instructions for {label}.")
     }
 }
 ````

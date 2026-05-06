@@ -13,6 +13,10 @@ Migrated implementation source for `tests/args.rs`.
 
 - args
 
+## Cases
+
+- CLI arguments parse into the expected command model.
+
 ## Imports
 
 | From | Target | Symbols | Via | Summary | Reference |
@@ -178,5 +182,4 @@ fn rejects_conflicting_init_tool_choices() {
     assert!(error.contains("vitest and jest"));
 }
 ````
-
 

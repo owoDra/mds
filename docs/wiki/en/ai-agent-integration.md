@@ -148,5 +148,4 @@ For AI agents to work correctly in mds projects, templates need the following in
 4. **Uses table specification**: From (internal/package/builtin/workspace), Target, Expose, Summary
 5. **Critical constraint**: Do not write import/use/require inside code blocks
 6. **Expose token syntax**: `Name`, `Name as Alias`, `default: Name`, `* as ns`
-7. **index.md Exposes table**: Kind, Name, Target, Summary
-8. **Heading constraints**: No H1 in implementation md, no H5+
+7. **Heading constraints**: No H1 in implementation md, no H5+

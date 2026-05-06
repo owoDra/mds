@@ -9,6 +9,12 @@ Migrated implementation source for `src/markdown.rs`.
 - Preserve the behavior of the pre-migration Rust source.
 - This file is synchronized into `.build/rust/mds/core/src/markdown.rs`.
 
+## Exports
+
+| Name | Visibility | Summary |
+| --- | --- | --- |
+| markdown | internal | Markdown source parsing and authoring validation. |
+
 ## Imports
 
 | From | Target | Symbols | Via | Summary | Reference |
@@ -18,18 +24,26 @@ Migrated implementation source for `src/markdown.rs`.
 | builtin | std::path | Path | - | - | - |
 | builtin | std::path | PathBuf | - | - | - |
 | internal | crate::descriptor | builtin_descriptor | - | - | [descriptor.rs.md#source](descriptor.rs.md#source) |
+| internal | crate::descriptor | is_root_module_markdown_path | - | - | [descriptor.rs.md#source](descriptor.rs.md#source) |
 | internal | crate::diagnostics | Diagnostic | - | - | [diagnostics.rs.md#source](diagnostics.rs.md#source) |
 | internal | crate::diagnostics | RunState | - | - | [diagnostics.rs.md#source](diagnostics.rs.md#source) |
 | internal | crate::fs_utils | collect_files | - | - | [fs_utils.rs.md#source](fs_utils.rs.md#source) |
 | internal | crate::fs_utils | is_excluded | - | - | [fs_utils.rs.md#source](fs_utils.rs.md#source) |
 | internal | crate::model | DocKind | - | - | [model.rs.md#source](model.rs.md#source) |
+| internal | crate::model | DocProfile | - | - | [model.rs.md#source](model.rs.md#source) |
 | internal | crate::model | ImplDoc | - | - | [model.rs.md#source](model.rs.md#source) |
 | internal | crate::model | Lang | - | - | [model.rs.md#source](model.rs.md#source) |
 | internal | crate::model | Package | - | - | [model.rs.md#source](model.rs.md#source) |
 | internal | crate::table | parse_table_with_labels | - | - | [table.rs.md#source](table.rs.md#source) |
+| internal | crate::descriptor | lang_for_markdown_path | - | - | [descriptor.rs.md#source](descriptor.rs.md#source) |
 
 
 ## Source
+
+
+##### markdown
+
+Parses mds implementation Markdown, extracts generated code, and validates canonical authoring rules.
 
 
 ````rs
@@ -54,7 +68,7 @@ pub fn load_implementation_docs(
         if is_template_asset_markdown(&path) {
             continue;
         }
-        let Some(lang) = Lang::from_path(&path) else {
+        let Some(lang) = lang_for_markdown_path(&path) else {
             continue;
         };
         if !package.config.adapters.get(&lang).copied().unwrap_or(true) {
@@ -130,10 +144,6 @@ pub fn parse_impl_doc(
         state,
     );
     if package.config.check.markdown_links {
-
-````
-
-````rs
         validate_markdown_links(path, &text, state);
     }
     validate_code_block_boundaries(
@@ -153,16 +163,21 @@ pub fn parse_impl_doc(
         &package.config.label_overrides,
         state,
     );
-    let types_code = prepend_imports(&imports_code, code_from_section(sections.get("Types")));
     let source_code = prepend_imports(&imports_code, code_from_section(sections.get("Source")));
     let test_code = prepend_imports(&imports_code, code_from_section(sections.get("Test")));
     let covers = covers_from_section(sections.get("Covers"));
 
     let code = extract_all_code_blocks(&text);
-    if package.config.check.code_blocks_required
-        && code.trim().is_empty()
-        && !is_module_root_metadata_doc(path)
-    {
+    let profile = doc_profile(doc_kind, path, &sections, &source_code);
+    if package.config.check.documented_sections {
+        validate_documented_sections(path, profile, &sections, state);
+    }
+    if package.config.check.documented_exports {
+        validate_documented_exports(path, profile, &sections, &text, state);
+        validate_documented_imports(path, &sections, state);
+    }
+
+    if package.config.check.code_blocks_required && code.trim().is_empty() && requires_code_block(profile) {
         state.diagnostics.push(Diagnostic::error(
             Some(path.to_path_buf()),
             "implementation md requires at least one code block",
@@ -186,7 +201,7 @@ pub fn parse_impl_doc(
         package_relative_path,
         markdown_relative_path,
         code,
-        types_code,
+        types_code: String::new(),
         source_code,
         test_code,
         covers,
@@ -197,10 +212,291 @@ pub fn parse_impl_doc(
 
 ````rs
 fn is_module_root_metadata_doc(path: &Path) -> bool {
-    matches!(
-        path.file_name().and_then(|name| name.to_str()),
-        Some("lib.rs.md" | "mod.rs.md" | "index.ts.md" | "index.js.md" | "__init__.py.md")
-    )
+    is_root_module_markdown_path(path)
+}
+````
+
+````rs
+fn doc_profile(
+    doc_kind: DocKind,
+    path: &Path,
+    sections: &HashMap<String, String>,
+    source_code: &str,
+) -> DocProfile {
+    if matches!(path.file_name().and_then(|name| name.to_str()), Some("overview.md")) {
+        return DocProfile::Overview;
+    }
+    match doc_kind {
+        DocKind::Test => DocProfile::Test,
+        DocKind::Source => {
+            if is_module_root_metadata_doc(path) {
+                DocProfile::Spec
+            } else if !source_code.trim().is_empty()
+                || sections.get("Source").is_some_and(|section| section.contains("```"))
+            {
+                DocProfile::Impl
+            } else {
+                DocProfile::Spec
+            }
+        }
+    }
+}
+````
+
+````rs
+fn requires_code_block(profile: DocProfile) -> bool {
+    matches!(profile, DocProfile::Impl | DocProfile::Test)
+}
+````
+
+````rs
+fn validate_documented_sections(
+    path: &Path,
+    profile: DocProfile,
+    sections: &HashMap<String, String>,
+    state: &mut RunState,
+) {
+    let required: &[&str] = match profile {
+        DocProfile::Overview => &["Purpose", "Architecture", "Rules"],
+        DocProfile::Spec => &["Purpose", "Contract"],
+        DocProfile::Impl => &["Purpose", "Contract"],
+        DocProfile::Test => &["Purpose", "Covers", "Cases", "Test"],
+    };
+    for section in required {
+        if !sections.contains_key(*section) {
+            state.diagnostics.push(Diagnostic::error(
+                Some(path.to_path_buf()),
+                format!("{:?} md requires ## {section}", profile).to_ascii_lowercase(),
+            ));
+        }
+    }
+    if profile == DocProfile::Overview {
+        for forbidden in ["Imports", "Exports", "Expose", "Exposes"] {
+            if sections.contains_key(forbidden) {
+                state.diagnostics.push(Diagnostic::error(
+                    Some(path.to_path_buf()),
+                    format!("overview md must not contain ## {forbidden}"),
+                ));
+            }
+        }
+    }
+    if sections.contains_key("Types") {
+        state.diagnostics.push(Diagnostic::error(
+            Some(path.to_path_buf()),
+            "## Types is deprecated; move type definitions into ## Source",
+        ));
+    }
+}
+````
+
+````rs
+fn validate_documented_exports(
+    path: &Path,
+    profile: DocProfile,
+    sections: &HashMap<String, String>,
+    text: &str,
+    state: &mut RunState,
+) {
+    if profile == DocProfile::Overview {
+        return;
+    }
+    let Some(section) = sections.get("Exports").or_else(|| sections.get("Expose")).or_else(|| sections.get("Exposes")) else {
+        return;
+    };
+    let Some(rows) = table_rows(section) else {
+        return;
+    };
+    let h5_sections = h5_sections(text);
+    for row in rows {
+        let Some(name) = row.get("name").map(String::as_str).map(str::trim) else {
+            continue;
+        };
+        if is_blank_cell(name) {
+            continue;
+        }
+        let summary = row.get("summary").map(String::as_str).unwrap_or_default();
+        if is_blank_cell(summary) {
+            state.diagnostics.push(Diagnostic::error(
+                Some(path.to_path_buf()),
+                format!("export `{name}` requires a non-empty Summary"),
+            ));
+        }
+        if !matches!(profile, DocProfile::Spec | DocProfile::Impl) || is_module_root_metadata_doc(path) {
+            continue;
+        }
+        let anchor = slugify_heading(name);
+        match h5_sections.get(&anchor) {
+            Some(section) if section.prose.trim().is_empty() => state.diagnostics.push(Diagnostic::error(
+                Some(path.to_path_buf()),
+                format!("export `{name}` H5 shared definition requires explanatory prose"),
+            )),
+            Some(section) if profile == DocProfile::Impl && section.parent_section.as_deref() != Some("Source") => state.diagnostics.push(Diagnostic::error(
+                Some(path.to_path_buf()),
+                format!("export `{name}` H5 shared definition must be in ## Source before its code block"),
+            )),
+            Some(section) if profile == DocProfile::Impl && !section.before_code_block => state.diagnostics.push(Diagnostic::error(
+                Some(path.to_path_buf()),
+                format!("export `{name}` H5 shared definition must be followed by its Source code block"),
+            )),
+            Some(_) => {}
+            None => state.diagnostics.push(Diagnostic::error(
+                Some(path.to_path_buf()),
+                format!("export `{name}` requires a matching H5 shared definition"),
+            )),
+        }
+    }
+}
+````
+
+````rs
+fn validate_documented_imports(
+    path: &Path,
+    sections: &HashMap<String, String>,
+    state: &mut RunState,
+) {
+    let Some(section) = sections.get("Imports").or_else(|| sections.get("Uses")) else {
+        return;
+    };
+    let Some(rows) = table_rows(section) else {
+        return;
+    };
+    for row in rows {
+        let from = row.get("from").map(String::as_str).unwrap_or_default().trim();
+        let target = row.get("target").map(String::as_str).unwrap_or_default().trim();
+        let reference = row.get("reference").map(String::as_str).unwrap_or_default();
+        if is_blank_cell(from) && is_blank_cell(target) {
+            continue;
+        }
+        let requires_reference = matches!(from, "internal" | "workspace" | "package");
+        if requires_reference && is_blank_cell(reference) {
+            state.diagnostics.push(Diagnostic::error(
+                Some(path.to_path_buf()),
+                format!("import `{target}` requires a Markdown Reference link"),
+            ));
+        }
+    }
+}
+````
+
+````rs
+fn table_rows(section: &str) -> Option<Vec<HashMap<String, String>>> {
+    let lines = section.lines().collect::<Vec<_>>();
+    for index in 0..lines.len().saturating_sub(1) {
+        if !lines[index].trim_start().starts_with('|') || !lines[index + 1].contains("---") {
+            continue;
+        }
+        let headers = split_markdown_row(lines[index])
+            .into_iter()
+            .map(|header| header.trim().to_ascii_lowercase())
+            .collect::<Vec<_>>();
+        let mut rows = Vec::new();
+        for row_line in lines.iter().skip(index + 2) {
+            if !row_line.trim_start().starts_with('|') {
+                break;
+            }
+            let cells = split_markdown_row(row_line);
+            let mut row = HashMap::new();
+            for (cell_index, header) in headers.iter().enumerate() {
+                row.insert(
+                    header.clone(),
+                    cells.get(cell_index).cloned().unwrap_or_default(),
+                );
+            }
+            rows.push(row);
+        }
+        return Some(rows);
+    }
+    None
+}
+````
+
+````rs
+struct H5Section {
+    prose: String,
+    parent_section: Option<String>,
+    before_code_block: bool,
+}
+````
+
+````rs
+fn h5_sections(text: &str) -> HashMap<String, H5Section> {
+    let mut sections = HashMap::new();
+    let mut current: Option<String> = None;
+    let mut current_parent: Option<String> = None;
+    let mut body = String::new();
+    let mut parent_section: Option<String> = None;
+    for line in text.lines() {
+        if current.is_none() {
+            if let Some(title) = line.strip_prefix("## ") {
+                parent_section = Some(title.trim().to_string());
+            }
+        }
+        if let Some(title) = line.strip_prefix("##### ") {
+            if let Some(name) = current.replace(slugify_heading(title.trim())) {
+                sections.insert(name, h5_section(&body, current_parent.take()));
+                body.clear();
+            }
+            current_parent = parent_section.clone();
+        } else if line.starts_with("## ") || line.starts_with("### ") || line.starts_with("#### ") {
+            if let Some(name) = current.take() {
+                sections.insert(name, h5_section(&body, current_parent.take()));
+                body.clear();
+            }
+            if let Some(title) = line.strip_prefix("## ") {
+                parent_section = Some(title.trim().to_string());
+            }
+        } else if current.is_some() {
+            body.push_str(line);
+            body.push('\n');
+        }
+    }
+    if let Some(name) = current {
+        sections.insert(name, h5_section(&body, current_parent));
+    }
+    sections
+}
+````
+
+````rs
+fn h5_section(body: &str, parent_section: Option<String>) -> H5Section {
+    H5Section {
+        prose: prose_body(body),
+        parent_section,
+        before_code_block: body
+            .lines()
+            .map(str::trim_start)
+            .any(|line| line.starts_with("```")),
+    }
+}
+````
+
+````rs
+fn prose_body(body: &str) -> String {
+    body.lines()
+        .map(str::trim)
+        .filter(|line| !line.is_empty() && !line.starts_with('|') && !line.starts_with("```") && !line.starts_with("````"))
+        .collect::<Vec<_>>()
+        .join("\n")
+}
+````
+
+````rs
+fn is_blank_cell(value: &str) -> bool {
+    let trimmed = value.trim().trim_matches('`');
+    trimmed.is_empty() || trimmed == "-"
+}
+````
+
+````rs
+fn slugify_heading(value: &str) -> String {
+    value
+        .trim()
+        .to_ascii_lowercase()
+        .chars()
+        .map(|character| if character.is_ascii_alphanumeric() { character } else { '-' })
+        .collect::<String>()
+        .trim_matches('-')
+        .to_string()
 }
 ````
 
@@ -517,7 +813,7 @@ fn render_imports_section(
     };
     let Some(rows) = parse_table_with_labels(
         section,
-        &["From", "Target", "Symbols", "Via", "Summary"],
+        &["From", "Target", "Symbols", "Via", "Summary", "Reference"],
         path,
         label_overrides,
         state,
@@ -529,6 +825,14 @@ fn render_imports_section(
     let mut output = String::new();
     for row in rows {
         let Some(statement) = descriptor.render_import(&row) else {
+            if !matches!(descriptor.imports.style.as_str(), "" | "none")
+                && row.values().any(|cell| !is_blank_cell(cell))
+            {
+                state.diagnostics.push(Diagnostic::error(
+                    Some(path.to_path_buf()),
+                    "Imports row cannot be rendered by the language descriptor; check From, Target, Symbols, and Via",
+                ));
+            }
             continue;
         };
         output.push_str(&statement);
@@ -610,7 +914,19 @@ fn validate_code_block_boundaries(
     check: &crate::model::CheckConfig,
     state: &mut RunState,
 ) {
+    let mut previous_block: Option<CodeBlock<'_>> = None;
     for block in code_blocks(text, label_overrides) {
+        if let Some(previous) = previous_block {
+            if is_unnecessary_code_block_split(lang, previous.content, block.content) {
+                state.diagnostics.push(Diagnostic::error(
+                    Some(path.to_path_buf()),
+                    format!(
+                        "code block starting at line {} appears to continue the previous code block; merge the blocks or split at a top-level logical boundary",
+                        block.start_line
+                    ),
+                ));
+            }
+        }
         if check.doc_comments_outside_code {
             if let Some(line_offset) = block
                 .content
@@ -678,7 +994,28 @@ fn validate_code_block_boundaries(
                 ),
             ));
         }
+        previous_block = Some(block);
     }
+}
+````
+
+````rs
+fn is_unnecessary_code_block_split(lang: &Lang, previous: &str, current: &str) -> bool {
+    let previous_last = previous.lines().rev().find(|line| !line.trim().is_empty());
+    let current_first = current.lines().find(|line| !line.trim().is_empty());
+    let Some(previous_last) = previous_last.map(str::trim_end) else {
+        return false;
+    };
+    let Some(current_first_raw) = current_first else {
+        return false;
+    };
+    let current_first = current_first_raw.trim_start();
+    let descriptor = crate::descriptor::builtin_descriptor(lang);
+    previous_last.ends_with(['{', '(', '[', ',', '\\'])
+        || current_first.starts_with(['}', ')', ']', ',', '.'])
+        || (previous_last.ends_with(';') && descriptor.matches_code_block_merge_start(current_first))
+        || current_first_raw.starts_with(' ')
+        || current_first_raw.starts_with('\t')
 }
 ````
 
@@ -808,7 +1145,7 @@ pub fn sections_with_labels(
 ````rs
 fn canonical_section_title(title: &str, label_overrides: &HashMap<String, String>) -> String {
     for canonical in [
-        "Purpose", "Contract", "Types", "Source", "Cases", "Test", "Covers", "Imports", "Exports", "Expose", "Exposes", "Architecture", "Rules",
+        "Purpose", "Contract", "Source", "Cases", "Test", "Covers", "Imports", "Exports", "Expose", "Exposes", "Architecture", "Rules",
     ] {
         if title == canonical {
             return canonical.to_string();

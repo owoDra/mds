@@ -11,6 +11,11 @@ output_path = ".github/prompts/mds-skill.prompt.md"
 category = "skills"
 
 [[file]]
+template = "language-skill.prompt.md"
+output_path = ".github/prompts/mds-{{LANG_ID}}-skill.prompt.md"
+category = "skills"
+
+[[file]]
 template = "command-check.prompt.md"
 output_path = ".github/prompts/mds-lint.prompt.md"
 category = "commands"

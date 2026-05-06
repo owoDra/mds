@@ -4,6 +4,8 @@ match_suffixes = ["py"]
 
 [language]
 primary_ext = "py"
+vscode_id = "python"
+root_module_markdown_names = ["__init__.py.md"]
 
 [files.source]
 strip_lang_ext = false
