@@ -10,70 +10,62 @@
       "",
       "${2:Define the public contract}",
       "",
+      "## Exports",
+      "",
+      "| Name | Visibility | Summary |",
+      "| --- | --- | --- |",
+      "| ${3:symbolName} | public | ${4:Describe the public definition.} |",
+      "",
+      "##### ${3:symbolName}",
+      "",
+      "${5:Describe the shared definition and who should reference it.}",
+      "",
+      "## Imports",
+      "",
+      "| From | Target | Symbols | Via | Summary | Reference |",
+      "| --- | --- | --- | --- | --- | --- |",
+      "| ${6:builtin} | ${7:target} | ${8:Name} | - | ${9:description} | - |",
+      "",
       "## Types",
       "",
-      "### Uses",
-      "",
-      "| From | Target | Expose | Summary |",
-      "| --- | --- | --- | --- |",
-      "| ${3:builtin} | ${4:target} | ${5:Name} | ${6:description} |",
-      "",
-      "```${7:typescript}",
-      "${8:// type definitions}",
+      "```${10:typescript}",
+      "${11:// type definitions}",
       "```",
       "",
       "## Source",
       "",
-      "### Uses",
-      "",
-      "| From | Target | Expose | Summary |",
-      "| --- | --- | --- | --- |",
-      "| ${9:internal} | ${10:target} | ${11:Name} | ${12:description} |",
-      "",
-      "```${13:typescript}",
-      "${14:// implementation}",
+      "```${12:typescript}",
+      "${13:// implementation}",
       "```",
       "",
       "## Cases",
       "",
-      "${15:Describe use cases}",
-      "",
-      "## Test",
-      "",
-      "### Uses",
-      "",
-      "| From | Target | Expose | Summary |",
-      "| --- | --- | --- | --- |",
-      "| ${16:internal} | ${17:target} | ${18:Name} | ${19:description} |",
-      "",
-      "```${20:typescript}",
-      "${21:// test code}",
-      "```"
+      "${14:Describe use cases}"
     ],
     "description": "Full mds implementation document template"
   },
-  "mds: Uses Table": {
-    "prefix": "mds-uses",
+  "mds: Imports Table": {
+    "prefix": "mds-imports",
     "body": [
-      "### Uses",
+      "## Imports",
       "",
-      "| From | Target | Expose | Summary |",
-      "| --- | --- | --- | --- |",
-      "| ${1|builtin,package,workspace,internal|} | ${2:target} | ${3:Name} | ${4:description} |"
+      "| From | Target | Symbols | Via | Summary | Reference |",
+      "| --- | --- | --- | --- | --- | --- |",
+      "| ${1|builtin,external,package,workspace,internal|} | ${2:target} | ${3:Name} | ${4:-} | ${5:description} | ${6:-} |"
     ],
-    "description": "Uses table with header"
+    "description": "Imports table with header"
   },
-  "mds: Uses Row": {
-    "prefix": "mds-use-row",
+  "mds: Imports Row": {
+    "prefix": "mds-import-row",
     "body": [
-      "| ${1|builtin,package,workspace,internal|} | ${2:target} | ${3:Name} | ${4:description} |"
+      "| ${1|builtin,external,package,workspace,internal|} | ${2:target} | ${3:Name} | ${4:-} | ${5:description} | ${6:-} |"
     ],
-    "description": "Single Uses table row"
+    "description": "Single Imports table row"
   },
   "mds: Section": {
     "prefix": "mds-section",
     "body": [
-      "## ${1|Purpose,Contract,Types,Source,Cases,Test|}",
+      "## ${1|Purpose,Contract,Exports,Imports,Types,Source,Cases,Test,Covers|}",
       "",
       "${2:content}",
       ""
@@ -84,12 +76,6 @@
     "prefix": "mds-code-section",
     "body": [
       "## ${1|Types,Source,Test|}",
-      "",
-      "### Uses",
-      "",
-      "| From | Target | Expose | Summary |",
-      "| --- | --- | --- | --- |",
-      "| ${2|builtin,package,workspace,internal|} | ${3:target} | ${4:Name} | ${5:description} |",
       "",
       "```${6:typescript}",
       "${7:// code}",

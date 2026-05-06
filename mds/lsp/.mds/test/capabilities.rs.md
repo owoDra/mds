@@ -16,6 +16,10 @@ Migrated implementation source for `tests/capabilities.rs`.
 - capabilities/symbols
 - convert
 
+## Cases
+
+- LSP capability helpers return stable symbols, completions, code actions, and position conversions.
+
 ## Imports
 
 | From | Target | Symbols | Via | Summary | Reference |

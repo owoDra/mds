@@ -105,6 +105,12 @@ pub fn merge_config_file(config: &mut Config, path: &Path, state: &mut RunState)
                     "doc_comments_outside_code" | "doc_comment_outside_code" => {
                         config.check.doc_comments_outside_code = bool_value(value, path, key, state)
                     }
+                    "documented_sections" | "documentation_sections" => {
+                        config.check.documented_sections = bool_value(value, path, key, state)
+                    }
+                    "documented_exports" | "export_documentation" => {
+                        config.check.documented_exports = bool_value(value, path, key, state)
+                    }
                     _ => warn_unsupported(path, state, "check config", key),
                 }
             }

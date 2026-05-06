@@ -14,6 +14,7 @@ Migrated implementation source for `src/capabilities/diagnostics.rs`.
 | From | Target | Symbols | Via | Summary | Reference |
 | --- | --- | --- | --- | --- | --- |
 | builtin | std::path | Path | - | - | - |
+| builtin | std::collections | HashMap | - | - | - |
 | external | mds_core::config | merge_config_file | - | - | [../../../../core/.mds/source/config.rs.md#source](../../../../core/.mds/source/config.rs.md#source) |
 | external | mds_core::descriptor | set_workspace_descriptor_root | - | - | [../../../../core/.mds/source/descriptor.rs.md#source](../../../../core/.mds/source/descriptor.rs.md#source) |
 | external | mds_core::descriptor | fence_labels_for_lang | - | - | [../../../../core/.mds/source/descriptor.rs.md#source](../../../../core/.mds/source/descriptor.rs.md#source) |
@@ -48,12 +49,18 @@ pub fn validate_impl_md_text(
 
     // Validate that there is at least one code block
     let code = extract_all_code_blocks(text);
-    if code.trim().is_empty() {
+    let sections = sections_with_labels(text, &_config.label_overrides);
+    let has_source_code = sections
+        .get("Source")
+        .or_else(|| sections.get("Types"))
+        .is_some_and(|section| !extract_all_code_blocks(section).trim().is_empty());
+    if code.trim().is_empty() && has_source_code {
         state.diagnostics.push(mds_core::Diagnostic::error(
             Some(path.to_path_buf()),
             "implementation md requires at least one code block",
         ));
     }
+    validate_documented_source(path, text, &sections, &mut state);
 
     // Check language matching with file extension
     if let Some(ref lang) = lang_for_markdown_path(path) {
@@ -63,6 +70,154 @@ pub fn validate_impl_md_text(
     state.diagnostics.iter().map(to_lsp_diagnostic).collect()
 }
 
+````
+
+Validate documentation-focused source md authoring rules.
+
+````rs
+fn validate_documented_source(
+    path: &Path,
+    text: &str,
+    sections: &std::collections::HashMap<String, String>,
+    state: &mut RunState,
+) {
+    if !sections.contains_key("Purpose") {
+        state.diagnostics.push(mds_core::Diagnostic::error(
+            Some(path.to_path_buf()),
+            "source md requires ## Purpose",
+        ));
+    }
+    if has_generated_source(sections) && !sections.contains_key("Contract") {
+        state.diagnostics.push(mds_core::Diagnostic::error(
+            Some(path.to_path_buf()),
+            "impl md requires ## Contract",
+        ));
+    }
+    validate_export_documentation(path, text, sections, state);
+}
+````
+
+````rs
+fn has_generated_source(sections: &std::collections::HashMap<String, String>) -> bool {
+    sections
+        .get("Source")
+        .or_else(|| sections.get("Types"))
+        .is_some_and(|section| !extract_all_code_blocks(section).trim().is_empty())
+}
+````
+
+````rs
+fn validate_export_documentation(
+    path: &Path,
+    text: &str,
+    sections: &std::collections::HashMap<String, String>,
+    state: &mut RunState,
+) {
+    let Some(section) = sections.get("Exports").or_else(|| sections.get("Expose")).or_else(|| sections.get("Exposes")) else {
+        return;
+    };
+    let Some(rows) = table_rows(section) else {
+        return;
+    };
+    let h5 = h5_sections(text);
+    for row in rows {
+        let name = row.get("name").map(String::as_str).unwrap_or_default().trim();
+        if is_blank_cell(name) {
+            continue;
+        }
+        let summary = row.get("summary").map(String::as_str).unwrap_or_default();
+        if is_blank_cell(summary) {
+            state.diagnostics.push(mds_core::Diagnostic::error(
+                Some(path.to_path_buf()),
+                format!("export `{name}` requires a non-empty Summary"),
+            ));
+        }
+        if !is_root_module_doc(path) && !h5.contains_key(&slugify_heading(name)) {
+            state.diagnostics.push(mds_core::Diagnostic::error(
+                Some(path.to_path_buf()),
+                format!("export `{name}` requires a matching H5 shared definition"),
+            ));
+        }
+    }
+}
+````
+
+````rs
+fn table_rows(section: &str) -> Option<Vec<HashMap<String, String>>> {
+    let lines = section.lines().collect::<Vec<_>>();
+    for index in 0..lines.len().saturating_sub(1) {
+        if !lines[index].trim_start().starts_with('|') || !lines[index + 1].contains("---") {
+            continue;
+        }
+        let headers = split_row(lines[index])
+            .into_iter()
+            .map(|header| header.trim().to_ascii_lowercase())
+            .collect::<Vec<_>>();
+        let mut rows = Vec::new();
+        for row_line in lines.iter().skip(index + 2) {
+            if !row_line.trim_start().starts_with('|') {
+                break;
+            }
+            let cells = split_row(row_line);
+            let mut row = HashMap::new();
+            for (cell_index, header) in headers.iter().enumerate() {
+                row.insert(header.clone(), cells.get(cell_index).cloned().unwrap_or_default());
+            }
+            rows.push(row);
+        }
+        return Some(rows);
+    }
+    None
+}
+````
+
+````rs
+fn split_row(line: &str) -> Vec<String> {
+    line.trim()
+        .trim_matches('|')
+        .split('|')
+        .map(|cell| cell.trim().to_string())
+        .collect()
+}
+````
+
+````rs
+fn h5_sections(text: &str) -> HashMap<String, String> {
+    text.lines()
+        .filter_map(|line| line.strip_prefix("##### "))
+        .map(|title| slugify_heading(title.trim()))
+        .map(|anchor| (anchor, String::new()))
+        .collect()
+}
+````
+
+````rs
+fn is_blank_cell(value: &str) -> bool {
+    let trimmed = value.trim().trim_matches('`');
+    trimmed.is_empty() || trimmed == "-"
+}
+````
+
+````rs
+fn is_root_module_doc(path: &Path) -> bool {
+    matches!(
+        path.file_name().and_then(|name| name.to_str()),
+        Some("lib.rs.md" | "mod.rs.md" | "index.ts.md" | "index.js.md" | "__init__.py.md")
+    )
+}
+````
+
+````rs
+fn slugify_heading(value: &str) -> String {
+    value
+        .trim()
+        .to_ascii_lowercase()
+        .chars()
+        .map(|character| if character.is_ascii_alphanumeric() { character } else { '-' })
+        .collect::<String>()
+        .trim_matches('-')
+        .to_string()
+}
 ````
 
 Validate `mds.config.toml` and return LSP diagnostics.

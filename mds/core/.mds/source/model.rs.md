@@ -364,6 +364,16 @@ pub enum DocKind {
 ````
 
 ````rs
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+pub enum DocProfile {
+    Overview,
+    Spec,
+    Impl,
+    Test,
+}
+````
+
+````rs
 impl DocKind {
     pub fn key(self) -> &'static str {
         match self {
@@ -526,6 +536,8 @@ pub struct CheckConfig {
     pub import_with_implementation: bool,
     pub top_level_fence_required: bool,
     pub doc_comments_outside_code: bool,
+    pub documented_sections: bool,
+    pub documented_exports: bool,
 }
 ````
 
@@ -540,6 +552,8 @@ impl Default for CheckConfig {
             import_with_implementation: true,
             top_level_fence_required: true,
             doc_comments_outside_code: true,
+            documented_sections: true,
+            documented_exports: true,
         }
     }
 }

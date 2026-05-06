@@ -261,6 +261,40 @@ fn snippet_completions(path: Option<&Path>, config: &Config) -> Vec<CompletionIt
         ..Default::default()
     });
 
+    items.push(CompletionItem {
+        label: "mds: New Spec Document".to_string(),
+        kind: Some(CompletionItemKind::SNIPPET),
+        detail: Some("mds source spec without generated Source code".to_string()),
+        insert_text: Some(format!(
+            "## {purpose}\n\n${{1:Describe the feature purpose}}\n\n\
+             ## {contract}\n\n${{2:Define behavior, constraints, and boundaries}}\n\n\
+             ## {exports}\n\n| {name} | {visibility} | {summary} |\n\
+             | --- | --- | --- |\n\
+             | ${{3:symbolName}} | public | ${{4:description}} |\n\n\
+             ##### ${{3:symbolName}}\n\n${{5:Describe the shared definition and who should reference it.}}\n\n\
+             ## {imports}\n\n| {from} | {target} | {symbols} | {via} | {summary} | {reference} |\n\
+             | --- | --- | --- | --- | --- | --- |\n\
+             | - | - | - | - | - | - |\n\n\
+             ## {cases}\n\n- ${{6:Describe expected behavior}}\n",
+            purpose = resolve_label("purpose", config),
+            contract = resolve_label("contract", config),
+            exports = resolve_label("exports", config),
+            imports = resolve_label("imports", config),
+            cases = resolve_label("cases", config),
+            from = resolve_label("from", config),
+            target = resolve_label("target", config),
+            symbols = resolve_label("symbols", config),
+            via = resolve_label("via", config),
+            summary = resolve_label("summary", config),
+            reference = resolve_label("reference", config),
+            name = resolve_label("name", config),
+            visibility = resolve_label("visibility", config),
+        )),
+        insert_text_format: Some(InsertTextFormat::SNIPPET),
+        sort_text: Some("9_spec_template".to_string()),
+        ..Default::default()
+    });
+
     // Imports table row snippet
     items.push(CompletionItem {
         label: "mds: Imports Table Row".to_string(),

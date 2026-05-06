@@ -39,7 +39,10 @@ Test docs: `.mds/test/name.md` → generates language-specific test outputs and 
 - Imports/use/require are forbidden in code blocks; record dependencies in the Imports section table
 - Each code block must contain exactly one logical unit by default
 - Doc comments and docstrings belong in surrounding markdown text, not inside code blocks
-- Sections (## headings) are optional, for documentation
+- `Purpose` documents every source md; `Contract` documents impl-state behavior
+- Source md without `Types` / `Source` code is spec state; adding generated code makes it impl state
+- `Exports.Summary` must describe the public definition; do not use `-`
+- Exported definitions referenced by other files need matching H5 shared definitions with prose
 - Imports section table is required for dependencies
 
 Rules: one md per feature, code fence language = file extension, top-level implementations split per fence by default

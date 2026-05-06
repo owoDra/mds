@@ -23,6 +23,7 @@ Migrated implementation source for `src/markdown.rs`.
 | internal | crate::fs_utils | collect_files | - | - | [fs_utils.rs.md#source](fs_utils.rs.md#source) |
 | internal | crate::fs_utils | is_excluded | - | - | [fs_utils.rs.md#source](fs_utils.rs.md#source) |
 | internal | crate::model | DocKind | - | - | [model.rs.md#source](model.rs.md#source) |
+| internal | crate::model | DocProfile | - | - | [model.rs.md#source](model.rs.md#source) |
 | internal | crate::model | ImplDoc | - | - | [model.rs.md#source](model.rs.md#source) |
 | internal | crate::model | Lang | - | - | [model.rs.md#source](model.rs.md#source) |
 | internal | crate::model | Package | - | - | [model.rs.md#source](model.rs.md#source) |
@@ -160,10 +161,15 @@ pub fn parse_impl_doc(
     let covers = covers_from_section(sections.get("Covers"));
 
     let code = extract_all_code_blocks(&text);
-    if package.config.check.code_blocks_required
-        && code.trim().is_empty()
-        && !is_module_root_metadata_doc(path)
-    {
+    let profile = doc_profile(doc_kind, path, &sections, &types_code, &source_code);
+    if package.config.check.documented_sections {
+        validate_documented_sections(path, profile, &sections, state);
+    }
+    if package.config.check.documented_exports {
+        validate_documented_exports(path, profile, &sections, &text, state);
+    }
+
+    if package.config.check.code_blocks_required && code.trim().is_empty() && requires_code_block(profile) {
         state.diagnostics.push(Diagnostic::error(
             Some(path.to_path_buf()),
             "implementation md requires at least one code block",
@@ -202,6 +208,216 @@ fn is_module_root_metadata_doc(path: &Path) -> bool {
         path.file_name().and_then(|name| name.to_str()),
         Some("lib.rs.md" | "mod.rs.md" | "index.ts.md" | "index.js.md" | "__init__.py.md")
     )
+}
+````
+
+````rs
+fn doc_profile(
+    doc_kind: DocKind,
+    path: &Path,
+    sections: &HashMap<String, String>,
+    types_code: &str,
+    source_code: &str,
+) -> DocProfile {
+    if matches!(path.file_name().and_then(|name| name.to_str()), Some("overview.md")) {
+        return DocProfile::Overview;
+    }
+    match doc_kind {
+        DocKind::Test => DocProfile::Test,
+        DocKind::Source => {
+            if is_module_root_metadata_doc(path) {
+                DocProfile::Spec
+            } else if !types_code.trim().is_empty()
+                || !source_code.trim().is_empty()
+                || sections.get("Source").is_some_and(|section| section.contains("```"))
+            {
+                DocProfile::Impl
+            } else {
+                DocProfile::Spec
+            }
+        }
+    }
+}
+````
+
+````rs
+fn requires_code_block(profile: DocProfile) -> bool {
+    matches!(profile, DocProfile::Impl | DocProfile::Test)
+}
+````
+
+````rs
+fn validate_documented_sections(
+    path: &Path,
+    profile: DocProfile,
+    sections: &HashMap<String, String>,
+    state: &mut RunState,
+) {
+    let required: &[&str] = match profile {
+        DocProfile::Overview => &["Purpose", "Architecture", "Rules"],
+        DocProfile::Spec => &["Purpose", "Contract"],
+        DocProfile::Impl => &["Purpose", "Contract"],
+        DocProfile::Test => &["Purpose", "Covers", "Cases", "Test"],
+    };
+    for section in required {
+        if !sections.contains_key(*section) {
+            state.diagnostics.push(Diagnostic::error(
+                Some(path.to_path_buf()),
+                format!("{:?} md requires ## {section}", profile).to_ascii_lowercase(),
+            ));
+        }
+    }
+    if profile == DocProfile::Overview {
+        for forbidden in ["Imports", "Exports", "Expose", "Exposes"] {
+            if sections.contains_key(forbidden) {
+                state.diagnostics.push(Diagnostic::error(
+                    Some(path.to_path_buf()),
+                    format!("overview md must not contain ## {forbidden}"),
+                ));
+            }
+        }
+    }
+}
+````
+
+````rs
+fn validate_documented_exports(
+    path: &Path,
+    profile: DocProfile,
+    sections: &HashMap<String, String>,
+    text: &str,
+    state: &mut RunState,
+) {
+    if profile == DocProfile::Overview {
+        return;
+    }
+    let Some(section) = sections.get("Exports").or_else(|| sections.get("Expose")).or_else(|| sections.get("Exposes")) else {
+        return;
+    };
+    let Some(rows) = table_rows(section) else {
+        return;
+    };
+    let h5_sections = h5_sections(text);
+    for row in rows {
+        let Some(name) = row.get("name").map(String::as_str).map(str::trim) else {
+            continue;
+        };
+        if is_blank_cell(name) {
+            continue;
+        }
+        let summary = row.get("summary").map(String::as_str).unwrap_or_default();
+        if is_blank_cell(summary) {
+            state.diagnostics.push(Diagnostic::error(
+                Some(path.to_path_buf()),
+                format!("export `{name}` requires a non-empty Summary"),
+            ));
+        }
+        if !matches!(profile, DocProfile::Spec | DocProfile::Impl) || is_module_root_metadata_doc(path) {
+            continue;
+        }
+        let anchor = slugify_heading(name);
+        match h5_sections.get(&anchor) {
+            Some(body) if !body.trim().is_empty() => {}
+            Some(_) => state.diagnostics.push(Diagnostic::error(
+                Some(path.to_path_buf()),
+                format!("export `{name}` H5 shared definition requires explanatory prose"),
+            )),
+            None => state.diagnostics.push(Diagnostic::error(
+                Some(path.to_path_buf()),
+                format!("export `{name}` requires a matching H5 shared definition"),
+            )),
+        }
+    }
+}
+````
+
+````rs
+fn table_rows(section: &str) -> Option<Vec<HashMap<String, String>>> {
+    let lines = section.lines().collect::<Vec<_>>();
+    for index in 0..lines.len().saturating_sub(1) {
+        if !lines[index].trim_start().starts_with('|') || !lines[index + 1].contains("---") {
+            continue;
+        }
+        let headers = split_markdown_row(lines[index])
+            .into_iter()
+            .map(|header| header.trim().to_ascii_lowercase())
+            .collect::<Vec<_>>();
+        let mut rows = Vec::new();
+        for row_line in lines.iter().skip(index + 2) {
+            if !row_line.trim_start().starts_with('|') {
+                break;
+            }
+            let cells = split_markdown_row(row_line);
+            let mut row = HashMap::new();
+            for (cell_index, header) in headers.iter().enumerate() {
+                row.insert(
+                    header.clone(),
+                    cells.get(cell_index).cloned().unwrap_or_default(),
+                );
+            }
+            rows.push(row);
+        }
+        return Some(rows);
+    }
+    None
+}
+````
+
+````rs
+fn h5_sections(text: &str) -> HashMap<String, String> {
+    let mut sections = HashMap::new();
+    let mut current: Option<String> = None;
+    let mut body = String::new();
+    for line in text.lines() {
+        if let Some(title) = line.strip_prefix("##### ") {
+            if let Some(name) = current.replace(slugify_heading(title.trim())) {
+                sections.insert(name, prose_body(&body));
+                body.clear();
+            }
+        } else if line.starts_with("## ") || line.starts_with("### ") || line.starts_with("#### ") {
+            if let Some(name) = current.take() {
+                sections.insert(name, prose_body(&body));
+                body.clear();
+            }
+        } else if current.is_some() {
+            body.push_str(line);
+            body.push('\n');
+        }
+    }
+    if let Some(name) = current {
+        sections.insert(name, prose_body(&body));
+    }
+    sections
+}
+````
+
+````rs
+fn prose_body(body: &str) -> String {
+    body.lines()
+        .map(str::trim)
+        .filter(|line| !line.is_empty() && !line.starts_with('|') && !line.starts_with("```") && !line.starts_with("````"))
+        .collect::<Vec<_>>()
+        .join("\n")
+}
+````
+
+````rs
+fn is_blank_cell(value: &str) -> bool {
+    let trimmed = value.trim().trim_matches('`');
+    trimmed.is_empty() || trimmed == "-"
+}
+````
+
+````rs
+fn slugify_heading(value: &str) -> String {
+    value
+        .trim()
+        .to_ascii_lowercase()
+        .chars()
+        .map(|character| if character.is_ascii_alphanumeric() { character } else { '-' })
+        .collect::<String>()
+        .trim_matches('-')
+        .to_string()
 }
 ````
 
