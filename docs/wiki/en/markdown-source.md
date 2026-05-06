@@ -85,9 +85,9 @@ This rule ensures that dependencies are not buried within code and remain easy t
 
 ## Writing Public Interface
 
-Functions, types, modules, and other items to be exposed are written in the `Expose` table.
+Functions, types, modules, and other public items are written in the `Exports` table of the root module or implementation Markdown.
 
-By expressing the public interface as a table, it becomes clear which parts of the implementation are intended to be used externally.
+Do not put `Imports`, `Exports`, or `Exposes` sections in `overview.md`; overview documents describe hierarchy purpose, architecture, metadata, and rules only.
 
 ## Important Constraints
 

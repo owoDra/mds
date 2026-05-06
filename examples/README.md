@@ -10,6 +10,7 @@
 | [minimal-py](minimal-py/) | Python の最小構成 |
 | [minimal-rs](minimal-rs/) | Rust の最小構成 |
 | [descriptor-catalog](descriptor-catalog/) | built-in descriptor coverage catalog |
+| [descriptor-samples](descriptor-samples/) | built-in language / framework descriptor の runnable samples |
 
 ## 使い方
 

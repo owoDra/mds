@@ -146,5 +146,4 @@ AI エージェントが mds プロジェクトで正しく作業するために
 4. **Uses テーブル仕様**: From (internal/package/builtin/workspace), Target, Expose, Summary
 5. **致命的制約**: コードブロック内に import/use/require を書かない
 6. **Expose トークン構文**: `Name`, `Name as Alias`, `default: Name`, `* as ns`
-7. **index.md の Exposes テーブル**: Kind, Name, Target, Summary
-8. **見出し制約**: 実装 md に H1 なし、H5+ なし
+7. **見出し制約**: 実装 md に H1 なし、H5+ なし

@@ -190,11 +190,11 @@ hash = "338ec5a35c45ba93103d13cfed161d44ab9fea199851cd73869a2b2ebbce8cca"
 [[sources]]
 path = ".mds/test/parser_generation_mvp.rs.md"
 adapter = "rs"
-hash = "4e4635b2f9411748f8ce862a2ca0d102de3c2372fad4c9067a508b24d04238b9"
+hash = "04497bf1ac8806fbd3d5e6fec1d06a76dc1e1e76ae8b2a932753a3edbffedbab"
 [[sources.outputs]]
 kind = "test"
 path = "tests/parser_generation_mvp_test.rs"
-hash = "019145e13ec7e126cc6e2e83c1690679c0c0cc941a69e7c674fda1973e8c4a26"
+hash = "27263d19f4cb3ba24027ccff358347a23ae782353affa82a60ccccb6f0363080"
 
 [[assets]]
 path = ".mds/source/descriptors/languages/base/c.toml"

@@ -2282,6 +2282,44 @@ fn descriptor_catalog_example_covers_all_builtin_descriptors() {
 ````
 
 ````rs
+#[test]
+fn descriptor_samples_example_covers_and_builds_all_language_descriptors() {
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let repo_root = manifest_dir.parent().unwrap().parent().unwrap();
+    let sample_root = repo_root.join("examples/descriptor-samples");
+
+    assert_eq!(
+        sample_descriptor_ids(&sample_root.join(".mds/source")),
+        descriptor_ids_many(&[
+            manifest_dir.join("src/descriptors/languages/base"),
+            manifest_dir.join("src/descriptors/languages/overlays"),
+        ]),
+    );
+
+    let lint = execute(CliRequest {
+        cwd: sample_root.clone(),
+        package: None,
+        verbose: false,
+        command: Command::Lint { fix: false, check: false },
+    });
+    assert_eq!(lint.exit_code, 0, "{}", lint.stderr);
+
+    let build = execute(CliRequest {
+        cwd: sample_root,
+        package: None,
+        verbose: false,
+        command: Command::Build {
+            mode: BuildMode::DryRun,
+        },
+    });
+    assert_eq!(build.exit_code, 0, "{}", build.stderr);
+    assert!(build.stdout.contains("src/sample.ts"));
+    assert!(build.stdout.contains("src/sample.vue"));
+    assert!(build.stdout.contains(".mds/manifest.toml"));
+}
+````
+
+````rs
 struct TestDir {
     path: PathBuf,
 }
@@ -2472,6 +2510,23 @@ fn collect_descriptor_ids(root: &Path, ids: &mut std::collections::BTreeSet<Stri
             .unwrap_or_else(|| panic!("descriptor missing id: {}", path.display()));
         ids.insert(id.to_string());
     }
+}
+````
+
+````rs
+fn sample_descriptor_ids(source_root: &Path) -> std::collections::BTreeSet<String> {
+    let mut ids = std::collections::BTreeSet::new();
+    for entry in fs::read_dir(source_root).unwrap() {
+        let path = entry.unwrap().path();
+        let Some(file_name) = path.file_name().and_then(|value| value.to_str()) else {
+            continue;
+        };
+        let Some(id) = file_name.strip_prefix("sample.").and_then(|value| value.strip_suffix(".md")) else {
+            continue;
+        };
+        ids.insert(id.to_string());
+    }
+    ids
 }
 ````
 
