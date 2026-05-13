@@ -22,6 +22,8 @@ self-hosted 移行では特に次の問題が目立った。
 - frontmatter は原則不要とし、module id は `.mds/source` または `.mds/test` からの logical module id で解決する。
 - Markdown 参照は `[[module]]` と `[[module#symbol]]` を canonical とし、docs build では通常の Markdown link へ変換できるようにする。
 
+- 参照形式のデフォルト挙動はパッケージ設定で制御する。既定では wiki-style の `[[module]]` を優先する（例: `wiki_links = true`）ことを推奨しつつ、パッケージ設定で `links_mode` を `normal`（通常リンクのみ）、`wiki`（wiki link のみ）、`mixed`（両方許可）などに切り替えられるようにする。docs build / LSP / lint はこの設定に従って表示と変換のポリシーを適用する。
+
 1. Markdown root は任意指定ではなく固定 logical authoring root にする。
 
 - package root に `mds.config.toml` がある場合、Markdown 正本 root は `.mds/source/` と `.mds/test/` を固定で解決する。
@@ -57,6 +59,7 @@ self-hosted 移行では特に次の問題が目立った。
 - `[[module]]` / `[[module#symbol]]`、`対象` / `Covers` の参照解決、code import / export 解析、managed dependency snapshot の同期ずれを診断する。
 - legacy `Imports` / `Exports` / `Uses` table は既定で warning とし、CI では `legacy_tables = "error"` へ昇格できるようにする。
 - 旧 1-root / 1-md model は warning ではなく migration error として扱い、first-party package は即時移行対象にする。
+- `mds lint --fix` による自動修正機能を提供する。`--fix` はパッケージの `links_mode` 設定に従い、既存の参照表記（`[[module]]` / `[[module#symbol]]` と通常の Markdown link）を相互に変換してファイルを置換する。変換は source map と参照解決を用いて安全に行い、冪等性を保つ（必要に応じて変更のプレビューやバックアップ、CI 向けの自動承認フラグを提供する）。
 
 6. core は言語非依存にし、言語意味論は外部 LSP / provider へ委譲する。
 
