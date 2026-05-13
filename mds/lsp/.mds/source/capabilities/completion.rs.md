@@ -27,6 +27,7 @@ Migrated implementation source for `src/capabilities/completion.rs`.
 | external | tower_lsp::lsp_types | * | - | - | - |
 | internal | crate::convert | line_at | - | - | [../convert.rs.md#source](../convert.rs.md#source) |
 | internal | crate::labels | resolve_label | - | - | [../labels.rs.md#source](../labels.rs.md#source) |
+| internal | crate::state | WorkspaceState | - | - | [../state.rs.md#source](../state.rs.md#source) |
 
 
 ## Source
@@ -45,6 +46,7 @@ pub fn provide_completions(
     position: Position,
     path: Option<&Path>,
     config: &Config,
+    state: Option<&WorkspaceState>,
 ) -> Vec<CompletionItem> {
     let mut items = Vec::new();
 
@@ -79,6 +81,11 @@ pub fn provide_completions(
         return items;
     }
 
+    if let Some(wiki_prefix) = wiki_link_prefix(prefix) {
+        items.extend(wiki_link_completions(wiki_prefix, state));
+        return items;
+    }
+
     // Table column completion: inside `| ... |` row
     if prefix.trim_start().starts_with('|') {
         items.extend(table_column_completions(config));
@@ -104,18 +111,68 @@ fn is_backtick_fence_prefix(prefix: &str) -> bool {
 }
 ````
 
+````rs
+fn wiki_link_prefix(prefix: &str) -> Option<&str> {
+    let start = prefix.rfind("[[")?;
+    let candidate = &prefix[start + 2..];
+    (!candidate.contains("]]")).then_some(candidate)
+}
+````
+
+````rs
+fn wiki_link_completions(prefix: &str, state: Option<&WorkspaceState>) -> Vec<CompletionItem> {
+    let Some(state) = state else {
+        return Vec::new();
+    };
+    let (module_prefix, symbol_prefix) = prefix.split_once('#').unwrap_or((prefix, ""));
+    let mut items = Vec::new();
+    for pkg in &state.packages {
+        if prefix.contains('#') {
+            for (module, symbol) in pkg.index.symbol_index.keys() {
+                if module == module_prefix && symbol.starts_with(symbol_prefix) {
+                    items.push(CompletionItem {
+                        label: symbol.clone(),
+                        kind: Some(CompletionItemKind::FUNCTION),
+                        detail: Some(format!("Exported symbol from {module}")),
+                        insert_text: Some(format!("{symbol}]]")),
+                        sort_text: Some(format!("0_{symbol}")),
+                        ..Default::default()
+                    });
+                }
+            }
+        } else {
+            let mut modules = pkg.index.module_index.keys().cloned().collect::<Vec<_>>();
+            modules.sort();
+            modules.dedup();
+            for module in modules {
+                if module.starts_with(module_prefix) {
+                    items.push(CompletionItem {
+                        label: module.clone(),
+                        kind: Some(CompletionItemKind::MODULE),
+                        detail: Some("mds module".to_string()),
+                        insert_text: Some(format!("{module}]]")),
+                        sort_text: Some(format!("0_{module}")),
+                        ..Default::default()
+                    });
+                }
+            }
+        }
+    }
+    items
+}
+````
+
 Section heading completions.
 
 ````rs
 fn section_completions(config: &Config) -> Vec<CompletionItem> {
     let canonical_sections = [
-        ("Purpose", "Module purpose and responsibility"),
-        ("Contract", "Public API contract and invariants"),
-        ("Source", "Implementation source code"),
-        ("Cases", "Use cases and examples"),
-        ("Test", "Test code"),
-        ("Imports", "Imported dependencies"),
-        ("Exports", "Public exports"),
+        ("仕様", "Readable contract and invariants"),
+        ("API", "Public API prose"),
+        ("実装", "Implementation code"),
+        ("検証", "Verification notes"),
+        ("対象", "Covered source modules"),
+        ("ケース", "Verification cases"),
     ];
 
     canonical_sections

@@ -57,6 +57,8 @@ Workspace index field meanings:
 - `docs`: absolute path to parsed `ImplDoc`
 - `expose_index`: expose name to file path list
 - `file_exposes`: file path to expose name list
+- `module_index`: logical module id to file path list
+- `symbol_index`: logical module id and symbol name to file path list
 
 ````rs
 #[allow(dead_code)]
@@ -65,6 +67,8 @@ pub struct WorkspaceIndex {
     pub docs: HashMap<PathBuf, ImplDoc>,
     pub expose_index: HashMap<String, Vec<PathBuf>>,
     pub file_exposes: HashMap<PathBuf, Vec<String>>,
+    pub module_index: HashMap<String, Vec<PathBuf>>,
+    pub symbol_index: HashMap<(String, String), Vec<PathBuf>>,
 }
 ````
 
@@ -140,6 +144,40 @@ impl WorkspaceState {
         let mut results = Vec::new();
         for pkg in &self.packages {
             if let Some(paths) = pkg.index.expose_index.get(name) {
+                results.extend(paths.iter().cloned());
+            }
+        }
+        results
+    }
+}
+````
+
+Find all file paths for a logical module id.
+
+````rs
+#[allow(dead_code)]
+impl WorkspaceState {
+    pub fn find_module_locations(&self, module: &str) -> Vec<PathBuf> {
+        let mut results = Vec::new();
+        for pkg in &self.packages {
+            if let Some(paths) = pkg.index.module_index.get(module) {
+                results.extend(paths.iter().cloned());
+            }
+        }
+        results
+    }
+}
+````
+
+Find all file paths for a symbol exported by a logical module id.
+
+````rs
+#[allow(dead_code)]
+impl WorkspaceState {
+    pub fn find_symbol_locations(&self, module: &str, symbol: &str) -> Vec<PathBuf> {
+        let mut results = Vec::new();
+        for pkg in &self.packages {
+            if let Some(paths) = pkg.index.symbol_index.get(&(module.to_string(), symbol.to_string())) {
                 results.extend(paths.iter().cloned());
             }
         }

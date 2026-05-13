@@ -24,6 +24,7 @@ Migrated implementation source for `src/server.rs`.
 | external | mds_core::descriptor | lang_for_markdown_path | - | - | [../../../core/.mds/source/descriptor.rs.md#source](../../../core/.mds/source/descriptor.rs.md#source) |
 | external | mds_core::diagnostics | RunState | - | - | [../../../core/.mds/source/diagnostics.rs.md#source](../../../core/.mds/source/diagnostics.rs.md#source) |
 | external | mds_core::markdown | load_implementation_docs | - | - | [../../../core/.mds/source/markdown.rs.md#source](../../../core/.mds/source/markdown.rs.md#source) |
+| external | mds_core::markdown | extract_exports_for_lang | - | - | [../../../core/.mds/source/markdown.rs.md#source](../../../core/.mds/source/markdown.rs.md#source) |
 | external | mds_core::markdown | source_markdown_root | - | - | [../../../core/.mds/source/markdown.rs.md#source](../../../core/.mds/source/markdown.rs.md#source) |
 | external | mds_core::markdown | test_markdown_root | - | - | [../../../core/.mds/source/markdown.rs.md#source](../../../core/.mds/source/markdown.rs.md#source) |
 | external | mds_core::package | discover_packages | - | - | [../../../core/.mds/source/package.rs.md#source](../../../core/.mds/source/package.rs.md#source) |
@@ -157,6 +158,8 @@ fn build_workspace_index(package: &mds_core::Package) -> WorkspaceIndex {
     let mut docs = HashMap::new();
     let mut expose_index: HashMap<String, Vec<PathBuf>> = HashMap::new();
     let mut file_exposes: HashMap<PathBuf, Vec<String>> = HashMap::new();
+    let mut module_index: HashMap<String, Vec<PathBuf>> = HashMap::new();
+    let mut symbol_index: HashMap<(String, String), Vec<PathBuf>> = HashMap::new();
 
     for doc in docs_vec {
         // Build expose index from the document's uses/exposes
@@ -176,6 +179,28 @@ fn build_workspace_index(package: &mds_core::Package) -> WorkspaceIndex {
         } else {
             name.to_string()
         };
+
+        let module_id = stem.replace('\\', "/").replace('/', ".");
+        for module_key in [stem.clone(), module_id.clone()] {
+            module_index.entry(module_key.clone()).or_default().push(path.clone());
+            expose_index
+                .entry(module_key.clone())
+                .or_default()
+                .push(path.clone());
+            file_exposes.entry(path.clone()).or_default().push(module_key);
+        }
+
+        for exported in extract_exports_for_lang(&doc.lang, &doc.source_code) {
+            symbol_index
+                .entry((module_id.clone(), exported.name.clone()))
+                .or_default()
+                .push(path.clone());
+            expose_index
+                .entry(exported.name.clone())
+                .or_default()
+                .push(path.clone());
+            file_exposes.entry(path.clone()).or_default().push(exported.name);
+        }
 
         expose_index
             .entry(stem.clone())
@@ -200,6 +225,8 @@ fn build_workspace_index(package: &mds_core::Package) -> WorkspaceIndex {
         docs,
         expose_index,
         file_exposes,
+        module_index,
+        symbol_index,
     }
 }
 
@@ -285,6 +312,7 @@ impl LanguageServer for MdsLanguageServer {
                         "#".to_string(),
                         "|".to_string(),
                         "`".to_string(),
+                        "[".to_string(),
                     ]),
                     resolve_provider: Some(false),
                     ..Default::default()
@@ -398,14 +426,13 @@ impl LanguageServer for MdsLanguageServer {
             .and_then(|p| state.package_for_path(p))
             .map(|p| p.package.config.clone())
             .unwrap_or_default();
-        drop(state);
-
         if let Some(text) = text {
             let items = capabilities::completion::provide_completions(
                 &text,
                 position,
                 path.as_deref(),
                 &config,
+                Some(&state),
             );
             Ok(Some(CompletionResponse::Array(items)))
         } else {

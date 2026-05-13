@@ -13,6 +13,15 @@ self-hosted 移行では特に次の問題が目立った。
 
 ## 提案内容
 
+0. authoring style は「読みやすい仕様書 + 実コード解析」を標準にする。
+
+- 新規 source md は `Purpose / Contract / Exports / Imports / Source / Cases / Test` の固定英語 section と表形式メタ情報を必須にしない。
+- Markdown 本文は自然な仕様書として保ち、標準 section は日本語では `仕様`、`API`、`実装`、`検証`、test md では `対象`、`ケース`、`実装` を使う。
+- `Imports` / `Exports` / `Uses` table は legacy 互換として読み続けるが、新規生成、snippet、example では使わない。
+- `import` / `export` の事実は `## 実装` 配下の実コードから解析する。依存の理由だけを自然文と `[[module#symbol]]` 参照で書く。
+- frontmatter は原則不要とし、module id は `.mds/source` または `.mds/test` からの logical module id で解決する。
+- Markdown 参照は `[[module]]` と `[[module#symbol]]` を canonical とし、docs build では通常の Markdown link へ変換できるようにする。
+
 1. Markdown root は任意指定ではなく固定 logical authoring root にする。
 
 - package root に `mds.config.toml` がある場合、Markdown 正本 root は `.mds/source/` と `.mds/test/` を固定で解決する。
@@ -22,16 +31,16 @@ self-hosted 移行では特に次の問題が目立った。
 
 2. implementation md と test md を完全分離する。
 
-- `.mds/source/**/*.md` は source implementation md とし、`Purpose`、`Contract`、`Expose`、`Uses`、`Types`、`Source`、`Cases` を扱う。root module md は `Source` section なしの metadata-only source md として、`Imports` / `Exports` だけを持てる。
-- `.mds/test/**/*.md` は test md とし、`Purpose`、`Covers`、`Uses`、`Cases`、`Test` を扱う。
+- `.mds/source/**/*.md` は source document とし、`仕様` / `Contract`、`API`、`実装` / `Implementation`、`検証` を自然文中心で扱う。root module md も table なしで成立する。
+- `.mds/test/**/*.md` は test document とし、`対象` / `Covers`、`ケース` / `Cases`、`実装` / `Implementation` を扱う。
 - `.mds/source` 側に `Test` code block を置くこと、`.mds/test` 側に `Source` / `Types` code block を置くことを禁止する。
-- source と test は file 名の一致ではなく、論理 module id と `Covers` 参照で結び付ける。
+- source と test は file 名の一致ではなく、論理 module id と `対象` / `Covers` の `[[module]]` 参照で結び付ける。
 
 3. internal dependency は generated file path ではなく logical module id で表す。
 
-- `Uses.Target` の internal 参照は `foo/bar` のような logical authoring root 相対の logical module id を canonical にする。
-- core は doc graph と logical module id を解決し、adapter が実際の import / use / require と file 配置へ変換する。
-- author は build 後 path や拡張子を意識せず、論理単位の依存だけを書けばよい。
+- core は doc graph、code import、Markdown wiki link を index 化し、logical module id を解決する。
+- LSP はコード内 import path と import symbol から対応する `.mds/source/**/*.md` と symbol 定義へジャンプする。
+- author は build 後 path や拡張子を意識せず、自然文では `[[module#symbol]]`、コードでは通常の import を書けばよい。
 
 4. `.mds/source/overview.md` に metadata 由来の dependency snapshot を持たせる。
 
@@ -45,29 +54,51 @@ self-hosted 移行では特に次の問題が目立った。
 
 - `.mds/` 配下の fixed root と `overview.md` の配置、doc kind ごとの必須 section、許可される code block 種別を検査する。
 - default validator では code fence 整合、Markdown link、duplicate H2、import 混在、doc comment / docstring、top-level 実装の code fence 分離を検査し、`[check]` で個別に on/off できるようにする。
-- `Uses.Target` の logical module id、`Covers` の参照解決、managed dependency snapshot の同期ずれを診断する。
+- `[[module]]` / `[[module#symbol]]`、`対象` / `Covers` の参照解決、code import / export 解析、managed dependency snapshot の同期ずれを診断する。
+- legacy `Imports` / `Exports` / `Uses` table は既定で warning とし、CI では `legacy_tables = "error"` へ昇格できるようにする。
 - 旧 1-root / 1-md model は warning ではなく migration error として扱い、first-party package は即時移行対象にする。
 
-6. adapter は core 内の data-driven language descriptor として再編する。
+6. core は言語非依存にし、言語意味論は外部 LSP / provider へ委譲する。
 
-- core は Markdown parser、doc kind 判定、graph 解決、diagnostics、logical module id 解決を担う。
-- 言語ごとの import 変換、output path、test path、manifest 連携、module file 更新ルールは bundled な `<ext>.toml` descriptor で定義する。
-- generated test root の canonical は language ごとに descriptor が定義し、authoring model 側では `test/` と `tests/` のどちらかへ統一しない。
-- package root の `.mds/languages/<ext>.toml` により built-in にない言語、または package 固有 variation を追加できるようにする。
-- package descriptor が built-in または別 descriptor を土台にするときは、暗黙継承ではなく明示的な `extends` を使う。
-- descriptor override は section 単位の whitelist merge とし、map は key override、array は section ごと置換、未知 key は error にする。
-- LSP は同じ descriptor registry を利用し、built-in 言語と custom 言語の両方を同じ意味体系で扱う。
+- core は Markdown parser、doc kind 判定、code fence 抽出、logical module id 解決、wiki-link 解決、source map、output planning だけを担う。
+- core は `.ts.md` / `.rs.md` / `.py.md` のようなファイル名 suffix を opaque な extension key として扱い、`ts` / `rs` / `py` の意味分岐を持たない。
+- import / export の厳密解析は core の必須責務にしない。build は import / export index が存在しなくても成立する。
+- import / export、symbol definition、hover、references、rename、type-aware diagnostics は、mds LSP または editor extension が既存 language server へ問い合わせて取得する。
+- output root、source/test root、source/test file naming は language descriptor ではなく package config の pattern として扱う。
+- descriptor は新標準の主機構にしない。残す場合も `ext`、fence label alias、特殊 file mapping などの薄い optional metadata に限定し、built-in language descriptor を増やす方針は採らない。
 
-### descriptor 骨格
+### 外部 LSP 委譲モデル
 
-- descriptor は少なくとも `language`、`files`、`imports`、`quality_defaults` を持つ。
-- Rust など追加責務がある言語は `module_management` のような optional section を持てる。
-- built-in descriptor id は既存 canonical key に合わせて `ts`、`py`、`rs` のような短縮 key を使う。
-- `files` は freeform template string ではなく structured fields で持ち、source / types / test ごとの root kind、basename rule、suffix、extension を定義する。
-- `imports` は freeform template や mini DSL ではなく declarative enum と capability flag で持ち、`Uses` から import / use / require へ変換する canonical rule を定義する。
-- `quality_defaults` は language 別の既定 lint / format / test / typecheck command と required / optional tool id を定義する。
-- `module_management` は generic optional section とし、少なくとも managed_files、markers、insert_strategy、declaration_style の standardized field を持つ。
-- built-in descriptor registry は `mds-core` に同梱し、self-hosted 正本は `mds/core/.mds/source/descriptors/languages/` と `mds/core/.mds/source/descriptors/linters/` に置く。
+- mds LSP は Markdown code fence と generated file の対応を source map として保持する。
+- definition / hover / completion / references が code fence 内で要求された場合、mds LSP は Markdown range を virtual/generated code range へ変換する。
+- 既存 language server が返した generated code location は、source map により `.mds/source/**/*.md` または `.mds/test/**/*.md` の Markdown range へ戻す。
+- editor が virtual document を安定して扱える場合は `mds-virtual:` URI を使える。
+- virtual URI を language server が扱いにくい場合は、`mds build` 後の generated file を既存 language server に任せ、mds LSP が generated location を Markdown location へ戻す。
+
+### source map の最小要件
+
+- 各 code fence について、Markdown file path、Markdown range、generated/virtual file path、generated range、language extension key を記録する。
+- 複数 code fence を 1 generated file へ連結する場合、fence ごとの offset table を保持する。
+- source md と test md は別々の output kind として source map を持つ。
+- source map は LSP、docs build、graph、diagnostics の共有 index として使う。
+
+### package output config 案
+
+```toml
+[roots]
+source_md = ".mds/source"
+test_md = ".mds/test"
+source_out = "src"
+test_out = "tests"
+
+[output]
+source = "{source_out}/{module}.{ext}"
+test = "{test_out}/{module}.test.{ext}"
+```
+
+- `{module}` は `.mds/source` または `.mds/test` からの logical module path を使う。
+- `{ext}` は Markdown file name の language suffix から取る。
+- 言語固有の特殊配置が必要な場合だけ package config の override で扱い、core に hardcode しない。
 
 7. first-party package と生成 template は一括で切り替える。
 
@@ -84,14 +115,11 @@ self-hosted 移行では特に次の問題が目立った。
 - `overview.md` は `Imports` / `Exports` を持たず、package / directory root の import / export surface は言語別 root module md に置く。
 - dependency snapshot が stale な場合、`mds lint` と `mds build` はともに error で止める。
 - package manager post hook の既定 command は `mds package sync` とする。
-- language descriptor の継承は明示的な `extends` を使う。
-- language descriptor override は section 単位の whitelist merge を使う。
-- built-in descriptor id は既存 canonical short key を使う。
-- descriptor の `files` section は structured fields を使う。
-- descriptor の `imports` section は declarative enum と capability flag を使う。
-- descriptor の `quality_defaults` は default command と required / optional tool id までを持つ。
-- descriptor の `module_management` は generic optional section と standardized field を使う。
-- built-in descriptor registry は `mds-core` に同梱する。
+- descriptor-driven adapter は主方針から外し、core は言語非依存を優先する。
+- 言語は file suffix から extension key として推論し、core は extension key の意味を解釈しない。
+- output path は package config pattern を正とし、言語ごとの descriptor では定義しない。
+- import / export 解析、symbol definition、hover、references、rename は mds core ではなく LSP / editor extension / optional provider へ委譲する。
+- built-in language descriptor registry は増やさない。必要な metadata は薄い optional metadata または package override に限定する。
 
 ## 推奨する移行順序
 
@@ -99,7 +127,7 @@ self-hosted 移行では特に次の問題が目立った。
 2. `mds lint` と LSP に migration error を追加し、旧 `src-md` / implementation-test 同居と dependency snapshot drift を早期検知できるようにする。
 3. `mds package sync` を `.mds/source/overview.md` の managed snapshot writer として実装し、`mds build` は stale snapshot を error として拒否する。
 4. first-party package、examples、init template、AI Kit template を同じ release で `.mds/` model へ切り替える。
-5. adapter descriptor と logical module id 解決をその release の内部実装として同時に差し替え、旧 model の互換分岐を残さない。
+5. descriptor-driven adapter ではなく、source map と package output config を導入し、LSP / editor extension が外部 language server へ問い合わせられる形へ移行する。
 
 ## 代替案
 
@@ -123,26 +151,41 @@ self-hosted 移行では特に次の問題が目立った。
 - 短期的には速いが、custom language と LSP 共有の要求を満たしにくい。
 - path / import / manifest 差分をコードへ埋め込み続けるため、今の「生成後構造を想像しないと書けない」問題が温存される。
 
+5. core に built-in language descriptor registry を持たせる。
+
+- data-driven にはなるが、descriptor schema、継承、override、言語ごとの差分管理が mds core の責務として残る。
+- 新言語対応のたびに mds 側の metadata 追加が必要になり、「Markdown と source map だけを扱う core」という境界が曖昧になる。
+
+6. core に正規表現ベースの import / export extractor を持たせる。
+
+- 短期的には LSP なしでも graph を作れるが、言語ごとの分岐と精度問題が core に入り込む。
+- 既存 language server が持つ symbol 解決、rename、references、type-aware diagnostics と二重実装になる。
+
 ## 利点
 
 - source と test の責務が logical root と doc kind の両方で明確になる。
 - author は logical module id を使うだけでよく、generated path を先読みする負担が下がる。
 - `.mds/source/overview.md` で package rule と dependency の俯瞰を同じ場所で確認できる。
 - `mds lint` と LSP が「望ましい形」を構造的に説明できる。
-- built-in 言語と custom 言語の扱いを descriptor に寄せることで、core と LSP の意味体系を揃えやすい。
+- core を言語非依存に保つことで、新言語追加時に mds core の descriptor や分岐を増やさずに済む。
+- 既存 language server を利用することで、import/export、definition、hover、references、rename の精度を mds 側で再実装しなくてよい。
+- source map を共有 index とすることで、generated file と Markdown 正本の間を LSP / docs / diagnostics で同じ規則で往復できる。
 
 ## リスク
 
 - 現行 requirement / spec / fixtures / self-hosted package / init template の広範な breaking update が必要になる。
 - `Covers` など新しい canonical section を導入する場合、label override と parser migration の整理が必要になる。
 - dependency snapshot の managed section 方式を誤ると、手書き領域との衝突や package metadata の二重管理に見える危険がある。
-- language descriptor を TOML 化すると、schema versioning と validation の責務が増える。
+- 外部 language server 連携は editor / language server ごとの差分が大きく、virtual document URI を扱えない language server では generated-file mode が必要になる。
+- source map の精度が低いと、definition / diagnostics の Markdown range remap が不正確になる。
 - hidden directory を使うため、editor 設定や人間の discoverability への配慮が必要になる。
 
 ## 未確定事項
 
-- `module_management.declaration_style` や marker default 名の exact enum / field 名。
-- built-in descriptor を core へ埋め込む build step と LSP の reload 戦略。
+- source map の永続化 format と更新タイミング。
+- generated-file mode と virtual-document mode の優先順位。
+- editor extension 側で外部 language server bridge を担うか、mds-lsp が language server client を内包するか。
+- package output config pattern の exact field 名と escaping rule。
 
 ## 正式化先候補
 

@@ -92,12 +92,6 @@ fn validate_documented_source(
     sections: &std::collections::HashMap<String, String>,
     state: &mut RunState,
 ) {
-    if !sections.contains_key("Purpose") {
-        state.diagnostics.push(mds_core::Diagnostic::error(
-            Some(path.to_path_buf()),
-            "source md requires ## Purpose",
-        ));
-    }
     if has_generated_source(sections) && !sections.contains_key("Contract") {
         state.diagnostics.push(mds_core::Diagnostic::error(
             Some(path.to_path_buf()),

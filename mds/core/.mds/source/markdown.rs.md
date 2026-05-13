@@ -163,8 +163,22 @@ pub fn parse_impl_doc(
         &package.config.label_overrides,
         state,
     );
-    let source_code = prepend_imports(&imports_code, code_from_section(sections.get("Source")));
-    let test_code = prepend_imports(&imports_code, code_from_section(sections.get("Test")));
+    let implementation_code = code_from_section(sections.get("Source"));
+    let source_code = if matches!(doc_kind, DocKind::Source) {
+        prepend_imports(&imports_code, implementation_code.clone())
+    } else {
+        String::new()
+    };
+    let test_code = if matches!(doc_kind, DocKind::Test) {
+        let code = if implementation_code.trim().is_empty() {
+            code_from_section(sections.get("Test"))
+        } else {
+            implementation_code
+        };
+        prepend_imports(&imports_code, code)
+    } else {
+        prepend_imports(&imports_code, code_from_section(sections.get("Test")))
+    };
     let covers = covers_from_section(sections.get("Covers"));
 
     let code = extract_all_code_blocks(&text);
@@ -258,9 +272,9 @@ fn validate_documented_sections(
 ) {
     let required: &[&str] = match profile {
         DocProfile::Overview => &["Purpose", "Architecture", "Rules"],
-        DocProfile::Spec => &["Purpose", "Contract"],
-        DocProfile::Impl => &["Purpose", "Contract"],
-        DocProfile::Test => &["Purpose", "Covers", "Cases", "Test"],
+        DocProfile::Spec => &["Contract"],
+        DocProfile::Impl => &["Contract"],
+        DocProfile::Test => &["Covers", "Cases"],
     };
     for section in required {
         if !sections.contains_key(*section) {
@@ -624,8 +638,10 @@ fn resolve_test_doc_lang(
 
 ````rs
 fn cover_matches(doc: &ImplDoc, cover: &str) -> bool {
-    let cover = cover.trim();
+    let cover = wiki_link_target(cover.trim());
+    let cover = cover.split('#').next().unwrap_or(&cover).trim();
     cover == logical_module_id(&doc.markdown_relative_path)
+        || cover == legacy_slash_module_id(&doc.markdown_relative_path)
         || cover == doc.markdown_relative_path.to_string_lossy()
 }
 ````
@@ -634,11 +650,18 @@ fn cover_matches(doc: &ImplDoc, cover: &str) -> bool {
 fn logical_module_id(path: &Path) -> String {
     let value = path.to_string_lossy().replace('\\', "/");
     let value = value.strip_suffix(".md").unwrap_or(&value);
-    if let Some(index) = value.rfind('.') {
-        value[..index].to_string()
+    let without_lang = if let Some(index) = value.rfind('.') {
+        &value[..index]
     } else {
-        value.to_string()
-    }
+        value
+    };
+    without_lang.replace('/', ".")
+}
+````
+
+````rs
+fn legacy_slash_module_id(path: &Path) -> String {
+    logical_module_id(path).replace('.', "/")
 }
 ````
 
@@ -898,10 +921,21 @@ fn covers_from_section(section: Option<&String>) -> Vec<String> {
                 .lines()
                 .map(|line| line.trim().trim_start_matches(['-', '*']).trim())
                 .filter(|line| !line.is_empty())
-                .map(ToOwned::to_owned)
+                .map(wiki_link_target)
                 .collect()
         })
         .unwrap_or_default()
+}
+````
+
+````rs
+fn wiki_link_target(value: &str) -> String {
+    let value = value.trim();
+    if let Some(inner) = value.strip_prefix("[[").and_then(|value| value.strip_suffix("]]")) {
+        inner.split('|').next().unwrap_or_default().trim().to_string()
+    } else {
+        value.to_string()
+    }
 }
 ````
 
@@ -965,25 +999,7 @@ fn validate_code_block_boundaries(
                     || is_comment_line(lang, trimmed)
                     || is_import_line(lang, trimmed)
             });
-        if check.import_with_implementation && has_import && declaration_count > 0 {
-            state.diagnostics.push(Diagnostic::error(
-                Some(path.to_path_buf()),
-                format!(
-                    "code block starting at line {} mixes imports with implementation; move imports to the Imports section table",
-                    block.start_line
-                ),
-            ));
-        }
-
-        if import_only_block && block.section.as_deref() != Some("Imports") {
-            state.diagnostics.push(Diagnostic::error(
-                Some(path.to_path_buf()),
-                format!(
-                    "code block starting at line {} is an import-only block; move imports to the Imports section table",
-                    block.start_line
-                ),
-            ));
-        }
+        let _ = (has_import, import_only_block);
 
         if check.top_level_fence_required && declaration_count > 1 {
             state.diagnostics.push(Diagnostic::error(
@@ -1024,14 +1040,13 @@ fn is_unnecessary_code_block_split(lang: &Lang, previous: &str, current: &str) -
 struct CodeBlock<'a> {
     content: &'a str,
     start_line: usize,
-    section: Option<String>,
 }
 ````
 
 ````rs
 fn code_blocks<'a>(
     text: &'a str,
-    label_overrides: &HashMap<String, String>,
+    _label_overrides: &HashMap<String, String>,
 ) -> Vec<CodeBlock<'a>> {
     let mut blocks = Vec::new();
     let mut fence_len: Option<usize> = None;
@@ -1039,22 +1054,15 @@ fn code_blocks<'a>(
     let mut content_start_line = 1;
     let mut cursor = 0;
     let mut line_number = 1;
-    let mut current_section: Option<String> = None;
     for line in text.split_inclusive('\n') {
         let line_start = cursor;
         cursor += line.len();
-        if fence_len.is_none() {
-            if let Some(title) = line.trim_end_matches(['\r', '\n']).strip_prefix("## ") {
-                current_section = Some(canonical_section_title(title.trim(), label_overrides));
-            }
-        }
         if let Some((marker_len, suffix)) = backtick_fence(line) {
             if let Some(open_len) = fence_len {
                 if is_closing_fence(marker_len, suffix, open_len) {
                     blocks.push(CodeBlock {
                         content: &text[content_start..line_start],
                         start_line: content_start_line,
-                        section: current_section.clone(),
                     });
                     fence_len = None;
                 }
@@ -1123,8 +1131,19 @@ pub fn sections_with_labels(
     let mut result = HashMap::new();
     let mut current: Option<String> = None;
     let mut body = String::new();
+    let mut fence_len: Option<usize> = None;
     for line in text.lines() {
-        if let Some(title) = line.strip_prefix("## ") {
+        if let Some((marker_len, suffix)) = backtick_fence(line) {
+            if let Some(open_len) = fence_len {
+                if is_closing_fence(marker_len, suffix, open_len) {
+                    fence_len = None;
+                }
+            } else {
+                fence_len = Some(marker_len);
+            }
+        }
+        if fence_len.is_none() && line.starts_with("## ") {
+            let title = line.strip_prefix("## ").unwrap();
             let title = canonical_section_title(title.trim(), label_overrides);
             if let Some(name) = current.replace(title) {
                 result.insert(name, body.trim_matches('\n').to_string());
@@ -1144,10 +1163,19 @@ pub fn sections_with_labels(
 
 ````rs
 fn canonical_section_title(title: &str, label_overrides: &HashMap<String, String>) -> String {
-    for canonical in [
-        "Purpose", "Contract", "Source", "Cases", "Test", "Covers", "Imports", "Exports", "Expose", "Exposes", "Architecture", "Rules",
+    for (canonical, aliases) in [
+        ("Purpose", &["Purpose", "Overview", "概要", "目的"] as &[_]),
+        ("Contract", &["Contract", "仕様", "契約"]),
+        ("Exports", &["Exports", "API", "公開API", "Interface", "Expose", "Exposes"]),
+        ("Imports", &["Imports", "Uses"]),
+        ("Source", &["Source", "Implementation", "実装"]),
+        ("Cases", &["Cases", "ケース"]),
+        ("Test", &["Test", "Verification", "検証", "テスト"]),
+        ("Covers", &["Covers", "対象"]),
+        ("Architecture", &["Architecture"]),
+        ("Rules", &["Rules"]),
     ] {
-        if title == canonical {
+        if aliases.iter().any(|alias| title == *alias) {
             return canonical.to_string();
         }
         let key = canonical.to_ascii_lowercase();
@@ -1299,6 +1327,149 @@ fn wikilinks(text: &str) -> Vec<String> {
         rest = &rest[end + 2..];
     }
     links
+}
+````
+
+````rs
+#[derive(Debug, Clone, Eq, PartialEq)]
+pub struct CodeImport {
+    pub source: String,
+    pub symbols: Vec<String>,
+}
+````
+
+````rs
+#[derive(Debug, Clone, Eq, PartialEq)]
+pub struct CodeExport {
+    pub name: String,
+    pub kind: String,
+}
+````
+
+````rs
+pub trait ImportExtractor {
+    fn extract_imports(&self, code: &str) -> Vec<CodeImport>;
+}
+````
+
+````rs
+pub trait SymbolExtractor {
+    fn extract_exports(&self, code: &str) -> Vec<CodeExport>;
+}
+````
+
+````rs
+pub struct TypeScriptExtractor;
+````
+
+````rs
+impl ImportExtractor for TypeScriptExtractor {
+    fn extract_imports(&self, code: &str) -> Vec<CodeImport> {
+        code.lines().filter_map(extract_typescript_import).collect()
+    }
+}
+````
+
+````rs
+impl SymbolExtractor for TypeScriptExtractor {
+    fn extract_exports(&self, code: &str) -> Vec<CodeExport> {
+        code.lines().flat_map(extract_typescript_export).collect()
+    }
+}
+````
+
+````rs
+pub fn extract_imports_for_lang(lang: &Lang, code: &str) -> Vec<CodeImport> {
+    if lang.key() == "ts" {
+        TypeScriptExtractor.extract_imports(code)
+    } else {
+        Vec::new()
+    }
+}
+````
+
+````rs
+pub fn extract_exports_for_lang(lang: &Lang, code: &str) -> Vec<CodeExport> {
+    if lang.key() == "ts" {
+        TypeScriptExtractor.extract_exports(code)
+    } else {
+        Vec::new()
+    }
+}
+````
+
+````rs
+fn extract_typescript_import(line: &str) -> Option<CodeImport> {
+    let trimmed = line.trim();
+    if !trimmed.starts_with("import ") {
+        return None;
+    }
+    let (_, source_tail) = trimmed.rsplit_once(" from ")?;
+    let source = quoted_value(source_tail.trim_end_matches(';').trim())?;
+    let symbols = if let Some(open) = trimmed.find('{') {
+        let close = trimmed[open + 1..].find('}')? + open + 1;
+        trimmed[open + 1..close]
+            .split(',')
+            .filter_map(|symbol| symbol.split_whitespace().next())
+            .filter(|symbol| !symbol.is_empty())
+            .map(ToOwned::to_owned)
+            .collect()
+    } else {
+        Vec::new()
+    };
+    Some(CodeImport { source, symbols })
+}
+````
+
+````rs
+fn extract_typescript_export(line: &str) -> Vec<CodeExport> {
+    let trimmed = line.trim_start();
+    let Some(rest) = trimmed.strip_prefix("export ") else {
+        return Vec::new();
+    };
+    for (keyword, kind) in [
+        ("type ", "type"),
+        ("interface ", "interface"),
+        ("function ", "function"),
+        ("class ", "class"),
+        ("const ", "const"),
+    ] {
+        if let Some(name) = rest.strip_prefix(keyword).and_then(first_identifier) {
+            return vec![CodeExport { name, kind: kind.to_string() }];
+        }
+    }
+    if let Some(inner) = rest.strip_prefix('{').and_then(|value| value.split('}').next()) {
+        return inner
+            .split(',')
+            .filter_map(|symbol| symbol.split_whitespace().next())
+            .filter(|symbol| !symbol.is_empty())
+            .map(|name| CodeExport { name: name.to_string(), kind: "re-export".to_string() })
+            .collect();
+    }
+    Vec::new()
+}
+````
+
+````rs
+fn quoted_value(value: &str) -> Option<String> {
+    let value = value.trim();
+    let quote = value.chars().next()?;
+    if quote != '\'' && quote != '"' {
+        return None;
+    }
+    let end = value[1..].find(quote)? + 1;
+    Some(value[1..end].to_string())
+}
+````
+
+````rs
+fn first_identifier(value: &str) -> Option<String> {
+    let name = value
+        .trim_start()
+        .chars()
+        .take_while(|character| character.is_ascii_alphanumeric() || *character == '_' || *character == '$')
+        .collect::<String>();
+    (!name.is_empty()).then_some(name)
 }
 ````
 
