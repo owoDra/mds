@@ -1,13 +1,21 @@
 ---
 id: ADR-007-self-hosted-src-md-build
-status: 採用
+status: 保管
 related:
+  - docs/plan/index.md
+  - docs/plan/phase-00-record-new-direction.md
   - docs/project/proposals/archive/proposal-self-hosted-source-layout.md
   - docs/project/architecture.md
   - docs/project/validation.md
 ---
 
 # mds 自身の正本を .mds/source / .mds/test に置き生成物を .build に集約する
+
+## 現在位置づけ
+
+この判断は、mds 自身の first-party package を `.mds/source` / `.mds/test` から self-hosting build する前提で採用された。`docs/plan/index.md` と `docs/plan/phase-00-record-new-direction.md` で定義した self-hosting removal / authoring-v2 plan により、その前提は repository の現行方針から外れたため、この ADR は superseded として archive に保管する。
+
+後続 phase では `mds/**/src` と `mds/**/tests` を直接正本として扱い、残存する first-party `.mds` 資産や self-hosted build 導線は historical / cleanup target として扱う。
 
 ## 背景
 
@@ -16,6 +24,8 @@ mds は Markdown を設計書兼ソースの正本として扱う。一方で、
 また、Rust の `target/`、VS Code extension の `out/`、release 用の `.release/` など、ビルド生成物が複数箇所に分散していた。正本と生成物の境界を明確にするため、生成物の配置を統一する必要がある。
 
 ## 判断
+
+以下は self-hosting 前提で採用されていた当時の判断であり、現行の repository 方針ではない。
 
 - mds 自身の編集入口を各 package 配下の `.mds/source/` と `.mds/test/` に移す。
 - Rust 実装は `mds/core/.mds/source`、`mds/cli/.mds/source`、`mds/lsp/.mds/source` と対応する `.mds/test` を正本とする。
@@ -34,6 +44,8 @@ mds は Markdown を設計書兼ソースの正本として扱う。一方で、
 
 ## 結果
 
+以下は採用当時に想定していた結果であり、Phase 00 以降の repository 現行方針は `docs/plan/index.md` と `docs/plan/phase-00-record-new-direction.md` を参照する。
+
 - 開発者は package 配下の `.mds/source/` と `.mds/test/` を編集し、`cargo run -p mds-cli -- build --verbose` で package 内の生成 `src/` / `tests/` と `.build/rust/` self-hosted workspace mirror をまとめて更新して Cargo commands を実行する。
 - `.build/` は Git 管理しない。
 - `crates/` を参照する新規資料や開発手順は追加しない。
@@ -42,6 +54,8 @@ mds は Markdown を設計書兼ソースの正本として扱う。一方で、
 
 ## 関連資料
 
+- `../../../plan/index.md`
+- `../../../plan/phase-00-record-new-direction.md`
 - `../index.md`
 - `../../architecture.md`
 - `../../validation.md`

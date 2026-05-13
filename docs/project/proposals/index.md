@@ -32,8 +32,8 @@
 
 - `active/`: 採否判断前の proposal の配置先
 - `active/proposal-markdown-authoring-layout-v2.md`: `.mds/` fixed root、source/test 分離、readable authoring model、core 言語非依存、source map、外部 LSP 委譲へ移行する proposal
-- `active/PROP-mds-lsp.md`: mds-lsp (Language Server Protocol) に関する proposal
 - `archive/`: 参照優先度を落とした proposal の配置先
+- `archive/PROP-mds-lsp.md`: 旧 `src-md` / `.build` self-hosting 前提の mds-lsp proposal。repository implementation planning では `docs/plan/index.md` と `docs/plan/phase-07-lsp-bridge.md` を優先する
 - `archive/proposal-self-hosted-source-layout.md`: mds 自身の mds 化、`.build/` 生成物集約、`crates/` 廃止に関する採用済み proposal。ADR-007 に昇格済み
 - `archive/proposal-markdown-grammar-open-details.md`: Markdown grammar の未確定細部に関する採否判断済み proposal
 - `archive/proposal-post-mvp-generation-followups.md`: Post-MVP の残要件達成計画に関する採否判断済み proposal

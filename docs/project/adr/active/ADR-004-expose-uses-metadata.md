@@ -3,7 +3,7 @@ id: ADR-004-expose-uses-metadata
 status: 採用
 related:
   - docs/project/requirements/REQ-metadata-expose-uses.md
-  - mds/core/.mds/source/overview.md
+  - mds/core/src/markdown.rs
 ---
 
 # Expose と Uses を Markdown 表にする
@@ -29,6 +29,6 @@ related:
 ## 関連資料
 
 - `../../requirements/REQ-metadata-expose-uses.md`
-- `../../../../mds/core/.mds/source/overview.md`
-- `../../../../mds/core/.mds/source/table.rs.md`
+- `../../../../mds/core/src/markdown.rs`
+- `../../../../mds/core/src/table.rs`
 - `../../patterns/data-table-metadata.md`

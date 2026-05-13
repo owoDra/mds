@@ -13,10 +13,11 @@ Rust, TypeScript, Python
 monorepo
 
 ## Subprojects
-- `mds-core`: Rust core library package; Markdown source lives in `mds/core/src-md`
-- `mds-cli`: native CLI package; Markdown source lives in `mds/cli/src-md`
-- `mds-lsp`: Language Server Protocol package; Markdown source lives in `mds/lsp/src-md`
-- `editors/vscode`: VS Code extension package; Markdown source context lives in `editors/vscode/src-md`
+- `mds/core`: edit checked-in Rust source and tests in `mds/core/src` and `mds/core/tests`
+- `mds/cli`: edit checked-in Rust source and tests in `mds/cli/src` and `mds/cli/tests`
+- `mds/lsp`: edit checked-in Rust source and tests in `mds/lsp/src` and `mds/lsp/tests`
+- `editors/vscode`: edit checked-in extension source in `editors/vscode/src` and related checked-in tests or fixtures
+- Remaining first-party `.mds` assets in this repository are historical, superseded, or cleanup targets under the self-hosting removal plan.
 
 ## Teams
 - Rust implementation team
@@ -30,6 +31,6 @@ monorepo
 - GitHub Copilot CLI
 
 ## Validation Policy
-- `mds/core`、`mds/cli`、`mds/lsp` など mds 管理 package の build / test / lint は mds command を入口にする。
-- 通常は `mds package sync`、`mds build`、`mds lint --package <package>`、`mds test --package <package>` を使う。
-- Cargo 直実行は mds CLI 起動不能時の bootstrap、release binary 作成、mds 管理外 Rust workspace 検証に限る。
+- Standard repository validation is `cargo fmt --all --check`, `cargo check --workspace`, `cargo test --workspace`, and `cargo clippy --workspace --all-targets`.
+- For `editors/vscode`, run `npm run compile` in `editors/vscode`.
+- Reserve `mds` commands for product behavior, fixture, or package authoring validation when a change specifically needs them.

@@ -58,7 +58,7 @@ self-hosted 移行では特に次の問題が目立った。
 - default validator では code fence 整合、Markdown link、duplicate H2、import 混在、doc comment / docstring、top-level 実装の code fence 分離を検査し、`[check]` で個別に on/off できるようにする。
 - `[[module]]` / `[[module#symbol]]`、`対象` / `Covers` の参照解決、code import / export 解析、managed dependency snapshot の同期ずれを診断する。
 - legacy `Imports` / `Exports` / `Uses` table は既定で warning とし、CI では `legacy_tables = "error"` へ昇格できるようにする。
-- 旧 1-root / 1-md model は warning ではなく migration error として扱い、first-party package は即時移行対象にする。
+- 旧 1-root / 1-md model は authoring-v2 を採用する package では warning ではなく migration error として扱う。ただしこの repository の first-party package は本 proposal の移行対象に含めない。
 - `mds lint --fix` による自動修正機能を提供する。`--fix` はパッケージの `links_mode` 設定に従い、既存の参照表記（`[[module]]` / `[[module#symbol]]` と通常の Markdown link）を相互に変換してファイルを置換する。変換は source map と参照解決を用いて安全に行い、冪等性を保つ（必要に応じて変更のプレビューやバックアップ、CI 向けの自動承認フラグを提供する）。
 
 6. core は言語非依存にし、言語意味論は外部 LSP / provider へ委譲する。
@@ -103,15 +103,15 @@ test = "{test_out}/{module}.test.{ext}"
 - `{ext}` は Markdown file name の language suffix から取る。
 - 言語固有の特殊配置が必要な場合だけ package config の override で扱い、core に hardcode しない。
 
-7. first-party package と生成 template は一括で切り替える。
+7. first-party self-hosting removal は proposal の適用範囲から切り分ける。
 
-- mds 自身の package、examples、init が生成する AI Kit / project skeleton は同じ authoring model を前提に更新する。
-- 新旧 model の長期併存は避け、`.mds/` fixed root への breaking change として 1 つの移行で済ませる。
+- この proposal は product の Markdown authoring model を定義するものであり、この repository の first-party package、examples、init が生成する AI Kit / project skeleton を `.mds` authoring-v2 へ移行する計画は含めない。
+- この repository では first-party self-hosting を breaking alpha change として削除し、first-party package 向け migration command は作らない。
 
 ## 今回の確認で固定した判断
 
 - logical authoring root 名は hidden directory の `.mds/` に固定する。
-- first-party package、examples、init template、AI Kit template は旧 `src-md` model と長期併存させず、breaking change として一括移行する。
+- この proposal で固定するのは product の authoring-v2 model であり、この repository の first-party package、examples、init template、AI Kit template は移行対象に含めない。first-party self-hosting は breaking alpha change として削除し、migration command は作らない。
 - test md の canonical section は `Covers` を新設する。
 - generated test root の canonical は authoring model では固定せず、language descriptor が言語ごとに定義する。
 - dependency snapshot managed section の唯一の writer は `mds package sync` とする。
@@ -129,7 +129,7 @@ test = "{test_out}/{module}.test.{ext}"
 1. doc kind と fixed root を requirement / spec に昇格し、`.mds/source` / `.mds/test` を canonical にする。
 2. `mds lint` と LSP に migration error を追加し、旧 `src-md` / implementation-test 同居と dependency snapshot drift を早期検知できるようにする。
 3. `mds package sync` を `.mds/source/overview.md` の managed snapshot writer として実装し、`mds build` は stale snapshot を error として拒否する。
-4. first-party package、examples、init template、AI Kit template を同じ release で `.mds/` model へ切り替える。
+4. この repository では first-party self-hosting を breaking alpha change として削除し、first-party package 向け migration command は作らない。product-facing な authoring-v2 rollout は別途 formalization する。
 5. descriptor-driven adapter ではなく、source map と package output config を導入し、LSP / editor extension が外部 language server へ問い合わせられる形へ移行する。
 
 ## 代替案
@@ -176,7 +176,7 @@ test = "{test_out}/{module}.test.{ext}"
 
 ## リスク
 
-- 現行 requirement / spec / fixtures / self-hosted package / init template の広範な breaking update が必要になる。
+- product-facing requirement / spec / fixtures の breaking update と、この repository の first-party package / examples / init template から self-hosted 前提を外す cleanup が必要になる。
 - `Covers` など新しい canonical section を導入する場合、label override と parser migration の整理が必要になる。
 - dependency snapshot の managed section 方式を誤ると、手書き領域との衝突や package metadata の二重管理に見える危険がある。
 - 外部 language server 連携は editor / language server ごとの差分が大きく、virtual document URI を扱えない language server では generated-file mode が必要になる。
@@ -197,14 +197,8 @@ test = "{test_out}/{module}.test.{ext}"
   - `docs/project/requirements/REQ-generation-code-output-rules.md`
   - `docs/project/requirements/REQ-quality-md-state-validation.md`
   - `docs/project/requirements/REQ-ai-agent-cli-initialization.md`
-- implementation / overview:
-  - `../../../../mds/core/.mds/source/overview.md`
-  - `../../../../mds/core/.mds/source/config.rs.md`
-  - `../../../../mds/core/.mds/source/package_sync.rs.md`
-  - `../../../../mds/core/.mds/source/descriptors/languages/ts.toml`
-  - `../../../../mds/core/.mds/source/descriptors/languages/py.toml`
-  - `../../../../mds/core/.mds/source/descriptors/languages/rs.toml`
-  - `../../../../mds/cli/.mds/source/overview.md`
+- implementation / follow-up:
+  - この repository の first-party package を `.mds/source` へ移す formalization は行わない。product-facing な adoption scope は requirement / ADR で別途整理する。
 - validation:
   - `docs/project/validation.md`
 - adr:
@@ -214,8 +208,4 @@ test = "{test_out}/{module}.test.{ext}"
 
 - `../../architecture.md`
 - `../../requirements/REQ-doc-model-markdown-document-types.md`
-- `../../../../mds/core/.mds/source/overview.md`
-- `../../../../mds/core/.mds/source/config.rs.md`
-- `../../../../mds/core/.mds/source/package_sync.rs.md`
-- `../../../../mds/cli/.mds/source/overview.md`
 - `../../validation.md`

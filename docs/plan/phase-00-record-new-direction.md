@@ -7,6 +7,11 @@
 - 既存の proposal、architecture、validation、agent instructions には first-party package migration や self-hosted Markdown source の前提が残っている。
 - この phase では実装の大規模削除には入らず、後続 phase が矛盾なく進められる正本整理を優先する。
 
+## 判断ルール
+
+- Phase 00 の実装判断では、まず `docs/plan/index.md` とこの file を参照し、ここに反する旧記述は stale な前提として扱う。
+- `docs/project/architecture.md`、`docs/project/validation.md`、active proposal、`.agents/project.md` の更新は、この判断ルールを各正本へ反映するために行う。
+
 ## やること
 
 - `docs/project/architecture.md` から、mds 自身を `mds/**/.mds/source` と `mds/**/.mds/test` から rebuild する不変条件を外す。

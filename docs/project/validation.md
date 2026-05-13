@@ -32,12 +32,12 @@
 - 期待する結果: `.md` 内のコードブロックから生成される Source、Types、Test が命名規約と出力先規則に従う。
 - 問題があった際にどうするか: 生成物を手修正せず、正本または generator を修正する。
 
-## Self-hosted Build 同期
+## Repository 通常検証
 
-- いつ行うか: package 配下の `.mds/source/` / `.mds/test/`、`mds build`、Rust package metadata、`.build/` 配置を変更するとき。
-- 何で検証するか: mds 自身の管理対象 package (`mds/core`、`mds/cli`、`mds/lsp`) では Cargo を直接入口にせず、`mds package sync`、`mds build --verbose`、`mds lint --package <package>`、`mds test --package <package>` を使う。mds CLI 自体が起動不能な場合、bootstrap、release binary 作成、mds の外側にある非管理 Rust workspace の検証だけ Cargo 直実行を例外として扱う。
-- 期待する結果: package 配下の `.mds/source/` / `.mds/test` の implementation md と package metadata から package 内の生成 `src/` / `tests/` が再生成され、同じ command で `.build/rust/` の Cargo workspace mirror も再構築される。生成物を手編集せずに build / test でき、descriptor の special file 規則も守られ、Rust の `build.rs.md` は package root の `build.rs` へ生成される。
-- 問題があった際にどうするか: `.build/` や生成 `src/` / `tests/` を直接修正せず、package 配下の `.mds/source/` / `.mds/test` または `mds build` の mirror 同期処理を修正する。
+- いつ行うか: この repository の first-party Rust / TypeScript 実装、workspace 設定、`editors/vscode` を変更するとき。
+- 何で検証するか: 通常検証は `cargo fmt --all --check`、`cargo check --workspace`、`cargo test --workspace`、`cargo clippy --workspace --all-targets`、`editors/vscode` での `npm run compile` を使う。`mds package sync`、`mds build`、`mds lint`、`mds test` は product fixture や CLI 振る舞いの検証には使い得るが、first-party repository development の標準入口にはしない。
+- 期待する結果: Rust workspace と VS Code extension の変更が通常の toolchain 直実行で再現でき、first-party package の開発は `.mds/source/` / `.mds/test` からの再生成同期を前提にしない。product fixture 検証で mds command を併用しても、repository 自身の通常変更の成否判断は上記の Cargo / npm 検証でそろう。
+- 問題があった際にどうするか: まず Rust / TypeScript 実装、workspace 設定、extension build を直接修正し、repository の通常検証を通す。product fixture でのみ再現する問題は mds command 側の検証として切り分け、first-party package の標準開発導線と混同しない。
 
 ## Language Adapter 動作
 

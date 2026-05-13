@@ -27,5 +27,5 @@ Source、Types、Test の出力先は implementation md の path と adapter の
 ## 関連資料
 
 - `../../requirements/REQ-implementation-one-md-one-feature.md`
-- `../../../../mds/core/.mds/source/generation.rs.md`
+- `../../../../mds/core/src/generation.rs`
 - `../../patterns/impl-one-feature-markdown.md`

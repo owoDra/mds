@@ -6,6 +6,11 @@ mds 自身の self-hosting を停止し、Readable Authoring Model、core 言語
 
 この計画では `mds migrate authoring-v2` は作りません。alpha 段階の破壊的変更として、first-party Markdown の自動移行ではなく、不要な mds 管理資産を削除して通常の Rust / TypeScript source を直接正本にします。
 
+## Phase 00 での判断基準
+
+- self-hosting removal / authoring-v2 に関する Phase 00 の実装判断は、この index と対象 phase file を一次資料として扱う。
+- `docs/project/**` や active proposal に旧 self-hosting 前提が残っている場合は、Phase 00 で明示更新されるまでこの plan を優先する。
+
 ## Phase Files
 
 - [Phase 00: 方針の記録](phase-00-record-new-direction.md)

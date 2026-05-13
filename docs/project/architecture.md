@@ -14,7 +14,7 @@
 
 - `.md` が設計書兼ソースの正本であり、source md は設計だけの spec state から実装コードを含む impl state へ移行でき、生成コードは impl state の `Types` / `Source` / `Test` から派生する。
 - mds は設計説明から AI にコードを書かせる仕組みではなく、Markdown 内のコードブロックとメタ情報を generator / language adapter が処理する仕組みとする。
-- mds 自身の package 編集入口は各 package の `.mds/source/` と `.mds/test/` とし、`.build/` は生成物置き場として Git 管理しない。
+- この repository の first-party package 編集入口は checked-in Rust / TypeScript source と test とし、残存する `.mds` asset は historical / superseded / cleanup target として扱う。`.build/` は生成物置き場として Git 管理しない。
 - 1 つの implementation md は 1 機能だけを扱う。
 - import / use / require はコードブロック外の `Imports` に記録し、language adapter が生成する。
 - implementation md の code block は import / use / require を含めず、doc comment / docstring を持たず、default では 1 code block につき 1 top-level logical unit だけを含める。
@@ -44,10 +44,10 @@
 
 ## Workspace 構成
 
-- root 直下に mds 自身の source root は置かず、各 package の `.mds/source/overview.md` が package 単位の source overview を担う。
-- `mds/core/.mds/source`、`mds/cli/.mds/source`、`mds/lsp/.mds/source` と対応する `.mds/test` は Rust 実装の Markdown 正本であり、`cargo run -p mds-cli -- build --verbose` は package 内の生成 `src/` / `tests/` を更新し、repo 内の `.build/rust/` self-hosted mirror も同じ command で再生成する。
+- root 直下に mds 自身の source root は置かず、この repository の first-party package は checked-in source / test tree を直接編集入口とする。
+- `mds/core`、`mds/cli`、`mds/lsp`、`editors/vscode` に残る first-party `.mds` asset は historical / superseded / cleanup target とし、この repository 自身の source regeneration の正本として扱わない。
 - special file は descriptor の出力規則を優先し、たとえば Rust の `build.rs.md` は `src/build.rs` ではなく package root の `build.rs` に生成する。
-- `.build/rust/Cargo.toml` は `mds build` が生成する self-hosted Rust workspace manifest とし、`.build/rust/mds/core`、`.build/rust/mds/cli`、`.build/rust/mds/lsp` を束ねる。
+- `.build/` 配下に残る self-hosted artifact は historical / cleanup target とし、この repository の通常の build graph や編集導線には含めない。
 - TypeScript / Python / Rust の language adapter 規則は現時点では Rust core 側の生成処理と共有仕様で管理し、独立した `packages/`、`python/`、`mds-lang-rs` 配布単位は置かない。
 - `editors/vscode` は VS Code 拡張とし、syntax highlighting、LSP 連携、snippets を提供する。
 - `.agents/` は AI 専用の制約、作業手順、skill、task 文脈キャッシュを置き、`docs/project/` は人間向け正本を置く。
@@ -69,5 +69,4 @@
 - `index.md`
 - `validation.md`
 - `tech-stack.md`
-- `adr/active/ADR-007-self-hosted-src-md-build.md`
 - `adr/active/ADR-006-ai-agent-init-and-dev-setup.md`
