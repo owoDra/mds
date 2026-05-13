@@ -58,7 +58,7 @@ VSCode 拡張: `code --install-extension owo-x-project.mds`
 
 ## コントリビューション
 
-不具合報告、ドキュメント改善、実装改善を歓迎します。詳しくは [CONTRIBUTING.md](CONTRIBUTING.md) を参照してください。
+不具合報告、ドキュメント改善、実装改善を歓迎します。first-party の repository 開発では `mds/` と `editors/vscode/` 配下の checked-in source / test を直接編集し、必要に応じて Cargo や npm で検証します。詳しくは [CONTRIBUTING.md](CONTRIBUTING.md) を参照してください。
 
 ## ライセンス
 

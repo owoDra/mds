@@ -2,7 +2,7 @@
 
 このページでは、mds に関する報告、提案、ドキュメント改善を行うときの基本方針を説明します。
 
-このリポジトリのソースコード自体は、mds の実装 Markdown から生成されているわけではありません。そのため、このページでは「mds を使って mds 本体を修正する」ことを前提にしません。
+このリポジトリのソースコード自体は、mds の実装 Markdown から生成されているわけではありません。`mds/*` と `editors/vscode` 配下の checked-in source / test を直接編集し、mds でこの repository 自体を再生成する前提は置きません。
 
 ## 歓迎する貢献
 
@@ -34,15 +34,25 @@ mds では、次のような貢献を歓迎します。
 Rust の変更では、可能な範囲で次の検査を実行してください。
 
 ```bash
-cd crates
-cargo test
+cargo fmt --all --check
+cargo check --workspace
+cargo test --workspace
+cargo clippy --workspace --all-targets -- -D warnings
 ```
 
-mds を利用するサンプルパッケージを用意している場合は、次の確認も行えます。
+VSCode 拡張を変更した場合は、追加で次を実行してください。
 
 ```bash
-mds lint --package path/to/package
-mds build --package path/to/package --dry-run
+cd editors/vscode
+npm install
+npm run compile
+```
+
+mds を利用するサンプルパッケージを用意している場合は、次の smoke check も行えます。
+
+```bash
+cargo run -p mds-cli -- check --package examples/minimal-ts
+cargo run -p mds-cli -- build --package examples/minimal-ts --dry-run
 ```
 
 ## ドキュメントを書くときの注意

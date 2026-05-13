@@ -36,12 +36,11 @@ curl -fsSL https://raw.githubusercontent.com/owo-x-project/owox-mds/latest/insta
 ### ソースからビルド（開発者向け）
 
 ```bash
-cargo run -p mds-cli -- build --verbose
-./.github/script/sync-self-hosted-rust.sh
-cd .build/rust
 cargo build -p mds-lsp --release
 cp target/release/mds-lsp /usr/local/bin/
 ```
+
+この repository 内で作業する場合は、root Cargo workspace から `mds-lsp` を直接ビルドしてください。self-hosted sync 手順は不要です。
 
 ### 動作確認
 

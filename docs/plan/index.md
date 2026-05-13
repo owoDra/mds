@@ -24,6 +24,12 @@ mds 自身の self-hosting を停止し、Readable Authoring Model、core 言語
 - [Phase 08: diagnostics / lint 厳格化](phase-08-diagnostics-lint.md)
 - [Phase 09: docs / init / examples / snippets 更新](phase-09-docs-init-examples.md)
 
+## 進捗メモ
+
+- 2026-05-13: Phase 00 を完了し、first-party self-hosting は historical / superseded / cleanup target として扱う方針を architecture、validation、agent guidance、active proposal、team guide、ADR / proposal archive 導線へ反映した。
+- 2026-05-13: Phase 01 を完了し、first-party checked-in Rust source / tests を canonical source/test として固定した。generated header を除去し、repo-facing docs / scripts / release workflow を direct source tree と root Cargo workspace 前提へ更新した。`mds/core/src/runner.rs` の self-hosted mirror 同期は削除済みで、`cargo check --workspace` と `cargo test --workspace` が通る状態を確認した。
+- 次回再開時は Phase 02 から開始し、first-party `.mds` 管理資産と stale self-hosted artifact の物理削除を進める。
+
 ## 全体前提
 
 - この repository は `mds/core/.mds`、`mds/cli/.mds`、`mds/lsp/.mds` を source of truth として扱うことをやめる。

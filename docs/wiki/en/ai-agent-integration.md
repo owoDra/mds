@@ -83,7 +83,7 @@ mds adopts a data-driven template system. To add support for a new AI CLI, follo
 ### 1. Create template directory
 
 ```
-src-md/mds/core/src/init/templates/<target-key>/
+mds/core/src/init/templates/<target-key>/
 ├── manifest.toml       ← File mapping definition
 ├── instructions.md     ← Template for instructions category
 ├── skill.md            ← Template for skills category
@@ -119,7 +119,7 @@ Templates should include:
 
 ### 4. Add a variant to the AiTarget enum
 
-In `src-md/mds/core/src/model/mod.rs.md`, add to the `AiTarget` enum:
+In `mds/core/src/model.rs`, add to the `AiTarget` enum:
 
 ```rust
 pub enum AiTarget {
@@ -133,10 +133,12 @@ Make `key()` return `"new-cli"` and define accepted aliases in `parse()`.
 ### 5. Build and verify
 
 ```bash
-cargo run -p mds-cli -- build --verbose && ./.github/script/sync-self-hosted-rust.sh && cd .build/rust && cargo build && cargo test
+cargo check --workspace
+cargo test --workspace
+cargo run -p mds-cli -- init --ai --target <target-key> --package /tmp/test-project --yes
 ```
 
-build.rs automatically detects manifest.toml and registers it in the template registry. No changes to the init logic are needed.
+After updating the checked-in template files, validate the Rust workspace directly and then smoke-test `mds init --ai` from the repository root. `build.rs` automatically detects `manifest.toml` and registers it in the template registry, so no separate self-hosted sync step is needed.
 
 ## Content to Include in Templates
 

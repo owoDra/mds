@@ -4,7 +4,7 @@
 
 This page explains the basic guidelines for reporting issues, making proposals, and improving documentation for mds.
 
-The source code in this repository is not generated from mds's implementation Markdown. Therefore, this page does not assume "using mds to fix mds itself."
+The source code in this repository is not generated from mds's implementation Markdown. Edit the checked-in source and test trees under `mds/*` and `editors/vscode` directly rather than trying to regenerate this repository with mds.
 
 ## Welcome Contributions
 
@@ -36,15 +36,25 @@ When modifying source code, run checks as you would for a normal Rust, JavaScrip
 For Rust changes, run the following checks where possible:
 
 ```bash
-cd crates
-cargo test
+cargo fmt --all --check
+cargo check --workspace
+cargo test --workspace
+cargo clippy --workspace --all-targets -- -D warnings
 ```
 
-If you have prepared sample packages that use mds, you can also perform the following checks:
+If you changed the VS Code extension, also run:
 
 ```bash
-mds lint --package path/to/package
-mds build --package path/to/package --dry-run
+cd editors/vscode
+npm install
+npm run compile
+```
+
+If you have prepared sample packages that use mds, you can also perform the following smoke checks:
+
+```bash
+cargo run -p mds-cli -- check --package examples/minimal-ts
+cargo run -p mds-cli -- build --package examples/minimal-ts --dry-run
 ```
 
 ## Notes When Writing Documentation

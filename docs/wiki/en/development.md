@@ -26,130 +26,133 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 # Add quality tools
 rustup component add rustfmt clippy
 
-# Install mds for development
-cargo run -p mds-cli -- build --verbose
-./.github/script/sync-self-hosted-rust.sh
-cargo install --path .build/rust/mds-cli
+# Build the checked-in workspace
+cargo build --workspace
+
+# Optional: install the CLI from the checked-in source tree
+cargo install --path mds/cli
 
 # Verify
-mds --version
+cargo run -p mds-cli -- --version
 ```
 
 ## Repository Structure
 
 ```
-mds/
-├── src-md/                  # Markdown source of truth for mds itself
-│   ├── index.md             # Source root design
-│   ├── mds/core/            # Core library source of truth
-│   ├── mds/cli/             # CLI source of truth
-│   └── mds/lsp/             # LSP source of truth
-├── .build/                  # Generated artifacts (not tracked)
-│   └── rust/                # Generated Cargo workspace
-├── editors/vscode/          # VS Code extension
+owox-mds/
+├── mds/
+│   ├── core/
+│   │   ├── src/             # mds-core checked-in Rust source
+│   │   └── tests/           # mds-core checked-in tests
+│   ├── cli/
+│   │   ├── src/             # mds CLI checked-in Rust source
+│   │   └── tests/           # mds CLI checked-in tests
+│   └── lsp/
+│       ├── src/             # mds-lsp checked-in Rust source
+│       └── tests/           # mds-lsp checked-in tests
+├── editors/vscode/
+│   ├── src/                 # VS Code extension source
+│   └── package.json         # Extension manifest and scripts
 ├── docs/
 │   ├── project/             # Design source of truth (requirements, specs, ADRs)
-│   └── wiki/ja/             # User-facing documentation
+│   └── wiki/                # User-facing documentation
 ├── examples/                # Sample projects
-└── .vscode/tasks.json       # Development task definitions
+└── target/                  # Cargo build artifacts
 ```
 
 ## Build
 
-### mds-managed package build
+### Build the first-party Rust workspace
 
 ```bash
-mds package sync
-mds build --verbose
+cargo build --workspace
 ```
 
 ### Build specific packages
 
 ```bash
-mds build --package mds/core --verbose
-mds build --package mds/cli --verbose
-mds build --package mds/lsp --verbose
+cargo build -p mds-core
+cargo build -p mds-cli
+cargo build -p mds-lsp
 ```
 
-Use Cargo directly only when bootstrapping a broken mds CLI, producing release binaries, or validating Rust code outside mds-managed packages.
+### Build the VSCode extension
+
+```bash
+cd editors/vscode
+npm install
+npm run compile
+```
+
+For this repository's first-party packages, edit the checked-in Rust and TypeScript source trees directly. Reserve `mds` commands for smoke-testing example packages or validating product behavior.
 
 ## Testing
 
 ### Run all tests
 
 ```bash
-mds build --verbose
-mds test --package mds/core
-mds test --package mds/cli
-mds test --package mds/lsp
+cargo test --workspace
 ```
 
 ### Run specific tests
 
 ```bash
-mds test --package mds/core                      # mds-core tests only
-mds test --package mds/cli                       # mds-cli tests only
-mds test --package mds/lsp                       # mds-lsp tests only
+cargo test -p mds-core                           # mds-core tests only
+cargo test -p mds-cli                            # mds-cli tests only
+cargo test -p mds-lsp                            # mds-lsp tests only
 ```
 
 ### Writing tests
 
 - Unit tests are placed in `#[cfg(test)]` within the target module
-- Integration tests are placed in `src-md/*/tests/*.rs.md` and synchronized to `.build/rust/*/tests/`
-- E2E tests verify through CLI binary execution
+- Integration tests are placed in `mds/*/tests/*.rs`
+- E2E tests verify through CLI binary execution or sample packages
 
 ## Quality Checks
 
 ### Formatting
 
 ```bash
-mds lint --fix --package mds/core
-mds lint --package mds/core
+cargo fmt --all --check
 ```
 
 ### Static analysis
 
 ```bash
-mds lint --package mds/core
-mds lint --package mds/cli
-mds lint --package mds/lsp
+cargo check --workspace
+cargo clippy --workspace --all-targets -- -D warnings
 ```
 
 ### Batch execution
 
 ```bash
-mds package sync
-mds build --verbose
-mds lint --package mds/core && mds test --package mds/core
-mds lint --package mds/cli && mds test --package mds/cli
-mds lint --package mds/lsp && mds test --package mds/lsp
+cargo fmt --all --check
+cargo check --workspace
+cargo test --workspace
+cargo clippy --workspace --all-targets -- -D warnings
 ```
 
-In VSCode, you can run the "mds: Check All" task for the same checks.
+If you changed `editors/vscode`, also run `cd editors/vscode && npm run compile`.
 
 ## Running mds Commands for Verification
 
-How to run commands under development with sample packages.
+How to run commands under development with sample packages. These commands validate product behavior against example packages; they do not regenerate the repository's first-party sources.
 
 ```bash
-cargo run -p mds-cli -- build --verbose
-./.github/script/sync-self-hosted-rust.sh
-cd .build/rust
-
 # Structure inspection
-cargo run -p mds-cli -- check --package ../../examples/minimal-ts
+cargo run -p mds-cli -- check --package examples/minimal-ts
 
 # Generation preview
-cargo run -p mds-cli -- build --package ../../examples/minimal-ts --dry-run
+cargo run -p mds-cli -- build --package examples/minimal-ts --dry-run
 
 # Execute generation
-cargo run -p mds-cli -- build --package ../../examples/minimal-ts
+cargo run -p mds-cli -- build --package examples/minimal-ts
 
 # Interactive initialization
 cargo run -p mds-cli -- init --package /tmp/test-project
 
 # Environment diagnosis
-cargo run -p mds-cli -- doctor --package ../../examples/minimal-ts
+cargo run -p mds-cli -- doctor --package examples/minimal-ts
 ```
 
 ## Debugging
@@ -159,7 +162,7 @@ cargo run -p mds-cli -- doctor --package ../../examples/minimal-ts
 Use the `--verbose` flag for detailed output.
 
 ```bash
-cargo run -p mds-cli -- check --package ../../examples/minimal-ts --verbose
+cargo run -p mds-cli -- check --package examples/minimal-ts --verbose
 ```
 
 ### Using a debugger
@@ -179,7 +182,7 @@ Example `launch.json`:
         "args": ["build", "-p", "mds-cli"],
         "filter": { "kind": "bin", "name": "mds" }
       },
-      "args": ["check", "--package", "../../examples/minimal-ts", "--verbose"]
+      "args": ["check", "--package", "examples/minimal-ts", "--verbose"]
     }
   ]
 }
@@ -195,14 +198,15 @@ cargo test -p mds-core -- --nocapture test_name
 
 ## Checklist for Code Changes
 
-1. Run `cargo run -p mds-cli -- build --verbose` to update package-local generated `src/` / `tests/`
-2. Run `./.github/script/sync-self-hosted-rust.sh` to rebuild `.build/rust/` for this repository
-3. Format with `cargo fmt` in `.build/rust`
-4. Confirm no warnings with `cargo clippy` in `.build/rust`
-5. Confirm all tests pass with `cargo test` in `.build/rust`
-6. Add tests for new features
-7. Update documentation if needed
-8. Verify with sample projects
+1. Edit the checked-in Rust or TypeScript source and test files directly under `mds/` and `editors/vscode/`
+2. Run `cargo fmt --all --check`
+3. Run `cargo check --workspace`
+4. Run `cargo test --workspace`
+5. Run `cargo clippy --workspace --all-targets -- -D warnings`
+6. If you changed `editors/vscode`, run `cd editors/vscode && npm run compile`
+7. Add tests for new features
+8. Update documentation if needed
+9. Verify with sample projects using `cargo run -p mds-cli -- ...`
 
 ## Related Documentation
 

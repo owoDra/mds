@@ -60,7 +60,7 @@ No runtime dependencies for the prebuilt `mds` CLI binary. Language-specific che
 
 ## Contributing
 
-Bug reports, documentation improvements, and implementation improvements are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
+Bug reports, documentation improvements, and implementation improvements are welcome. First-party repository development edits the checked-in source and test trees under `mds/` and `editors/vscode/` directly, then validates with Cargo or npm as appropriate. See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
 
 ## License
 

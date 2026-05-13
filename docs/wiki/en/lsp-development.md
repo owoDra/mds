@@ -11,25 +11,26 @@ For usage instructions of mds-lsp, see [Editor Integration (LSP)](editor-integra
 mds-lsp is composed of the following components.
 
 ```
-src-md/mds/lsp/
+mds/lsp/
 ├── src/
-│   ├── main.rs.md        # Entry point (stdio transport startup)
-│   ├── lib.rs.md         # Library root
-│   ├── server.rs.md      # LanguageServer trait implementation
-│   ├── state.rs.md       # Workspace state management
-│   ├── convert.rs.md     # Type conversion utilities
-│   ├── labels.rs.md      # Section name and table header definitions
+│   ├── main.rs           # Entry point (stdio transport startup)
+│   ├── lib.rs            # Library root
+│   ├── server.rs         # LanguageServer trait implementation
+│   ├── state.rs          # Workspace state management
+│   ├── convert.rs        # Type conversion utilities
+│   ├── labels.rs         # Section name and table header definitions
 │   └── capabilities/
-│       ├── mod.rs.md         # Capability module re-exports
-│       ├── diagnostics.rs.md # Diagnostic (error/warning) generation
-│       ├── completion.rs.md  # Completion candidate provision
-│       ├── hover.rs.md       # Hover information provision
-│       ├── navigation.rs.md  # Go to definition / Find references
-│       ├── symbols.rs.md     # Document/workspace symbols
-│       └── code_action.rs.md # Code actions (Quick Fix)
+│       ├── mod.rs            # Capability module re-exports
+│       ├── diagnostics.rs    # Diagnostic (error/warning) generation
+│       ├── completion.rs     # Completion candidate provision
+│       ├── hover.rs          # Hover information provision
+│       ├── navigation.rs     # Go to definition / Find references
+│       ├── symbols.rs        # Document/workspace symbols
+│       └── code_action.rs    # Code actions (Quick Fix)
 └── tests/
-    ├── capabilities.rs.md # Capability unit tests
-    └── diagnostics.rs.md  # Diagnostic integration tests
+    ├── capabilities.rs    # Capability-focused tests
+    ├── capabilities_test.rs # Capability integration tests
+    └── diagnostics_test.rs  # Diagnostic integration tests
 ```
 
 ### Key dependency crates
@@ -79,11 +80,10 @@ The workspace state defined in `state.rs` is the foundation for all capabilities
 ### Build
 
 ```bash
-mds package sync
-mds build --verbose
+cargo build -p mds-lsp
 ```
 
-Release binary builds are the exception where Cargo is used directly:
+Release binary builds use the same root Cargo workspace:
 
 ```bash
 cargo build -p mds-lsp --release
@@ -93,20 +93,20 @@ cargo build -p mds-lsp --release
 
 ```bash
 # mds-lsp tests only
-mds test --package mds/lsp
-
-# Check generated package state first when changing Markdown sources
-mds build --package mds/lsp --verbose
+cargo test -p mds-lsp
 ```
+
+If your change also touches shared `mds-core` APIs, rerun `cargo test --workspace` from the repository root.
 
 ### Code quality checks
 
 ```bash
-# Lint + tests through mds package configuration
-mds lint --package mds/lsp && mds test --package mds/lsp
+cargo fmt --all --check
+cargo clippy -p mds-lsp --all-targets -- -D warnings
+cargo test -p mds-lsp
 ```
 
-For mds-managed packages under `mds/*`, use mds commands as the normal build, test, and lint entrypoints. Use Cargo directly only when bootstrapping a broken mds CLI, producing release binaries, or validating non-mds-managed Rust workspaces.
+For first-party packages under `mds/*`, edit the checked-in Rust source directly and use Cargo from the repository root as the normal build, test, and lint entrypoint.
 
 ## Debugging
 
@@ -116,10 +116,10 @@ mds-lsp uses the `tracing` crate. Control the log level with the `RUST_LOG` envi
 
 ```bash
 # Launch directly with detailed logs
-RUST_LOG=mds_lsp=debug mds-lsp
+RUST_LOG=mds_lsp=debug cargo run -p mds-lsp --
 
 # Trace level (most detailed)
-RUST_LOG=mds_lsp=trace mds-lsp
+RUST_LOG=mds_lsp=trace cargo run -p mds-lsp --
 ```
 
 When launching from the VSCode extension, control it with the `mds.lsp.logLevel` setting. Logs are displayed in the "mds Language Server" channel in the Output panel.
@@ -130,7 +130,7 @@ mds-lsp operates with stdio transport. You can manually send requests for testin
 
 ```bash
 # Start LSP server (waits for requests on stdin)
-RUST_LOG=mds_lsp=debug mds-lsp
+RUST_LOG=mds_lsp=debug cargo run -p mds-lsp --
 ```
 
 Send JSON-RPC requests in the following format:
@@ -152,15 +152,16 @@ Content-Length: {length}\r\n
 
 To debug the LSP server (Rust side):
 
-1. Set `mds.lsp.path` to the debug build path (e.g., `.build/rust/target/debug/mds-lsp`)
-2. Restart the VSCode extension
-3. Debug the Rust side using `tracing` logs, or separately using `rust-lldb`/`rust-gdb`
+1. Build the debug binary with `cargo build -p mds-lsp`
+2. Set `mds.lsp.path` to the debug build path (e.g., `target/debug/mds-lsp`)
+3. Restart the VSCode extension
+4. Debug the Rust side using `tracing` logs, or separately using `rust-lldb`/`rust-gdb`
 
 ## Adding a New Capability
 
 ### 1. Create the capability module
 
-Create a new implementation md in `src-md/mds/lsp/src/capabilities/`.
+Create a new Rust module in `mds/lsp/src/capabilities/`.
 
 ```rust
 // capabilities/my_feature.rs
@@ -213,7 +214,7 @@ Ok(InitializeResult {
 
 ### 5. Add tests
 
-Add tests to `tests/capabilities.rs` or a new test file:
+Add tests to `mds/lsp/tests/capabilities_test.rs` or a new test file:
 
 ```rust
 #[test]
@@ -309,7 +310,6 @@ RUST_LOG=mds_lsp=debug mds-lsp
 
 ```bash
 # If you changed the Rust side
-cd crates
 cargo build -p mds-lsp
 
 # If you changed the VSCode extension side
