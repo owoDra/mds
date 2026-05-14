@@ -262,7 +262,7 @@ A module.
 }
 
 #[test]
-fn test_code_action_legacy_section_rename() {
+fn test_code_action_legacy_sections_keep_authoring_actions_without_migration_fix() {
     let text = r#"## Uses
 
 | From | Target | Expose | Summary |
@@ -281,6 +281,10 @@ fn test_code_action_legacy_section_rename() {
     assert!(
         titles.iter().any(|title| title.contains("Add missing")),
         "should still provide useful authoring actions: {titles:?}"
+    );
+    assert!(
+        !titles.iter().any(|title| title.contains("Rename ##")),
+        "should not provide legacy migration quick fixes: {titles:?}"
     );
 }
 

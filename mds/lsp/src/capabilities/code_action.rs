@@ -51,20 +51,6 @@ pub fn provide_code_actions(uri: &Url, text: &str, config: &Config) -> CodeActio
         }
     }
 
-    if sections.contains_key("Uses") && !sections.contains_key("Imports") {
-        actions.push(rename_section_action(uri, text, "Uses", "Imports", config));
-    }
-    if (sections.contains_key("Expose") || sections.contains_key("Exposes"))
-        && !sections.contains_key("Exports")
-    {
-        let old = if sections.contains_key("Expose") {
-            "Expose"
-        } else {
-            "Exposes"
-        };
-        actions.push(rename_section_action(uri, text, old, "Exports", config));
-    }
-
     actions
 }
 
@@ -127,50 +113,6 @@ fn insert_action(uri: &Url, line_count: u32, title: String, new_text: String) ->
 
     CodeActionOrCommand::CodeAction(CodeAction {
         title,
-        kind: Some(CodeActionKind::QUICKFIX),
-        diagnostics: None,
-        edit: Some(WorkspaceEdit {
-            changes: Some(changes),
-            ..Default::default()
-        }),
-        ..Default::default()
-    })
-}
-
-fn rename_section_action(
-    uri: &Url,
-    text: &str,
-    old_section: &str,
-    new_section: &str,
-    config: &Config,
-) -> CodeActionOrCommand {
-    let old_label = resolve_label(&old_section.to_lowercase(), config);
-    let new_label = resolve_label(&new_section.to_lowercase(), config);
-    let mut edits = Vec::new();
-
-    for (idx, line) in text.lines().enumerate() {
-        if line.trim() == format!("## {old_section}") || line.trim() == format!("## {old_label}") {
-            edits.push(TextEdit {
-                range: Range {
-                    start: Position {
-                        line: idx as u32,
-                        character: 0,
-                    },
-                    end: Position {
-                        line: idx as u32,
-                        character: line.len() as u32,
-                    },
-                },
-                new_text: format!("## {new_label}"),
-            });
-        }
-    }
-
-    let mut changes = std::collections::HashMap::new();
-    changes.insert(uri.clone(), edits);
-
-    CodeActionOrCommand::CodeAction(CodeAction {
-        title: format!("Rename ## {old_section} to ## {new_section}"),
         kind: Some(CodeActionKind::QUICKFIX),
         diagnostics: None,
         edit: Some(WorkspaceEdit {
