@@ -7,7 +7,6 @@ top_level_fence_required = false
 
 [roots]
 source = "src"
-types = "src"
 test = "tests"
 excludes = []
 

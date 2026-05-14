@@ -58,7 +58,7 @@ self-hosted 移行では特に次の問題が目立った。
 - default validator では code fence 整合、Markdown link、duplicate H2、import 混在、doc comment / docstring、top-level 実装の code fence 分離を検査し、`[check]` で個別に on/off できるようにする。
 - `[[module]]` / `[[module#symbol]]`、`対象` / `Covers` の参照解決、code import / export 解析、managed dependency snapshot の同期ずれを診断する。
 - legacy `Imports` / `Exports` / `Uses` table は既定で warning とし、CI では `legacy_tables = "error"` へ昇格できるようにする。
-- 旧 1-root / 1-md model は authoring-v2 を採用する package では warning ではなく migration error として扱う。ただしこの repository の first-party package は本 proposal の移行対象に含めない。
+- 旧 1-root / 1-md model は authoring-v2 を採用する package では warning ではなく unsupported legacy diagnostics として扱う。ただしこの repository の first-party package は本 proposal の移行対象に含めない。
 - `mds lint --fix` による自動修正機能を提供する。`--fix` はパッケージの `links_mode` 設定に従い、既存の参照表記（`[[module]]` / `[[module#symbol]]` と通常の Markdown link）を相互に変換してファイルを置換する。変換は source map と参照解決を用いて安全に行い、冪等性を保つ（必要に応じて変更のプレビューやバックアップ、CI 向けの自動承認フラグを提供する）。
 
 6. core は言語非依存にし、言語意味論は外部 LSP / provider へ委譲する。
@@ -127,7 +127,7 @@ test = "{test_out}/{module}.test.{ext}"
 ## 推奨する移行順序
 
 1. doc kind と fixed root を requirement / spec に昇格し、`.mds/source` / `.mds/test` を canonical にする。
-2. `mds lint` と LSP に migration error を追加し、旧 `src-md` / implementation-test 同居と dependency snapshot drift を早期検知できるようにする。
+2. `mds lint` と LSP に unsupported legacy diagnostics を追加し、旧 `src-md` / implementation-test 同居と dependency snapshot drift を早期検知できるようにする。
 3. `mds package sync` を `.mds/source/overview.md` の managed snapshot writer として実装し、`mds build` は stale snapshot を error として拒否する。
 4. この repository では first-party self-hosting を breaking alpha change として削除し、first-party package 向け migration command は作らない。product-facing な authoring-v2 rollout は別途 formalization する。
 5. descriptor-driven adapter ではなく、source map と package output config を導入し、LSP / editor extension が外部 language server へ問い合わせられる形へ移行する。

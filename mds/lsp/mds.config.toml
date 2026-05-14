@@ -4,7 +4,6 @@ allow_raw_source = false
 
 [roots]
 source = "src"
-types = "src"
 test = "tests"
 excludes = []
 
