@@ -50,5 +50,5 @@ mds の価値は、同じ Markdown に説明と実コードがあり、人間と
 
 - `../requirements/REQ-core-markdown-source-of-truth.md`
 - `../requirements/REQ-ux-obsidian-readable-markdown.md`
-- `../../../mds/core/.mds/source/overview.md`
+- `../proposals/active/proposal-markdown-authoring-layout-v2.md`
 - `../patterns/impl-one-feature-markdown.md`

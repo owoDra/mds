@@ -3,7 +3,7 @@
 # This file defines the artifacts, checksums, and supply-chain metadata
 # required by `mds release check` before publishing.
 #
-# See: mds/core/.mds/source/release_quality.rs.md and docs/project/tech-stack.md
+# See: docs/project/tech-stack.md and docs/project/validation.md
 #
 # Usage:
 #   ./.github/script/release-check.sh --manifest release.mds.toml --verbose

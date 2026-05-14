@@ -2,7 +2,7 @@
 status: 採用
 related:
   - docs/project/requirements/REQ-metadata-expose-uses.md
-  - mds/core/.mds/source/overview.md
+  - docs/project/architecture.md
 ---
 
 # テーブルメタデータ
@@ -47,5 +47,5 @@ Markdown の可読性を維持しながら、構造化された公開面と依�
 ## 関連資料
 
 - `../requirements/REQ-metadata-expose-uses.md`
-- `../../../mds/core/.mds/source/overview.md`
-- `../../../mds/core/.mds/source/table.rs.md`
+- `../architecture.md`
+- `../../../mds/core/src/table.rs`

@@ -12,8 +12,8 @@ argument-hint: "分類=<flow|state|permission|interaction|api|data> 題名=<題�
 
 - `docs/project/index.md`
 - `docs/project/glossary/core.md`
-- `mds/core/.mds/source/overview.md`
-- `mds/cli/.mds/source/overview.md`
+- `mds/core/src/`
+- `mds/cli/src/`
 - `.github/skills/_shared/document-reference-rules.md`
 - `.github/skills/_shared/document-update-checklist.md`
 - `.github/skills/docs-update-spec/references/spec.template.md`
