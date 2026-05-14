@@ -283,20 +283,6 @@ impl Descriptor {
             .find(|rule| rule.match_path == relative && rule.kind == kind)
     }
 
-    pub fn matches_import_line(&self, trimmed_start: &str) -> bool {
-        self.syntax
-            .imports
-            .iter()
-            .any(|pattern| pattern.matches(trimmed_start))
-    }
-
-    pub fn matches_top_level_declaration(&self, line: &str) -> bool {
-        self.syntax
-            .top_level_keywords
-            .iter()
-            .any(|keyword| line.starts_with(keyword))
-    }
-
     pub fn matches_code_block_merge_start(&self, line: &str) -> bool {
         self.syntax
             .code_block_merge_prefixes
@@ -309,25 +295,6 @@ impl Descriptor {
             .root_module_markdown_names
             .iter()
             .any(|candidate| candidate == name)
-    }
-
-    pub fn matches_comment_line(&self, trimmed: &str) -> bool {
-        self.syntax
-            .comment_prefixes
-            .iter()
-            .any(|prefix| trimmed.starts_with(prefix))
-    }
-
-    pub fn matches_doc_comment_line(&self, trimmed: &str) -> bool {
-        self.syntax
-            .doc_comment_prefixes
-            .iter()
-            .any(|prefix| trimmed.starts_with(prefix))
-            || self
-                .syntax
-                .doc_string_delimiters
-                .iter()
-                .any(|delimiter| trimmed.starts_with(delimiter))
     }
 
     pub fn render_source_block(&self, matched_suffix: Option<&str>) -> String {

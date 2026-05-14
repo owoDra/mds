@@ -3,7 +3,6 @@ use std::path::{PathBuf};
 use mds_core::descriptor::{lang_for_markdown_path};
 use mds_core::diagnostics::{RunState};
 use mds_core::markdown::{load_implementation_docs};
-use mds_core::markdown::{extract_exports_for_lang};
 use mds_core::markdown::{source_markdown_root};
 use mds_core::markdown::{test_markdown_root};
 use mds_core::package::{discover_packages};
@@ -139,18 +138,6 @@ fn build_workspace_index(package: &mds_core::Package) -> WorkspaceIndex {
             file_exposes.entry(path.clone()).or_default().push(module_key);
         }
 
-        for exported in extract_exports_for_lang(&doc.lang, &doc.source_code) {
-            symbol_index
-                .entry((module_id.clone(), exported.name.clone()))
-                .or_default()
-                .push(path.clone());
-            expose_index
-                .entry(exported.name.clone())
-                .or_default()
-                .push(path.clone());
-            file_exposes.entry(path.clone()).or_default().push(exported.name);
-        }
-
         expose_index
             .entry(stem.clone())
             .or_default()
@@ -158,7 +145,14 @@ fn build_workspace_index(package: &mds_core::Package) -> WorkspaceIndex {
         file_exposes.entry(path.clone()).or_default().push(stem.clone());
 
         if let Ok(text) = std::fs::read_to_string(&path) {
-            for exposed in exported_names_from_text(&text) {
+            let exported_names = exported_names_from_text(&text);
+            for exported in &exported_names {
+                symbol_index
+                    .entry((module_id.clone(), exported.clone()))
+                    .or_default()
+                    .push(path.clone());
+            }
+            for exposed in exported_names {
                 expose_index
                     .entry(exposed.clone())
                     .or_default()
@@ -499,5 +493,49 @@ impl LanguageServer for MdsLanguageServer {
         } else {
             Ok(None)
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::time::{SystemTime, UNIX_EPOCH};
+    use super::build_workspace_index;
+    use mds_core::{Config, Package};
+
+    #[test]
+    fn build_workspace_index_uses_markdown_exports_for_symbol_index() {
+        let suffix = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
+        let root = std::env::temp_dir().join(format!(
+            "mds-lsp-exports-index-{}-{}",
+            std::process::id(),
+            suffix,
+        ));
+        let source = root.join(".mds/source/app/greet.ts.md");
+        std::fs::create_dir_all(source.parent().unwrap()).unwrap();
+        std::fs::write(
+            &source,
+            "# app.greet\n\n## Purpose\n\nA module.\n\n## Contract\n\n- Stable.\n\n## Exports\n\n##### greet\n\nShared entrypoint.\n\n## Source\n\n```ts\nexport function greet(): string { return 'hi'; }\n```\n",
+        )
+        .unwrap();
+
+        let package = Package {
+            root: root.clone(),
+            config: Config::default(),
+            package_manager_id: "npm".to_string(),
+        };
+
+        let index = build_workspace_index(&package);
+        let locations = index
+            .symbol_index
+            .get(&("app.greet".to_string(), "greet".to_string()))
+            .cloned()
+            .unwrap_or_default();
+
+        assert_eq!(locations, vec![source.clone()]);
+
+        let _ = std::fs::remove_dir_all(root);
     }
 }

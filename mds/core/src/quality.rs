@@ -17,7 +17,6 @@ use crate::diagnostics::{Diagnostic};
 use crate::diagnostics::{RunState};
 use crate::diff::{unified_diff};
 use crate::fs_utils::{is_excluded};
-use crate::model::{DocKind};
 use crate::model::{ImplDoc};
 use crate::model::{Lang};
 use crate::model::{Package};
@@ -435,17 +434,10 @@ fn padded_code_from_markdown(doc: &ImplDoc) -> Result<String, String> {
         .map_err(|error| format!("failed to read {}: {error}", doc.path.display()))?;
     let mut output = String::new();
     let mut output_line = 1;
-    let import_prefix = quality_import_prefix(doc);
-    let mut prepended_imports = false;
     for block in code_block_ranges(&text) {
         while output_line < block.content_start_line {
             output.push('\n');
             output_line += 1;
-        }
-        if !prepended_imports && !import_prefix.is_empty() {
-            output.push_str(&import_prefix);
-            output_line += import_prefix.bytes().filter(|byte| *byte == b'\n').count();
-            prepended_imports = true;
         }
         output.push_str(block.content);
         output_line += block.content.bytes().filter(|byte| *byte == b'\n').count();
@@ -454,30 +446,6 @@ fn padded_code_from_markdown(doc: &ImplDoc) -> Result<String, String> {
         output.push_str(&doc.code);
     }
     Ok(output)
-}
-
-fn quality_import_prefix(doc: &ImplDoc) -> String {
-    let candidate = match doc.doc_kind {
-        DocKind::Source if !doc.source_code.trim().is_empty() => doc.source_code.as_str(),
-        DocKind::Test if !doc.test_code.trim().is_empty() => doc.test_code.as_str(),
-        _ => doc.code.as_str(),
-    };
-    let descriptor = descriptor::builtin_descriptor(&doc.lang);
-    let mut output = String::new();
-    for line in candidate.lines() {
-        let trimmed = line.trim_start();
-        if descriptor.matches_import_line(trimmed) {
-            output.push_str(line);
-            output.push('\n');
-            continue;
-        }
-        if trimmed.is_empty() && !output.is_empty() {
-            output.push('\n');
-            continue;
-        }
-        break;
-    }
-    output
 }
 
 fn apply_replacements(old: &str, replacements: &[(usize, usize, String)]) -> String {

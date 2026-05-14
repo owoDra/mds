@@ -2,7 +2,6 @@ use std::path::{Path};
 use mds_core::descriptor::{lang_for_markdown_path};
 use mds_core::descriptor::{markdown_suffix_for_lang};
 use mds_core::markdown::{source_markdown_root};
-use mds_core::markdown::{extract_imports_for_lang};
 use tower_lsp::lsp_types::{*};
 use crate::convert::{line_at};
 use crate::convert::{table_cell_at_position};
@@ -17,10 +16,6 @@ pub fn goto_definition(
     let line_text = line_at(text, position.line)?;
 
     if let Some(location) = wiki_link_location_at(line_text, position, state) {
-        return Some(GotoDefinitionResponse::Scalar(location));
-    }
-
-    if let Some(location) = code_import_location(line_text, position, path, state) {
         return Some(GotoDefinitionResponse::Scalar(location));
     }
 
@@ -113,46 +108,6 @@ fn wiki_link_location_at(line_text: &str, position: Position, state: &WorkspaceS
             .unwrap_or_default()
     };
     Some(Location { uri: Url::from_file_path(path).ok()?, range })
-}
-
-fn code_import_location(line_text: &str, position: Position, path: &Path, state: &WorkspaceState) -> Option<Location> {
-    let lang = lang_for_markdown_path(path)?;
-    let imports = extract_imports_for_lang(&lang, line_text);
-    if imports.is_empty() {
-        return None;
-    }
-    let col = position.character as usize;
-    let import = imports.into_iter().find(|import| quoted_range_for_value(line_text, &import.source).is_some_and(|range| col >= range.0 && col <= range.1))?;
-    let pkg_state = state.package_for_path(path)?;
-    let markdown_root = source_markdown_root(&pkg_state.package);
-    let current_doc = pkg_state.index.docs.get(path)?;
-    let ext = markdown_suffix_for_lang(&lang)?;
-    let mut target_relative = current_doc.markdown_relative_path.parent().unwrap_or_else(|| Path::new("")).join(&import.source);
-    target_relative = normalize_relative_path(&target_relative);
-    let target_path = markdown_root.join(format!("{}{}", target_relative.to_string_lossy().replace('\\', "/"), ext));
-    if !target_path.exists() {
-        return None;
-    }
-    Some(Location { uri: Url::from_file_path(target_path).ok()?, range: Range::default() })
-}
-
-fn quoted_range_for_value(line: &str, value: &str) -> Option<(usize, usize)> {
-    let start = line.find(value)?;
-    Some((start, start + value.len()))
-}
-
-fn normalize_relative_path(path: &Path) -> std::path::PathBuf {
-    let mut normalized = std::path::PathBuf::new();
-    for component in path.components() {
-        match component {
-            std::path::Component::CurDir => {}
-            std::path::Component::ParentDir => {
-                normalized.pop();
-            }
-            other => normalized.push(other.as_os_str()),
-        }
-    }
-    normalized
 }
 
 fn markdown_link_location(source_path: &Path, cell: &str) -> Option<Location> {

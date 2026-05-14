@@ -249,12 +249,12 @@ fn reports_unsupported_config_key_as_warning() {
 }
 
 #[test]
-fn rejects_imports_mixed_with_implementation_code_blocks() {
+fn allows_import_lines_inside_source_code_blocks() {
     let temp = TestDir::new();
     write_fixture(temp.path());
     fs::write(
         temp.path().join("pkg/src-md/foo/mixed.ts.md"),
-        "# Mixed\n\n## Purpose\n\nMixed imports.\n\n## Source\n\n```ts\nimport { util } from './util';\nexport const mixed = util;\n```\n",
+        "# Mixed\n\n## Purpose\n\nMixed imports.\n\n## Contract\n\n- Allow import lines inside Source fences in the language-agnostic core path.\n\n## Source\n\n```ts\nimport { util } from './util';\nexport const mixed = util;\n```\n",
     )
     .unwrap();
 
@@ -264,12 +264,11 @@ fn rejects_imports_mixed_with_implementation_code_blocks() {
         verbose: false,
         command: Command::Lint { fix: false, check: false },
     });
-    assert_eq!(check.exit_code, 1);
-    assert!(check.stderr.contains("mixes imports with implementation"));
+    assert_eq!(check.exit_code, 0, "{}", check.stderr);
 }
 
 #[test]
-fn build_renders_typescript_imports_without_kind_or_code_columns() {
+fn build_keeps_typescript_source_code_fence_without_rendering_imports_table() {
     let temp = TestDir::new();
     let package = temp.path().join("ts-import-fixture");
     fs::create_dir_all(package.join(".mds/source")).unwrap();
@@ -305,11 +304,12 @@ fn build_renders_typescript_imports_without_kind_or_code_columns() {
     assert_eq!(build.exit_code, 0, "{}", build.stderr);
 
     let generated = fs::read_to_string(package.join("src/greet.ts")).unwrap();
-    assert!(generated.contains("import { formatName } from './format-name';"));
+    assert!(!generated.contains("import { formatName } from './format-name';"));
+    assert!(generated.contains("return formatName(name);"));
 }
 
 #[test]
-fn build_renders_python_imports_from_internal_markdown_links() {
+fn build_keeps_python_source_code_fence_without_rendering_imports_table() {
     let temp = TestDir::new();
     let package = temp.path().join("py-import-fixture");
     fs::create_dir_all(package.join(".mds/source")).unwrap();
@@ -350,11 +350,12 @@ fn build_renders_python_imports_from_internal_markdown_links() {
     assert_eq!(build.exit_code, 0, "{}", build.stderr);
 
     let generated = fs::read_to_string(package.join("src/greet.py")).unwrap();
-    assert!(generated.contains("from format_name import format_name"));
+    assert!(!generated.contains("from format_name import format_name"));
+    assert!(generated.contains("return format_name(name)"));
 }
 
 #[test]
-fn build_renders_imports_and_source_exports_for_all_language_descriptors() {
+fn build_keeps_source_exports_for_all_language_descriptors_without_rendering_imports() {
     let temp = TestDir::new();
     let package = temp.path().join("all-language-imports");
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
@@ -368,7 +369,7 @@ fn build_renders_imports_and_source_exports_for_all_language_descriptors() {
     .unwrap();
     fs::write(
         package.join("mds.config.toml"),
-        "[package]\nenabled = true\nallow_raw_source = false\n\n[check]\nimport_with_implementation = false\ntop_level_fence_required = false\ndoc_comments_outside_code = false\n",
+        "[package]\nenabled = true\nallow_raw_source = false\n",
     )
     .unwrap();
     fs::write(
@@ -414,8 +415,8 @@ fn build_renders_imports_and_source_exports_for_all_language_descriptors() {
             .unwrap_or_else(|| panic!("missing generated source for {}", descriptor.id));
         if let Some(import) = expected_import_statement(descriptor) {
             assert!(
-                generated.contains(&import),
-                "{} generated source did not contain import `{}`:\n{}",
+                !generated.contains(&import),
+                "{} generated source unexpectedly contained import `{}`:\n{}",
                 descriptor.id,
                 import,
                 generated
@@ -427,7 +428,55 @@ fn build_renders_imports_and_source_exports_for_all_language_descriptors() {
 }
 
 #[test]
-fn rejects_multiple_top_level_implementations_in_one_code_block() {
+fn build_keeps_test_code_fence_without_rendering_imports_table() {
+    let temp = TestDir::new();
+    let package = temp.path().join("test-import-fixture");
+    fs::create_dir_all(package.join(".mds/source")).unwrap();
+    fs::create_dir_all(package.join(".mds/test")).unwrap();
+    fs::write(
+        package.join("mds.config.toml"),
+        "[package]\nenabled = true\nallow_raw_source = false\n",
+    )
+    .unwrap();
+    fs::write(
+        package.join("package.json"),
+        "{\"name\":\"test-import-fixture\",\"version\":\"0.1.0\"}\n",
+    )
+    .unwrap();
+    fs::write(
+        package.join(".mds/source/overview.md"),
+        "# Overview\n\n## Purpose\n\nFixture package.\n\n## Architecture\n\nFixture architecture.\n\n<!-- mds:begin package-summary -->\n| Name | Version |\n| --- | --- |\n| test-import-fixture | 0.1.0 |\n<!-- mds:end package-summary -->\n\n## Exposes\n\n| Kind | Name | Target | Summary |\n| --- | --- | --- | --- |\n\n<!-- mds:begin dependencies -->\n| Name | Version | Summary |\n| --- | --- | --- |\n<!-- mds:end dependencies -->\n\n<!-- mds:begin dev-dependencies -->\n| Name | Version | Summary |\n| --- | --- | --- |\n<!-- mds:end dev-dependencies -->\n\n## Rules\n\n- Fixture rules.\n",
+    )
+    .unwrap();
+    fs::write(
+        package.join(".mds/source/greet.ts.md"),
+        "# greet\n\n## Purpose\n\nFixture.\n\n## Contract\n\n- Return a greeting.\n\n## Source\n\n```ts\nexport function greet(name: string): string {\n  return `Hello, ${name}`;\n}\n```\n",
+    )
+    .unwrap();
+    fs::write(
+        package.join(".mds/test/greet.test.ts.md"),
+        "# greet test\n\n## Purpose\n\nFixture.\n\n## Covers\n\n- greet\n\n## Imports\n\n| From | Target | Symbols | Via | Summary | Reference |\n| --- | --- | --- | --- | --- | --- |\n| external | vitest | describe, expect, it | - | test helpers | - |\n| internal | ../src/greet | greet | - | function under test | [greet source](../source/greet.ts.md) |\n\n## Cases\n\n- Renders a greeting for a valid name.\n\n## Test\n\n```ts\ndescribe('greet', () => {\n  it('renders a greeting', () => {\n    expect(greet('Ada')).toBe('Hello, Ada');\n  });\n});\n```\n",
+    )
+    .unwrap();
+
+    let build = execute(CliRequest {
+        cwd: package.clone(),
+        package: None,
+        verbose: false,
+        command: Command::Build {
+            mode: BuildMode::Write,
+        },
+    });
+    assert_eq!(build.exit_code, 0, "{}", build.stderr);
+
+    let generated = fs::read_to_string(package.join("tests/greet.test.test.ts")).unwrap();
+    assert!(!generated.contains("import { describe, expect, it } from 'vitest';"));
+    assert!(!generated.contains("import { greet } from '../src/greet';"));
+    assert!(generated.contains("describe('greet'"));
+}
+
+#[test]
+fn allows_multiple_top_level_implementations_in_one_code_block() {
     let temp = TestDir::new();
     write_fixture(temp.path());
     fs::write(
@@ -442,42 +491,16 @@ fn rejects_multiple_top_level_implementations_in_one_code_block() {
         verbose: false,
         command: Command::Lint { fix: false, check: false },
     });
-    assert_eq!(check.exit_code, 1);
-    assert!(check.stderr.contains("multiple top-level implementations"));
+    assert_eq!(check.exit_code, 0, "{}", check.stderr);
 }
 
 #[test]
-fn rejects_multiple_go_top_level_implementations_in_one_code_block() {
+fn allows_multiple_go_top_level_implementations_in_one_code_block() {
     let temp = TestDir::new();
     write_fixture(temp.path());
     fs::write(
         temp.path().join("pkg/src-md/foo/multiple.go.md"),
-        "# Multiple\n\n## Purpose\n\nMultiple declarations.\n\n## Source\n\n```go\nfunc first() {}\nfunc second() {}\n```\n",
-    )
-    .unwrap();
-
-    let check = execute(CliRequest {
-        cwd: temp.path().to_path_buf(),
-        package: None,
-        verbose: false,
-        command: Command::Lint { fix: false, check: false },
-    });
-    assert_eq!(check.exit_code, 1);
-    assert!(check.stderr.contains("multiple top-level implementations"));
-}
-
-#[test]
-fn check_config_can_allow_multiple_top_level_implementations_in_one_code_block() {
-    let temp = TestDir::new();
-    write_fixture(temp.path());
-    fs::write(
-        temp.path().join("pkg/mds.config.toml"),
-        "[package]\nenabled = true\nallow_raw_source = false\n\n[check]\ntop_level_fence_required = false\n",
-    )
-    .unwrap();
-    fs::write(
-        temp.path().join("pkg/src-md/foo/multiple.ts.md"),
-        "# Multiple\n\n## Purpose\n\nMultiple declarations.\n\n## Contract\n\n- Allow multiple declarations when configured.\n\n## Source\n\n```ts\nexport const first = 1;\nexport const second = 2;\n```\n",
+        "# Multiple\n\n## Purpose\n\nMultiple declarations.\n\n## Contract\n\n- Allow multiple top-level declarations in one fence in the language-agnostic core path.\n\n## Source\n\n```go\nfunc first() {}\nfunc second() {}\n```\n",
     )
     .unwrap();
 
@@ -491,37 +514,12 @@ fn check_config_can_allow_multiple_top_level_implementations_in_one_code_block()
 }
 
 #[test]
-fn rejects_doc_comments_inside_code_blocks() {
+fn allows_doc_comments_inside_code_blocks() {
     let temp = TestDir::new();
     write_fixture(temp.path());
     fs::write(
         temp.path().join("pkg/src-md/foo/doc-comment.rs.md"),
-        "# Doc comment\n\n## Purpose\n\nBroken doc comment.\n\n## Source\n\n```rs\n/// Move me outside the fence.\npub fn broken() {}\n```\n",
-    )
-    .unwrap();
-
-    let check = execute(CliRequest {
-        cwd: temp.path().to_path_buf(),
-        package: None,
-        verbose: false,
-        command: Command::Lint { fix: false, check: false },
-    });
-    assert_eq!(check.exit_code, 1);
-    assert!(check.stderr.contains("contains a doc comment"));
-}
-
-#[test]
-fn check_config_can_disable_doc_comment_validation() {
-    let temp = TestDir::new();
-    write_fixture(temp.path());
-    fs::write(
-        temp.path().join("pkg/mds.config.toml"),
-        "[package]\nenabled = true\nallow_raw_source = false\n\n[check]\ndoc_comments_outside_code = false\n",
-    )
-    .unwrap();
-    fs::write(
-        temp.path().join("pkg/src-md/foo/doc-comment.py.md"),
-        "# Doc comment\n\n## Purpose\n\nBroken doc comment.\n\n## Contract\n\n- Allow docstrings when configured.\n\n## Source\n\n```py\ndef broken() -> str:\n    \"\"\"Allow me when the check is disabled.\"\"\"\n    return \"ok\"\n```\n",
+        "# Doc comment\n\n## Purpose\n\nBroken doc comment.\n\n## Contract\n\n- Allow doc comments inside Source fences in the language-agnostic core path.\n\n## Source\n\n```rs\n/// Move me outside the fence.\npub fn broken() {}\n```\n",
     )
     .unwrap();
 
@@ -535,7 +533,26 @@ fn check_config_can_disable_doc_comment_validation() {
 }
 
 #[test]
-fn workspace_descriptor_toml_controls_doc_comment_validation() {
+fn allows_docstrings_inside_code_blocks_without_check_override() {
+    let temp = TestDir::new();
+    write_fixture(temp.path());
+    fs::write(
+        temp.path().join("pkg/src-md/foo/doc-comment.py.md"),
+        "# Doc comment\n\n## Purpose\n\nBroken doc comment.\n\n## Contract\n\n- Allow docstrings in the standard core validation path.\n\n## Source\n\n```py\ndef broken() -> str:\n    \"\"\"Allowed in the language-agnostic core path.\"\"\"\n    return \"ok\"\n```\n",
+    )
+    .unwrap();
+
+    let check = execute(CliRequest {
+        cwd: temp.path().to_path_buf(),
+        package: None,
+        verbose: false,
+        command: Command::Lint { fix: false, check: false },
+    });
+    assert_eq!(check.exit_code, 0, "{}", check.stderr);
+}
+
+#[test]
+fn workspace_descriptor_doc_comment_prefixes_do_not_trigger_core_lint() {
     let temp = TestDir::new();
     write_fixture(temp.path());
     fs::create_dir_all(temp.path().join(".mds/descriptors/languages")).unwrap();
@@ -578,7 +595,7 @@ starts_with = "import "
     .unwrap();
     fs::write(
         temp.path().join("pkg/src-md/foo/doc-comment.ts.md"),
-        "# Doc comment\n\n## Purpose\n\nBroken doc comment.\n\n## Source\n\n```ts\n/// Configured via descriptor TOML.\nexport const broken = 1;\n```\n",
+        "# Doc comment\n\n## Purpose\n\nBroken doc comment.\n\n## Contract\n\n- Ignore descriptor-level doc comment prefixes in the language-agnostic core path.\n\n## Source\n\n```ts\n/// Configured via descriptor TOML.\nexport const broken = 1;\n```\n",
     )
     .unwrap();
 
@@ -588,8 +605,7 @@ starts_with = "import "
         verbose: false,
         command: Command::Lint { fix: false, check: false },
     });
-    assert_eq!(check.exit_code, 1);
-    assert!(check.stderr.contains("contains a doc comment"));
+    assert_eq!(check.exit_code, 0, "{}", check.stderr);
 }
 
 #[test]
@@ -803,7 +819,7 @@ fn builds_readable_tableless_source_and_split_test_docs() {
     fs::create_dir_all(package.join(".mds/source/app/text")).unwrap();
     fs::create_dir_all(package.join(".mds/test/app")).unwrap();
     fs::write(package.join("package.json"), "{\"name\":\"fixture\",\"version\":\"0.1.0\"}\n").unwrap();
-    fs::write(package.join("mds.config.toml"), "[package]\nenabled = true\nallow_raw_source = false\n\n[check]\nimport_with_implementation = false\ntop_level_fence_required = false\n").unwrap();
+    fs::write(package.join("mds.config.toml"), "[package]\nenabled = true\nallow_raw_source = false\n").unwrap();
     fs::write(package.join(".mds/source/overview.md"), "# Overview\n\n## 目的\n\nFixture package.\n\n## Architecture\n\nFixture architecture.\n\n<!-- mds:begin package-summary -->\n| Name | Version |\n| --- | --- |\n| fixture | 0.1.0 |\n<!-- mds:end package-summary -->\n\n<!-- mds:begin dependencies -->\n| Name | Version | Summary |\n| --- | --- | --- |\n<!-- mds:end dependencies -->\n\n<!-- mds:begin dev-dependencies -->\n| Name | Version | Summary |\n| --- | --- | --- |\n<!-- mds:end dev-dependencies -->\n\n## Rules\n\n- Fixture rules.\n").unwrap();
     fs::write(
         package.join(".mds/source/app/text/normalize.ts.md"),
@@ -830,20 +846,6 @@ fn builds_readable_tableless_source_and_split_test_docs() {
     assert!(generated_source.contains("export function greet"));
     let generated_test = fs::read_to_string(package.join("tests/app/greet.test.test.ts")).unwrap();
     assert!(generated_test.contains("describe('greet'"));
-}
-
-#[test]
-fn extracts_typescript_imports_and_exports_from_code() {
-    let code = "import { normalizeDisplayName as normalize } from './text/normalize';\nexport type GreetOptions = { name?: string };\nexport function greet(options: GreetOptions): string { return ''; }\nexport { greet as greetAgain };\n";
-    let imports = mds_core::markdown::extract_imports_for_lang(&Lang::TypeScript, code);
-    assert_eq!(imports.len(), 1);
-    assert_eq!(imports[0].source, "./text/normalize");
-    assert_eq!(imports[0].symbols, vec!["normalizeDisplayName"]);
-
-    let exports = mds_core::markdown::extract_exports_for_lang(&Lang::TypeScript, code);
-    let names = exports.into_iter().map(|export| export.name).collect::<Vec<_>>();
-    assert!(names.contains(&"GreetOptions".to_string()));
-    assert!(names.contains(&"greet".to_string()));
 }
 
 #[test]
@@ -978,6 +980,62 @@ fn lint_and_test_use_configured_toolchain_commands() {
     });
     assert_eq!(test.exit_code, 0, "{}", test.stderr);
     assert!(test.stdout.contains("test ok"));
+}
+
+#[test]
+fn lint_passes_only_code_fence_content_without_import_table_prefix() {
+    let temp = TestDir::new();
+    let package = temp.path().join("pkg");
+    fs::create_dir_all(package.join(".mds/source/foo")).unwrap();
+    let tool = write_tool(
+        temp.path(),
+        "capture-stdin",
+        "#!/bin/sh\nmkdir -p \"$(dirname \"$1\")\"\ncat >> \"$1.captured\"\nexit 0\n",
+    );
+    fs::write(
+        package.join("mds.config.toml"),
+        format!(
+            "[package]\nenabled = true\nallow_raw_source = false\n\n[quality.ts]\nlinter = \"{}\"\nrequired = []\noptional = []\n\n[quality.py]\nlinter = false\nrequired = []\noptional = []\n\n[quality.rs]\nlinter = false\nrequired = []\noptional = []\n",
+            tool.display()
+        ),
+    )
+    .unwrap();
+    fs::write(
+        package.join("package.json"),
+        "{\"name\":\"lint-import-fixture\",\"version\":\"0.1.0\"}\n",
+    )
+    .unwrap();
+    fs::write(
+        package.join(".mds/source/overview.md"),
+        "# Overview\n\n## Purpose\n\nFixture package.\n\n## Architecture\n\nFixture architecture.\n\n<!-- mds:begin package-summary -->\n| Name | Version |\n| --- | --- |\n| lint-import-fixture | 0.1.0 |\n<!-- mds:end package-summary -->\n\n<!-- mds:begin dependencies -->\n| Name | Version | Summary |\n| --- | --- | --- |\n<!-- mds:end dependencies -->\n\n<!-- mds:begin dev-dependencies -->\n| Name | Version | Summary |\n| --- | --- | --- |\n<!-- mds:end dev-dependencies -->\n\n## Rules\n\n- Fixture rules.\n",
+    )
+    .unwrap();
+    fs::write(
+        package.join(".mds/source/foo/util.ts.md"),
+        "# Util\n\n## Purpose\n\nFixture helper.\n\n## Contract\n\n- Return a stable value.\n\n## Source\n\n```ts\nexport const util = 'ok';\n```\n",
+    )
+    .unwrap();
+    fs::write(
+        package.join(".mds/source/foo/bar.ts.md"),
+        "# Bar\n\n## Purpose\n\nFixture.\n\n## Contract\n\n- Preserve fixture behavior.\n\n## Imports\n\n| From | Target | Symbols | Via | Summary | Reference |\n| --- | --- | --- | --- | --- | --- |\n| internal | ./util | util | - | helper | [util](./util.ts.md) |\n\n## Source\n\n```ts\nexport const bar = util;\n```\n",
+    )
+    .unwrap();
+
+    let lint = execute(CliRequest {
+        cwd: temp.path().to_path_buf(),
+        package: None,
+        verbose: false,
+        command: Command::Lint {
+            fix: false,
+            check: false,
+        },
+    });
+    assert_eq!(lint.exit_code, 0, "{}", lint.stderr);
+
+    let captured = fs::read_to_string(package.join(".build/mds/tmp/source.ts.captured"))
+        .unwrap();
+    assert!(!captured.contains("import { util } from './util';"));
+    assert!(captured.contains("export const bar = util;"));
 }
 
 #[test]

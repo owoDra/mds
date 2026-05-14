@@ -334,9 +334,6 @@ pub struct CliResult {
 
 #[derive(Debug, Clone, Eq, Hash, PartialEq)]
 pub enum Lang {
-    TypeScript,
-    Python,
-    Rust,
     Other(String),
 }
 
@@ -355,19 +352,14 @@ impl Lang {
 
     pub fn key(&self) -> &str {
         match self {
-            Self::TypeScript => "ts",
-            Self::Python => "py",
-            Self::Rust => "rs",
             Self::Other(ext) => ext.as_str(),
         }
     }
 
     pub fn header_prefix(&self) -> &str {
         match self {
-            Self::Python => "#",
-            Self::TypeScript | Self::Rust => "//",
             Self::Other(ext) => match ext.as_str() {
-                "rb" | "sh" | "bash" | "zsh" | "pl" | "pm" => "#",
+                "py" | "rb" | "sh" | "bash" | "zsh" | "pl" | "pm" => "#",
                 "hs" | "lua" => "--",
                 "html" | "xml" => "<!--",
                 _ => "//",
@@ -377,9 +369,6 @@ impl Lang {
 
     pub fn file_ext(&self) -> &str {
         match self {
-            Self::TypeScript => "ts",
-            Self::Python => "py",
-            Self::Rust => "rs",
             Self::Other(ext) => ext.as_str(),
         }
     }

@@ -12,9 +12,6 @@ use mds_lsp::state::{PackageState};
 use mds_lsp::state::{WorkspaceIndex};
 use mds_lsp::state::{WorkspaceState};
 use mds_core::{Config};
-use mds_core::{DocKind};
-use mds_core::{ImplDoc};
-use mds_core::{Lang};
 use mds_core::{Package};
 use std::collections::{HashMap};
 use std::{fs};
@@ -215,54 +212,6 @@ fn test_wiki_link_definition_resolves_module_symbol() {
         text,
         Position { line: 0, character: 12 },
         &root.join(".mds/source/app/caller.ts.md"),
-        &state,
-    );
-    assert!(matches!(response, Some(GotoDefinitionResponse::Scalar(_))));
-}
-
-#[test]
-fn test_code_import_definition_resolves_source_markdown() {
-    let root = std::env::temp_dir().join(format!("mds-lsp-import-{}", std::process::id()));
-    let source_root = root.join(".mds/source");
-    let caller = source_root.join("app/greet.ts.md");
-    let target = source_root.join("app/text/normalize.ts.md");
-    fs::create_dir_all(target.parent().unwrap()).unwrap();
-    fs::write(&target, "# app.text.normalize\n").unwrap();
-
-    let caller_doc = ImplDoc {
-        doc_kind: DocKind::Source,
-        lang: Lang::TypeScript,
-        path: caller.clone(),
-        package_relative_path: std::path::PathBuf::from(".mds/source/app/greet.ts.md"),
-        markdown_relative_path: std::path::PathBuf::from("app/greet.ts.md"),
-        code: String::new(),
-        source_code: "import { normalizeDisplayName } from './text/normalize';\n".to_string(),
-        test_code: String::new(),
-        covers: Vec::new(),
-        normalized_input: String::new(),
-    };
-    let mut docs = HashMap::new();
-    docs.insert(caller.clone(), caller_doc);
-    let state = WorkspaceState {
-        packages: vec![PackageState {
-            package: Package {
-                root: root.clone(),
-                config: Config::default(),
-                package_manager_id: "npm".to_string(),
-            },
-            index: WorkspaceIndex {
-                docs,
-                ..WorkspaceIndex::default()
-            },
-        }],
-        ..WorkspaceState::default()
-    };
-
-    let text = "import { normalizeDisplayName } from './text/normalize';";
-    let response = goto_definition(
-        text,
-        Position { line: 0, character: 39 },
-        &caller,
         &state,
     );
     assert!(matches!(response, Some(GotoDefinitionResponse::Scalar(_))));

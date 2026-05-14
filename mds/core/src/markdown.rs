@@ -2,7 +2,6 @@ use std::collections::{HashMap};
 use std::{fs};
 use std::path::{Path};
 use std::path::{PathBuf};
-use crate::descriptor::{builtin_descriptor};
 use crate::descriptor::{is_root_module_markdown_path};
 use crate::diagnostics::{Diagnostic};
 use crate::diagnostics::{RunState};
@@ -13,7 +12,6 @@ use crate::model::{DocProfile};
 use crate::model::{ImplDoc};
 use crate::model::{Lang};
 use crate::model::{Package};
-use crate::table::{parse_table_with_labels};
 use crate::descriptor::{lang_for_markdown_path};
 pub fn load_implementation_docs(
     package: &Package,
@@ -118,16 +116,9 @@ pub fn parse_impl_doc(
     );
 
     let sections = sections_with_labels(&text, &package.config.label_overrides);
-    let imports_code = render_imports_section(
-        sections.get("Imports"),
-        path,
-        &lang,
-        &package.config.label_overrides,
-        state,
-    );
     let implementation_code = code_from_section(sections.get("Source"));
     let source_code = if matches!(doc_kind, DocKind::Source) {
-        prepend_imports(&imports_code, implementation_code.clone())
+        implementation_code.clone()
     } else {
         String::new()
     };
@@ -137,9 +128,9 @@ pub fn parse_impl_doc(
         } else {
             implementation_code
         };
-        prepend_imports(&imports_code, code)
+        code
     } else {
-        prepend_imports(&imports_code, code_from_section(sections.get("Test")))
+        code_from_section(sections.get("Test"))
     };
     let covers = covers_from_section(sections.get("Covers"));
 
@@ -709,56 +700,6 @@ fn code_from_section(section: Option<&String>) -> String {
         .unwrap_or_default()
 }
 
-fn prepend_imports(imports: &str, body: String) -> String {
-    if imports.trim().is_empty() {
-        return body;
-    }
-    if body.trim().is_empty() {
-        return String::new();
-    }
-    format!("{}\n{}", imports.trim_end(), body)
-}
-
-fn render_imports_section(
-    section: Option<&String>,
-    path: &Path,
-    lang: &Lang,
-    label_overrides: &HashMap<String, String>,
-    state: &mut RunState,
-) -> String {
-    let Some(section) = section else {
-        return String::new();
-    };
-    let Some(rows) = parse_table_with_labels(
-        section,
-        &["From", "Target", "Symbols", "Via", "Summary", "Reference"],
-        path,
-        label_overrides,
-        state,
-    ) else {
-        return String::new();
-    };
-
-    let descriptor = builtin_descriptor(lang);
-    let mut output = String::new();
-    for row in rows {
-        let Some(statement) = descriptor.render_import(&row) else {
-            if !matches!(descriptor.imports.style.as_str(), "" | "none")
-                && row.values().any(|cell| !is_blank_cell(cell))
-            {
-                state.diagnostics.push(Diagnostic::error(
-                    Some(path.to_path_buf()),
-                    "Imports row cannot be rendered by the language descriptor; check From, Target, Symbols, and Via",
-                ));
-            }
-            continue;
-        };
-        output.push_str(&statement);
-        output.push('\n');
-    }
-    output
-}
-
 fn code_from_table(section: &str) -> String {
     let lines: Vec<&str> = section.lines().collect();
     for index in 0..lines.len().saturating_sub(1) {
@@ -830,7 +771,7 @@ fn validate_code_block_boundaries(
     lang: &Lang,
     text: &str,
     label_overrides: &HashMap<String, String>,
-    check: &crate::model::CheckConfig,
+    _check: &crate::model::CheckConfig,
     state: &mut RunState,
 ) {
     let mut previous_block: Option<CodeBlock<'_>> = None;
@@ -845,64 +786,6 @@ fn validate_code_block_boundaries(
                     ),
                 ));
             }
-        }
-        if check.doc_comments_outside_code {
-            if let Some(line_offset) = block
-                .content
-                .lines()
-                .position(|line| is_doc_comment_line(lang, line.trim_start()))
-            {
-                let line_number = block.start_line + line_offset;
-                state.diagnostics.push(Diagnostic::error(
-                    Some(path.to_path_buf()),
-                    format!(
-                        "code block starting at line {} contains a doc comment at line {}; move documentation text outside the code block",
-                        block.start_line,
-                        line_number
-                    ),
-                ));
-            }
-        }
-
-        let has_import = if check.import_with_implementation {
-            block
-                .content
-                .lines()
-                .any(|line| is_import_line(lang, line.trim_start()))
-        } else {
-            false
-        };
-        let declaration_count = if check.import_with_implementation || check.top_level_fence_required {
-            top_level_declaration_count(lang, block.content)
-        } else {
-            0
-        };
-        let import_only_block = has_import
-            && block.content.lines().all(|line| {
-                let trimmed = line.trim_start();
-                trimmed.is_empty()
-                    || is_comment_line(lang, trimmed)
-                    || is_import_line(lang, trimmed)
-            });
-
-        if check.import_with_implementation && has_import && !import_only_block {
-            state.diagnostics.push(Diagnostic::error(
-                Some(path.to_path_buf()),
-                format!(
-                    "code block starting at line {} mixes imports with implementation; move imports to metadata or keep the block import-only",
-                    block.start_line
-                ),
-            ));
-        }
-
-        if check.top_level_fence_required && declaration_count > 1 {
-            state.diagnostics.push(Diagnostic::error(
-                Some(path.to_path_buf()),
-                format!(
-                    "code block starting at line {} contains multiple top-level implementations; split each logical unit into its own code block",
-                    block.start_line
-                ),
-            ));
         }
         previous_block = Some(block);
     }
@@ -963,29 +846,6 @@ fn code_blocks<'a>(
         line_number += 1;
     }
     blocks
-}
-
-fn is_import_line(lang: &Lang, trimmed_start: &str) -> bool {
-    crate::descriptor::builtin_descriptor(lang).matches_import_line(trimmed_start)
-}
-
-fn is_top_level_declaration(lang: &Lang, line: &str) -> bool {
-    if line.trim_start() != line {
-        return false;
-    }
-    let trimmed = line.trim_start();
-    if trimmed.is_empty() || is_comment_line(lang, trimmed) || is_import_line(lang, trimmed) {
-        return false;
-    }
-    crate::descriptor::builtin_descriptor(lang).matches_top_level_declaration(trimmed)
-}
-
-fn is_comment_line(lang: &Lang, trimmed: &str) -> bool {
-    crate::descriptor::builtin_descriptor(lang).matches_comment_line(trimmed)
-}
-
-fn is_doc_comment_line(lang: &Lang, trimmed: &str) -> bool {
-    crate::descriptor::builtin_descriptor(lang).matches_doc_comment_line(trimmed)
 }
 
 fn backtick_fence(line: &str) -> Option<(usize, &str)> {
@@ -1101,24 +961,6 @@ pub fn validate_markdown_links(path: &Path, text: &str, state: &mut RunState) {
     }
 }
 
-fn top_level_declaration_count(lang: &Lang, content: &str) -> usize {
-    let declarations: Vec<&str> = content
-        .lines()
-        .filter(|line| is_top_level_declaration(lang, line))
-        .collect();
-    if declarations.is_empty() {
-        return 0;
-    }
-    if declarations.iter().all(|line| is_module_declaration(line)) {
-        return 1;
-    }
-    declarations.len()
-}
-
-fn is_module_declaration(line: &str) -> bool {
-    line.starts_with("mod ") || line.starts_with("pub mod ")
-}
-
 fn text_without_code_blocks(text: &str) -> String {
     let mut output = String::new();
     let mut fence_len: Option<usize> = None;
@@ -1185,123 +1027,6 @@ fn wikilinks(text: &str) -> Vec<String> {
         rest = &rest[end + 2..];
     }
     links
-}
-
-#[derive(Debug, Clone, Eq, PartialEq)]
-pub struct CodeImport {
-    pub source: String,
-    pub symbols: Vec<String>,
-}
-
-#[derive(Debug, Clone, Eq, PartialEq)]
-pub struct CodeExport {
-    pub name: String,
-    pub kind: String,
-}
-
-pub trait ImportExtractor {
-    fn extract_imports(&self, code: &str) -> Vec<CodeImport>;
-}
-
-pub trait SymbolExtractor {
-    fn extract_exports(&self, code: &str) -> Vec<CodeExport>;
-}
-
-pub struct TypeScriptExtractor;
-
-impl ImportExtractor for TypeScriptExtractor {
-    fn extract_imports(&self, code: &str) -> Vec<CodeImport> {
-        code.lines().filter_map(extract_typescript_import).collect()
-    }
-}
-
-impl SymbolExtractor for TypeScriptExtractor {
-    fn extract_exports(&self, code: &str) -> Vec<CodeExport> {
-        code.lines().flat_map(extract_typescript_export).collect()
-    }
-}
-
-pub fn extract_imports_for_lang(lang: &Lang, code: &str) -> Vec<CodeImport> {
-    if lang.key() == "ts" {
-        TypeScriptExtractor.extract_imports(code)
-    } else {
-        Vec::new()
-    }
-}
-
-pub fn extract_exports_for_lang(lang: &Lang, code: &str) -> Vec<CodeExport> {
-    if lang.key() == "ts" {
-        TypeScriptExtractor.extract_exports(code)
-    } else {
-        Vec::new()
-    }
-}
-
-fn extract_typescript_import(line: &str) -> Option<CodeImport> {
-    let trimmed = line.trim();
-    if !trimmed.starts_with("import ") {
-        return None;
-    }
-    let (_, source_tail) = trimmed.rsplit_once(" from ")?;
-    let source = quoted_value(source_tail.trim_end_matches(';').trim())?;
-    let symbols = if let Some(open) = trimmed.find('{') {
-        let close = trimmed[open + 1..].find('}')? + open + 1;
-        trimmed[open + 1..close]
-            .split(',')
-            .filter_map(|symbol| symbol.split_whitespace().next())
-            .filter(|symbol| !symbol.is_empty())
-            .map(ToOwned::to_owned)
-            .collect()
-    } else {
-        Vec::new()
-    };
-    Some(CodeImport { source, symbols })
-}
-
-fn extract_typescript_export(line: &str) -> Vec<CodeExport> {
-    let trimmed = line.trim_start();
-    let Some(rest) = trimmed.strip_prefix("export ") else {
-        return Vec::new();
-    };
-    for (keyword, kind) in [
-        ("type ", "type"),
-        ("interface ", "interface"),
-        ("function ", "function"),
-        ("class ", "class"),
-        ("const ", "const"),
-    ] {
-        if let Some(name) = rest.strip_prefix(keyword).and_then(first_identifier) {
-            return vec![CodeExport { name, kind: kind.to_string() }];
-        }
-    }
-    if let Some(inner) = rest.strip_prefix('{').and_then(|value| value.split('}').next()) {
-        return inner
-            .split(',')
-            .filter_map(|symbol| symbol.split_whitespace().next())
-            .filter(|symbol| !symbol.is_empty())
-            .map(|name| CodeExport { name: name.to_string(), kind: "re-export".to_string() })
-            .collect();
-    }
-    Vec::new()
-}
-
-fn quoted_value(value: &str) -> Option<String> {
-    let value = value.trim();
-    let quote = value.chars().next()?;
-    if quote != '\'' && quote != '"' {
-        return None;
-    }
-    let end = value[1..].find(quote)? + 1;
-    Some(value[1..end].to_string())
-}
-
-fn first_identifier(value: &str) -> Option<String> {
-    let name = value
-        .trim_start()
-        .chars()
-        .take_while(|character| character.is_ascii_alphanumeric() || *character == '_' || *character == '$')
-        .collect::<String>();
-    (!name.is_empty()).then_some(name)
 }
 
 fn should_validate_local_link(target: &str) -> bool {
