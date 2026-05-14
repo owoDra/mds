@@ -1,5 +1,6 @@
 use regex::{Regex};
 use std::{fs};
+use std::path::{Path};
 use std::path::{PathBuf};
 use crate::adapter::{path_variants};
 use crate::adapter::{replace_path_variants};
@@ -17,9 +18,19 @@ use crate::diagnostics::{Diagnostic};
 use crate::diagnostics::{RunState};
 use crate::diff::{unified_diff};
 use crate::fs_utils::{is_excluded};
+use crate::model::{DocKind};
 use crate::model::{ImplDoc};
 use crate::model::{Lang};
+use crate::model::{OutputKind};
 use crate::model::{Package};
+use crate::model::{SourceMap};
+use crate::model::{SourceSpan};
+
+struct PreparedQualityInput {
+    source: String,
+    source_map: SourceMap,
+}
+
 #[derive(Debug, Clone, Copy)]
 
 pub(crate) enum QualityOperation {
@@ -123,9 +134,20 @@ fn run_doc_quality(
     let Some(command) = command else {
         return Ok(());
     };
-    let source = padded_code_from_markdown(doc)?;
+    let path = temp_code_path(package, &doc.lang);
+    let input = padded_code_from_markdown(doc, &path)?;
     let behavior = resolve_tool_behavior(&descriptor, operation, command);
-    let _ = execute_quality_command(package, doc, command, config, &behavior, &source, state)?;
+    let _ = execute_quality_command(
+        package,
+        doc,
+        command,
+        config,
+        &behavior,
+        &path,
+        &input.source,
+        Some(&input.source_map),
+        state,
+    )?;
     Ok(())
 }
 
@@ -143,17 +165,21 @@ fn fix_doc(
         return Ok(());
     };
     let behavior = resolve_tool_behavior(&descriptor, QualityOperation::Fix { check }, command);
+    let path = temp_code_path(package, &doc.lang);
     let old = fs::read_to_string(&doc.path)
         .map_err(|error| format!("failed to read {}: {error}", doc.path.display()))?;
     let mut replacements = Vec::new();
     for block in code_block_ranges(&old) {
+        let source_map = source_map_for_code_block(doc, &path, &block);
         if let Some(fixed) = execute_quality_command(
             package,
             doc,
             command,
             config,
             &behavior,
+            &path,
             block.content,
+            Some(&source_map),
             state,
         )? {
             replacements.push((block.start, block.end, fixed));
@@ -195,20 +221,21 @@ fn execute_quality_command(
     command: &str,
     config: &crate::model::QualityConfig,
     behavior: &ToolBehavior,
+    input_path: &Path,
     source: &str,
+    source_map: Option<&SourceMap>,
     state: &mut RunState,
 ) -> Result<Option<String>, String> {
-    let path = temp_code_path(package, &doc.lang);
     if needs_tempfile(behavior) {
-        if let Some(parent) = path.parent() {
+        if let Some(parent) = input_path.parent() {
             fs::create_dir_all(parent)
                 .map_err(|error| format!("failed to create {}: {error}", parent.display()))?;
         }
-        fs::write(&path, source)
-            .map_err(|error| format!("failed to write {}: {error}", path.display()))?;
+        fs::write(input_path, source)
+            .map_err(|error| format!("failed to write {}: {error}", input_path.display()))?;
     }
 
-    let file_arg = behavior.append_file_arg().then_some(path.as_path());
+    let file_arg = behavior.append_file_arg().then_some(input_path);
     let stdin = match behavior.input_mode() {
         ToolInputMode::Stdin => Some(source),
         ToolInputMode::TempFile | ToolInputMode::Inline => None,
@@ -242,15 +269,23 @@ fn execute_quality_command(
         }
         ToolRunStatus::Completed(output) => {
             if !output.success {
-                report_tool_failure(&output, behavior, &doc.path, &path, &package.root, state)?;
+                report_tool_failure(
+                    &output,
+                    behavior,
+                    &doc.path,
+                    input_path,
+                    source_map,
+                    &package.root,
+                    state,
+                )?;
                 return Ok(None);
             }
             let fixed = match behavior.output_mode() {
                 ToolOutputMode::None => None,
                 ToolOutputMode::Stdout => Some(output.stdout),
                 ToolOutputMode::TempFile => Some(
-                    fs::read_to_string(&path)
-                        .map_err(|error| format!("failed to read {}: {error}", path.display()))?,
+                    fs::read_to_string(input_path)
+                        .map_err(|error| format!("failed to read {}: {error}", input_path.display()))?,
                 ),
             };
             Ok(fixed)
@@ -278,13 +313,23 @@ fn report_tool_failure(
     behavior: &ToolBehavior,
     markdown_path: &std::path::Path,
     input_path: &std::path::Path,
+    source_map: Option<&SourceMap>,
     cwd: &std::path::Path,
     state: &mut RunState,
 ) -> Result<(), String> {
     let detail = tool_output_detail(output);
-    let diagnostics = capture_tool_diagnostics(&detail, behavior, markdown_path, input_path, cwd)?;
+    let diagnostics = capture_tool_diagnostics(
+        &detail,
+        behavior,
+        markdown_path,
+        input_path,
+        source_map,
+        cwd,
+    )?;
     if diagnostics.is_empty() {
-        let rendered = replace_path_variants(&detail, input_path, markdown_path, cwd);
+        let rendered = source_map
+            .and_then(|map| remap_generic_tool_failure(&detail, input_path, markdown_path, map, cwd))
+            .unwrap_or_else(|| replace_path_variants(&detail, input_path, markdown_path, cwd));
         state.diagnostics.push(Diagnostic::error(
             Some(markdown_path.to_path_buf()),
             format!("LINT001_TOOLCHAIN_FAILED: toolchain command failed: {rendered}"),
@@ -295,11 +340,39 @@ fn report_tool_failure(
     Ok(())
 }
 
+fn remap_generic_tool_failure(
+    detail: &str,
+    input_path: &Path,
+    markdown_path: &Path,
+    source_map: &SourceMap,
+    cwd: &Path,
+) -> Option<String> {
+    let regex = Regex::new(r"^(?P<path>.+?):(?P<line>\d+):(?P<column>\d+):(?P<rest>.*)$").ok()?;
+    let captures = regex.captures(detail.lines().next()?)?;
+    let line = captures.name("line")?.as_str().parse::<usize>().ok()?;
+    let column = captures.name("column")?.as_str();
+    let rest = captures.name("rest")?.as_str();
+    let generated_path = diagnostic_input_path(
+        captures.name("path").map(|value| value.as_str()),
+        input_path,
+        cwd,
+    )?;
+    let (remapped_path, markdown_line) = source_map.remap_generated_line(generated_path, line)?;
+    Some(format!(
+        "{}:{}:{}:{}",
+        remapped_path.display(),
+        markdown_line,
+        column,
+        rest
+    ))
+}
+
 fn capture_tool_diagnostics(
     detail: &str,
     behavior: &ToolBehavior,
     markdown_path: &std::path::Path,
     input_path: &std::path::Path,
+    source_map: Option<&SourceMap>,
     cwd: &std::path::Path,
 ) -> Result<Vec<Diagnostic>, String> {
     let mut diagnostics = Vec::new();
@@ -320,24 +393,42 @@ fn capture_tool_diagnostics(
                     capture_message(&captures, rule, raw_line),
                 ),
             };
-            if let Some(line) = captures
+            let line = captures
                 .name(&rule.line_group)
                 .and_then(|value| value.as_str().parse::<usize>().ok())
-            {
-                diagnostic = diagnostic.at_line(apply_line_offset(line, rule.line_offset));
-            }
+                .map(|value| apply_line_offset(value, rule.line_offset));
             if let Some(column) = captures
                 .name(&rule.column_group)
                 .and_then(|value| value.as_str().parse::<usize>().ok())
             {
                 diagnostic = diagnostic.at_column(column);
             }
+            let remapped = line
+                .and_then(|generated_line| {
+                    diagnostic_input_path(
+                        captures.name(&rule.path_group).map(|value| value.as_str()),
+                        input_path,
+                        cwd,
+                    )
+                    .and_then(|generated_path| {
+                        source_map.and_then(|map| map.remap_generated_line(generated_path, generated_line))
+                    })
+                })
+                .map(|(path, markdown_line)| (path.to_path_buf(), markdown_line));
+            let remapped_path = remapped.as_ref().map(|(path, _)| path.clone());
+            let remapped_line = remapped.as_ref().map(|(_, markdown_line)| *markdown_line);
+            if let (Some(path), Some(markdown_line)) = (remapped_path, remapped_line) {
+                diagnostic.path = Some(path);
+                diagnostic = diagnostic.at_line(markdown_line);
+            } else if let Some(line) = line {
+                diagnostic = diagnostic.at_line(line);
+            }
             if let Some(path_match) = captures.name(&rule.path_group) {
                 let captured = std::path::PathBuf::from(path_match.as_str());
                 let rewritten = path_variants(input_path, cwd)
                     .into_iter()
                     .any(|variant| variant == captured.display().to_string());
-                if !rewritten {
+                if remapped.is_none() && !rewritten {
                     diagnostic.path = Some(std::path::PathBuf::from(replace_path_variants(
                         path_match.as_str(),
                         input_path,
@@ -351,6 +442,16 @@ fn capture_tool_diagnostics(
         }
     }
     Ok(diagnostics)
+}
+
+fn diagnostic_input_path<'a>(captured_path: Option<&str>, input_path: &'a Path, cwd: &Path) -> Option<&'a Path> {
+    match captured_path {
+        Some(path) => path_variants(input_path, cwd)
+            .into_iter()
+            .any(|variant| variant == path)
+            .then_some(input_path),
+        None => Some(input_path),
+    }
 }
 
 fn capture_message(
@@ -393,10 +494,12 @@ fn temp_code_path(package: &Package, lang: &Lang) -> PathBuf {
 
 #[derive(Debug)]
 struct CodeBlock<'a> {
+    fence_index: usize,
     start: usize,
     end: usize,
     content: &'a str,
     content_start_line: usize,
+    content_end_line: usize,
 }
 
 fn code_block_ranges(text: &str) -> Vec<CodeBlock<'_>> {
@@ -404,19 +507,23 @@ fn code_block_ranges(text: &str) -> Vec<CodeBlock<'_>> {
     let mut in_block = false;
     let mut content_start = 0;
     let mut content_start_line = 1;
+    let mut fence_index = 0;
     let mut cursor = 0;
-    let mut line_number = 1;
+    let mut line_number: usize = 1;
     for line in text.split_inclusive('\n') {
         let line_start = cursor;
         cursor += line.len();
         if line.trim_start().starts_with("```") {
             if in_block {
                 ranges.push(CodeBlock {
+                    fence_index,
                     start: content_start,
                     end: line_start,
                     content: &text[content_start..line_start],
                     content_start_line,
+                    content_end_line: line_number.saturating_sub(1),
                 });
+                fence_index += 1;
                 in_block = false;
             } else {
                 in_block = true;
@@ -429,23 +536,82 @@ fn code_block_ranges(text: &str) -> Vec<CodeBlock<'_>> {
     ranges
 }
 
-fn padded_code_from_markdown(doc: &ImplDoc) -> Result<String, String> {
+fn padded_code_from_markdown(doc: &ImplDoc, input_path: &Path) -> Result<PreparedQualityInput, String> {
     let text = fs::read_to_string(&doc.path)
         .map_err(|error| format!("failed to read {}: {error}", doc.path.display()))?;
+    let blocks = code_block_ranges(&text);
+    if blocks.is_empty() {
+        return Ok(PreparedQualityInput {
+            source: doc.code.clone(),
+            source_map: SourceMap::new(),
+        });
+    }
     let mut output = String::new();
+    let mut source_map = SourceMap::new();
     let mut output_line = 1;
-    for block in code_block_ranges(&text) {
+    for block in blocks {
         while output_line < block.content_start_line {
             output.push('\n');
             output_line += 1;
         }
         output.push_str(block.content);
-        output_line += block.content.bytes().filter(|byte| *byte == b'\n').count();
+        if let Some(span) = source_span_for_code_block(doc, input_path, &block, output_line) {
+            source_map.extend([span]);
+        }
+        output_line += content_line_count(block.content);
     }
-    if output.is_empty() {
-        output.push_str(&doc.code);
+    Ok(PreparedQualityInput {
+        source: output,
+        source_map,
+    })
+}
+
+fn source_map_for_code_block(doc: &ImplDoc, input_path: &Path, block: &CodeBlock<'_>) -> SourceMap {
+    let mut source_map = SourceMap::new();
+    if let Some(span) = source_span_for_code_block(doc, input_path, block, 1) {
+        source_map.extend([span]);
     }
-    Ok(output)
+    source_map
+}
+
+fn source_span_for_code_block(
+    doc: &ImplDoc,
+    input_path: &Path,
+    block: &CodeBlock<'_>,
+    generated_start_line: usize,
+) -> Option<SourceSpan> {
+    let line_count = content_line_count(block.content);
+    if line_count == 0 {
+        return None;
+    }
+    Some(SourceSpan {
+        markdown_path: doc.path.clone(),
+        markdown_start_line: block.content_start_line,
+        markdown_end_line: block.content_end_line,
+        generated_path: input_path.to_path_buf(),
+        generated_start_line,
+        generated_end_line: generated_start_line + line_count - 1,
+        output_kind: quality_output_kind(doc, block.fence_index),
+        extension_key: doc.lang.key().to_string(),
+        fence_index: block.fence_index,
+    })
+}
+
+fn quality_output_kind(doc: &ImplDoc, fence_index: usize) -> OutputKind {
+    if doc.test_blocks.iter().any(|block| block.fence_index == fence_index) {
+        OutputKind::Test
+    } else if doc.source_blocks.iter().any(|block| block.fence_index == fence_index) {
+        OutputKind::Source
+    } else {
+        match doc.doc_kind {
+            DocKind::Test => OutputKind::Test,
+            DocKind::Source => OutputKind::Source,
+        }
+    }
+}
+
+fn content_line_count(text: &str) -> usize {
+    text.lines().count()
 }
 
 fn apply_replacements(old: &str, replacements: &[(usize, usize, String)]) -> String {

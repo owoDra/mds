@@ -484,6 +484,14 @@ pub struct PackageMetadata {
     pub dev_dependencies: HashMap<String, String>,
 }
 
+#[derive(Debug, Clone, Eq, PartialEq)]
+pub struct CodeFenceBlock {
+    pub fence_index: usize,
+    pub content_start_line: usize,
+    pub content_end_line: usize,
+    pub content: String,
+}
+
 #[derive(Debug, Clone)]
 pub struct ImplDoc {
     pub doc_kind: DocKind,
@@ -494,6 +502,8 @@ pub struct ImplDoc {
     pub code: String,
     pub source_code: String,
     pub test_code: String,
+    pub source_blocks: Vec<CodeFenceBlock>,
+    pub test_blocks: Vec<CodeFenceBlock>,
     pub covers: Vec<String>,
     pub normalized_input: String,
 }
@@ -510,6 +520,80 @@ impl OutputKind {
             Self::Source => "source",
             Self::Test => "test",
         }
+    }
+}
+
+#[derive(Debug, Clone, Eq, PartialEq)]
+pub struct SourceSpan {
+    pub markdown_path: PathBuf,
+    pub markdown_start_line: usize,
+    pub markdown_end_line: usize,
+    pub generated_path: PathBuf,
+    pub generated_start_line: usize,
+    pub generated_end_line: usize,
+    pub output_kind: OutputKind,
+    pub extension_key: String,
+    pub fence_index: usize,
+}
+
+impl SourceSpan {
+    pub fn contains_markdown_line(&self, line: usize) -> bool {
+        (self.markdown_start_line..=self.markdown_end_line).contains(&line)
+    }
+
+    pub fn contains_generated_line(&self, line: usize) -> bool {
+        (self.generated_start_line..=self.generated_end_line).contains(&line)
+    }
+
+    pub fn markdown_line_for_generated(&self, line: usize) -> Option<usize> {
+        self.contains_generated_line(line)
+            .then_some(self.markdown_start_line + (line - self.generated_start_line))
+    }
+}
+
+#[derive(Debug, Clone, Default, Eq, PartialEq)]
+pub struct SourceMap {
+    pub(crate) spans: Vec<SourceSpan>,
+}
+
+impl SourceMap {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.spans.is_empty()
+    }
+
+    pub fn spans(&self) -> &[SourceSpan] {
+        &self.spans
+    }
+
+    pub fn extend<I>(&mut self, spans: I)
+    where
+        I: IntoIterator<Item = SourceSpan>,
+    {
+        self.spans.extend(spans);
+    }
+
+    pub fn find_markdown(&self, path: &Path, line: usize) -> Option<&SourceSpan> {
+        self.spans
+            .iter()
+            .find(|span| span.markdown_path.as_path() == path && span.contains_markdown_line(line))
+    }
+
+    pub fn find_generated(&self, path: &Path, line: usize) -> Option<&SourceSpan> {
+        self.spans
+            .iter()
+            .find(|span| span.generated_path.as_path() == path && span.contains_generated_line(line))
+    }
+
+    pub fn remap_generated_line(&self, path: &Path, line: usize) -> Option<(&Path, usize)> {
+        let span = self.find_generated(path, line)?;
+        Some((
+            span.markdown_path.as_path(),
+            span.markdown_line_for_generated(line)?,
+        ))
     }
 }
 

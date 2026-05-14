@@ -28,7 +28,11 @@ mds 自身の self-hosting を停止し、Readable Authoring Model、core 言語
 
 - 2026-05-13: Phase 00 を完了し、first-party self-hosting は historical / superseded / cleanup target として扱う方針を architecture、validation、agent guidance、active proposal、team guide、ADR / proposal archive 導線へ反映した。
 - 2026-05-13: Phase 01 を完了し、first-party checked-in Rust source / tests を canonical source/test として固定した。generated header を除去し、repo-facing docs / scripts / release workflow を direct source tree と root Cargo workspace 前提へ更新した。`mds/core/src/runner.rs` の self-hosted mirror 同期は削除済みで、`cargo check --workspace` と `cargo test --workspace` が通る状態を確認した。
-- 次回再開時は Phase 02 から開始し、first-party `.mds` 管理資産と stale self-hosted artifact の物理削除を進める。
+- 2026-05-14: Phase 02 を完了し、first-party `.mds` 資産と self-hosted artifact を削除した。live docs / requirements / patterns / skills / release manifest comment の stale 参照を checked-in source / docs に張り替え、core fixture test で self-hosted mirror 非依存を確認した。
+- 2026-05-14: Phase 03 を完了し、migration promise を live surface から除去した。LSP の legacy rename quick fix を削除し、proposal / diagnostics wording を direct diagnostics framing に揃えたうえで、ユーザーフィードバックに従い `Types` の semantic acceptance を build / config / init / template / LSP から前倒しで除去した。
+- 2026-05-14: Phase 04 を完了し、core build / quality から synthetic import 注入と language-specific syntax lint を除去した。core extractor API と LSP の extractor 依存を外し、`Lang` を built-in variant のない opaque extension key 前提へ縮小した。
+- 2026-05-14: Phase 05 を完了し、parser/model に code fence span 保持を追加した。build planning に `SourceMap` / `SourceSpan` / `GenerationPlan` を導入し、initial mapping を code fence 由来 source/test output に限定したうえで、core quality の path/line remap を SourceMap lookup へ差し替えた。`cargo test -p mds-core --test parser_generation_mvp_test` が 72 tests 成功した。
+- 次回再開時は Phase 06 から開始し、package output config と descriptor 依存の残りを整理する。
 
 ## 全体前提
 

@@ -10,10 +10,12 @@ use mds_core::{AiTarget};
 use mds_core::{BuildMode};
 use mds_core::{CliRequest};
 use mds_core::{Command};
+use mds_core::{GenerationPlan};
 use mds_core::{InitOptions};
 use mds_core::{InitQualityCommands};
 use mds_core::{InitTargetCategories};
 use mds_core::{Lang};
+use mds_core::{OutputKind};
 use mds_core::{PythonTool};
 use mds_core::{RustTool};
 use mds_core::{TypeScriptTool};
@@ -165,6 +167,359 @@ fn build_ignores_code_blocks_outside_source_section() {
     });
     assert_eq!(build.exit_code, 0, "{}", build.stderr);
     assert!(!temp.path().join("pkg/src/foo/spec-only.ts").exists());
+}
+
+#[test]
+fn parse_impl_doc_captures_code_fence_spans_by_section() {
+    let temp = TestDir::new();
+    let package_root = temp.path().join("pkg");
+    fs::create_dir_all(package_root.join("src-md")).unwrap();
+    fs::write(
+        package_root.join("package.json"),
+        "{\"name\":\"span-fixture\",\"version\":\"0.1.0\"}\n",
+    )
+    .unwrap();
+    fs::write(
+        package_root.join("mds.config.toml"),
+        "[package]\nenabled = true\nallow_raw_source = false\n\n[check]\ncode_blocks_required = false\n",
+    )
+    .unwrap();
+
+    let span_doc_path = package_root.join("src-md/span.ts.md");
+    fs::write(
+        &span_doc_path,
+        r#"# Span fixture
+
+## Purpose
+
+Fixture.
+
+## Contract
+
+- Preserve code fence spans.
+
+## Source
+
+```ts
+export const one = 1;
+```
+
+```ts
+export const two = 2;
+```
+
+## Test
+
+```ts
+expect(one).toBe(1);
+```
+
+```ts
+expect(two).toBe(2);
+```
+"#,
+    )
+    .unwrap();
+
+    let table_doc_path = package_root.join("src-md/table.ts.md");
+    fs::write(
+        &table_doc_path,
+        r#"# Table source
+
+## Purpose
+
+Fixture.
+
+## Contract
+
+- Preserve table fallback.
+
+## Source
+
+| Statement |
+| --- |
+| `export const table_value = 1;` |
+
+## Test
+
+```ts
+expect(table_value).toBe(1);
+```
+"#,
+    )
+    .unwrap();
+
+    let mut load_state = mds_core::RunState::default();
+    let package = mds_core::package::load_package(
+        &package_root,
+        &mds_core::Config::default(),
+        &mut load_state,
+    )
+    .unwrap();
+    assert!(load_state.diagnostics.is_empty(), "{:?}", load_state.diagnostics);
+
+    let mut span_state = mds_core::RunState::default();
+    let span_doc = mds_core::markdown::parse_impl_doc(
+        &package,
+        mds_core::DocKind::Source,
+        Lang::Other("ts".to_string()),
+        &span_doc_path,
+        &mut span_state,
+    )
+    .unwrap();
+    assert!(span_state.diagnostics.is_empty(), "{:?}", span_state.diagnostics);
+    assert_eq!(
+        span_doc
+            .source_blocks
+            .iter()
+            .map(|block| (
+                block.fence_index,
+                block.content_start_line,
+                block.content_end_line,
+                block.content.as_str(),
+            ))
+            .collect::<Vec<_>>(),
+        vec![
+            (0, 14, 14, "export const one = 1;"),
+            (1, 18, 18, "export const two = 2;"),
+        ]
+    );
+    assert_eq!(
+        span_doc
+            .test_blocks
+            .iter()
+            .map(|block| (
+                block.fence_index,
+                block.content_start_line,
+                block.content_end_line,
+                block.content.as_str(),
+            ))
+            .collect::<Vec<_>>(),
+        vec![
+            (2, 24, 24, "expect(one).toBe(1);"),
+            (3, 28, 28, "expect(two).toBe(2);"),
+        ]
+    );
+    assert_eq!(
+        span_doc.source_code,
+        "export const one = 1;\n\nexport const two = 2;\n"
+    );
+    assert_eq!(
+        span_doc.test_code,
+        "expect(one).toBe(1);\n\nexpect(two).toBe(2);\n"
+    );
+
+    let mut table_state = mds_core::RunState::default();
+    let table_doc = mds_core::markdown::parse_impl_doc(
+        &package,
+        mds_core::DocKind::Source,
+        Lang::Other("ts".to_string()),
+        &table_doc_path,
+        &mut table_state,
+    )
+    .unwrap();
+    assert!(table_state.diagnostics.is_empty(), "{:?}", table_state.diagnostics);
+    assert!(table_doc.source_blocks.is_empty());
+    assert_eq!(table_doc.source_code, "export const table_value = 1;\n");
+    assert_eq!(
+        table_doc
+            .test_blocks
+            .iter()
+            .map(|block| (
+                block.fence_index,
+                block.content_start_line,
+                block.content_end_line,
+                block.content.as_str(),
+            ))
+            .collect::<Vec<_>>(),
+        vec![(0, 20, 20, "expect(table_value).toBe(1);")]
+    );
+    assert_eq!(table_doc.test_code, "expect(table_value).toBe(1);\n");
+}
+
+#[test]
+fn plan_generation_with_source_map_maps_source_and_test_outputs_from_fences_only() {
+    let temp = TestDir::new();
+    let package_root = temp.path().join("pkg");
+    fs::create_dir_all(package_root.join("src-md/foo")).unwrap();
+    fs::write(
+        package_root.join("package.json"),
+        "{\"name\":\"source-map-fixture\",\"version\":\"0.1.0\"}\n",
+    )
+    .unwrap();
+    fs::write(
+        package_root.join("mds.config.toml"),
+        "[package]\nenabled = true\nallow_raw_source = false\n\n[check]\ncode_blocks_required = false\n",
+    )
+    .unwrap();
+
+    let mapped_doc_path = package_root.join("src-md/foo/source-map.ts.md");
+    fs::write(
+        &mapped_doc_path,
+        r#"# Source map
+
+## Purpose
+
+Fixture.
+
+## Contract
+
+- Preserve source map spans.
+
+## Source
+
+```ts
+export const one = 1;
+```
+
+```ts
+export function two(): number {
+  return one + 1;
+}
+```
+
+## Test
+
+```ts
+expect(two()).toBe(2);
+```
+"#,
+    )
+    .unwrap();
+
+    fs::write(
+        package_root.join("src-md/foo/table-only.ts.md"),
+        r#"# Table only
+
+## Purpose
+
+Fixture.
+
+## Contract
+
+- Keep table-derived output unmapped.
+
+## Source
+
+| Statement |
+| --- |
+| `export const tableOnly = true;` |
+"#,
+    )
+    .unwrap();
+
+    let plan = load_generation_plan(&package_root);
+
+    let source_output_path = package_root.join("src/foo/source-map.ts");
+    let source_first = plan
+        .source_map
+        .find_markdown(&mapped_doc_path, 14)
+        .expect("missing first source span");
+    assert_eq!(source_first.markdown_path, mapped_doc_path);
+    assert_eq!(source_first.markdown_start_line, 14);
+    assert_eq!(source_first.markdown_end_line, 14);
+    assert_eq!(source_first.generated_path, source_output_path);
+    assert_eq!(source_first.generated_start_line, 3);
+    assert_eq!(source_first.generated_end_line, 3);
+    assert_eq!(source_first.output_kind, OutputKind::Source);
+    assert_eq!(source_first.extension_key, "ts");
+    assert_eq!(source_first.fence_index, 0);
+
+    let source_second = plan
+        .source_map
+        .find_generated(&source_output_path, 6)
+        .expect("missing second source span");
+    assert_eq!(source_second.markdown_path, mapped_doc_path);
+    assert_eq!(source_second.markdown_start_line, 18);
+    assert_eq!(source_second.markdown_end_line, 20);
+    assert_eq!(source_second.generated_start_line, 5);
+    assert_eq!(source_second.generated_end_line, 7);
+    assert_eq!(source_second.output_kind, OutputKind::Source);
+    assert_eq!(source_second.extension_key, "ts");
+    assert_eq!(source_second.fence_index, 1);
+
+    let test_output_path = package_root.join("tests/foo/source-map.test.ts");
+    let test_span = plan
+        .source_map
+        .find_generated(&test_output_path, 3)
+        .expect("missing test span");
+    assert_eq!(test_span.markdown_path, mapped_doc_path);
+    assert_eq!(test_span.markdown_start_line, 26);
+    assert_eq!(test_span.markdown_end_line, 26);
+    assert_eq!(test_span.generated_path, test_output_path);
+    assert_eq!(test_span.generated_start_line, 3);
+    assert_eq!(test_span.generated_end_line, 3);
+    assert_eq!(test_span.output_kind, OutputKind::Test);
+    assert_eq!(test_span.extension_key, "ts");
+    assert_eq!(test_span.fence_index, 2);
+
+    let table_output_path = package_root.join("src/foo/table-only.ts");
+    assert!(plan.generated.iter().any(|file| file.path == table_output_path));
+    assert!(plan.source_map.find_generated(&table_output_path, 3).is_none());
+}
+
+#[test]
+fn plan_generation_with_source_map_uses_special_output_path_rules() {
+    let temp = TestDir::new();
+    let package_root = temp.path().join("rust-build-script");
+    fs::create_dir_all(package_root.join("src-md")).unwrap();
+    fs::write(
+        package_root.join("mds.config.toml"),
+        "[package]\nenabled = true\nallow_raw_source = false\n",
+    )
+    .unwrap();
+    fs::write(
+        package_root.join("Cargo.toml"),
+        "[package]\nname = \"rust-build-script\"\nversion = \"0.1.0\"\n",
+    )
+    .unwrap();
+
+    let build_doc_path = package_root.join("src-md/build.rs.md");
+    fs::write(
+        &build_doc_path,
+        r#"# build
+
+## Purpose
+
+Fixture.
+
+## Contract
+
+- Compile.
+
+## Source
+
+```rs
+fn main() {
+    println!("cargo:rerun-if-changed=build.rs");
+}
+```
+"#,
+    )
+    .unwrap();
+
+    let plan = load_generation_plan(&package_root);
+
+    let build_output_path = package_root.join("build.rs");
+    assert!(plan.generated.iter().any(|file| file.path == build_output_path));
+    assert!(!plan
+        .generated
+        .iter()
+        .any(|file| file.path == package_root.join("src/build.rs")));
+
+    let build_span = plan
+        .source_map
+        .find_generated(&build_output_path, 4)
+        .expect("missing build.rs span");
+    assert_eq!(build_span.markdown_path, build_doc_path);
+    assert_eq!(build_span.markdown_start_line, 14);
+    assert_eq!(build_span.markdown_end_line, 16);
+    assert_eq!(build_span.generated_path, build_output_path);
+    assert_eq!(build_span.generated_start_line, 3);
+    assert_eq!(build_span.generated_end_line, 5);
+    assert_eq!(build_span.output_kind, OutputKind::Source);
+    assert_eq!(build_span.extension_key, "rs");
+    assert_eq!(build_span.fence_index, 0);
 }
 
 #[test]
@@ -1070,6 +1425,40 @@ fn lint_reports_markdown_path_and_preserved_line_numbers() {
     assert!(lint.stderr.contains(&format!("{}:9:1", md_path.display())));
     assert!(!lint.stderr.contains(".build/mds/tmp/source.ts"));
     assert!(!temp.path().join("pkg/.build/mds/tmp/source.ts").exists());
+}
+
+#[test]
+fn lint_fix_remaps_second_code_fence_diagnostics_with_source_map() {
+    let temp = TestDir::new();
+    write_fixture(temp.path());
+    let fixer = write_tool(
+        temp.path(),
+        "multifence-fixer",
+        "#!/bin/sh\nif grep -q 'export const bar:' \"$1\"; then\n  printf '%s:1:1: lint failed\\n' \"$1\" >&2\n  exit 1\nfi\nexit 0\n",
+    );
+    fs::write(
+        temp.path().join("pkg/mds.config.toml"),
+        format!(
+            "[package]\nenabled = true\nallow_raw_source = false\n\n[quality.ts]\nfixer = \"{}\"\nrequired = []\noptional = []\n\n[quality.py]\nfixer = false\nrequired = []\noptional = []\n\n[quality.rs]\nfixer = false\nrequired = []\noptional = []\n",
+            fixer.display()
+        ),
+    )
+    .unwrap();
+
+    let lint = execute(CliRequest {
+        cwd: temp.path().to_path_buf(),
+        package: None,
+        verbose: false,
+        command: Command::Lint {
+            fix: true,
+            check: true,
+        },
+    });
+
+    let md_path = temp.path().join("pkg/src-md/foo/bar.ts.md");
+    assert_eq!(lint.exit_code, 1);
+    assert!(lint.stderr.contains(&format!("{}:18:1", md_path.display())));
+    assert!(!lint.stderr.contains(".build/mds/tmp/source.ts"));
 }
 
 #[test]
@@ -2412,6 +2801,26 @@ fn write_tool(root: &Path, name: &str, script: &str) -> PathBuf {
     permissions.set_mode(0o755);
     fs::set_permissions(&path, permissions).unwrap();
     path
+}
+
+fn load_generation_plan(package_root: &Path) -> GenerationPlan {
+    let mut load_state = mds_core::RunState::default();
+    let package = mds_core::package::load_package(
+        package_root,
+        &mds_core::Config::default(),
+        &mut load_state,
+    )
+    .unwrap();
+    assert!(load_state.diagnostics.is_empty(), "{:?}", load_state.diagnostics);
+
+    let mut docs_state = mds_core::RunState::default();
+    let docs = mds_core::markdown::load_implementation_docs(&package, &mut docs_state).unwrap();
+    assert!(docs_state.diagnostics.is_empty(), "{:?}", docs_state.diagnostics);
+
+    let mut plan_state = mds_core::RunState::default();
+    let plan = mds_core::plan_generation_with_source_map(&package, &docs, &mut plan_state);
+    assert!(plan_state.diagnostics.is_empty(), "{:?}", plan_state.diagnostics);
+    plan
 }
 
 fn impl_doc(

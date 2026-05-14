@@ -18,11 +18,13 @@ mod quality;
 mod runner;
 pub mod table;
 
+pub use generation::{plan_generation_with_source_map, GenerationPlan};
 pub use diagnostics::{Diagnostic, RunState, Severity};
 pub use model::{
-    AgentKitCategory, AiTarget, BuildMode, CliRequest, CliResult, Command, Config, DocKind,
+    AgentKitCategory, AiTarget, BuildMode, CliRequest, CliResult, CodeFenceBlock, Command, Config, DocKind,
     DoctorFormat, GeneratedFile, GeneratedKind, ImplDoc, InitOptions, InitQualityCommands,
     InitTargetCategories, LabelPreset, Lang, NewOptions, OutputKind, Package,
-    PackageMetadata, PythonTool, QualityConfig, Roots, RustTool, TypeScriptTool,
+    PackageMetadata, PythonTool, QualityConfig, Roots, RustTool, SourceMap, SourceSpan,
+    TypeScriptTool,
 };
 pub use runner::execute;

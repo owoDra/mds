@@ -7,6 +7,7 @@ use crate::diagnostics::{Diagnostic};
 use crate::diagnostics::{RunState};
 use crate::fs_utils::{collect_files};
 use crate::fs_utils::{is_excluded};
+use crate::model::{CodeFenceBlock};
 use crate::model::{DocKind};
 use crate::model::{DocProfile};
 use crate::model::{ImplDoc};
@@ -116,7 +117,10 @@ pub fn parse_impl_doc(
     );
 
     let sections = sections_with_labels(&text, &package.config.label_overrides);
-    let implementation_code = code_from_section(sections.get("Source"));
+    let section_blocks = code_fence_blocks_by_section(&text, &package.config.label_overrides);
+    let source_blocks = section_blocks.get("Source").cloned().unwrap_or_default();
+    let test_blocks = section_blocks.get("Test").cloned().unwrap_or_default();
+    let implementation_code = code_from_section(sections.get("Source"), &source_blocks);
     let source_code = if matches!(doc_kind, DocKind::Source) {
         implementation_code.clone()
     } else {
@@ -124,13 +128,13 @@ pub fn parse_impl_doc(
     };
     let test_code = if matches!(doc_kind, DocKind::Test) {
         let code = if implementation_code.trim().is_empty() {
-            code_from_section(sections.get("Test"))
+            code_from_section(sections.get("Test"), &test_blocks)
         } else {
             implementation_code
         };
         code
     } else {
-        code_from_section(sections.get("Test"))
+        code_from_section(sections.get("Test"), &test_blocks)
     };
     let covers = covers_from_section(sections.get("Covers"));
 
@@ -170,6 +174,8 @@ pub fn parse_impl_doc(
         code,
         source_code,
         test_code,
+        source_blocks,
+        test_blocks,
         covers,
         normalized_input,
     })
@@ -687,17 +693,87 @@ pub fn extract_all_code_blocks(text: &str) -> String {
     }
 }
 
-fn code_from_section(section: Option<&String>) -> String {
-    section
-        .map(|section| {
-            let blocks = extract_all_code_blocks(section);
-            if !blocks.trim().is_empty() {
-                blocks
+fn code_fence_blocks_by_section(
+    text: &str,
+    label_overrides: &HashMap<String, String>,
+) -> HashMap<String, Vec<CodeFenceBlock>> {
+    let mut result = HashMap::new();
+    let mut current_section: Option<String> = None;
+    let mut fence_len: Option<usize> = None;
+    let mut next_fence_index = 0usize;
+    let mut current_fence_index = 0usize;
+    let mut current_content = String::new();
+    let mut current_content_start_line = 1usize;
+    let mut current_content_end_line = 1usize;
+    let mut line_number = 1usize;
+
+    for line in text.lines() {
+        if let Some((marker_len, suffix)) = backtick_fence(line) {
+            if let Some(open_len) = fence_len {
+                if is_closing_fence(marker_len, suffix, open_len) {
+                    if let Some(section) = current_section.as_ref() {
+                        result
+                            .entry(section.clone())
+                            .or_insert_with(Vec::new)
+                            .push(CodeFenceBlock {
+                                fence_index: current_fence_index,
+                                content_start_line: current_content_start_line,
+                                content_end_line: current_content_end_line,
+                                content: current_content.trim_end_matches(['\r', '\n']).to_string(),
+                            });
+                    }
+                    current_content.clear();
+                    fence_len = None;
+                } else {
+                    current_content.push_str(line);
+                    current_content.push('\n');
+                    current_content_end_line = line_number;
+                }
             } else {
-                code_from_table(section)
+                fence_len = Some(marker_len);
+                current_fence_index = next_fence_index;
+                next_fence_index += 1;
+                current_content.clear();
+                current_content_start_line = line_number + 1;
+                current_content_end_line = current_content_start_line;
             }
-        })
-        .unwrap_or_default()
+            line_number += 1;
+            continue;
+        }
+
+        if fence_len.is_none() && line.starts_with("## ") {
+            let title = line.strip_prefix("## ").unwrap();
+            current_section = Some(canonical_section_title(title.trim(), label_overrides));
+        } else if fence_len.is_some() {
+            current_content.push_str(line);
+            current_content.push('\n');
+            current_content_end_line = line_number;
+        }
+        line_number += 1;
+    }
+
+    result
+}
+
+fn code_from_fence_blocks(blocks: &[CodeFenceBlock]) -> String {
+    if blocks.is_empty() {
+        String::new()
+    } else {
+        blocks
+            .iter()
+            .map(|block| block.content.as_str())
+            .collect::<Vec<_>>()
+            .join("\n\n")
+            + "\n"
+    }
+}
+
+fn code_from_section(section: Option<&String>, blocks: &[CodeFenceBlock]) -> String {
+    if !blocks.is_empty() {
+        code_from_fence_blocks(blocks)
+    } else {
+        section.map(|section| code_from_table(section)).unwrap_or_default()
+    }
 }
 
 fn code_from_table(section: &str) -> String {
