@@ -129,7 +129,7 @@ fn merges_root_and_package_config() {
     write_fixture(temp.path());
     fs::write(
         temp.path().join("mds.config.toml"),
-        "[roots]\nsource = \"generated\"\ntypes = \"generated\"\n",
+        "[roots]\nsource = \"generated\"\n",
     )
     .unwrap();
 
@@ -143,6 +143,28 @@ fn merges_root_and_package_config() {
     });
     assert_eq!(build.exit_code, 0, "{}", build.stderr);
     assert!(temp.path().join("pkg/generated/foo/bar.ts").exists());
+}
+
+#[test]
+fn build_ignores_code_blocks_outside_source_section() {
+    let temp = TestDir::new();
+    write_fixture(temp.path());
+    fs::write(
+        temp.path().join("pkg/src-md/foo/spec-only.ts.md"),
+        "# Spec only\n\n## Purpose\n\nDocument planned behavior without generated source.\n\n## Contract\n\n- Keep the feature in spec state.\n\n## Cases\n\n```ts\nexport const planned = true;\n```\n",
+    )
+    .unwrap();
+
+    let build = execute(CliRequest {
+        cwd: temp.path().to_path_buf(),
+        package: None,
+        verbose: false,
+        command: Command::Build {
+            mode: BuildMode::Write,
+        },
+    });
+    assert_eq!(build.exit_code, 0, "{}", build.stderr);
+    assert!(!temp.path().join("pkg/src/foo/spec-only.ts").exists());
 }
 
 #[test]
@@ -729,7 +751,7 @@ fn rejects_broken_manifest_before_building() {
 }
 
 #[test]
-fn builds_types_and_test_outputs_from_fixed_authoring_roots() {
+fn builds_source_and_test_outputs_from_fixed_authoring_roots() {
     let temp = TestDir::new();
     let package = temp.path().join("pkg");
     fs::create_dir_all(package.join(".mds/source/foo")).unwrap();
@@ -1127,13 +1149,12 @@ fn label_overrides_preserve_canonical_table_and_section_meaning() {
     write_fixture(temp.path());
     fs::write(
         temp.path().join("pkg/mds.config.toml"),
-        "[package]\nenabled = true\nallow_raw_source = false\n\n[labels]\ntypes = \"Type Definitions\"\nfrom = \"Origin\"\ntarget = \"Module\"\nexpose = \"Symbols\"\nsummary = \"Notes\"\n",
+        "[package]\nenabled = true\nallow_raw_source = false\n\n[labels]\nfrom = \"Origin\"\ntarget = \"Module\"\nexpose = \"Symbols\"\nsummary = \"Notes\"\n",
     )
     .unwrap();
     let doc = temp.path().join("pkg/src-md/foo/bar.ts.md");
     let text = fs::read_to_string(&doc)
         .unwrap()
-        .replace("## Types", "## Type Definitions")
         .replace(
             "| From | Target | Expose | Summary |\n| --- | --- | --- | --- |\n| internal | foo/util | Util | helper |",
             "| Origin | Module | Symbols | Notes |\n| --- | --- | --- | --- |\n| internal | foo/util | Util | helper |",
@@ -1147,6 +1168,26 @@ fn label_overrides_preserve_canonical_table_and_section_meaning() {
         command: Command::Lint { fix: false, check: false },
     });
     assert_eq!(check.exit_code, 0, "{}", check.stderr);
+}
+
+#[test]
+fn rejects_types_label_override() {
+    let temp = TestDir::new();
+    write_fixture(temp.path());
+    fs::write(
+        temp.path().join("pkg/mds.config.toml"),
+        "[package]\nenabled = true\nallow_raw_source = false\n\n[labels]\ntypes = \"Type Definitions\"\n",
+    )
+    .unwrap();
+
+    let check = execute(CliRequest {
+        cwd: temp.path().to_path_buf(),
+        package: None,
+        verbose: false,
+        command: Command::Lint { fix: false, check: false },
+    });
+    assert_eq!(check.exit_code, 1);
+    assert!(check.stderr.contains("unsupported label override `types`"));
 }
 
 #[test]

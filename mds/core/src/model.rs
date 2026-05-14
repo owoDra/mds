@@ -101,7 +101,6 @@ impl LabelPreset {
             Self::Japanese => &[
                 ("purpose", "目的"),
                 ("contract", "契約"),
-                ("types", "型定義"),
                 ("source", "実装"),
                 ("cases", "ケース"),
                 ("test", "テスト"),
@@ -394,7 +393,6 @@ impl Lang {
 pub struct Roots {
     pub markdown: PathBuf,
     pub source: PathBuf,
-    pub types: PathBuf,
     pub test: PathBuf,
 }
 
@@ -403,7 +401,6 @@ impl Default for Roots {
         Self {
             markdown: PathBuf::from("src-md"),
             source: PathBuf::from("src"),
-            types: PathBuf::from("src"),
             test: PathBuf::from("tests"),
         }
     }
@@ -506,7 +503,6 @@ pub struct ImplDoc {
     pub package_relative_path: PathBuf,
     pub markdown_relative_path: PathBuf,
     pub code: String,
-    pub types_code: String,
     pub source_code: String,
     pub test_code: String,
     pub covers: Vec<String>,
@@ -516,7 +512,6 @@ pub struct ImplDoc {
 #[derive(Debug, Clone, Copy, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum OutputKind {
     Source,
-    Types,
     Test,
 }
 
@@ -524,7 +519,6 @@ impl OutputKind {
     pub fn manifest_kind(self) -> &'static str {
         match self {
             Self::Source => "source",
-            Self::Types => "types",
             Self::Test => "test",
         }
     }

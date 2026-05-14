@@ -22,7 +22,6 @@ mod package_manager_registry {
 pub(crate) enum OutputRoot {
     Package,
     Source,
-    Types,
     Test,
 }
 
@@ -132,7 +131,6 @@ pub(crate) struct LanguageSection {
 #[derive(Debug, Clone, Deserialize)]
 pub(crate) struct FileRules {
     pub source: FileRule,
-    pub types: FileRule,
     pub test: FileRule,
 }
 
@@ -273,7 +271,6 @@ impl Descriptor {
     pub fn file_rule(&self, kind: OutputKind) -> &FileRule {
         match kind {
             OutputKind::Source => &self.files.source,
-            OutputKind::Types => &self.files.types,
             OutputKind::Test => &self.files.test,
         }
     }
@@ -761,11 +758,9 @@ impl SpecialFileRule {
         match self.root.as_deref() {
             Some("package") => OutputRoot::Package,
             Some("source") => OutputRoot::Source,
-            Some("types") => OutputRoot::Types,
             Some("test") => OutputRoot::Test,
             _ => match kind {
                 OutputKind::Source => OutputRoot::Source,
-                OutputKind::Types => OutputRoot::Types,
                 OutputKind::Test => OutputRoot::Test,
             },
         }
@@ -1195,7 +1190,6 @@ pub(crate) fn output_root(relative: &Path, lang: &Lang, kind: OutputKind) -> Out
     }
     match kind {
         OutputKind::Source => OutputRoot::Source,
-        OutputKind::Types => OutputRoot::Types,
         OutputKind::Test => OutputRoot::Test,
     }
 }

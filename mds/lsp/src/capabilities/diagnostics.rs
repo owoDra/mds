@@ -67,12 +67,6 @@ fn validate_documented_source(
     }
     validate_export_documentation(path, text, sections, state);
     validate_import_documentation(path, sections, state);
-    if sections.contains_key("Types") {
-        state.diagnostics.push(mds_core::Diagnostic::error(
-            Some(path.to_path_buf()),
-            "## Types is deprecated; move type definitions into ## Source",
-        ));
-    }
 }
 
 fn has_generated_source(sections: &std::collections::HashMap<String, String>) -> bool {

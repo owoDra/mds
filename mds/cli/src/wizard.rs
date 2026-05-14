@@ -176,8 +176,8 @@ impl WizardState {
                     label: "English".into(),
                     description: localized(
                         japanese,
-                        "Use English section labels such as Purpose, Types, Source, and Test.",
-                        "Purpose、Types、Source、Test などの英語ラベルを使います。",
+                        "Use English section labels such as Purpose, Contract, Source, and Test.",
+                        "Purpose、Contract、Source、Test などの英語ラベルを使います。",
                     )
                     .into(),
                     selected: self.label_preset == LabelPreset::English,
@@ -186,8 +186,8 @@ impl WizardState {
                     label: "日本語".into(),
                     description: localized(
                         japanese,
-                        "Use Japanese section labels such as 目的, 型定義, 実装, and テスト.",
-                        "目的、型定義、実装、テスト などの日本語ラベルを使います。",
+                        "Use Japanese section labels such as 目的, 契約, 実装, and テスト.",
+                        "目的、契約、実装、テスト などの日本語ラベルを使います。",
                     )
                     .into(),
                     selected: self.label_preset == LabelPreset::Japanese,

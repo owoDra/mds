@@ -1,6 +1,8 @@
 use tower_lsp::lsp_types::{*};
 use mds_lsp::capabilities::code_action::{provide_code_actions};
 use mds_lsp::capabilities::completion::{provide_completions};
+use mds_lsp::capabilities::diagnostics::{validate_impl_md_text};
+use mds_lsp::capabilities::hover::{provide_hover};
 use mds_lsp::capabilities::navigation::{goto_definition};
 use mds_lsp::capabilities::symbols::{document_symbols};
 use mds_lsp::convert::{line_at};
@@ -101,6 +103,56 @@ fn test_h5_completion_on_heading_prefix() {
 }
 
 #[test]
+fn test_types_heading_has_no_special_hover_affordance() {
+    let hover = provide_hover(
+        "## Types",
+        Position {
+            line: 0,
+            character: 3,
+        },
+        std::path::Path::new("/test/example.ts.md"),
+        &WorkspaceState::default(),
+    );
+    assert!(hover.is_none());
+}
+
+#[test]
+fn test_impl_diagnostics_do_not_emit_legacy_types_message() {
+    let text = r#"## Purpose
+
+A module.
+
+## Contract
+
+Stable contract.
+
+## Types
+
+```ts
+export type Greeting = string;
+```
+
+## Source
+
+```ts
+export const greet = (): Greeting => 'hi';
+```
+"#;
+
+    let diagnostics = validate_impl_md_text(
+        std::path::Path::new("/test/example.ts.md"),
+        text,
+        &Config::default(),
+    );
+    assert!(
+        diagnostics
+            .iter()
+            .all(|diagnostic| !diagnostic.message.contains("legacy section")),
+        "unexpected diagnostics: {diagnostics:?}"
+    );
+}
+
+#[test]
 fn test_code_block_language_completion() {
     let text = "```";
     let position = Position {
@@ -184,7 +236,6 @@ fn test_code_import_definition_resolves_source_markdown() {
         package_relative_path: std::path::PathBuf::from(".mds/source/app/greet.ts.md"),
         markdown_relative_path: std::path::PathBuf::from("app/greet.ts.md"),
         code: String::new(),
-        types_code: String::new(),
         source_code: "import { normalizeDisplayName } from './text/normalize';\n".to_string(),
         test_code: String::new(),
         covers: Vec::new(),

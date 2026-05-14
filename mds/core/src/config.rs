@@ -105,9 +105,6 @@ pub fn merge_config_file(config: &mut Config, path: &Path, state: &mut RunState)
                 "source" => {
                     config.roots.source = PathBuf::from(string_value(value, path, key, state))
                 }
-                "types" => {
-                    config.roots.types = PathBuf::from(string_value(value, path, key, state))
-                }
                 "test" => config.roots.test = PathBuf::from(string_value(value, path, key, state)),
                 "exclude" | "excludes" => {
                     config.excludes = string_array_value(value, path, key, state)
@@ -258,7 +255,6 @@ fn is_supported_label(key: &str) -> bool {
         key,
         "purpose"
             | "contract"
-            | "types"
             | "source"
             | "cases"
             | "test"

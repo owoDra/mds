@@ -47,7 +47,6 @@ fn hover_section(title: &str) -> Option<Hover> {
         "Contract" | "契約" => "**Contract**: Public API contract and invariants.\n\nDefine the guarantees this module provides.",
         "Imports" | "依存" => "**Imports**: Dependency metadata.\n\nRecord imports outside code blocks using From, Target, Symbols, Via, Summary, and Reference columns.",
         "Exports" | "公開" | "Expose" | "Exposes" | "公開面" => "**Exports**: Public exports.\n\nDefines the module's public surface and shared definitions.",
-        "Types" | "型定義" => "**Types**: Deprecated section.\n\nMove type definitions into `Source`.",
         "Source" | "実装" => "**Source**: Implementation section.\n\nContains code blocks with the main implementation.",
         "Cases" | "ケース" => "**Cases**: Use cases and examples.\n\nDescribe how this module is used.",
         "Test" | "テスト" => "**Test**: Test section.\n\nContains code blocks with test code.",

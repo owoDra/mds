@@ -49,11 +49,7 @@ fn plan_outputs(package: &Package, doc: &ImplDoc, state: &mut RunState) -> Vec<G
 
 fn source_body(doc: &ImplDoc) -> &str {
     if matches!(doc.doc_kind, DocKind::Source) {
-        if doc.source_code.trim().is_empty() {
-            doc.code.as_str()
-        } else {
-            doc.source_code.as_str()
-        }
+        doc.source_code.as_str()
     } else {
         ""
     }
@@ -148,10 +144,6 @@ pub(crate) fn plan_output(
         OutputRoot::Source => package
             .root
             .join(&package.config.roots.source)
-            .join(relative),
-        OutputRoot::Types => package
-            .root
-            .join(&package.config.roots.types)
             .join(relative),
         OutputRoot::Test => package.root.join(&package.config.roots.test).join(relative),
     };

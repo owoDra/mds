@@ -77,7 +77,7 @@ Document source md as both specification and implementation source:
 - `## {{CONTRACT}}` — Behavior guarantees (documentation only)
 - `## {{SOURCE}}` — Implementation code blocks
 - `## {{CASES}}` — Example behaviors (documentation only)
-- Source md without generated `{{TYPES}}` / `{{SOURCE}}` code is spec state; adding generated code makes it impl state
+- Source md without generated `{{SOURCE}}` code is spec state; adding generated code makes it impl state
 - `{{EXPORTS}}.{{SUMMARY}}` must describe the public definition; do not use `-`
 - Exported definitions referenced by other files need matching H5 shared definitions with prose
 

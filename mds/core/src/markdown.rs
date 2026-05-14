@@ -177,7 +177,6 @@ pub fn parse_impl_doc(
         package_relative_path,
         markdown_relative_path,
         code,
-        types_code: String::new(),
         source_code,
         test_code,
         covers,
@@ -247,12 +246,6 @@ fn validate_documented_sections(
                 ));
             }
         }
-    }
-    if sections.contains_key("Types") {
-        state.diagnostics.push(Diagnostic::error(
-            Some(path.to_path_buf()),
-            "## Types is deprecated; move type definitions into ## Source",
-        ));
     }
 }
 
