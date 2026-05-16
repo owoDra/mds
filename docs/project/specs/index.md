@@ -31,4 +31,8 @@
 ## 参照
 
 - `shared/index.md`: 複数 subproject にまたがる共有仕様の入口
-- 現在は subproject 固有仕様なし: 追加時は `<subproject>/index.md` と個票を作成する
+- `mds-core/index.md`: `mds-core` 固有仕様の入口
+- `mds-cli/index.md`: `mds-cli` 固有仕様の入口
+- `mds-lsp/index.md`: `mds-lsp` 固有仕様の入口
+- `vscode-extension/index.md`: VS Code 拡張固有仕様の入口
+- `examples/index.md`: examples 固有仕様の入口

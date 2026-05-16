@@ -27,4 +27,4 @@
 
 ## 参照
 
-- 現在は個票なし: 追加時は `<team>-guide.md` を置く
+- `platform-guide.md`: `platform` チームの役割とルール

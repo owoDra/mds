@@ -27,4 +27,4 @@
 
 ## 参照
 
-- 現在は個票なし: 追加時は `<integration>.md` を置く
+- `github-distribution.md`: GitHub Releases / raw install script による配布経路
