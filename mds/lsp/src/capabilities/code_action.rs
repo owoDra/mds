@@ -1,14 +1,28 @@
-use crate::labels::{resolve_label};
-use mds_core::markdown::{sections_with_labels};
-use mds_core::model::{Config};
-use tower_lsp::lsp_types::{*};
-pub fn provide_code_actions(uri: &Url, text: &str, config: &Config) -> CodeActionResponse {
-    let mut actions = Vec::new();
+use std::path::Path;
 
-    let sections = sections_with_labels(text, &config.label_overrides);
-    let required_sections = [
-        "Purpose", "Contract", "Exports", "Imports", "Source", "Cases", "Test",
-    ];
+use crate::capabilities::authoring;
+use crate::labels::{resolve_label};
+use crate::state::WorkspaceState;
+use mds_core::descriptor::lang_for_markdown_path;
+use mds_core::model::{Config, DocKind};
+use tower_lsp::lsp_types::{*};
+
+pub fn provide_code_actions(uri: &Url, text: &str, config: &Config) -> CodeActionResponse {
+    provide_code_actions_with_state(uri, text, config, None)
+}
+
+pub fn provide_code_actions_with_state(
+    uri: &Url,
+    text: &str,
+    config: &Config,
+    workspace_state: Option<&WorkspaceState>,
+) -> CodeActionResponse {
+    let mut actions = Vec::new();
+    let path = uri.to_file_path().ok();
+    let doc_kind = authoring::doc_kind_for_path(path.as_deref(), config, workspace_state);
+
+    let sections = authoring::sections_with_labels_for_doc(text, &config.label_overrides, doc_kind);
+    let required_sections = required_sections(doc_kind);
     let missing: Vec<&str> = required_sections
         .iter()
         .copied()
@@ -25,7 +39,7 @@ pub fn provide_code_actions(uri: &Url, text: &str, config: &Config) -> CodeActio
         new_text.push('\n');
 
         for section in &missing {
-            append_section(&mut new_text, section, config);
+            append_section(&mut new_text, section, config, path.as_deref());
         }
 
         actions.push(insert_action(
@@ -41,7 +55,7 @@ pub fn provide_code_actions(uri: &Url, text: &str, config: &Config) -> CodeActio
                 section_text.push('\n');
             }
             section_text.push('\n');
-            append_section(&mut section_text, section, config);
+            append_section(&mut section_text, section, config, path.as_deref());
             actions.push(insert_action(
                 uri,
                 line_count,
@@ -54,7 +68,14 @@ pub fn provide_code_actions(uri: &Url, text: &str, config: &Config) -> CodeActio
     actions
 }
 
-fn append_section(buffer: &mut String, section: &str, config: &Config) {
+fn required_sections(doc_kind: DocKind) -> &'static [&'static str] {
+    match doc_kind {
+        DocKind::Source => &["Purpose", "Contract", "Source"],
+        DocKind::Test => &["Purpose", "Covers", "Cases", "Test"],
+    }
+}
+
+fn append_section(buffer: &mut String, section: &str, config: &Config, path: Option<&Path>) {
     let label = resolve_label(&section.to_lowercase(), config);
     buffer.push_str(&format!("## {label}\n\n"));
 
@@ -62,34 +83,23 @@ fn append_section(buffer: &mut String, section: &str, config: &Config) {
         "Purpose" | "Contract" | "Cases" => {
             buffer.push_str("<!-- TODO: fill in -->\n\n");
         }
-        "Exports" => {
-            let name_label = resolve_label("name", config);
-            let visibility_label = resolve_label("visibility", config);
-            let summary_label = resolve_label("summary", config);
-            buffer.push_str(&format!(
-                "| {name_label} | {visibility_label} | {summary_label} |\n\
-                 | --- | --- | --- |\n\n\
-                 ##### symbolName\n\n<!-- TODO: describe shared symbol -->\n\n"
-            ));
-        }
-        "Imports" => {
-            let from_label = resolve_label("from", config);
-            let target_label = resolve_label("target", config);
-            let symbols_label = resolve_label("symbols", config);
-            let via_label = resolve_label("via", config);
-            let summary_label = resolve_label("summary", config);
-            let reference_label = resolve_label("reference", config);
-            buffer.push_str(&format!(
-                "| {from_label} | {target_label} | {symbols_label} | {via_label} | {summary_label} | {reference_label} |\n\
-                 | --- | --- | --- | --- | --- | --- |\n\n"
-            ));
+        "Covers" => {
+            buffer.push_str("<!-- TODO: add covered module wiki links -->\n\n");
         }
         "Source" | "Test" => {
-            buffer.push_str("```\n// TODO: implementation\n```\n\n");
+            append_code_block(buffer, path);
         }
         _ => {
             buffer.push_str("<!-- TODO: fill in -->\n\n");
         }
+    }
+}
+
+fn append_code_block(buffer: &mut String, path: Option<&Path>) {
+    if let Some(lang) = path.and_then(lang_for_markdown_path) {
+        buffer.push_str(&format!("```{}\n\n```\n\n", lang.key()));
+    } else {
+        buffer.push_str("```\n\n```\n\n");
     }
 }
 

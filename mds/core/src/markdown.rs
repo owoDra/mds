@@ -1,4 +1,4 @@
-use std::collections::{HashMap};
+use std::collections::{HashMap, HashSet};
 use std::{fs};
 use std::path::{Path};
 use std::path::{PathBuf};
@@ -7,6 +7,7 @@ use crate::diagnostics::{Diagnostic};
 use crate::diagnostics::{RunState};
 use crate::fs_utils::{collect_files};
 use crate::fs_utils::{is_excluded};
+use crate::model::{CheckDiagnosticPolicy};
 use crate::model::{CodeFenceBlock};
 use crate::model::{DocKind};
 use crate::model::{DocProfile};
@@ -46,6 +47,7 @@ pub fn load_implementation_docs(
         }
     }
     docs.extend(load_test_docs(package, &docs, state)?);
+    validate_package_wikilinks(package, &docs, state);
     docs.sort_by(|left, right| left.path.cmp(&right.path));
     Ok(docs)
 }
@@ -99,6 +101,7 @@ pub fn parse_impl_doc(
     };
     validate_impl_doc_structure(
         path,
+        doc_kind,
         &text,
         &package.config.label_overrides,
         &package.config.check,
@@ -116,25 +119,46 @@ pub fn parse_impl_doc(
         state,
     );
 
-    let sections = sections_with_labels(&text, &package.config.label_overrides);
-    let section_blocks = code_fence_blocks_by_section(&text, &package.config.label_overrides);
+    let sections = sections_with_labels_for_doc(&text, &package.config.label_overrides, doc_kind);
+    let section_blocks = code_fence_blocks_by_section_for_doc(
+        &text,
+        &package.config.label_overrides,
+        doc_kind,
+    );
     let source_blocks = section_blocks.get("Source").cloned().unwrap_or_default();
     let test_blocks = section_blocks.get("Test").cloned().unwrap_or_default();
-    let implementation_code = code_from_section(sections.get("Source"), &source_blocks);
+    validate_legacy_table_sections(path, &sections, &package.config.check, state);
+    validate_split_source_and_test(
+        path,
+        doc_kind,
+        sections.get("Source"),
+        &source_blocks,
+        sections.get("Test"),
+        &test_blocks,
+        &package.config.check,
+        state,
+    );
     let source_code = if matches!(doc_kind, DocKind::Source) {
-        implementation_code.clone()
+        generated_code_for_doc(
+            doc_kind,
+            sections.get("Source"),
+            &source_blocks,
+            &section_blocks,
+            &package.config.check,
+        )
     } else {
         String::new()
     };
     let test_code = if matches!(doc_kind, DocKind::Test) {
-        let code = if implementation_code.trim().is_empty() {
-            code_from_section(sections.get("Test"), &test_blocks)
-        } else {
-            implementation_code
-        };
-        code
+        generated_code_for_doc(
+            doc_kind,
+            sections.get("Test"),
+            &test_blocks,
+            &section_blocks,
+            &package.config.check,
+        )
     } else {
-        code_from_section(sections.get("Test"), &test_blocks)
+        String::new()
     };
     let covers = covers_from_section(sections.get("Covers"));
 
@@ -212,6 +236,109 @@ fn doc_profile(
 
 fn requires_code_block(profile: DocProfile) -> bool {
     matches!(profile, DocProfile::Impl | DocProfile::Test)
+}
+
+fn validate_legacy_table_sections(
+    path: &Path,
+    sections: &HashMap<String, String>,
+    check: &crate::model::CheckConfig,
+    state: &mut RunState,
+) {
+    for section_name in ["Imports", "Exports"] {
+        let Some(section) = sections.get(section_name) else {
+            continue;
+        };
+        if !contains_markdown_table(section) {
+            continue;
+        }
+        push_policy_diagnostic(
+            check.legacy_tables,
+            path,
+            format!("legacy table metadata in ## {section_name} is deprecated"),
+            state,
+        );
+    }
+}
+
+fn validate_split_source_and_test(
+    path: &Path,
+    doc_kind: DocKind,
+    source_section: Option<&String>,
+    source_blocks: &[CodeFenceBlock],
+    test_section: Option<&String>,
+    test_blocks: &[CodeFenceBlock],
+    check: &crate::model::CheckConfig,
+    state: &mut RunState,
+) {
+    if !check.split_source_and_test {
+        return;
+    }
+
+    match doc_kind {
+        DocKind::Source if section_has_generated_code(test_section, test_blocks) => {
+            state.diagnostics.push(Diagnostic::error(
+                Some(path.to_path_buf()),
+                "source md must not contain generated test code in ## Test",
+            ));
+        }
+        DocKind::Test if section_has_generated_code(source_section, source_blocks) => {
+            state.diagnostics.push(Diagnostic::error(
+                Some(path.to_path_buf()),
+                "test md must not contain generated source code in ## Source",
+            ));
+        }
+        _ => {}
+    }
+}
+
+fn section_has_generated_code(section: Option<&String>, blocks: &[CodeFenceBlock]) -> bool {
+    !code_from_section(section, blocks).trim().is_empty()
+}
+
+fn generated_code_for_doc(
+    doc_kind: DocKind,
+    canonical_section: Option<&String>,
+    canonical_blocks: &[CodeFenceBlock],
+    section_blocks: &HashMap<String, Vec<CodeFenceBlock>>,
+    check: &crate::model::CheckConfig,
+) -> String {
+    let canonical_code = code_from_section(canonical_section, canonical_blocks);
+    if check.implementation_section_only {
+        return canonical_code;
+    }
+
+    let extra_blocks = noncanonical_output_blocks(doc_kind, section_blocks);
+    let extra_code = code_from_fence_blocks(&extra_blocks);
+    join_code_segments([canonical_code, extra_code])
+}
+
+fn noncanonical_output_blocks(
+    doc_kind: DocKind,
+    section_blocks: &HashMap<String, Vec<CodeFenceBlock>>,
+) -> Vec<CodeFenceBlock> {
+    let mut blocks = section_blocks
+        .iter()
+        .filter(|(section, _)| match doc_kind {
+            DocKind::Source => section.as_str() != "Source" && section.as_str() != "Test",
+            DocKind::Test => section.as_str() != "Test" && section.as_str() != "Source",
+        })
+        .flat_map(|(_, blocks)| blocks.iter().cloned())
+        .collect::<Vec<_>>();
+    blocks.sort_by_key(|block| block.fence_index);
+    blocks
+}
+
+fn join_code_segments<const N: usize>(segments: [String; N]) -> String {
+    let segments = segments
+        .into_iter()
+        .map(|segment| segment.trim_end_matches('\n').to_string())
+        .filter(|segment| !segment.trim().is_empty())
+        .collect::<Vec<_>>();
+    if segments.is_empty() {
+        String::new()
+    } else {
+        segments.join("\n\n") + "\n"
+    }
 }
 
 fn validate_documented_sections(
@@ -454,6 +581,232 @@ fn markdown_root_for(package: &Package, doc_kind: DocKind) -> PathBuf {
     }
 }
 
+#[derive(Debug, Default)]
+struct ModuleReferenceIndex {
+    symbols: HashSet<String>,
+}
+
+fn validate_package_wikilinks(package: &Package, docs: &[ImplDoc], state: &mut RunState) {
+    let module_index = build_module_reference_index(package, docs, state);
+    for doc in docs {
+        let text = match fs::read_to_string(&doc.path) {
+            Ok(text) => text,
+            Err(error) => {
+                state.diagnostics.push(Diagnostic::error(
+                    Some(doc.path.clone()),
+                    format!("failed to read implementation md: {error}"),
+                ));
+                continue;
+            }
+        };
+        let link_text = text_without_code_blocks(&text);
+        let mut seen = HashSet::new();
+        for target in wikilinks(&link_text) {
+            let target = wiki_link_target(&target);
+            if !seen.insert(target.clone()) {
+                continue;
+            }
+            if matches!(doc.doc_kind, DocKind::Test)
+                && !target.contains('#')
+                && doc
+                    .covers
+                    .iter()
+                    .any(|cover| wiki_link_target(cover.trim()) == target)
+            {
+                continue;
+            }
+            validate_package_wikilink_target(
+                &doc.path,
+                &target,
+                &module_index,
+                &package.config.check,
+                state,
+            );
+        }
+    }
+}
+
+fn build_module_reference_index(
+    package: &Package,
+    docs: &[ImplDoc],
+    state: &mut RunState,
+) -> HashMap<String, Vec<ModuleReferenceIndex>> {
+    let mut module_index = HashMap::new();
+    for doc in docs {
+        let text = match fs::read_to_string(&doc.path) {
+            Ok(text) => text,
+            Err(error) => {
+                state.diagnostics.push(Diagnostic::error(
+                    Some(doc.path.clone()),
+                    format!("failed to read implementation md: {error}"),
+                ));
+                continue;
+            }
+        };
+        let symbols = documented_symbols(&text, &package.config.label_overrides);
+        module_index
+            .entry(logical_module_id(&doc.markdown_relative_path))
+            .or_insert_with(Vec::new)
+            .push(ModuleReferenceIndex { symbols });
+    }
+    module_index
+}
+
+fn validate_package_wikilink_target(
+    path: &Path,
+    target: &str,
+    module_index: &HashMap<String, Vec<ModuleReferenceIndex>>,
+    check: &crate::model::CheckConfig,
+    state: &mut RunState,
+) {
+    let Some((module_id, symbol)) = target.split_once('#') else {
+        match module_index.get(target).map(Vec::as_slice) {
+            Some([_]) => {}
+            Some([]) | None => state.diagnostics.push(Diagnostic::error(
+                Some(path.to_path_buf()),
+                format!("wiki link target `[[{target}]]` does not resolve to a module"),
+            )),
+            Some(_) => state.diagnostics.push(Diagnostic::error(
+                Some(path.to_path_buf()),
+                format!("wiki link target `[[{target}]]` resolves ambiguously"),
+            )),
+        }
+        return;
+    };
+
+    let symbol = symbol.trim();
+    let symbol_resolves = module_index
+        .get(module_id)
+        .and_then(|entries| match entries.as_slice() {
+            [entry] => Some(symbol_matches(&entry.symbols, symbol)),
+            _ => None,
+        })
+        .unwrap_or(false);
+    if symbol_resolves {
+        return;
+    }
+
+    push_policy_diagnostic(
+        check.unresolved_module_symbols,
+        path,
+        format!(
+            "wiki link target `[[{module_id}#{symbol}]]` does not resolve to a documented symbol"
+        ),
+        state,
+    );
+}
+
+fn symbol_matches(symbols: &HashSet<String>, symbol: &str) -> bool {
+    symbols.contains(symbol) || symbols.contains(&slugify_heading(symbol))
+}
+
+fn documented_symbols(
+    text: &str,
+    label_overrides: &HashMap<String, String>,
+) -> HashSet<String> {
+    let mut symbols = HashSet::new();
+    for heading in h5_symbol_headings(text) {
+        insert_symbol_variants(&mut symbols, &heading);
+    }
+
+    let sections = sections_with_labels(text, label_overrides);
+    if let Some(section) = sections.get("Exports") {
+        if let Some(rows) = table_rows(section) {
+            for row in rows {
+                if let Some(name) = row.get("name") {
+                    insert_symbol_variants(&mut symbols, name);
+                }
+            }
+        }
+    }
+
+    for code_span in inline_code_spans(&text_without_code_blocks(text)) {
+        insert_symbol_variants(&mut symbols, &code_span);
+    }
+
+    symbols
+}
+
+fn h5_symbol_headings(text: &str) -> Vec<String> {
+    let mut headings = Vec::new();
+    let mut fence_len: Option<usize> = None;
+    for line in text.lines() {
+        if let Some((marker_len, suffix)) = backtick_fence(line) {
+            if let Some(open_len) = fence_len {
+                if is_closing_fence(marker_len, suffix, open_len) {
+                    fence_len = None;
+                }
+            } else {
+                fence_len = Some(marker_len);
+            }
+            continue;
+        }
+        if fence_len.is_none() {
+            if let Some(title) = line.strip_prefix("##### ") {
+                let title = title.trim();
+                if !title.is_empty() {
+                    headings.push(title.to_string());
+                }
+            }
+        }
+    }
+    headings
+}
+
+fn inline_code_spans(text: &str) -> Vec<String> {
+    let mut spans = Vec::new();
+    let mut rest = text;
+    while let Some(start) = rest.find('`') {
+        rest = &rest[start + 1..];
+        let Some(end) = rest.find('`') else {
+            break;
+        };
+        let value = rest[..end].trim();
+        if !value.is_empty() {
+            spans.push(value.to_string());
+        }
+        rest = &rest[end + 1..];
+    }
+    spans
+}
+
+fn insert_symbol_variants(symbols: &mut HashSet<String>, value: &str) {
+    let value = value.trim().trim_matches('`');
+    if value.is_empty() {
+        return;
+    }
+    symbols.insert(value.to_string());
+    symbols.insert(slugify_heading(value));
+}
+
+fn contains_markdown_table(section: &str) -> bool {
+    let lines = section.lines().collect::<Vec<_>>();
+    for index in 0..lines.len().saturating_sub(1) {
+        if lines[index].trim_start().starts_with('|') && lines[index + 1].contains("---") {
+            return true;
+        }
+    }
+    false
+}
+
+fn push_policy_diagnostic(
+    policy: CheckDiagnosticPolicy,
+    path: &Path,
+    message: impl Into<String>,
+    state: &mut RunState,
+) {
+    let message = message.into();
+    match policy {
+        CheckDiagnosticPolicy::Warn => state
+            .diagnostics
+            .push(Diagnostic::warning(Some(path.to_path_buf()), message)),
+        CheckDiagnosticPolicy::Error => state
+            .diagnostics
+            .push(Diagnostic::error(Some(path.to_path_buf()), message)),
+        CheckDiagnosticPolicy::Allow => {}
+    }
+}
+
 fn is_test_doc(path: &Path) -> bool {
     matches!(path.extension().and_then(|ext| ext.to_str()), Some("md"))
         && !matches!(
@@ -553,6 +906,7 @@ fn legacy_slash_module_id(path: &Path) -> String {
 
 fn validate_impl_doc_structure(
     path: &Path,
+    doc_kind: DocKind,
     text: &str,
     label_overrides: &HashMap<String, String>,
     check: &crate::model::CheckConfig,
@@ -562,7 +916,7 @@ fn validate_impl_doc_structure(
         validate_code_fence_integrity(path, text, state);
     }
     if check.duplicate_h2_sections {
-        validate_duplicate_h2_sections(path, text, label_overrides, state);
+        validate_duplicate_h2_sections(path, doc_kind, text, label_overrides, state);
     }
 }
 
@@ -604,6 +958,7 @@ fn validate_code_fence_integrity(path: &Path, text: &str, state: &mut RunState) 
 
 fn validate_duplicate_h2_sections(
     path: &Path,
+    doc_kind: DocKind,
     text: &str,
     label_overrides: &HashMap<String, String>,
     state: &mut RunState,
@@ -627,7 +982,7 @@ fn validate_duplicate_h2_sections(
         let Some(title) = line.strip_prefix("## ") else {
             continue;
         };
-        let canonical = canonical_section_title(title.trim(), label_overrides);
+        let canonical = canonical_section_title_for_doc(title.trim(), label_overrides, Some(doc_kind));
         if let Some(first_line) = first_seen.insert(canonical.clone(), line_index + 1) {
             state.diagnostics.push(Diagnostic::error(
                 Some(path.to_path_buf()),
@@ -676,6 +1031,14 @@ fn code_fence_blocks_by_section(
     text: &str,
     label_overrides: &HashMap<String, String>,
 ) -> HashMap<String, Vec<CodeFenceBlock>> {
+    code_fence_blocks_by_section_for_doc(text, label_overrides, DocKind::Source)
+}
+
+fn code_fence_blocks_by_section_for_doc(
+    text: &str,
+    label_overrides: &HashMap<String, String>,
+    doc_kind: DocKind,
+) -> HashMap<String, Vec<CodeFenceBlock>> {
     let mut result = HashMap::new();
     let mut current_section: Option<String> = None;
     let mut fence_len: Option<usize> = None;
@@ -722,7 +1085,11 @@ fn code_fence_blocks_by_section(
 
         if fence_len.is_none() && line.starts_with("## ") {
             let title = line.strip_prefix("## ").unwrap();
-            current_section = Some(canonical_section_title(title.trim(), label_overrides));
+            current_section = Some(canonical_section_title_for_doc(
+                title.trim(),
+                label_overrides,
+                Some(doc_kind),
+            ));
         } else if fence_len.is_some() {
             current_content.push_str(line);
             current_content.push('\n');
@@ -917,6 +1284,14 @@ pub fn sections_with_labels(
     text: &str,
     label_overrides: &HashMap<String, String>,
 ) -> HashMap<String, String> {
+    sections_with_labels_for_doc(text, label_overrides, DocKind::Source)
+}
+
+fn sections_with_labels_for_doc(
+    text: &str,
+    label_overrides: &HashMap<String, String>,
+    doc_kind: DocKind,
+) -> HashMap<String, String> {
     let mut result = HashMap::new();
     let mut current: Option<String> = None;
     let mut body = String::new();
@@ -933,7 +1308,7 @@ pub fn sections_with_labels(
         }
         if fence_len.is_none() && line.starts_with("## ") {
             let title = line.strip_prefix("## ").unwrap();
-            let title = canonical_section_title(title.trim(), label_overrides);
+            let title = canonical_section_title_for_doc(title.trim(), label_overrides, Some(doc_kind));
             if let Some(name) = current.replace(title) {
                 result.insert(name, body.trim_matches('\n').to_string());
                 body.clear();
@@ -950,12 +1325,20 @@ pub fn sections_with_labels(
 }
 
 fn canonical_section_title(title: &str, label_overrides: &HashMap<String, String>) -> String {
+    canonical_section_title_for_doc(title, label_overrides, None)
+}
+
+fn canonical_section_title_for_doc(
+    title: &str,
+    label_overrides: &HashMap<String, String>,
+    doc_kind: Option<DocKind>,
+) -> String {
     for (canonical, aliases) in [
         ("Purpose", &["Purpose", "Overview", "概要", "目的"] as &[_]),
         ("Contract", &["Contract", "仕様", "契約"]),
         ("Exports", &["Exports", "API", "公開API", "Interface", "Expose", "Exposes"]),
         ("Imports", &["Imports", "Uses"]),
-        ("Source", &["Source", "Implementation", "実装"]),
+        ("Source", &["Source"]),
         ("Cases", &["Cases", "ケース"]),
         ("Test", &["Test", "Verification", "検証", "テスト"]),
         ("Covers", &["Covers", "対象"]),
@@ -972,6 +1355,12 @@ fn canonical_section_title(title: &str, label_overrides: &HashMap<String, String
         {
             return canonical.to_string();
         }
+    }
+    if matches!(title, "Implementation" | "実装") {
+        return match doc_kind {
+            Some(DocKind::Test) => "Test".to_string(),
+            _ => "Source".to_string(),
+        };
     }
     title.to_string()
 }

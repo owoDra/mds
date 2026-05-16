@@ -155,19 +155,19 @@ impl MdsLanguageServer {
             Err(_) => return,
         };
 
-        let state = self.state.read().await;
-        let pkg_state = state.package_for_path(&path);
-        let config = pkg_state
-            .map(|p| p.package.config.clone())
-            .unwrap_or_default();
-        drop(state);
+        let is_authoring_doc = lang_for_markdown_path(&path).is_some() || self.is_in_authoring_root(&path).await;
 
         let diagnostics = if path.ends_with("mds.config.toml") {
             capabilities::diagnostics::validate_config_text(&path, text)
         } else if path.ends_with("overview.md") {
             vec![]
-        } else if lang_for_markdown_path(&path).is_some() || self.is_in_authoring_root(&path).await {
-            capabilities::diagnostics::validate_impl_md_text(&path, text, &config)
+        } else if is_authoring_doc {
+            let state = self.state.read().await;
+            let config = state
+                .package_for_path(&path)
+                .map(|p| p.package.config.clone())
+                .unwrap_or_default();
+            capabilities::diagnostics::validate_impl_md_text_with_state(&path, text, &config, Some(&state))
         } else {
             vec![]
         };
@@ -576,10 +576,14 @@ impl LanguageServer for MdsLanguageServer {
             .and_then(|p| state.package_for_path(p))
             .map(|p| p.package.config.clone())
             .unwrap_or_default();
-        drop(state);
 
         if let Some(text) = text {
-            let actions = capabilities::code_action::provide_code_actions(&uri, &text, &config);
+            let actions = capabilities::code_action::provide_code_actions_with_state(
+                &uri,
+                &text,
+                &config,
+                Some(&state),
+            );
             Ok(Some(actions))
         } else {
             Ok(None)

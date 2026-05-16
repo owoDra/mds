@@ -33,7 +33,8 @@ mds 自身の self-hosting を停止し、Readable Authoring Model、core 言語
 - 2026-05-14: Phase 04 を完了し、core build / quality から synthetic import 注入と language-specific syntax lint を除去した。core extractor API と LSP の extractor 依存を外し、`Lang` を built-in variant のない opaque extension key 前提へ縮小した。
 - 2026-05-14: Phase 05 を完了し、parser/model に code fence span 保持を追加した。build planning に `SourceMap` / `SourceSpan` / `GenerationPlan` を導入し、initial mapping を code fence 由来 source/test output に限定したうえで、core quality の path/line remap を SourceMap lookup へ差し替えた。`cargo test -p mds-core --test parser_generation_mvp_test` が 72 tests 成功した。
 - 2026-05-16: Phase 06 を完了し、package output config を core config/model と output planning へ導入した。`[roots]` は `source_md` / `test_md` / `source_out` / `test_out` へ切り替え、`[output]` と `[[output.override]]` を追加した。output path は package config pattern と override から決定し、`build.rs` 相当の special placement も descriptor `special_files` ではなく config override で表せるようにした。`src-md` fallback は live runtime surface から除去し、`cargo test -p mds-core --test parser_generation_mvp_test`、`cargo test -p mds-lsp --test diagnostics_test`、`cd editors/vscode && npm run compile` が成功した。
-- 次回再開時は Phase 07 から開始し、source map を使った LSP bridge の最小往復を実装する。
+- 2026-05-16: Phase 07 を完了し、mds-lsp に source map-backed bridge API と `executeCommand` surface を追加した。VS Code extension は generated-file mode を優先して hover / definition を各言語 provider へ委譲し、generated diagnostics を全 indexed Markdown 文書へ mirror するようにした。`docs/plan/phase-07-lsp-bridge.md` には bridge 判断と `mds-virtual:` URI design を追記し、`cargo test -p mds-lsp` と `cd editors/vscode && npm run compile` が成功した。
+- 次回再開時は Phase 08 から開始し、authoring-v2 diagnostics と lint の厳格化を仕上げる。
 
 ## 全体前提
 

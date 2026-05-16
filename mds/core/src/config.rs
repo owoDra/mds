@@ -5,6 +5,7 @@ use crate::diagnostics::{Diagnostic};
 use crate::diagnostics::{RunState};
 use crate::model::{CANONICAL_SOURCE_MD_ROOT};
 use crate::model::{CANONICAL_TEST_MD_ROOT};
+use crate::model::{CheckDiagnosticPolicy};
 use crate::model::{Config};
 use crate::model::{Lang};
 use crate::model::{OutputKind};
@@ -93,6 +94,27 @@ pub fn merge_config_file(config: &mut Config, path: &Path, state: &mut RunState)
                     }
                     "documented_exports" | "export_documentation" => {
                         config.check.documented_exports = bool_value(value, path, key, state)
+                    }
+                    "legacy_tables" => {
+                        if let Some(policy) =
+                            check_diagnostic_policy_value(value, path, key, state)
+                        {
+                            config.check.legacy_tables = policy;
+                        }
+                    }
+                    "unresolved_module_symbols" => {
+                        if let Some(policy) =
+                            check_diagnostic_policy_value(value, path, key, state)
+                        {
+                            config.check.unresolved_module_symbols = policy;
+                        }
+                    }
+                    "implementation_section_only" => {
+                        config.check.implementation_section_only =
+                            bool_value(value, path, key, state)
+                    }
+                    "split_source_and_test" => {
+                        config.check.split_source_and_test = bool_value(value, path, key, state)
                     }
                     _ => warn_unsupported(path, state, "check config", key),
                 }
@@ -440,6 +462,34 @@ fn output_kind_value(
             state.diagnostics.push(Diagnostic::error(
                 Some(path.to_path_buf()),
                 format!("config `{key}` must be `source` or `test`"),
+            ));
+            None
+        }
+    }
+}
+
+fn check_diagnostic_policy_value(
+    value: &toml::Value,
+    path: &Path,
+    key: &str,
+    state: &mut RunState,
+) -> Option<CheckDiagnosticPolicy> {
+    let Some(value) = value.as_str() else {
+        state.diagnostics.push(Diagnostic::error(
+            Some(path.to_path_buf()),
+            format!("config `{key}` must be a string"),
+        ));
+        return None;
+    };
+
+    match value {
+        "warn" => Some(CheckDiagnosticPolicy::Warn),
+        "error" => Some(CheckDiagnosticPolicy::Error),
+        "allow" => Some(CheckDiagnosticPolicy::Allow),
+        _ => {
+            state.diagnostics.push(Diagnostic::error(
+                Some(path.to_path_buf()),
+                format!("config `{key}` must be `warn`, `error`, or `allow`"),
             ));
             None
         }

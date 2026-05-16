@@ -1,6 +1,11 @@
 use std::path::{PathBuf};
-use mds_core::{Config};
+use mds_core::model::CheckDiagnosticPolicy;
+use mds_core::{Config, Package};
 use mds_lsp::capabilities::{diagnostics};
+use mds_lsp::state::{PackageState, WorkspaceIndex, WorkspaceState};
+use std::collections::HashMap;
+use tower_lsp::lsp_types::DiagnosticSeverity;
+
 fn fixture_path(name: &str) -> PathBuf {
     PathBuf::from(format!("/tmp/mds-test/{name}"))
 }
@@ -22,43 +27,8 @@ A minimal test module.
 Public contract.
 
 {h2} Source
-
-{h2} Imports
-
-| From | Target | Symbols | Via | Summary | Reference |
-| --- | --- | --- | --- | --- | --- |
-| builtin | node:path | join | - | Path join utility | - |
-
-{fence}typescript
-export type MyType = string;
-{fence}
-
-{h2} Source
-
-{h2} Imports
-
-| From | Target | Symbols | Via | Summary | Reference |
-| --- | --- | --- | --- | --- | --- |
-| internal | utils/helper | helper | - | Helper function | #helper |
-
 {fence}typescript
 export function main(): void {}
-{fence}
-
-{h2} Cases
-
-Basic use case.
-
-{h2} Test
-
-{h2} Imports
-
-| From | Target | Symbols | Via | Summary | Reference |
-| --- | --- | --- | --- | --- | --- |
-| internal | utils/helper | helper | - | Helper function | #helper |
-
-{fence}typescript
-test("it works", () => {});
 {fence}
 "#);
 
@@ -333,4 +303,177 @@ No special rules.
         diags.is_empty(),
         "valid index.md should have no errors: {diags:?}"
     );
+}
+
+#[test]
+fn test_legacy_table_policy_controls_severity() {
+    let text = sample_markdown(r#"{h2} Purpose
+
+Legacy metadata fixture.
+
+{h2} Imports
+
+| From | Target | Symbols | Via | Summary | Reference |
+| --- | --- | --- | --- | --- | --- |
+| builtin | node:path | join | - | Path join utility | - |
+"#);
+    let path = fixture_path("legacy.ts.md");
+
+    for (policy, expected) in [
+        (CheckDiagnosticPolicy::Warn, Some(DiagnosticSeverity::WARNING)),
+        (CheckDiagnosticPolicy::Error, Some(DiagnosticSeverity::ERROR)),
+        (CheckDiagnosticPolicy::Allow, None),
+    ] {
+        let mut config = Config::default();
+        config.check.legacy_tables = policy;
+        let diags = diagnostics::validate_impl_md_text(&path, &text, &config);
+        let legacy = diags
+            .iter()
+            .find(|diagnostic| diagnostic.message.contains("legacy table metadata"));
+
+        match expected {
+            Some(severity) => assert_eq!(legacy.and_then(|diagnostic| diagnostic.severity), Some(severity)),
+            None => assert!(legacy.is_none(), "allow should suppress legacy table diagnostics: {diags:?}"),
+        }
+    }
+}
+
+#[test]
+fn test_split_source_and_test_reports_mixing_for_both_doc_kinds() {
+    let temp = tempfile::tempdir().unwrap();
+    let root = temp.path().join("pkg");
+    let config = Config::default();
+    let state = workspace_state(&root, config.clone(), HashMap::new(), HashMap::new());
+
+    let source_path = root.join(".mds/source/mixed.ts.md");
+    let source_text = sample_markdown(r#"{h2} Purpose
+
+Source doc.
+
+{h2} Contract
+
+Contract.
+
+{h2} Test
+
+{fence}typescript
+test("it works", () => {});
+{fence}
+"#);
+    let source_diags = diagnostics::validate_impl_md_text_with_state(
+        &source_path,
+        &source_text,
+        &config,
+        Some(&state),
+    );
+    assert!(
+        source_diags.iter().any(|diagnostic| diagnostic.message.contains("source md must not contain generated test code")),
+        "source doc should report test mixing: {source_diags:?}"
+    );
+
+    let test_path = root.join(".mds/test/mixed.md");
+    let test_text = sample_markdown(r#"{h2} Purpose
+
+Test doc.
+
+{h2} Covers
+
+<!-- TODO -->
+
+{h2} Cases
+
+Case.
+
+{h2} Source
+
+{fence}typescript
+export const value = 1;
+{fence}
+"#);
+    let test_diags = diagnostics::validate_impl_md_text_with_state(
+        &test_path,
+        &test_text,
+        &config,
+        Some(&state),
+    );
+    assert!(
+        test_diags.iter().any(|diagnostic| diagnostic.message.contains("test md must not contain generated source code")),
+        "test doc should report source mixing: {test_diags:?}"
+    );
+}
+
+#[test]
+fn test_wiki_link_unresolved_uses_workspace_index_policies() {
+    let temp = tempfile::tempdir().unwrap();
+    let root = temp.path().join("pkg");
+    let source_path = root.join(".mds/source/pkg/greet.ts.md");
+    let test_path = root.join(".mds/test/greet.md");
+    let mut module_index = HashMap::new();
+    module_index.insert("pkg.greet".to_string(), vec![source_path.clone()]);
+    let mut symbol_index = HashMap::new();
+    symbol_index.insert(
+        ("pkg.greet".to_string(), "greet".to_string()),
+        vec![source_path.clone()],
+    );
+    let state = workspace_state(&root, Config::default(), module_index, symbol_index);
+
+    let text = sample_markdown(r#"{h2} Purpose
+
+Wiki link validation.
+
+{h2} Covers
+
+- [[pkg.greet]]
+- [[pkg.missing]]
+- [[pkg.greet#missing]]
+
+{h2} Cases
+
+Ensure unresolved links surface in the editor.
+"#);
+
+    let diags = diagnostics::validate_impl_md_text_with_state(
+        &test_path,
+        &text,
+        &Config::default(),
+        Some(&state),
+    );
+
+    assert!(
+        diags.iter().any(|diagnostic| {
+            diagnostic.message.contains("wiki link target `[[pkg.missing]]` does not resolve to a module")
+                && diagnostic.severity == Some(DiagnosticSeverity::ERROR)
+        }),
+        "missing module should be an error: {diags:?}"
+    );
+    assert!(
+        diags.iter().any(|diagnostic| {
+            diagnostic.message.contains("wiki link target `[[pkg.greet#missing]]` does not resolve to a documented symbol")
+                && diagnostic.severity == Some(DiagnosticSeverity::WARNING)
+        }),
+        "missing symbol should follow warn policy: {diags:?}"
+    );
+}
+
+fn workspace_state(
+    root: &std::path::Path,
+    config: Config,
+    module_index: HashMap<String, Vec<PathBuf>>,
+    symbol_index: HashMap<(String, String), Vec<PathBuf>>,
+) -> WorkspaceState {
+    WorkspaceState {
+        packages: vec![PackageState {
+            package: Package {
+                root: root.to_path_buf(),
+                config,
+                package_manager_id: "npm".to_string(),
+            },
+            index: WorkspaceIndex {
+                module_index,
+                symbol_index,
+                ..WorkspaceIndex::default()
+            },
+        }],
+        ..WorkspaceState::default()
+    }
 }

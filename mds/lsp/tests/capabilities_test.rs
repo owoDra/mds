@@ -15,6 +15,21 @@ use mds_core::{Config};
 use mds_core::{Package};
 use std::collections::{HashMap};
 use std::{fs};
+
+fn action_texts(actions: &CodeActionResponse) -> Vec<String> {
+    actions
+        .iter()
+        .filter_map(|action| match action {
+            CodeActionOrCommand::CodeAction(action) => action
+                .edit
+                .as_ref()
+                .and_then(|edit| edit.changes.as_ref())
+                .and_then(|changes| changes.values().next())
+                .map(|edits| edits.iter().map(|edit| edit.new_text.clone()).collect::<String>()),
+            CodeActionOrCommand::Command(_) => None,
+        })
+        .collect()
+}
 #[test]
 fn test_document_symbols_extracts_headings() {
     let text = r#"## Purpose
@@ -346,6 +361,43 @@ fn test_code_action_empty_document() {
         !actions.is_empty(),
         "should offer to add all missing sections"
     );
+}
+
+#[test]
+fn test_code_action_source_doc_prefers_tableless_authoring_sections() {
+    let text = r#"## Purpose
+
+Source module.
+"#;
+    let uri = Url::parse("file:///workspace/pkg/.mds/source/example.ts.md").unwrap();
+    let config = mds_core::Config::default();
+    let actions = provide_code_actions(&uri, text, &config);
+    let inserted = action_texts(&actions).join("\n");
+
+    assert!(inserted.contains("## Contract"), "source quick fix should add Contract: {inserted:?}");
+    assert!(inserted.contains("## Source"), "source quick fix should add Source: {inserted:?}");
+    assert!(!inserted.contains("## Imports"), "source quick fix should not add Imports: {inserted:?}");
+    assert!(!inserted.contains("## Exports"), "source quick fix should not add Exports: {inserted:?}");
+    assert!(!inserted.contains("| From |"), "source quick fix should stay tableless: {inserted:?}");
+}
+
+#[test]
+fn test_code_action_test_doc_prefers_tableless_test_sections() {
+    let text = r#"## Purpose
+
+Verification module.
+"#;
+    let uri = Url::parse("file:///workspace/pkg/.mds/test/example.md").unwrap();
+    let config = mds_core::Config::default();
+    let actions = provide_code_actions(&uri, text, &config);
+    let inserted = action_texts(&actions).join("\n");
+
+    assert!(inserted.contains("## Covers"), "test quick fix should add Covers: {inserted:?}");
+    assert!(inserted.contains("## Cases"), "test quick fix should add Cases: {inserted:?}");
+    assert!(inserted.contains("## Test"), "test quick fix should add Test: {inserted:?}");
+    assert!(!inserted.contains("## Contract"), "test quick fix should not add Contract: {inserted:?}");
+    assert!(!inserted.contains("## Source"), "test quick fix should not add Source: {inserted:?}");
+    assert!(!inserted.contains("## Imports"), "test quick fix should not add Imports: {inserted:?}");
 }
 
 #[test]

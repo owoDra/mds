@@ -210,6 +210,86 @@ fn load_package_parses_output_patterns_and_overrides() {
 }
 
 #[test]
+fn check_config_defaults_include_phase_08_policies() {
+    let config = mds_core::Config::default();
+
+    assert_eq!(
+        config.check.legacy_tables,
+        mds_core::model::CheckDiagnosticPolicy::Warn
+    );
+    assert_eq!(
+        config.check.unresolved_module_symbols,
+        mds_core::model::CheckDiagnosticPolicy::Warn
+    );
+    assert!(config.check.implementation_section_only);
+    assert!(config.check.split_source_and_test);
+}
+
+#[test]
+fn merge_config_file_accepts_phase_08_check_policies() {
+    for (value, expected) in [
+        ("warn", mds_core::model::CheckDiagnosticPolicy::Warn),
+        ("error", mds_core::model::CheckDiagnosticPolicy::Error),
+        ("allow", mds_core::model::CheckDiagnosticPolicy::Allow),
+    ] {
+        let temp = TestDir::new();
+        let config_path = temp.path().join("mds.config.toml");
+        fs::write(
+            &config_path,
+            format!(
+                "[check]\nlegacy_tables = \"{value}\"\nunresolved_module_symbols = \"{value}\"\nimplementation_section_only = false\nsplit_source_and_test = false\n"
+            ),
+        )
+        .unwrap();
+
+        let mut config = mds_core::Config::default();
+        let mut state = mds_core::RunState::default();
+        assert!(mds_core::config::merge_config_file(&mut config, &config_path, &mut state).is_some());
+        assert!(state.diagnostics.is_empty(), "{:?}", state.diagnostics);
+        assert_eq!(config.check.legacy_tables, expected);
+        assert_eq!(config.check.unresolved_module_symbols, expected);
+        assert!(!config.check.implementation_section_only);
+        assert!(!config.check.split_source_and_test);
+    }
+}
+
+#[test]
+fn merge_config_file_rejects_invalid_phase_08_check_policy_values() {
+    let temp = TestDir::new();
+    let config_path = temp.path().join("mds.config.toml");
+    fs::write(
+        &config_path,
+        "[check]\nlegacy_tables = \"maybe\"\nunresolved_module_symbols = \"maybe\"\n",
+    )
+    .unwrap();
+
+    let mut config = mds_core::Config::default();
+    let mut state = mds_core::RunState::default();
+    assert!(mds_core::config::merge_config_file(&mut config, &config_path, &mut state).is_some());
+    assert!(state.has_errors());
+    assert_eq!(
+        config.check.legacy_tables,
+        mds_core::model::CheckDiagnosticPolicy::Warn
+    );
+    assert_eq!(
+        config.check.unresolved_module_symbols,
+        mds_core::model::CheckDiagnosticPolicy::Warn
+    );
+
+    let rendered = state
+        .diagnostics
+        .iter()
+        .map(|diagnostic| diagnostic.render())
+        .collect::<String>();
+    assert!(rendered.contains("config `legacy_tables` must be `warn`, `error`, or `allow`"));
+    assert!(
+        rendered.contains(
+            "config `unresolved_module_symbols` must be `warn`, `error`, or `allow`"
+        )
+    );
+}
+
+#[test]
 fn build_ignores_code_blocks_outside_source_section() {
     let temp = TestDir::new();
     write_fixture(temp.path());
@@ -229,6 +309,34 @@ fn build_ignores_code_blocks_outside_source_section() {
     });
     assert_eq!(build.exit_code, 0, "{}", build.stderr);
     assert!(!temp.path().join("pkg/src/foo/spec-only.ts").exists());
+}
+
+#[test]
+fn build_includes_noncanonical_code_blocks_when_implementation_section_only_disabled() {
+    let temp = TestDir::new();
+    let package = temp.path().join("pkg");
+    write_minimal_authoring_package(
+        &package,
+        "[check]\nimplementation_section_only = false\n",
+    );
+    fs::create_dir_all(package.join(".mds/source/foo")).unwrap();
+    fs::write(
+        package.join(".mds/source/foo/spec-only.ts.md"),
+        "# Spec only\n\n## Purpose\n\nDocument planned behavior without a canonical implementation section.\n\n## Contract\n\n- Allow non-canonical code fences when configured.\n\n## Cases\n\n```ts\nexport const planned = true;\n```\n",
+    )
+    .unwrap();
+
+    let build = execute(CliRequest {
+        cwd: temp.path().to_path_buf(),
+        package: None,
+        verbose: false,
+        command: Command::Build {
+            mode: BuildMode::Write,
+        },
+    });
+    assert_eq!(build.exit_code, 0, "{}", build.stderr);
+    let generated = fs::read_to_string(package.join("src/foo/spec-only.ts")).unwrap();
+    assert!(generated.contains("export const planned = true;"));
 }
 
 #[test]
@@ -270,6 +378,28 @@ export const one = 1;
 export const two = 2;
 ```
 
+"#,
+    )
+    .unwrap();
+
+    let test_doc_path = package_root.join(".mds/test/foo/span.md");
+    fs::create_dir_all(test_doc_path.parent().unwrap()).unwrap();
+    fs::write(
+        &test_doc_path,
+        r#"# Span test
+
+## Purpose
+
+Fixture.
+
+## Covers
+
+- [[foo.span-source]]
+
+## Cases
+
+- Preserve test fence spans.
+
 ## Test
 
 ```ts
@@ -301,12 +431,6 @@ Fixture.
 | Statement |
 | --- |
 | `export const table_value = 1;` |
-
-## Test
-
-```ts
-expect(table_value).toBe(1);
-```
 "#,
     )
     .unwrap();
@@ -357,17 +481,41 @@ expect(table_value).toBe(1);
                 block.content.as_str(),
             ))
             .collect::<Vec<_>>(),
-        vec![
-            (2, 24, 24, "expect(one).toBe(1);"),
-            (3, 28, 28, "expect(two).toBe(2);"),
-        ]
+        Vec::<(usize, usize, usize, &str)>::new()
     );
     assert_eq!(
         span_doc.source_code,
         "export const one = 1;\n\nexport const two = 2;\n"
     );
+    assert_eq!(span_doc.test_code, "");
+
+    let mut test_state = mds_core::RunState::default();
+    let test_doc = mds_core::markdown::parse_impl_doc(
+        &package,
+        mds_core::DocKind::Test,
+        Lang::Other("ts".to_string()),
+        &test_doc_path,
+        &mut test_state,
+    )
+    .unwrap();
+    assert!(test_state.diagnostics.is_empty(), "{:?}", test_state.diagnostics);
+    assert!(test_doc.source_blocks.is_empty());
     assert_eq!(
-        span_doc.test_code,
+        test_doc
+            .test_blocks
+            .iter()
+            .map(|block| (
+                block.fence_index,
+                block.content_start_line,
+                block.content_end_line,
+                block.content.as_str(),
+            ))
+            .collect::<Vec<_>>(),
+        vec![(0, 18, 18, "expect(one).toBe(1);"), (1, 22, 22, "expect(two).toBe(2);")]
+    );
+    assert_eq!(test_doc.source_code, "");
+    assert_eq!(
+        test_doc.test_code,
         "expect(one).toBe(1);\n\nexpect(two).toBe(2);\n"
     );
 
@@ -383,20 +531,8 @@ expect(table_value).toBe(1);
     assert!(table_state.diagnostics.is_empty(), "{:?}", table_state.diagnostics);
     assert!(table_doc.source_blocks.is_empty());
     assert_eq!(table_doc.source_code, "export const table_value = 1;\n");
-    assert_eq!(
-        table_doc
-            .test_blocks
-            .iter()
-            .map(|block| (
-                block.fence_index,
-                block.content_start_line,
-                block.content_end_line,
-                block.content.as_str(),
-            ))
-            .collect::<Vec<_>>(),
-        vec![(0, 20, 20, "expect(table_value).toBe(1);")]
-    );
-    assert_eq!(table_doc.test_code, "expect(table_value).toBe(1);\n");
+    assert!(table_doc.test_blocks.is_empty());
+    assert_eq!(table_doc.test_code, "");
 }
 
 #[test]
@@ -404,6 +540,7 @@ fn plan_generation_with_source_map_maps_source_and_test_outputs_from_fences_only
     let temp = TestDir::new();
     let package_root = temp.path().join("pkg");
     fs::create_dir_all(package_root.join(".mds/source/foo")).unwrap();
+    fs::create_dir_all(package_root.join(".mds/test/foo")).unwrap();
     fs::write(
         package_root.join("package.json"),
         "{\"name\":\"source-map-fixture\",\"version\":\"0.1.0\"}\n",
@@ -439,6 +576,26 @@ export function two(): number {
   return one + 1;
 }
 ```
+"#,
+    )
+    .unwrap();
+
+    let mapped_test_doc_path = package_root.join(".mds/test/foo/source-map.md");
+    fs::write(
+        &mapped_test_doc_path,
+        r#"# Source map test
+
+## Purpose
+
+Fixture.
+
+## Covers
+
+- [[foo.source-map]]
+
+## Cases
+
+- Preserve source map spans for test output.
 
 ## Test
 
@@ -505,15 +662,15 @@ Fixture.
         .source_map
         .find_generated(&test_output_path, 3)
         .expect("missing test span");
-    assert_eq!(test_span.markdown_path, mapped_doc_path);
-    assert_eq!(test_span.markdown_start_line, 26);
-    assert_eq!(test_span.markdown_end_line, 26);
+    assert_eq!(test_span.markdown_path, mapped_test_doc_path);
+    assert_eq!(test_span.markdown_start_line, 18);
+    assert_eq!(test_span.markdown_end_line, 18);
     assert_eq!(test_span.generated_path, test_output_path);
     assert_eq!(test_span.generated_start_line, 3);
     assert_eq!(test_span.generated_end_line, 3);
     assert_eq!(test_span.output_kind, OutputKind::Test);
     assert_eq!(test_span.extension_key, "ts");
-    assert_eq!(test_span.fence_index, 2);
+    assert_eq!(test_span.fence_index, 0);
 
     let table_output_path = package_root.join("src/foo/table-only.ts");
     assert!(plan.generated.iter().any(|file| file.path == table_output_path));
@@ -1354,6 +1511,190 @@ fn rejects_test_doc_without_covers() {
     assert!(check
         .stderr
         .contains("test md requires at least one Covers entry"));
+}
+
+#[test]
+fn rejects_unresolved_module_wikilinks() {
+    let temp = TestDir::new();
+    let package = temp.path().join("pkg");
+    write_minimal_authoring_package(&package, "");
+    fs::create_dir_all(package.join(".mds/source/app")).unwrap();
+    fs::write(
+        package.join(".mds/source/app/greet.ts.md"),
+        "# app.greet\n\n## Purpose\n\nSee [[app.missing]].\n\n## Contract\n\n- Return a greeting.\n\n## Source\n\n```ts\nexport function greet(name: string): string {\n  return `Hello, ${name}`;\n}\n```\n",
+    )
+    .unwrap();
+
+    let check = execute(CliRequest {
+        cwd: temp.path().to_path_buf(),
+        package: None,
+        verbose: false,
+        command: Command::Lint { fix: false, check: false },
+    });
+    assert_eq!(check.exit_code, 1);
+    assert!(check
+        .stderr
+        .contains("wiki link target `[[app.missing]]` does not resolve to a module"));
+}
+
+#[test]
+fn unresolved_module_symbols_follow_policy() {
+    for (value, expected_exit_code, expected_level) in [
+        ("warn", 0, Some("warning:")),
+        ("error", 1, Some("error:")),
+        ("allow", 0, None),
+    ] {
+        let temp = TestDir::new();
+        let package = temp.path().join("pkg");
+        write_minimal_authoring_package(
+            &package,
+            &format!("[check]\nunresolved_module_symbols = \"{value}\"\n"),
+        );
+        fs::create_dir_all(package.join(".mds/source/app")).unwrap();
+        fs::write(
+            package.join(".mds/source/app/greet.ts.md"),
+            "# app.greet\n\n## Purpose\n\n`greet` returns a greeting and references [[app.greet#missingSymbol]].\n\n## Contract\n\n- Return a greeting.\n\n## Source\n\n```ts\nexport function greet(name: string): string {\n  return `Hello, ${name}`;\n}\n```\n",
+        )
+        .unwrap();
+
+        let check = execute(CliRequest {
+            cwd: temp.path().to_path_buf(),
+            package: None,
+            verbose: false,
+            command: Command::Lint { fix: false, check: false },
+        });
+        assert_eq!(check.exit_code, expected_exit_code, "{}", check.stderr);
+        match expected_level {
+            Some(level) => {
+                assert!(check.stderr.contains(level), "{}", check.stderr);
+                assert!(check.stderr.contains(
+                    "wiki link target `[[app.greet#missingSymbol]]` does not resolve to a documented symbol"
+                ));
+            }
+            None => assert!(!check.stderr.contains("missingSymbol"), "{}", check.stderr),
+        }
+    }
+}
+
+#[test]
+fn rejects_source_test_section_mixing_by_doc_kind() {
+    let temp = TestDir::new();
+    let package = temp.path().join("pkg");
+    write_minimal_authoring_package(&package, "");
+    fs::create_dir_all(package.join(".mds/source/app")).unwrap();
+    fs::create_dir_all(package.join(".mds/test/app")).unwrap();
+    fs::write(
+        package.join(".mds/source/app/greet.ts.md"),
+        "# app.greet\n\n## Purpose\n\nFixture.\n\n## Contract\n\n- Return a greeting.\n\n## Source\n\n```ts\nexport function greet(name: string): string {\n  return `Hello, ${name}`;\n}\n```\n\n## Test\n\n```ts\nexpect(greet('Ada')).toBe('Hello, Ada');\n```\n",
+    )
+    .unwrap();
+    fs::write(
+        package.join(".mds/test/app/greet.test.ts.md"),
+        "# app.greet.test\n\n## Purpose\n\nFixture.\n\n## Covers\n\n- [[app.greet]]\n\n## Cases\n\n- returns a greeting\n\n## Source\n\n```ts\nexport const invalid = true;\n```\n\n## Test\n\n```ts\nexpect(greet('Ada')).toBe('Hello, Ada');\n```\n",
+    )
+    .unwrap();
+
+    let check = execute(CliRequest {
+        cwd: temp.path().to_path_buf(),
+        package: None,
+        verbose: false,
+        command: Command::Lint { fix: false, check: false },
+    });
+    assert_eq!(check.exit_code, 1);
+    assert!(check
+        .stderr
+        .contains("source md must not contain generated test code in ## Test"));
+    assert!(check
+        .stderr
+        .contains("test md must not contain generated source code in ## Source"));
+}
+
+#[test]
+fn legacy_table_diagnostics_follow_policy() {
+    for (value, expected_exit_code, expected_level) in [
+        ("warn", 0, Some("warning:")),
+        ("error", 1, Some("error:")),
+        ("allow", 0, None),
+    ] {
+        let temp = TestDir::new();
+        let package = temp.path().join("pkg");
+        write_minimal_authoring_package(
+            &package,
+            &format!("[check]\nlegacy_tables = \"{value}\"\n"),
+        );
+        fs::create_dir_all(package.join(".mds/source/app")).unwrap();
+        fs::write(
+            package.join(".mds/source/app/greet.ts.md"),
+            "# app.greet\n\n## Purpose\n\nFixture.\n\n## Contract\n\n- Return a greeting.\n\n## Imports\n\n| From | Target | Symbols | Via | Summary | Reference |\n| --- | --- | --- | --- | --- | --- |\n| external | vitest | describe | - | helper | - |\n\n## Source\n\n```ts\nexport function greet(name: string): string {\n  return `Hello, ${name}`;\n}\n```\n",
+        )
+        .unwrap();
+
+        let check = execute(CliRequest {
+            cwd: temp.path().to_path_buf(),
+            package: None,
+            verbose: false,
+            command: Command::Lint { fix: false, check: false },
+        });
+        assert_eq!(check.exit_code, expected_exit_code, "{}", check.stderr);
+        match expected_level {
+            Some(level) => {
+                assert!(check.stderr.contains(level), "{}", check.stderr);
+                assert!(check
+                    .stderr
+                    .contains("legacy table metadata in ## Imports is deprecated"));
+            }
+            None => assert!(
+                !check
+                    .stderr
+                    .contains("legacy table metadata in ## Imports is deprecated"),
+                "{}",
+                check.stderr
+            ),
+        }
+    }
+}
+
+#[test]
+fn test_doc_source_section_does_not_generate_test_output() {
+    let temp = TestDir::new();
+    let package_root = temp.path().join("pkg");
+    write_minimal_authoring_package(
+        &package_root,
+        "[check]\nsplit_source_and_test = false\n",
+    );
+    fs::create_dir_all(package_root.join(".mds/source/app")).unwrap();
+    fs::create_dir_all(package_root.join(".mds/test/app")).unwrap();
+    fs::write(
+        package_root.join(".mds/source/app/greet.ts.md"),
+        "# app.greet\n\n## Purpose\n\n`greet` returns a greeting.\n\n## Contract\n\n- Return a greeting.\n\n## Source\n\n```ts\nexport function greet(name: string): string {\n  return `Hello, ${name}`;\n}\n```\n",
+    )
+    .unwrap();
+    fs::write(
+        package_root.join(".mds/test/app/greet.test.ts.md"),
+        "# app.greet.test\n\n## Purpose\n\nFixture.\n\n## Covers\n\n- [[app.greet]]\n\n## Cases\n\n- generated output stays empty\n\n## Source\n\n```ts\nexpect(greet('Ada')).toBe('Hello, Ada');\n```\n",
+    )
+    .unwrap();
+
+    let mut load_state = mds_core::RunState::default();
+    let package = mds_core::package::load_package(
+        &package_root,
+        &mds_core::Config::default(),
+        &mut load_state,
+    )
+    .unwrap();
+    assert!(load_state.diagnostics.is_empty(), "{:?}", load_state.diagnostics);
+
+    let mut docs_state = mds_core::RunState::default();
+    let docs = mds_core::markdown::load_implementation_docs(&package, &mut docs_state).unwrap();
+    assert!(docs_state.diagnostics.is_empty(), "{:?}", docs_state.diagnostics);
+
+    let mut plan_state = mds_core::RunState::default();
+    let plan = mds_core::plan_generation_with_source_map(&package, &docs, &mut plan_state);
+    assert!(plan_state.diagnostics.is_empty(), "{:?}", plan_state.diagnostics);
+    assert!(!plan
+        .generated
+        .iter()
+        .any(|file| file.path == package_root.join("tests/app/greet.test.test.ts")));
 }
 
 #[test]
@@ -2891,6 +3232,27 @@ fn write_fixture(root: &Path) {
             "#[test]\nfn works() { assert_eq!(bar(), \"ok\"); }",
             "",
         ),
+    )
+    .unwrap();
+}
+
+fn write_minimal_authoring_package(package: &Path, extra_config: &str) {
+    fs::create_dir_all(package.join(".mds/source")).unwrap();
+    fs::write(
+        package.join("package.json"),
+        "{\"name\":\"fixture\",\"version\":\"0.1.0\"}\n",
+    )
+    .unwrap();
+    fs::write(
+        package.join("mds.config.toml"),
+        format!(
+            "[package]\nenabled = true\nallow_raw_source = false\n\n{extra_config}"
+        ),
+    )
+    .unwrap();
+    fs::write(
+        package.join(".mds/source/overview.md"),
+        "# Overview\n\n## Purpose\n\nFixture package.\n\n## Architecture\n\nFixture architecture.\n\n<!-- mds:begin package-summary -->\n| Name | Version |\n| --- | --- |\n| fixture | 0.1.0 |\n<!-- mds:end package-summary -->\n\n<!-- mds:begin dependencies -->\n| Name | Version | Summary |\n| --- | --- | --- |\n<!-- mds:end dependencies -->\n\n<!-- mds:begin dev-dependencies -->\n| Name | Version | Summary |\n| --- | --- | --- |\n<!-- mds:end dev-dependencies -->\n\n## Rules\n\n- Fixture rules.\n",
     )
     .unwrap();
 }

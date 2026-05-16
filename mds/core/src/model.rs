@@ -416,6 +416,19 @@ pub struct OutputOverride {
     pub path: String,
 }
 
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+pub enum CheckDiagnosticPolicy {
+    Warn,
+    Error,
+    Allow,
+}
+
+impl Default for CheckDiagnosticPolicy {
+    fn default() -> Self {
+        Self::Warn
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct Config {
     pub enabled: bool,
@@ -464,6 +477,10 @@ pub struct CheckConfig {
     pub doc_comments_outside_code: bool,
     pub documented_sections: bool,
     pub documented_exports: bool,
+    pub legacy_tables: CheckDiagnosticPolicy,
+    pub unresolved_module_symbols: CheckDiagnosticPolicy,
+    pub implementation_section_only: bool,
+    pub split_source_and_test: bool,
 }
 
 impl Default for CheckConfig {
@@ -478,6 +495,10 @@ impl Default for CheckConfig {
             doc_comments_outside_code: true,
             documented_sections: true,
             documented_exports: true,
+            legacy_tables: CheckDiagnosticPolicy::Warn,
+            unresolved_module_symbols: CheckDiagnosticPolicy::Warn,
+            implementation_section_only: true,
+            split_source_and_test: true,
         }
     }
 }

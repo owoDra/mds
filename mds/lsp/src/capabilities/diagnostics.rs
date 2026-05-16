@@ -1,5 +1,6 @@
-use std::path::{Path};
-use std::collections::{HashMap};
+use std::collections::{HashMap, HashSet};
+use std::path::{Path, PathBuf};
+
 use mds_core::config::{merge_config_file};
 use mds_core::descriptor::{set_workspace_descriptor_root};
 use mds_core::descriptor::{fence_labels_for_lang};
@@ -9,37 +10,59 @@ use mds_core::diagnostics::{RunState};
 use mds_core::markdown::{extract_all_code_blocks};
 use mds_core::markdown::{sections_with_labels};
 use mds_core::markdown::{validate_markdown_links};
-use mds_core::model::{Config};
-use mds_core::model::{Lang};
+use mds_core::model::{CheckDiagnosticPolicy, Config, DocKind, Lang};
 use mds_core::table::{parse_table_with_labels};
 use tower_lsp::{lsp_types};
+
+use crate::capabilities::authoring;
 use crate::convert::{to_lsp_diagnostic};
+
+use crate::state::WorkspaceState;
+
 pub fn validate_impl_md_text(
     path: &Path,
     text: &str,
-    _config: &Config,
+    config: &Config,
+) -> Vec<lsp_types::Diagnostic> {
+    validate_impl_md_text_with_state(path, text, config, None)
+}
+
+pub fn validate_impl_md_text_with_state(
+    path: &Path,
+    text: &str,
+    config: &Config,
+    workspace_state: Option<&WorkspaceState>,
 ) -> Vec<lsp_types::Diagnostic> {
     let mut state = RunState::default();
+    let doc_kind = authoring::doc_kind_for_path(Some(path), config, workspace_state);
+
     set_workspace_descriptor_root(path.parent());
 
-    // Validate markdown links
-    validate_markdown_links(path, text, &mut state);
-
-    // Validate that there is at least one code block
-    let code = extract_all_code_blocks(text);
-    let sections = sections_with_labels(text, &_config.label_overrides);
-    let has_source_code = sections
-        .get("Source")
-        .is_some_and(|section| !extract_all_code_blocks(section).trim().is_empty());
-    if code.trim().is_empty() && has_source_code {
-        state.diagnostics.push(mds_core::Diagnostic::error(
-            Some(path.to_path_buf()),
-            "implementation md requires at least one code block",
-        ));
+    if config.check.markdown_links {
+        validate_markdown_links(path, text, &mut state);
     }
-    validate_documented_source(path, text, &sections, &mut state);
 
-    // Check language matching with file extension
+    let sections = authoring::sections_with_labels_for_doc(text, &config.label_overrides, doc_kind);
+
+    if config.check.documented_sections {
+        validate_documented_sections(path, text, doc_kind, &sections, &mut state);
+    }
+    if config.check.documented_exports {
+        validate_documented_exports(path, text, &sections, &mut state);
+        validate_import_documentation(path, &sections, &mut state);
+    }
+
+    validate_legacy_table_sections(path, &sections, &config.check, &mut state);
+    validate_split_source_and_test(
+        path,
+        doc_kind,
+        sections.get("Source"),
+        sections.get("Test"),
+        &config.check,
+        &mut state,
+    );
+    validate_wiki_link_targets(path, text, config, workspace_state, &mut state);
+
     if let Some(ref lang) = lang_for_markdown_path(path) {
         validate_code_block_languages(text, lang, path, &mut state);
     }
@@ -47,38 +70,53 @@ pub fn validate_impl_md_text(
     state.diagnostics.iter().map(to_lsp_diagnostic).collect()
 }
 
-fn validate_documented_source(
+fn validate_documented_sections(
     path: &Path,
     text: &str,
-    sections: &std::collections::HashMap<String, String>,
+    doc_kind: DocKind,
+    sections: &HashMap<String, String>,
     state: &mut RunState,
 ) {
     if !sections.contains_key("Purpose") {
         state.diagnostics.push(mds_core::Diagnostic::error(
             Some(path.to_path_buf()),
-            "impl md requires ## Purpose",
+            format!("{} md requires ## Purpose", doc_kind.key()),
         ));
     }
-    if has_generated_source(sections) && !sections.contains_key("Contract") {
-        state.diagnostics.push(mds_core::Diagnostic::error(
-            Some(path.to_path_buf()),
-            "impl md requires ## Contract",
-        ));
+
+    match doc_kind {
+        DocKind::Source if has_generated_code(sections.get("Source")) && !sections.contains_key("Contract") => {
+            state.diagnostics.push(mds_core::Diagnostic::error(
+                Some(path.to_path_buf()),
+                "source md requires ## Contract",
+            ));
+        }
+        DocKind::Test if has_generated_code(sections.get("Test")) => {
+            for section in ["Covers", "Cases"] {
+                if !sections.contains_key(section) {
+                    state.diagnostics.push(mds_core::Diagnostic::error(
+                        Some(path.to_path_buf()),
+                        format!("test md requires ## {section}"),
+                    ));
+                }
+            }
+        }
+        _ => {}
     }
-    validate_export_documentation(path, text, sections, state);
-    validate_import_documentation(path, sections, state);
 }
 
-fn has_generated_source(sections: &std::collections::HashMap<String, String>) -> bool {
-    sections
-        .get("Source")
-        .is_some_and(|section| !extract_all_code_blocks(section).trim().is_empty())
+fn has_generated_code(section: Option<&String>) -> bool {
+    section.is_some_and(|section| !extract_all_code_blocks(section).trim().is_empty())
 }
 
-fn validate_export_documentation(
+fn has_generated_source(sections: &HashMap<String, String>) -> bool {
+    has_generated_code(sections.get("Source"))
+}
+
+fn validate_documented_exports(
     path: &Path,
     text: &str,
-    sections: &std::collections::HashMap<String, String>,
+    sections: &HashMap<String, String>,
     state: &mut RunState,
 ) {
     let Some(section) = sections.get("Exports").or_else(|| sections.get("Expose")).or_else(|| sections.get("Exposes")) else {
@@ -126,7 +164,7 @@ fn validate_export_documentation(
 
 fn validate_import_documentation(
     path: &Path,
-    sections: &std::collections::HashMap<String, String>,
+    sections: &HashMap<String, String>,
     state: &mut RunState,
 ) {
     let Some(section) = sections.get("Imports").or_else(|| sections.get("Uses")) else {
@@ -150,6 +188,163 @@ fn validate_import_documentation(
             ));
         }
     }
+}
+
+fn validate_legacy_table_sections(
+    path: &Path,
+    sections: &HashMap<String, String>,
+    check: &mds_core::model::CheckConfig,
+    state: &mut RunState,
+) {
+    for section_name in ["Imports", "Exports"] {
+        let Some(section) = sections.get(section_name) else {
+            continue;
+        };
+        if !authoring::contains_markdown_table(section) {
+            continue;
+        }
+        push_policy_diagnostic(
+            check.legacy_tables,
+            path,
+            format!("legacy table metadata in ## {section_name} is deprecated"),
+            state,
+        );
+    }
+}
+
+fn validate_split_source_and_test(
+    path: &Path,
+    doc_kind: DocKind,
+    source_section: Option<&String>,
+    test_section: Option<&String>,
+    check: &mds_core::model::CheckConfig,
+    state: &mut RunState,
+) {
+    if !check.split_source_and_test {
+        return;
+    }
+
+    match doc_kind {
+        DocKind::Source if has_generated_code(test_section) => state.diagnostics.push(
+            mds_core::Diagnostic::error(
+                Some(path.to_path_buf()),
+                "source md must not contain generated test code in ## Test",
+            ),
+        ),
+        DocKind::Test if has_generated_code(source_section) => state.diagnostics.push(
+            mds_core::Diagnostic::error(
+                Some(path.to_path_buf()),
+                "test md must not contain generated source code in ## Source",
+            ),
+        ),
+        _ => {}
+    }
+}
+
+fn validate_wiki_link_targets(
+    path: &Path,
+    text: &str,
+    config: &Config,
+    workspace_state: Option<&WorkspaceState>,
+    state: &mut RunState,
+) {
+    let Some(workspace_state) = workspace_state else {
+        return;
+    };
+    let Some(package_state) = workspace_state.package_for_path(path) else {
+        return;
+    };
+
+    let link_text = authoring::text_without_code_blocks(text);
+    for target in authoring::wikilinks(&link_text) {
+        if !should_validate_module_wikilink(&target) {
+            continue;
+        }
+        validate_wiki_link_target(
+            path,
+            &target,
+            &package_state.index.module_index,
+            &package_state.index.symbol_index,
+            config.check.unresolved_module_symbols,
+            state,
+        );
+    }
+}
+
+fn validate_wiki_link_target(
+    path: &Path,
+    target: &str,
+    module_index: &HashMap<String, Vec<PathBuf>>,
+    symbol_index: &HashMap<(String, String), Vec<PathBuf>>,
+    symbol_policy: CheckDiagnosticPolicy,
+    state: &mut RunState,
+) {
+    let Some((module_id, symbol)) = target.split_once('#') else {
+        match unique_path_count(module_index.get(target)) {
+            1 => {}
+            0 => state.diagnostics.push(mds_core::Diagnostic::error(
+                Some(path.to_path_buf()),
+                format!("wiki link target `[[{target}]]` does not resolve to a module"),
+            )),
+            _ => state.diagnostics.push(mds_core::Diagnostic::error(
+                Some(path.to_path_buf()),
+                format!("wiki link target `[[{target}]]` resolves ambiguously"),
+            )),
+        }
+        return;
+    };
+
+    let module_id = module_id.trim();
+    let symbol = symbol.trim();
+    if symbol_resolves(symbol_index, module_id, symbol) {
+        return;
+    }
+
+    push_policy_diagnostic(
+        symbol_policy,
+        path,
+        format!(
+            "wiki link target `[[{module_id}#{symbol}]]` does not resolve to a documented symbol"
+        ),
+        state,
+    );
+}
+
+fn unique_path_count(paths: Option<&Vec<PathBuf>>) -> usize {
+    paths.map_or(0, |paths| paths.iter().collect::<HashSet<_>>().len())
+}
+
+fn symbol_resolves(
+    symbol_index: &HashMap<(String, String), Vec<PathBuf>>,
+    module_id: &str,
+    symbol: &str,
+) -> bool {
+    let symbol_slug = slugify_heading(symbol);
+    symbol_index.iter().any(|((candidate_module, candidate_symbol), paths)| {
+        candidate_module == module_id
+            && !paths.is_empty()
+            && (candidate_symbol == symbol || slugify_heading(candidate_symbol) == symbol_slug)
+    })
+}
+
+fn should_validate_module_wikilink(target: &str) -> bool {
+    let target = target.trim();
+    !target.is_empty() && !target.starts_with('#') && !should_validate_local_link(target)
+}
+
+fn should_validate_local_link(target: &str) -> bool {
+    let target = target.trim();
+    if target.is_empty()
+        || target.starts_with('#')
+        || target.starts_with("http://")
+        || target.starts_with("https://")
+        || target.starts_with("mailto:")
+    {
+        return false;
+    }
+
+    let clean = target.split('#').next().unwrap_or_default();
+    clean.ends_with(".md") || clean.contains('/')
 }
 
 fn table_rows(section: &str) -> Option<Vec<HashMap<String, String>>> {
@@ -263,6 +458,24 @@ fn slugify_heading(value: &str) -> String {
         .collect::<String>()
         .trim_matches('-')
         .to_string()
+}
+
+fn push_policy_diagnostic(
+    policy: CheckDiagnosticPolicy,
+    path: &Path,
+    message: impl Into<String>,
+    state: &mut RunState,
+) {
+    let message = message.into();
+    match policy {
+        CheckDiagnosticPolicy::Warn => state
+            .diagnostics
+            .push(mds_core::Diagnostic::warning(Some(path.to_path_buf()), message)),
+        CheckDiagnosticPolicy::Error => state
+            .diagnostics
+            .push(mds_core::Diagnostic::error(Some(path.to_path_buf()), message)),
+        CheckDiagnosticPolicy::Allow => {}
+    }
 }
 
 pub fn validate_config_text(path: &Path, text: &str) -> Vec<lsp_types::Diagnostic> {
