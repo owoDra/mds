@@ -85,7 +85,7 @@ pub(crate) fn is_excluded(root: &Path, path: &Path, patterns: &[String]) -> bool
     patterns.iter().any(|pattern| glob_match(pattern, &value))
 }
 
-fn glob_match(pattern: &str, value: &str) -> bool {
+pub(crate) fn glob_match(pattern: &str, value: &str) -> bool {
     glob_match_bytes(pattern.as_bytes(), value.as_bytes())
 }
 

@@ -380,19 +380,40 @@ impl Lang {
 
 #[derive(Debug, Clone)]
 pub struct Roots {
-    pub markdown: PathBuf,
-    pub source: PathBuf,
-    pub test: PathBuf,
+    pub source_md: PathBuf,
+    pub test_md: PathBuf,
+    pub source_out: PathBuf,
+    pub test_out: PathBuf,
 }
+
+pub const CANONICAL_SOURCE_MD_ROOT: &str = ".mds/source";
+pub const CANONICAL_TEST_MD_ROOT: &str = ".mds/test";
+pub const DEFAULT_SOURCE_OUT_ROOT: &str = "src";
+pub const DEFAULT_TEST_OUT_ROOT: &str = "tests";
 
 impl Default for Roots {
     fn default() -> Self {
         Self {
-            markdown: PathBuf::from("src-md"),
-            source: PathBuf::from("src"),
-            test: PathBuf::from("tests"),
+            source_md: PathBuf::from(CANONICAL_SOURCE_MD_ROOT),
+            test_md: PathBuf::from(CANONICAL_TEST_MD_ROOT),
+            source_out: PathBuf::from(DEFAULT_SOURCE_OUT_ROOT),
+            test_out: PathBuf::from(DEFAULT_TEST_OUT_ROOT),
         }
     }
+}
+
+#[derive(Debug, Clone, Default, Eq, PartialEq)]
+pub struct OutputConfig {
+    pub source: Option<String>,
+    pub test: Option<String>,
+    pub overrides: Vec<OutputOverride>,
+}
+
+#[derive(Debug, Clone, Eq, PartialEq)]
+pub struct OutputOverride {
+    pub match_pattern: String,
+    pub kind: OutputKind,
+    pub path: String,
 }
 
 #[derive(Debug, Clone)]
@@ -403,6 +424,7 @@ pub struct Config {
     pub check: CheckConfig,
     pub mds_version: Option<String>,
     pub roots: Roots,
+    pub output: OutputConfig,
     pub adapters: HashMap<Lang, bool>,
     pub quality: HashMap<Lang, QualityConfig>,
     pub excludes: Vec<String>,
@@ -420,6 +442,7 @@ impl Default for Config {
             check: CheckConfig::default(),
             mds_version: None,
             roots: Roots::default(),
+            output: OutputConfig::default(),
             adapters: HashMap::new(),
             quality: HashMap::new(),
             excludes: Vec::new(),

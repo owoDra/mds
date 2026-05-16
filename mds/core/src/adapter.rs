@@ -1,12 +1,6 @@
 use std::path::{Path};
 use std::process::{Command as ProcessCommand};
 use std::process::{Stdio};
-use crate::{descriptor};
-use crate::model::{ImplDoc};
-use crate::model::{OutputKind};
-pub(crate) fn output_relative_path(doc: &ImplDoc, kind: OutputKind) -> std::path::PathBuf {
-    descriptor::output_relative_path(&doc.markdown_relative_path, &doc.lang, kind)
-}
 
 pub(crate) struct ToolInvocation<'a> {
     pub command: &'a str,

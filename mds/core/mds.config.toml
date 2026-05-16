@@ -3,8 +3,10 @@ enabled = true
 allow_raw_source = false
 
 [roots]
-source = "src"
-test = "tests"
+source_md = ".mds/source"
+test_md = ".mds/test"
+source_out = "src"
+test_out = "tests"
 
 [check]
 top_level_fence_required = false

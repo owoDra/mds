@@ -108,7 +108,7 @@ source_body = '''
     )
     .unwrap();
     fs::write(
-        temp.path().join("pkg/src-md/foo/custom.dart.md"),
+        temp.path().join("pkg/.mds/source/foo/custom.dart.md"),
         "# Custom\n\n## Purpose\n\nCustom language.\n\n## Contract\n\n- Compile custom language source.\n\n## Source\n\n```dart\nclass Custom {}\n```\n",
     )
     .unwrap();
@@ -126,12 +126,12 @@ source_body = '''
 }
 
 #[test]
-fn merges_root_and_package_config() {
+fn merges_source_out_root_from_workspace_and_package_config() {
     let temp = TestDir::new();
     write_fixture(temp.path());
     fs::write(
         temp.path().join("mds.config.toml"),
-        "[roots]\nsource = \"generated\"\n",
+        "[roots]\nsource_out = \"generated\"\n",
     )
     .unwrap();
 
@@ -148,11 +148,73 @@ fn merges_root_and_package_config() {
 }
 
 #[test]
+fn rejects_non_canonical_authoring_markdown_roots() {
+    let temp = TestDir::new();
+    write_fixture(temp.path());
+    fs::write(
+        temp.path().join("pkg/mds.config.toml"),
+        "[package]\nenabled = true\nallow_raw_source = false\n\n[roots]\nsource_md = \"src-md\"\ntest_md = \"docs/test\"\n",
+    )
+    .unwrap();
+
+    let build = execute(CliRequest {
+        cwd: temp.path().to_path_buf(),
+        package: None,
+        verbose: false,
+        command: Command::Build {
+            mode: BuildMode::Write,
+        },
+    });
+    assert_eq!(build.exit_code, 1);
+    assert!(build.stderr.contains("config `source_md` must be `.mds/source`"));
+    assert!(build.stderr.contains("config `test_md` must be `.mds/test`"));
+}
+
+#[test]
+fn load_package_parses_output_patterns_and_overrides() {
+    let temp = TestDir::new();
+    let package_root = temp.path().join("output-parse-fixture");
+    fs::create_dir_all(&package_root).unwrap();
+    fs::write(
+        package_root.join("package.json"),
+        "{\"name\":\"output-parse-fixture\",\"version\":\"0.1.0\"}\n",
+    )
+    .unwrap();
+    fs::write(
+        package_root.join("mds.config.toml"),
+        "[package]\nenabled = true\nallow_raw_source = false\n\n[output]\nsource = \"{source_out}/{module}.{ext}\"\ntest = \"{test_out}/{module}.test.{ext}\"\n\n[[output.override]]\nmatch = \"build\"\nkind = \"source\"\npath = \"build.rs\"\n",
+    )
+    .unwrap();
+
+    let mut load_state = mds_core::RunState::default();
+    let package = mds_core::package::load_package(
+        &package_root,
+        &mds_core::Config::default(),
+        &mut load_state,
+    )
+    .unwrap();
+    assert!(load_state.diagnostics.is_empty(), "{:?}", load_state.diagnostics);
+    assert_eq!(
+        package.config.output.source.as_deref(),
+        Some("{source_out}/{module}.{ext}")
+    );
+    assert_eq!(
+        package.config.output.test.as_deref(),
+        Some("{test_out}/{module}.test.{ext}")
+    );
+    assert_eq!(package.config.output.overrides.len(), 1);
+    let override_rule = &package.config.output.overrides[0];
+    assert_eq!(override_rule.match_pattern, "build");
+    assert_eq!(override_rule.kind, OutputKind::Source);
+    assert_eq!(override_rule.path, "build.rs");
+}
+
+#[test]
 fn build_ignores_code_blocks_outside_source_section() {
     let temp = TestDir::new();
     write_fixture(temp.path());
     fs::write(
-        temp.path().join("pkg/src-md/foo/spec-only.ts.md"),
+        temp.path().join("pkg/.mds/source/foo/spec-only.ts.md"),
         "# Spec only\n\n## Purpose\n\nDocument planned behavior without generated source.\n\n## Contract\n\n- Keep the feature in spec state.\n\n## Cases\n\n```ts\nexport const planned = true;\n```\n",
     )
     .unwrap();
@@ -173,7 +235,7 @@ fn build_ignores_code_blocks_outside_source_section() {
 fn parse_impl_doc_captures_code_fence_spans_by_section() {
     let temp = TestDir::new();
     let package_root = temp.path().join("pkg");
-    fs::create_dir_all(package_root.join("src-md")).unwrap();
+    fs::create_dir_all(package_root.join(".mds/source")).unwrap();
     fs::write(
         package_root.join("package.json"),
         "{\"name\":\"span-fixture\",\"version\":\"0.1.0\"}\n",
@@ -185,7 +247,7 @@ fn parse_impl_doc_captures_code_fence_spans_by_section() {
     )
     .unwrap();
 
-    let span_doc_path = package_root.join("src-md/span.ts.md");
+    let span_doc_path = package_root.join(".mds/source/span.ts.md");
     fs::write(
         &span_doc_path,
         r#"# Span fixture
@@ -221,7 +283,7 @@ expect(two).toBe(2);
     )
     .unwrap();
 
-    let table_doc_path = package_root.join("src-md/table.ts.md");
+    let table_doc_path = package_root.join(".mds/source/table.ts.md");
     fs::write(
         &table_doc_path,
         r#"# Table source
@@ -341,7 +403,7 @@ expect(table_value).toBe(1);
 fn plan_generation_with_source_map_maps_source_and_test_outputs_from_fences_only() {
     let temp = TestDir::new();
     let package_root = temp.path().join("pkg");
-    fs::create_dir_all(package_root.join("src-md/foo")).unwrap();
+    fs::create_dir_all(package_root.join(".mds/source/foo")).unwrap();
     fs::write(
         package_root.join("package.json"),
         "{\"name\":\"source-map-fixture\",\"version\":\"0.1.0\"}\n",
@@ -353,7 +415,7 @@ fn plan_generation_with_source_map_maps_source_and_test_outputs_from_fences_only
     )
     .unwrap();
 
-    let mapped_doc_path = package_root.join("src-md/foo/source-map.ts.md");
+    let mapped_doc_path = package_root.join(".mds/source/foo/source-map.ts.md");
     fs::write(
         &mapped_doc_path,
         r#"# Source map
@@ -388,7 +450,7 @@ expect(two()).toBe(2);
     .unwrap();
 
     fs::write(
-        package_root.join("src-md/foo/table-only.ts.md"),
+        package_root.join(".mds/source/foo/table-only.ts.md"),
         r#"# Table only
 
 ## Purpose
@@ -459,13 +521,13 @@ Fixture.
 }
 
 #[test]
-fn plan_generation_with_source_map_uses_special_output_path_rules() {
+fn plan_generation_with_source_map_uses_output_override_path_rules() {
     let temp = TestDir::new();
     let package_root = temp.path().join("rust-build-script");
-    fs::create_dir_all(package_root.join("src-md")).unwrap();
+    fs::create_dir_all(package_root.join(".mds/source")).unwrap();
     fs::write(
         package_root.join("mds.config.toml"),
-        "[package]\nenabled = true\nallow_raw_source = false\n",
+        "[package]\nenabled = true\nallow_raw_source = false\n\n[[output.override]]\nmatch = \"build\"\nkind = \"source\"\npath = \"build.rs\"\n",
     )
     .unwrap();
     fs::write(
@@ -474,7 +536,7 @@ fn plan_generation_with_source_map_uses_special_output_path_rules() {
     )
     .unwrap();
 
-    let build_doc_path = package_root.join("src-md/build.rs.md");
+    let build_doc_path = package_root.join(".mds/source/build.rs.md");
     fs::write(
         &build_doc_path,
         r#"# build
@@ -520,6 +582,53 @@ fn main() {
     assert_eq!(build_span.output_kind, OutputKind::Source);
     assert_eq!(build_span.extension_key, "rs");
     assert_eq!(build_span.fence_index, 0);
+}
+
+#[test]
+fn plan_generation_with_source_map_reports_unknown_output_placeholder() {
+    let temp = TestDir::new();
+    let package_root = temp.path().join("invalid-output-pattern");
+    fs::create_dir_all(package_root.join(".mds/source/foo")).unwrap();
+    fs::write(
+        package_root.join("package.json"),
+        "{\"name\":\"invalid-output-pattern\",\"version\":\"0.1.0\"}\n",
+    )
+    .unwrap();
+    fs::write(
+        package_root.join("mds.config.toml"),
+        "[package]\nenabled = true\nallow_raw_source = false\n\n[output]\nsource = \"{source_out}/{module}.{unknown}\"\n",
+    )
+    .unwrap();
+    fs::write(
+        package_root.join(".mds/source/foo/bad.ts.md"),
+        "# bad\n\n## Purpose\n\nFixture.\n\n## Contract\n\n- Fail planning on unknown placeholder.\n\n## Source\n\n```ts\nexport const bad = true;\n```\n",
+    )
+    .unwrap();
+
+    let mut load_state = mds_core::RunState::default();
+    let package = mds_core::package::load_package(
+        &package_root,
+        &mds_core::Config::default(),
+        &mut load_state,
+    )
+    .unwrap();
+    assert!(load_state.diagnostics.is_empty(), "{:?}", load_state.diagnostics);
+
+    let mut docs_state = mds_core::RunState::default();
+    let docs = mds_core::markdown::load_implementation_docs(&package, &mut docs_state).unwrap();
+    assert!(docs_state.diagnostics.is_empty(), "{:?}", docs_state.diagnostics);
+
+    let mut plan_state = mds_core::RunState::default();
+    let plan = mds_core::plan_generation_with_source_map(&package, &docs, &mut plan_state);
+    assert!(plan_state.diagnostics.iter().any(|diagnostic| {
+        diagnostic
+            .message
+            .contains("unknown output path placeholder `{unknown}`")
+    }));
+    assert!(!plan
+        .generated
+        .iter()
+        .any(|file| file.path == package_root.join("src/foo/bad.ts")));
 }
 
 #[test]
@@ -608,7 +717,7 @@ fn allows_import_lines_inside_source_code_blocks() {
     let temp = TestDir::new();
     write_fixture(temp.path());
     fs::write(
-        temp.path().join("pkg/src-md/foo/mixed.ts.md"),
+        temp.path().join("pkg/.mds/source/foo/mixed.ts.md"),
         "# Mixed\n\n## Purpose\n\nMixed imports.\n\n## Contract\n\n- Allow import lines inside Source fences in the language-agnostic core path.\n\n## Source\n\n```ts\nimport { util } from './util';\nexport const mixed = util;\n```\n",
     )
     .unwrap();
@@ -835,7 +944,7 @@ fn allows_multiple_top_level_implementations_in_one_code_block() {
     let temp = TestDir::new();
     write_fixture(temp.path());
     fs::write(
-        temp.path().join("pkg/src-md/foo/multiple.ts.md"),
+        temp.path().join("pkg/.mds/source/foo/multiple.ts.md"),
         "# Multiple\n\n## Purpose\n\nMultiple declarations.\n\n## Contract\n\n- Allow multiple declarations when configured.\n\n## Source\n\n```ts\nexport const first = 1;\nexport const second = 2;\n```\n",
     )
     .unwrap();
@@ -854,7 +963,7 @@ fn allows_multiple_go_top_level_implementations_in_one_code_block() {
     let temp = TestDir::new();
     write_fixture(temp.path());
     fs::write(
-        temp.path().join("pkg/src-md/foo/multiple.go.md"),
+        temp.path().join("pkg/.mds/source/foo/multiple.go.md"),
         "# Multiple\n\n## Purpose\n\nMultiple declarations.\n\n## Contract\n\n- Allow multiple top-level declarations in one fence in the language-agnostic core path.\n\n## Source\n\n```go\nfunc first() {}\nfunc second() {}\n```\n",
     )
     .unwrap();
@@ -873,7 +982,7 @@ fn allows_doc_comments_inside_code_blocks() {
     let temp = TestDir::new();
     write_fixture(temp.path());
     fs::write(
-        temp.path().join("pkg/src-md/foo/doc-comment.rs.md"),
+        temp.path().join("pkg/.mds/source/foo/doc-comment.rs.md"),
         "# Doc comment\n\n## Purpose\n\nBroken doc comment.\n\n## Contract\n\n- Allow doc comments inside Source fences in the language-agnostic core path.\n\n## Source\n\n```rs\n/// Move me outside the fence.\npub fn broken() {}\n```\n",
     )
     .unwrap();
@@ -892,7 +1001,7 @@ fn allows_docstrings_inside_code_blocks_without_check_override() {
     let temp = TestDir::new();
     write_fixture(temp.path());
     fs::write(
-        temp.path().join("pkg/src-md/foo/doc-comment.py.md"),
+        temp.path().join("pkg/.mds/source/foo/doc-comment.py.md"),
         "# Doc comment\n\n## Purpose\n\nBroken doc comment.\n\n## Contract\n\n- Allow docstrings in the standard core validation path.\n\n## Source\n\n```py\ndef broken() -> str:\n    \"\"\"Allowed in the language-agnostic core path.\"\"\"\n    return \"ok\"\n```\n",
     )
     .unwrap();
@@ -949,7 +1058,7 @@ starts_with = "import "
     )
     .unwrap();
     fs::write(
-        temp.path().join("pkg/src-md/foo/doc-comment.ts.md"),
+        temp.path().join("pkg/.mds/source/foo/doc-comment.ts.md"),
         "# Doc comment\n\n## Purpose\n\nBroken doc comment.\n\n## Contract\n\n- Ignore descriptor-level doc comment prefixes in the language-agnostic core path.\n\n## Source\n\n```ts\n/// Configured via descriptor TOML.\nexport const broken = 1;\n```\n",
     )
     .unwrap();
@@ -968,7 +1077,7 @@ fn rejects_unterminated_code_fence() {
     let temp = TestDir::new();
     write_fixture(temp.path());
     fs::write(
-        temp.path().join("pkg/src-md/foo/unterminated.ts.md"),
+        temp.path().join("pkg/.mds/source/foo/unterminated.ts.md"),
         "# Unterminated\n\n## Purpose\n\nBroken fence.\n\n## Source\n\n```ts\nexport const broken = 1;\n",
     )
     .unwrap();
@@ -992,7 +1101,7 @@ fn check_config_can_disable_markdown_link_validation() {
         "[package]\nenabled = true\nallow_raw_source = false\n\n[check]\nmarkdown_links = false\n",
     )
     .unwrap();
-    let doc = temp.path().join("pkg/src-md/foo/bar.ts.md");
+    let doc = temp.path().join("pkg/.mds/source/foo/bar.ts.md");
     let text = fs::read_to_string(&doc)
         .unwrap()
         .replace("Fixture.", "Fixture. [Missing](missing.md)");
@@ -1012,7 +1121,7 @@ fn rejects_new_fence_opener_before_previous_fence_closes() {
     let temp = TestDir::new();
     write_fixture(temp.path());
     fs::write(
-        temp.path().join("pkg/src-md/foo/reopened.ts.md"),
+        temp.path().join("pkg/.mds/source/foo/reopened.ts.md"),
         "# Reopened\n\n## Purpose\n\nBroken fence.\n\n## Source\n\n````ts\nexport const first = 1;\n````ts\nexport const second = 2;\n````\n",
     )
     .unwrap();
@@ -1032,7 +1141,7 @@ fn rejects_duplicate_h2_sections() {
     let temp = TestDir::new();
     write_fixture(temp.path());
     fs::write(
-        temp.path().join("pkg/src-md/foo/duplicate-sections.ts.md"),
+        temp.path().join("pkg/.mds/source/foo/duplicate-sections.ts.md"),
         "# Duplicate\n\n## Purpose\n\nFirst.\n\n## Source\n\n```ts\nexport const first = 1;\n```\n\n## Source\n\n```ts\nexport const second = 2;\n```\n",
     )
     .unwrap();
@@ -1264,7 +1373,7 @@ fn lint_fix_check_reports_diff_without_writing_and_fix_writes_code_blocks_only()
         ),
     )
     .unwrap();
-    let doc = temp.path().join("pkg/src-md/foo/bar.ts.md");
+    let doc = temp.path().join("pkg/.mds/source/foo/bar.ts.md");
     let original = fs::read_to_string(&doc).unwrap();
 
     let check = execute(CliRequest {
@@ -1420,7 +1529,7 @@ fn lint_reports_markdown_path_and_preserved_line_numbers() {
             check: false,
         },
     });
-    let md_path = temp.path().join("pkg/src-md/foo/bar.ts.md");
+    let md_path = temp.path().join("pkg/.mds/source/foo/bar.ts.md");
     assert_eq!(lint.exit_code, 1);
     assert!(lint.stderr.contains(&format!("{}:9:1", md_path.display())));
     assert!(!lint.stderr.contains(".build/mds/tmp/source.ts"));
@@ -1455,7 +1564,7 @@ fn lint_fix_remaps_second_code_fence_diagnostics_with_source_map() {
         },
     });
 
-    let md_path = temp.path().join("pkg/src-md/foo/bar.ts.md");
+    let md_path = temp.path().join("pkg/.mds/source/foo/bar.ts.md");
     assert_eq!(lint.exit_code, 1);
     assert!(lint.stderr.contains(&format!("{}:18:1", md_path.display())));
     assert!(!lint.stderr.contains(".build/mds/tmp/source.ts"));
@@ -1489,7 +1598,7 @@ fn lint_uses_tool_manifest_mapping_before_descriptor_fallback() {
         },
     });
 
-    let md_path = temp.path().join("pkg/src-md/foo/bar.ts.md");
+    let md_path = temp.path().join("pkg/.mds/source/foo/bar.ts.md");
     assert_eq!(lint.exit_code, 1);
     assert!(lint.stderr.contains(&format!("{}:9:1", md_path.display())));
     assert!(!lint.stderr.contains("toolchain command failed"));
@@ -1573,7 +1682,7 @@ fn exclude_skips_markdown_discovery_and_generation_outputs() {
     write_fixture(temp.path());
     fs::write(
         temp.path().join("pkg/mds.config.toml"),
-        "[package]\nenabled = true\nallow_raw_source = false\n\n[roots]\nexclude = [\"src-md/foo/bar.rs.md\", \"src/foo/bar.rs\"]\n",
+        "[package]\nenabled = true\nallow_raw_source = false\n\n[roots]\nexclude = [\".mds/source/foo/bar.rs.md\", \"src/foo/bar.rs\"]\n",
     )
     .unwrap();
 
@@ -1599,7 +1708,7 @@ fn label_overrides_preserve_canonical_table_and_section_meaning() {
         "[package]\nenabled = true\nallow_raw_source = false\n\n[labels]\nfrom = \"Origin\"\ntarget = \"Module\"\nexpose = \"Symbols\"\nsummary = \"Notes\"\n",
     )
     .unwrap();
-    let doc = temp.path().join("pkg/src-md/foo/bar.ts.md");
+    let doc = temp.path().join("pkg/.mds/source/foo/bar.ts.md");
     let text = fs::read_to_string(&doc)
         .unwrap()
         .replace(
@@ -1641,7 +1750,7 @@ fn rejects_types_label_override() {
 fn validates_local_markdown_links() {
     let temp = TestDir::new();
     write_fixture(temp.path());
-    let doc = temp.path().join("pkg/src-md/foo/bar.ts.md");
+    let doc = temp.path().join("pkg/.mds/source/foo/bar.ts.md");
     let text = fs::read_to_string(&doc)
         .unwrap()
         .replace("Fixture.", "Fixture. [Missing](missing.md)");
@@ -1661,7 +1770,7 @@ fn validates_local_markdown_links() {
 fn table_parser_keeps_pipes_inside_code_spans() {
     let temp = TestDir::new();
     write_fixture(temp.path());
-    let doc = temp.path().join("pkg/src-md/foo/bar.ts.md");
+    let doc = temp.path().join("pkg/.mds/source/foo/bar.ts.md");
     let text = fs::read_to_string(&doc)
         .unwrap()
         .replace(
@@ -1705,7 +1814,6 @@ fn metadata_parser_accepts_common_json_toml_dependency_shapes() {
     assert_eq!(check.exit_code, 0, "{}", check.stderr);
 
     let rust_pkg = temp.path().join("rust-pkg");
-    fs::create_dir_all(rust_pkg.join("src-md")).unwrap();
     fs::create_dir_all(rust_pkg.join(".mds/source")).unwrap();
     fs::write(
         rust_pkg.join("mds.config.toml"),
@@ -1715,11 +1823,6 @@ fn metadata_parser_accepts_common_json_toml_dependency_shapes() {
     fs::write(
         rust_pkg.join("Cargo.toml"),
         "[package]\nname = \"rust-fixture\"\nversion = \"0.1.0\"\n\n[dependencies]\nserde = { version = \"1.0\", features = [\"derive\"] }\n",
-    )
-    .unwrap();
-    fs::write(
-        rust_pkg.join("src-md/overview.md"),
-        "# Overview\n\n## Purpose\n\nRust fixture.\n\n## Architecture\n\nFixture source.\n\n## Exposes\n\n| Kind | Name | Target | Summary |\n| --- | --- | --- | --- |\n\n## Rules\n\n- Test fixture.\n",
     )
     .unwrap();
     fs::write(
@@ -1826,7 +1929,7 @@ fn lint_fix_updates_successful_quality_blocks_only() {
         ),
     )
     .unwrap();
-    let doc = temp.path().join("pkg/src-md/foo/bar.ts.md");
+    let doc = temp.path().join("pkg/.mds/source/foo/bar.ts.md");
     // Replace the last code block content with DO_NOT_FIX to simulate partial failure
     let text = fs::read_to_string(&doc)
         .unwrap()
@@ -2498,13 +2601,13 @@ fn build_treats_template_markdown_as_asset_not_source_doc() {
 }
 
 #[test]
-fn build_uses_descriptor_special_file_rules_for_build_rs() {
+fn build_uses_output_override_for_build_rs() {
     let temp = TestDir::new();
     let package = temp.path().join("rust-build-script");
     fs::create_dir_all(package.join(".mds/source")).unwrap();
     fs::write(
         package.join("mds.config.toml"),
-        "[package]\nenabled = true\nallow_raw_source = false\n",
+        "[package]\nenabled = true\nallow_raw_source = false\n\n[[output.override]]\nmatch = \"build\"\nkind = \"source\"\npath = \"build.rs\"\n",
     )
     .unwrap();
     fs::write(
@@ -2562,7 +2665,7 @@ fn build_write_updates_rust_package_source_tree_directly() {
     fs::create_dir_all(package.join(".mds/source")).unwrap();
     fs::write(
         package.join("mds.config.toml"),
-        "[package]\nenabled = true\nallow_raw_source = false\n",
+        "[package]\nenabled = true\nallow_raw_source = false\n\n[[output.override]]\nmatch = \"build\"\nkind = \"source\"\npath = \"build.rs\"\n",
     )
     .unwrap();
     fs::write(
@@ -2725,9 +2828,8 @@ fn write_init_package_metadata(root: &Path) {
 
 fn write_fixture(root: &Path) {
     let package = root.join("pkg");
-    fs::create_dir_all(package.join("src-md/foo")).unwrap();
-    fs::create_dir_all(package.join("src-md/pkg")).unwrap();
-    fs::create_dir_all(package.join(".mds/source")).unwrap();
+    fs::create_dir_all(package.join(".mds/source/foo")).unwrap();
+    fs::create_dir_all(package.join(".mds/source/pkg")).unwrap();
     fs::write(
         package.join("package.json"),
         "{\"name\":\"fixture\",\"version\":\"0.1.0\"}\n",
@@ -2744,7 +2846,7 @@ fn write_fixture(root: &Path) {
     )
     .unwrap();
     fs::write(
-        package.join("src-md/foo/util.ts.md"),
+        package.join(".mds/source/foo/util.ts.md"),
         impl_doc(
             "ts",
             "Util",
@@ -2756,7 +2858,7 @@ fn write_fixture(root: &Path) {
     )
     .unwrap();
     fs::write(
-        package.join("src-md/foo/bar.ts.md"),
+        package.join(".mds/source/foo/bar.ts.md"),
         impl_doc(
             "ts",
             "Bar",
@@ -2768,7 +2870,7 @@ fn write_fixture(root: &Path) {
     )
     .unwrap();
     fs::write(
-        package.join("src-md/pkg/foo.py.md"),
+        package.join(".mds/source/pkg/foo.py.md"),
         impl_doc(
             "py",
             "Foo",
@@ -2780,7 +2882,7 @@ fn write_fixture(root: &Path) {
     )
     .unwrap();
     fs::write(
-        package.join("src-md/foo/bar.rs.md"),
+        package.join(".mds/source/foo/bar.rs.md"),
         impl_doc(
             "rs",
             "bar",

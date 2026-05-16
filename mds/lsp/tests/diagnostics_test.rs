@@ -267,21 +267,15 @@ fn test_empty_document_diagnostics() {
 }
 
 #[test]
-fn test_valid_config_no_diagnostics() {
-    // Write a valid config to a temp file
+fn test_valid_config_with_canonical_roots_has_no_toml_errors() {
+    let config_text =
+        "[package]\nenabled = true\n\n[roots]\nsource_md = \".mds/source\"\ntest_md = \".mds/test\"\n";
+
     let dir = tempfile::tempdir().unwrap();
     let config_path = dir.path().join("mds.config.toml");
-    std::fs::write(
-        &config_path,
-        "[package]\nenabled = true\n\n[roots]\nmarkdown = \"src-md\"\n",
-    )
-    .unwrap();
+    std::fs::write(&config_path, config_text).unwrap();
 
-    let diags = diagnostics::validate_config_text(
-        &config_path,
-        "[package]\nenabled = true\n\n[roots]\nmarkdown = \"src-md\"\n",
-    );
-    // May have diagnostics about missing index.md etc, but no TOML errors
+    let diags = diagnostics::validate_config_text(&config_path, config_text);
     let toml_errors: Vec<&str> = diags
         .iter()
         .filter(|d| d.message.contains("TOML"))
@@ -290,6 +284,24 @@ fn test_valid_config_no_diagnostics() {
     assert!(
         toml_errors.is_empty(),
         "valid TOML should not have parse errors: {toml_errors:?}"
+    );
+}
+
+#[test]
+fn test_legacy_roots_markdown_is_reported_as_unsupported() {
+    let config_text =
+        "[package]\nenabled = true\n\n[roots]\nmarkdown = \"src-md\"\n";
+
+    let dir = tempfile::tempdir().unwrap();
+    let config_path = dir.path().join("mds.config.toml");
+    std::fs::write(&config_path, config_text).unwrap();
+
+    let diags = diagnostics::validate_config_text(&config_path, config_text);
+    assert!(
+        diags
+            .iter()
+            .any(|d| d.message.contains("ignoring unsupported roots config `markdown`")),
+        "legacy roots.markdown should be reported as unsupported: {diags:?}"
     );
 }
 

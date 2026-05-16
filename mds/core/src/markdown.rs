@@ -440,19 +440,11 @@ fn slugify_heading(value: &str) -> String {
 }
 
 pub fn source_markdown_root(package: &Package) -> PathBuf {
-    let fixed = package.root.join(".mds/source");
-    if fixed.exists()
-        && (has_source_impl_docs(&fixed)
-            || !package.root.join(&package.config.roots.markdown).exists())
-    {
-        fixed
-    } else {
-        package.root.join(&package.config.roots.markdown)
-    }
+    package.root.join(&package.config.roots.source_md)
 }
 
 pub fn test_markdown_root(package: &Package) -> PathBuf {
-    package.root.join(".mds/test")
+    package.root.join(&package.config.roots.test_md)
 }
 
 fn markdown_root_for(package: &Package, doc_kind: DocKind) -> PathBuf {
@@ -460,19 +452,6 @@ fn markdown_root_for(package: &Package, doc_kind: DocKind) -> PathBuf {
         DocKind::Source => source_markdown_root(package),
         DocKind::Test => test_markdown_root(package),
     }
-}
-
-fn has_source_impl_docs(root: &Path) -> bool {
-    let Ok(files) = collect_files(root, false) else {
-        return false;
-    };
-    files.into_iter().any(|path| {
-        matches!(path.extension().and_then(|ext| ext.to_str()), Some("md"))
-            && !matches!(
-                path.file_name().and_then(|name| name.to_str()),
-                Some("overview.md")
-            )
-    })
 }
 
 fn is_test_doc(path: &Path) -> bool {

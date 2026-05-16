@@ -3,8 +3,12 @@ use std::path::{Path};
 use std::path::{PathBuf};
 use crate::diagnostics::{Diagnostic};
 use crate::diagnostics::{RunState};
+use crate::model::{CANONICAL_SOURCE_MD_ROOT};
+use crate::model::{CANONICAL_TEST_MD_ROOT};
 use crate::model::{Config};
 use crate::model::{Lang};
+use crate::model::{OutputKind};
+use crate::model::{OutputOverride};
 pub fn merge_config_file(config: &mut Config, path: &Path, state: &mut RunState) -> Option<()> {
     let text = match fs::read_to_string(path) {
         Ok(text) => text,
@@ -99,17 +103,51 @@ pub fn merge_config_file(config: &mut Config, path: &Path, state: &mut RunState)
     if let Some(roots) = root.get("roots").and_then(toml::Value::as_table) {
         for (key, value) in roots {
             match key.as_str() {
-                "markdown" => {
-                    config.roots.markdown = PathBuf::from(string_value(value, path, key, state))
+                "source_md" => {
+                    if let Some(root) = canonical_root_value(
+                        value,
+                        path,
+                        key,
+                        CANONICAL_SOURCE_MD_ROOT,
+                        state,
+                    ) {
+                        config.roots.source_md = root;
+                    }
                 }
-                "source" => {
-                    config.roots.source = PathBuf::from(string_value(value, path, key, state))
+                "test_md" => {
+                    if let Some(root) = canonical_root_value(
+                        value,
+                        path,
+                        key,
+                        CANONICAL_TEST_MD_ROOT,
+                        state,
+                    ) {
+                        config.roots.test_md = root;
+                    }
                 }
-                "test" => config.roots.test = PathBuf::from(string_value(value, path, key, state)),
+                "source_out" => {
+                    config.roots.source_out = PathBuf::from(string_value(value, path, key, state))
+                }
+                "test_out" => {
+                    config.roots.test_out = PathBuf::from(string_value(value, path, key, state))
+                }
                 "exclude" | "excludes" => {
                     config.excludes = string_array_value(value, path, key, state)
                 }
                 _ => warn_unsupported(path, state, "roots config", key),
+            }
+        }
+    }
+
+    if let Some(output) = root.get("output").and_then(toml::Value::as_table) {
+        for (key, value) in output {
+            match key.as_str() {
+                "source" => config.output.source = Some(string_value(value, path, key, state)),
+                "test" => config.output.test = Some(string_value(value, path, key, state)),
+                "override" => {
+                    config.output.overrides = output_override_array_value(value, path, state)
+                }
+                _ => warn_unsupported(path, state, "output config", key),
             }
         }
     }
@@ -276,6 +314,7 @@ fn is_supported_top_level_table(section: &str) -> bool {
             | "check"
             | "checks"
             | "roots"
+            | "output"
             | "adapters"
             | "quality"
             | "doctor"
@@ -285,6 +324,126 @@ fn is_supported_top_level_table(section: &str) -> bool {
             | "label_overrides"
             | "label-overrides"
     )
+}
+
+fn canonical_root_value(
+    value: &toml::Value,
+    path: &Path,
+    key: &str,
+    canonical: &str,
+    state: &mut RunState,
+) -> Option<PathBuf> {
+    let Some(value) = value.as_str() else {
+        state.diagnostics.push(Diagnostic::error(
+            Some(path.to_path_buf()),
+            format!("config `{key}` must be a string"),
+        ));
+        return None;
+    };
+    if value == canonical {
+        Some(PathBuf::from(value))
+    } else {
+        state.diagnostics.push(Diagnostic::error(
+            Some(path.to_path_buf()),
+            format!("config `{key}` must be `{canonical}`"),
+        ));
+        None
+    }
+}
+
+fn output_override_array_value(
+    value: &toml::Value,
+    path: &Path,
+    state: &mut RunState,
+) -> Vec<OutputOverride> {
+    let Some(values) = value.as_array() else {
+        state.diagnostics.push(Diagnostic::error(
+            Some(path.to_path_buf()),
+            "config `output.override` must be an array of tables",
+        ));
+        return Vec::new();
+    };
+
+    values
+        .iter()
+        .enumerate()
+        .filter_map(|(index, value)| {
+            let Some(table) = value.as_table() else {
+                state.diagnostics.push(Diagnostic::error(
+                    Some(path.to_path_buf()),
+                    "config `output.override` must be an array of tables",
+                ));
+                return None;
+            };
+
+            let mut match_pattern = None;
+            let mut kind = None;
+            let mut override_path = None;
+
+            for (key, value) in table {
+                match key.as_str() {
+                    "match" => {
+                        match_pattern = Some(string_value(value, path, "output.override.match", state))
+                    }
+                    "kind" => {
+                        kind = output_kind_value(value, path, "output.override.kind", state)
+                    }
+                    "path" => {
+                        override_path = Some(string_value(value, path, "output.override.path", state))
+                    }
+                    _ => warn_unsupported(path, state, "output.override", key),
+                }
+            }
+
+            match (match_pattern, kind, override_path) {
+                (Some(match_pattern), Some(kind), Some(path_pattern))
+                    if !match_pattern.is_empty() && !path_pattern.is_empty() =>
+                {
+                    Some(OutputOverride {
+                        match_pattern,
+                        kind,
+                        path: path_pattern,
+                    })
+                }
+                _ => {
+                    state.diagnostics.push(Diagnostic::error(
+                        Some(path.to_path_buf()),
+                        format!(
+                            "config `output.override[{index}]` requires `match`, `kind`, and `path`"
+                        ),
+                    ));
+                    None
+                }
+            }
+        })
+        .collect()
+}
+
+fn output_kind_value(
+    value: &toml::Value,
+    path: &Path,
+    key: &str,
+    state: &mut RunState,
+) -> Option<OutputKind> {
+    let Some(value) = value.as_str() else {
+        state.diagnostics.push(Diagnostic::error(
+            Some(path.to_path_buf()),
+            format!("config `{key}` must be a string"),
+        ));
+        return None;
+    };
+
+    match value {
+        "source" => Some(OutputKind::Source),
+        "test" => Some(OutputKind::Test),
+        _ => {
+            state.diagnostics.push(Diagnostic::error(
+                Some(path.to_path_buf()),
+                format!("config `{key}` must be `source` or `test`"),
+            ));
+            None
+        }
+    }
 }
 
 fn lang_from_key(key: &str) -> Option<Lang> {

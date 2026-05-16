@@ -104,7 +104,6 @@ async function discoverLanguages(
   // From actual .{ext}.md files in mds authoring roots
   try {
     for (const pattern of [
-      '**/src-md/**/*.md',
       '**/.mds/source/**/*.md',
       '**/.mds/test/**/*.md',
     ]) {
@@ -620,8 +619,8 @@ function registerPreviewCommands(context: vscode.ExtensionContext): void {
  */
 function isMdsFile(uri: vscode.Uri, extPattern: string): boolean {
   const path = uri.fsPath;
-  // Files in legacy src-md/ or fixed .mds/source/.mds/test directories
-  if (/[/\\](?:src-md|\.mds[/\\](?:source|test))[/\\]/.test(path)) {
+  // Files in the canonical .mds/source or .mds/test authoring roots
+  if (/[/\\]\.mds[/\\](?:source|test)[/\\]/.test(path)) {
     return true;
   }
   // Files matching known mds extension patterns (e.g., .ts.md, .go.md)
@@ -678,7 +677,6 @@ export async function activate(context: vscode.ExtensionContext) {
       { scheme: 'file', language: 'mds-markdown' },
       { scheme: 'file', pattern: '**/mds.config.toml' },
       { scheme: 'file', pattern: '**/package.md' },
-      { scheme: 'file', pattern: '**/src-md/**/*.md' },
       { scheme: 'file', pattern: '**/.mds/source/**/*.md' },
       { scheme: 'file', pattern: '**/.mds/test/**/*.md' },
     ];
@@ -690,7 +688,6 @@ export async function activate(context: vscode.ExtensionContext) {
   const fileEvents = [
     vscode.workspace.createFileSystemWatcher('**/mds.config.toml'),
     vscode.workspace.createFileSystemWatcher('**/package.md'),
-    vscode.workspace.createFileSystemWatcher('**/src-md/**/*.md'),
     vscode.workspace.createFileSystemWatcher('**/.mds/source/**/*.md'),
     vscode.workspace.createFileSystemWatcher('**/.mds/test/**/*.md'),
   ];

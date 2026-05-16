@@ -5,7 +5,6 @@ use std::path::{Path};
 use std::path::{PathBuf};
 use serde::{Deserialize};
 use crate::model::{Lang};
-use crate::model::{OutputKind};
 mod descriptor_registry {
     include!(concat!(env!("OUT_DIR"), "/descriptor_registry.rs"));
 }
@@ -16,13 +15,6 @@ mod tool_registry {
 
 mod package_manager_registry {
     include!(concat!(env!("OUT_DIR"), "/package_manager_registry.rs"));
-}
-
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
-pub(crate) enum OutputRoot {
-    Package,
-    Source,
-    Test,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -268,21 +260,6 @@ impl Default for ToolBehavior {
 }
 
 impl Descriptor {
-    pub fn file_rule(&self, kind: OutputKind) -> &FileRule {
-        match kind {
-            OutputKind::Source => &self.files.source,
-            OutputKind::Test => &self.files.test,
-        }
-    }
-
-    pub fn special_file_rule(&self, relative: &Path, kind: OutputKind) -> Option<&SpecialFileRule> {
-        let relative = relative.to_string_lossy().replace('\\', "/");
-        let kind = kind.manifest_kind();
-        self.special_files
-            .iter()
-            .find(|rule| rule.match_path == relative && rule.kind == kind)
-    }
-
     pub fn matches_code_block_merge_start(&self, line: &str) -> bool {
         self.syntax
             .code_block_merge_prefixes
@@ -720,20 +697,6 @@ impl PackageManagerRegistry {
     }
 }
 
-impl SpecialFileRule {
-    fn output_root(&self, kind: OutputKind) -> OutputRoot {
-        match self.root.as_deref() {
-            Some("package") => OutputRoot::Package,
-            Some("source") => OutputRoot::Source,
-            Some("test") => OutputRoot::Test,
-            _ => match kind {
-                OutputKind::Source => OutputRoot::Source,
-                OutputKind::Test => OutputRoot::Test,
-            },
-        }
-    }
-}
-
 pub(crate) fn builtin_descriptor(lang: &Lang) -> Descriptor {
     descriptor_for_key(lang.key())
         .unwrap_or_else(|| panic!("no built-in descriptor for `{}`", lang.key()))
@@ -1139,48 +1102,4 @@ fn expand_simple_glob(root: &Path, pattern: &str) -> Vec<PathBuf> {
     }
     matches.sort();
     matches
-}
-
-pub(crate) fn output_relative_path(relative: &Path, lang: &Lang, kind: OutputKind) -> PathBuf {
-    let descriptor = builtin_descriptor(lang);
-    if let Some(rule) = descriptor.special_file_rule(relative, kind) {
-        return PathBuf::from(&rule.output);
-    }
-    let rule = descriptor.file_rule(kind);
-    apply_file_rule(relative, &descriptor.language.primary_ext, rule)
-}
-
-pub(crate) fn output_root(relative: &Path, lang: &Lang, kind: OutputKind) -> OutputRoot {
-    let descriptor = builtin_descriptor(lang);
-    if let Some(rule) = descriptor.special_file_rule(relative, kind) {
-        return rule.output_root(kind);
-    }
-    match kind {
-        OutputKind::Source => OutputRoot::Source,
-        OutputKind::Test => OutputRoot::Test,
-    }
-}
-
-fn apply_file_rule(relative: &Path, primary_ext: &str, rule: &FileRule) -> PathBuf {
-    let stripped = strip_md_extension(relative);
-    let parent = stripped.parent().map(PathBuf::from).unwrap_or_default();
-    let file_name = stripped.file_name().unwrap_or_default().to_string_lossy();
-    let target_suffix = format!(".{}", rule.extension);
-    let base_without_target = file_name.strip_suffix(&target_suffix).unwrap_or(&file_name);
-    let base = if rule.strip_lang_ext {
-        let primary_suffix = format!(".{primary_ext}");
-        base_without_target
-            .strip_suffix(&primary_suffix)
-            .unwrap_or(base_without_target)
-    } else {
-        base_without_target
-    };
-    let output_name = format!("{}{}{}.{}", rule.prefix, base, rule.suffix, rule.extension);
-    parent.join(output_name)
-}
-
-fn strip_md_extension(path: &Path) -> PathBuf {
-    let name = path.file_name().unwrap_or_default().to_string_lossy();
-    let stripped = name.strip_suffix(".md").unwrap_or(&name);
-    path.with_file_name(stripped)
 }
