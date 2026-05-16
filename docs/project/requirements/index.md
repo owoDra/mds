@@ -20,12 +20,27 @@
 
 ## 命名規則
 
-- `REQ-<category>-<short-title>.md`
+- `v1/REQ-<category>-<short-title>.md`
+- `v2/REQ-<category>-<short-title>.md`
 
 ## 参照ルール
 
 - 要求変更時は spec / validation / ADR への影響を確認する
 
+## v1 要件
+
+- `v1/REQ-product-markdown-source-of-truth.md`: Markdown を実装正本として扱うための中核 requirement
+- `v1/REQ-quality-safe-package-bounded-generation.md`: package 境界と既存ファイルを守る安全性 requirement
+- `v1/REQ-quality-language-and-toolchain-independence.md`: 特定言語や単一ツールチェーンへ閉じない requirement
+- `v1/REQ-ux-human-ai-authoring-experience.md`: 人間と AI 両対応の authoring 体験 requirement
+- `v1/REQ-ux-low-context-reference-layout.md`: 低コンテキスト消費で必要情報へ到達できる参照配置 requirement
+- `v1/REQ-quality-portable-readable-verifiable-markdown.md`: 一般的 Markdown としての可読性と機械検証可能性 requirement
+
+## v2 目標要件
+
+- `v2/REQ-product-v2-project-wide-document-governance.md`: `mds` を project 全体の資料管理へ発展させる将来 requirement
+
 ## 参照
 
-- 現在は個票なし: requirement 追加時は `REQ-<category>-<short-title>.md` をこのディレクトリに置く
+- `v1/index.md`: v1 要件の入口
+- `v2/index.md`: v2 目標要件の入口
