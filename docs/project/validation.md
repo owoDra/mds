@@ -17,6 +17,9 @@
 - 仕様更新や authoring 体験変更がある場合、対応する `examples/` を必ず更新し、開発者体験と使いやすさをレビューする。
 - `mds file` の構造ルールを変えたら、一般的な Markdown としての可読性と、機械検証可能性の両方を確認する。
 - 参照配置や file 分割方針を変えたら、人間と AI の両方にとって探索コストが下がるか、少なくとも悪化しないかを確認する。
+- LSP / VS Code extension の変更では、記法未習得の利用者でも completion / snippet / diagnostics 補助で最小 `mds file` を作れるか確認する。
+- 埋め込み code bridge や言語認識を変えたら、active language 表示、言語 LSP 機能の再利用、Markdown 位置への再対応付けを確認する。
+- navigation を変えたら、definition / references / related symbol 探索が `mds file` 起点で成立するか確認する。
 
 ## 実行メモ
 

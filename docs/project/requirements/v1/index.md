@@ -26,5 +26,8 @@
 - `REQ-quality-safe-package-bounded-generation.md`: package 境界と既存ファイルを守る安全性 requirement
 - `REQ-quality-language-and-toolchain-independence.md`: 特定言語や単一ツールチェーンへ閉じない requirement
 - `REQ-ux-human-ai-authoring-experience.md`: 人間と AI 両対応の authoring 体験 requirement
+- `REQ-ux-guided-editor-authoring.md`: `mds` 記法未習得でも editor 補助で作成できる requirement
+- `REQ-ux-language-aware-embedded-lsp-bridge.md`: 言語自動検知と埋め込み code への既存 LSP 橋渡し requirement
+- `REQ-ux-navigable-mds-knowledge-graph.md`: 依存、参照、定義へ簡単に移動できる requirement
 - `REQ-ux-low-context-reference-layout.md`: 低コンテキスト消費で必要情報へ到達できる参照配置 requirement
 - `REQ-quality-portable-readable-verifiable-markdown.md`: 一般的 Markdown としての可読性と機械検証可能性 requirement
