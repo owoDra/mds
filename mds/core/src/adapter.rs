@@ -60,9 +60,11 @@ pub(crate) fn run_toolchain_command(
     if let Some(stdin) = invocation.stdin {
         if let Some(mut handle) = child.stdin.take() {
             use std::io::Write;
-            handle
-                .write_all(stdin.as_bytes())
-                .map_err(|error| format!("failed to write toolchain stdin: {error}"))?;
+            if let Err(error) = handle.write_all(stdin.as_bytes()) {
+                if error.kind() != std::io::ErrorKind::BrokenPipe {
+                    return Err(format!("failed to write toolchain stdin: {error}"));
+                }
+            }
         }
     }
     let output = child

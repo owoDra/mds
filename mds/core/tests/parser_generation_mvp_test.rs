@@ -1871,7 +1871,7 @@ fn lint_reports_markdown_path_and_preserved_line_numbers() {
         },
     });
     let md_path = temp.path().join("pkg/.mds/source/foo/bar.ts.md");
-    assert_eq!(lint.exit_code, 1);
+    assert_eq!(lint.exit_code, 1, "{}", lint.stderr);
     assert!(lint.stderr.contains(&format!("{}:9:1", md_path.display())));
     assert!(!lint.stderr.contains(".build/mds/tmp/source.ts"));
     assert!(!temp.path().join("pkg/.build/mds/tmp/source.ts").exists());
