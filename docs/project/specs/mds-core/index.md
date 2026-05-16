@@ -7,7 +7,7 @@
 ## 対象
 
 - config 読み込み
-- descriptor registry
+- config / schema 解釈
 - package discovery
 - Markdown 解析
 - generation / source map
@@ -19,4 +19,6 @@
 
 ## 参照
 
-- 現在は個票なし: 追加時は `SPEC-core-<short-title>.md` を置く
+- `SPEC-core-config-and-authoring-policy.md`: config、doc kind、label、link policy mode の仕様
+- `SPEC-core-overview-and-package-sync.md`: source overview special file と package sync の仕様
+- `SPEC-core-quality-and-fix-pipeline.md`: quality 実行、diagnostic remap、`lint --fix` 文書正規化の仕様

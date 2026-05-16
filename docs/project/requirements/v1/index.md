@@ -30,4 +30,6 @@
 - `REQ-ux-language-aware-embedded-lsp-bridge.md`: 言語自動検知と埋め込み code への既存 LSP 橋渡し requirement
 - `REQ-ux-navigable-mds-knowledge-graph.md`: 依存、参照、定義へ簡単に移動できる requirement
 - `REQ-ux-low-context-reference-layout.md`: 低コンテキスト消費で必要情報へ到達できる参照配置 requirement
+- `REQ-ux-section-title-independence.md`: section title 文字列に依存しない semantic 解釈 requirement
+- `REQ-quality-diagnostic-remap-to-mds.md`: tool 診断の参照先を `mds file` へ戻す requirement
 - `REQ-quality-portable-readable-verifiable-markdown.md`: 一般的 Markdown としての可読性と機械検証可能性 requirement

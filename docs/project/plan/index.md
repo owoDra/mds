@@ -70,4 +70,4 @@ docs/project/plan/
 
 ## 参照
 
-- 現在は個別 plan なし: 追加時は `<plan-slug>/index.md` と phase/task 個票を置く
+- `capability-schema-migration/index.md`: built-in descriptor / tool registry 依存を config/schema runtime へ移す実装計画

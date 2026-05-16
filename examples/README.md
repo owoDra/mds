@@ -4,11 +4,9 @@
 
 ## サンプル一覧
 
-| ディレクトリ | 内容 |
-| --- | --- |
-| [minimal-ts](minimal-ts/) | TypeScript の最小構成 |
-| [minimal-py](minimal-py/) | Python の最小構成 |
-| [minimal-rs](minimal-rs/) | Rust の最小構成 |
+| ディレクトリ | 内容 | v1 位置づけ |
+| --- | --- | --- |
+| `minimal-ts` | TypeScript の最小構成 | 必須回帰 fixture |
 
 ## 使い方
 
@@ -27,7 +25,7 @@ cargo run --manifest-path Cargo.toml -p mds-cli -- build --package examples/mini
 
 ## サンプルの構成
 
-各サンプルプロジェクトは、mds の最小構成を示しています。
+v1 では `minimal-ts` を必須回帰 fixture として扱います。
 
 - `mds.config.toml` — mds の設定ファイル
 - `package.json` / `pyproject.toml` / `Cargo.toml` — 言語のパッケージ情報
@@ -36,3 +34,5 @@ cargo run --manifest-path Cargo.toml -p mds-cli -- build --package examples/mini
 - `.mds/test/*.lang.md` — tableless test Markdown
 
 生成後、`src/` と `tests/` に `[output]` / `[[output.override]]` に従った派生コードが作られます。
+
+Python / Rust examples は v1 spec の対象外で、今後整理予定です。

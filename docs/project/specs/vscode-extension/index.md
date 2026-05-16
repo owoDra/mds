@@ -18,4 +18,4 @@
 
 ## 参照
 
-- 現在は個票なし: 追加時は `SPEC-vscode-<short-title>.md` を置く
+- `SPEC-vscode-embedded-editor-experience.md`: status bar、embedded language delegation、diagnostic mirror の仕様

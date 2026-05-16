@@ -17,4 +17,4 @@
 
 ## 参照
 
-- 現在は個票なし: 追加時は `SPEC-lsp-<short-title>.md` を置く
+- `SPEC-lsp-authoring-navigation-remap.md`: diagnostics、guided authoring、navigation、source map remap の仕様

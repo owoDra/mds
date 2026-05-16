@@ -18,4 +18,7 @@
 
 ## 参照
 
-- 現在は個票なし: 追加時は `SPEC-cli-<short-title>.md` を置く
+- `SPEC-cli-command-surface-and-execution.md`: command surface、option 制約、stdout/stderr/exit code の仕様
+- `SPEC-cli-init-and-new-workflows.md`: wizard、non-interactive init、template 起票の仕様
+- `SPEC-cli-init-wizard-screen-flow.md`: init wizard の画面順、分岐、各画面責務の仕様
+- `SPEC-cli-doctor-and-update.md`: doctor と GitHub 前提 update の仕様

@@ -16,4 +16,5 @@
 
 ## 参照
 
-- 現在は個票なし: 追加時は `SPEC-examples-<short-title>.md` を置く
+- `SPEC-examples-v1-regression-fixtures.md`: v1 の必須回帰fixture、repository 構成、拡張余地の仕様
+- `SPEC-examples-minimal-ts-fixture.md`: `minimal-ts` 成功系 fixture の詳細仕様

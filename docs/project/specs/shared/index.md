@@ -25,4 +25,9 @@
 
 ## 参照
 
-- 現在は共有仕様の個票なし: 追加時は `SPEC-<category>-<short-title>.md` を置く
+- `SPEC-model-package-layout.md`: package、authoring root、doc kind、overview special file の共有仕様
+- `SPEC-authoring-markdown-format.md`: 一般 `mds file` の section、link policy、可読性、検証可能性の共有仕様
+- `SPEC-generation-safety-and-derivation.md`: generation safety、manifest、source map の共有仕様
+- `SPEC-language-extension-contract.md`: config/schema と package manager 連携による多言語拡張の共有仕様
+- `SPEC-ux-embedded-language-bridge.md`: embedded code を既存言語機能へ橋渡しする共有仕様
+- `SPEC-ux-navigation-and-traceability.md`: definition、references、traceability の共有仕様

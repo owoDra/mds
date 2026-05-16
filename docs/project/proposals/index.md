@@ -30,5 +30,6 @@
 
 ## 参照
 
-- `active/`: 採否判断前の proposal の配置先。現在は個票なし
+- `active/`: 採否判断前の proposal の配置先
+- `active/proposal-capability-schema-runtime.md`: built-in descriptor / tool registry 依存を config/schema runtime へ移す提案
 - `archive/`: 参照優先度を落とした proposal の配置先。現在は個票なし
