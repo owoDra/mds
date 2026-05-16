@@ -1,107 +1,119 @@
 # 設定
 
-このページでは、`mds.config.toml` の役割と主要な設定を説明します。
-
-## 基本方針
-
-mds の設定ファイル名は `mds.config.toml` です。
-
-設定形式を複数用意せず、TOML に固定します。これにより、設定の解釈を単純にし、リポジトリ内のどこで mds が有効なのかを確認しやすくします。
+このページでは、current な `mds.config.toml` surface を説明します。
 
 ## 最小例
 
 ```toml
 [package]
 enabled = true
+allow_raw_source = false
 
 [roots]
-markdown = "src-md"
-source = "src"
-types = "src"
-test = "tests"
+source_md = ".mds/source"
+test_md = ".mds/test"
+source_out = "src"
+test_out = "tests"
 
-[adapters.ts]
-enabled = true
+[output]
+source = "{source_out}/{module}.{ext}"
+test = "{test_out}/{module}.test.{ext}"
 
-[adapters.py]
-enabled = false
-
-[adapters.rs]
-enabled = false
+[check]
+legacy_tables = "warn"
+unresolved_module_symbols = "warn"
+implementation_section_only = true
+split_source_and_test = true
 
 [quality.ts]
-linter = "eslint"
+linter = ""
 fixer = "prettier --write"
-test_runner = "vitest run"
-required = ["node", "eslint", "prettier", "vitest"]
+test_runner = ""
+required = ["node", "prettier"]
 optional = []
 ```
 
 ## `[package]`
 
-`[package]` は、パッケージ単位の mds の有効化を設定します。
-
 | キー | 意味 |
 | --- | --- |
-| `enabled` | このパッケージを mds の対象にするかどうかを指定します。 |
-| `allow_raw_source` | 生成対象外の生のソースを許可するかどうかを指定します。 |
-
-通常は、mds の対象にしたいパッケージで `enabled = true` を指定します。
+| `enabled` | package で mds を有効化する |
+| `allow_raw_source` | 生成対象外の source file を generated output と共存させる |
 
 ## `[roots]`
 
-`[roots]` は、Markdown と生成先の場所を指定します。
+`source_md` と `test_md` は canonical で固定です。
+
+| キー | 意味 |
+| --- | --- |
+| `source_md` | `.mds/source` 固定 |
+| `test_md` | `.mds/test` 固定 |
+| `source_out` | generated source output の base directory |
+| `test_out` | generated test output の base directory |
+
+Markdown root の名前は変えず、必要な path 変更は output planning で行います。
+
+## `[output]`
+
+`[output]` は doc kind ごとの既定 output pattern を定義します。
+
+| キー | 既定値 |
+| --- | --- |
+| `source` | `{source_out}/{module}.{ext}` |
+| `test` | `{test_out}/{module}.test.{ext}` |
+
+利用できる placeholder は次のとおりです。
+
+- `{source_out}`
+- `{test_out}`
+- `{module}`
+- `{ext}`
+- `{{` と `}}` は literal brace
+
+未知の placeholder は error になります。
+
+## `[[output.override]]`
+
+一部 module だけ別の naming rule が必要なときに使います。
+
+```toml
+[[output.override]]
+match = "*"
+kind = "test"
+path = "{test_out}/test_{module}.{ext}"
+```
+
+| field | 意味 |
+| --- | --- |
+| `match` | logical module id に対する glob pattern |
+| `kind` | `source` または `test` |
+| `path` | `[output]` と同じ placeholder を使う置換 pattern |
+
+最初に一致した override が使われます。
+
+## `[check]`
+
+`[check]` は authoring-v2 diagnostics を制御します。
 
 | キー | 既定値 | 意味 |
 | --- | --- | --- |
-| `markdown` | `src-md` | 実装 Markdown を置く場所です。 |
-| `source` | `src` | `Source` から生成するファイルの出力先です。 |
-| `types` | `src` | `Types` から生成するファイルの出力先です。 |
-| `test` | `tests` | `Test` から生成するファイルの出力先です。 |
+| `legacy_tables` | `warn` | 旧 metadata table pattern への warn / error |
+| `unresolved_module_symbols` | `warn` | unresolved `[[module#symbol]]` の policy |
+| `implementation_section_only` | `true` | executable section だけを生成元として扱う |
+| `split_source_and_test` | `true` | source doc と test doc の責務混在を拒否する |
 
-生成先は、対象パッケージの内側である必要があります。パッケージの外に出る出力先は拒否されます。
+unresolved `[[module]]` は常に error です。
 
-## `[adapters]`
+## `[quality.<lang>]`
 
-`[adapters]` は、対象言語の有効化を設定します。
+`[quality.ts]`、`[quality.py]`、`[quality.rs]` などの per-language section で外部 tool を設定します。
 
-| セクション | 対象言語 |
+| キー | 意味 |
 | --- | --- |
-| `[adapters.ts]` | TypeScript |
-| `[adapters.py]` | Python |
-| `[adapters.rs]` | Rust |
+| `linter` | `mds lint` で使う command |
+| `fixer` | `mds lint --fix` で使う command |
+| `test_runner` | `mds test` で使う command |
+| `required` | package に必須の tool 一覧 |
+| `optional` | 無くてもよいがあると便利な tool 一覧 |
 
-利用しない言語は `enabled = false` にできます。
-
-## 品質検査の設定
-
-言語ごとの検査、修正、テストで使うコマンドは、品質検査用の設定で扱います。`mds init` で選択した quality tool は、`[quality.ts]`、`[quality.py]`、`[quality.rs]` に明示されます。
-
-選択できる代表的な候補は次のとおりです。
-
-| 言語 | 検査 | 修正 | テスト |
-| --- | --- | --- | --- |
-| TypeScript | ESLint、Biome | Prettier、Biome | Vitest、Jest |
-| Python | Ruff | Ruff、Black | Pytest、unittest |
-| Rust | Cargo Clippy | rustfmt | Cargo test、cargo-nextest |
-
-使わない機能は `false` にできます。たとえば TypeScript の品質検査を使わない場合は次のように指定します。
-
-```toml
-[quality.ts]
-linter = false
-fixer = false
-test_runner = false
-required = []
-optional = []
-```
-
-実行環境に必要なツールがない場合、`mds doctor` で確認できます。未選択のツールは不足扱いになりません。
-
-## 設定の注意点
-
-- 設定ファイル名は `mds.config.toml` に固定します。
-- セクション名やキー名で mds の意味を自由に変更することはできません。
-- 未対応の設定を指定した場合、警告として扱われることがあります。
-- 生成先がパッケージの外に出る設定は拒否されます。
-- 設定で自由度を増やすより、規約を保つことを優先します。
+使わない tool は `""` や空 list にします。

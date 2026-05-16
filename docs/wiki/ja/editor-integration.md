@@ -1,58 +1,78 @@
 # エディタ統合 (LSP)
 
-mds は Language Server Protocol (LSP) に準拠したサーバー `mds-lsp` を提供しています。エディタ上で mds Markdown ファイルのリアルタイム検証、コードナビゲーション、補完、ホバー情報を利用できます。
+mds は、authoring-v2 package 向けの Language Server Protocol server として `mds-lsp` を提供します。
 
-**主な機能:**
+## 主な機能
 
-| 機能 | 説明 |
+| 機能 | 内容 |
 | --- | --- |
-| リアルタイム診断 | セクション構造、テーブル形式、言語一致、config 検証、リンク検証 |
-| Go to Definition | Uses テーブルの Target から参照先の実装 Markdown へジャンプ |
-| Find References | Expose された名前がどこで Uses されているか検索 |
-| Document Symbols | セクション見出しのアウトライン表示 |
-| Workspace Symbols | `src-md/` 全体のモジュール名検索 |
-| 補完 | セクション名、テーブルカラム名、コードブロック言語、スニペット |
-| Hover | セクション説明、参照先モジュールの Purpose 表示 |
-| Code Action | 欠損セクションの自動追加（Quick Fix） |
+| Diagnostics | section structure、canonical roots、legacy table warning、source/test mixing、unresolved wiki-style link |
+| Hover / Definition | generated file へ委譲してから source map bridge で Markdown に戻す |
+| Completion / Snippets | current source/test heading、code fence、config snippet |
+| Code Action | tableless doc の不足 heading を補う |
+| Outline | Markdown 見出しの document symbols |
 
 ## インストール
 
-### VS Code Marketplace（VSCode では推奨）
+### VS Code
 
 ```bash
 code --install-extension owo-x-project.mds
 ```
 
-Marketplace 版の拡張は platform-specific package として公開され、対応する `mds-lsp` バイナリを同封しています。VSCode 利用者は通常 LSP を別途インストールする必要はありません。
+Marketplace 版の拡張には対応する `mds-lsp` binary が同梱されます。
 
-### install.sh（その他のエディタ向け）
-
-インストールスクリプトで GitHub Releases から `mds` と `mds-lsp` の両方がインストールされます:
+### 他 editor
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/owo-x-project/owox-mds/latest/install.sh | sh
 ```
 
-### ソースからビルド（開発者向け）
+この script は `mds` と `mds-lsp` を両方インストールします。
+
+### ソースからビルド
 
 ```bash
 cargo build -p mds-lsp --release
-cp target/release/mds-lsp /usr/local/bin/
 ```
 
-この repository 内で作業する場合は、root Cargo workspace から `mds-lsp` を直接ビルドしてください。self-hosted sync 手順は不要です。
+この repository 内では root Cargo workspace から `mds-lsp` をビルドします。self-hosted sync は不要です。
 
-### 動作確認
+## VS Code 設定
 
-```bash
-mds-lsp --version   # バージョン表示（未対応の場合は stdio で待機開始）
-```
+| 設定 | 既定値 | 意味 |
+| --- | --- | --- |
+| `mds.lsp.path` | `""` | `mds-lsp` の明示 path。空なら bundled server を優先 |
+| `mds.lsp.enabled` | `true` | LSP server の有効 / 無効 |
+| `mds.lsp.logLevel` | `"info"` | server log level |
+| `mds.lsp.additionalLanguages` | `[]` | editor feature の対象に追加する `*.lang.md` suffix |
 
-`mds-lsp` は stdio トランスポートで動作します。エディタが起動時に自動でプロセスを管理します。
+## activation model
 
-## VSCode
+拡張は workspace に `mds.config.toml` があると有効化されます。既定では canonical な `.mds/source` と `.mds/test` を監視し、`mds.lsp.additionalLanguages` で editor-only の追加 suffix を扱えます。
 
-### 拡張をローカル開発する場合
+## generated-file bridge
+
+`mds-lsp` は generated output の source map を保持します。VS Code 拡張は bridge command を使って次を行います。
+
+- hover と definition を generated file 側に委譲する
+- 結果 range を元の Markdown code fence に remap する
+- generated diagnostics を indexed Markdown document に mirror する
+
+completion では、必要に応じて shadow document fallback も使います。
+
+## 他 editor
+
+stdio で `mds-lsp` を起動し、root marker は `mds.config.toml` にします。
+
+推奨対象:
+
+- `.mds/source/**/*.md`
+- `.mds/test/**/*.md`
+- `mds.config.toml`
+- `package.md`
+
+## ローカル開発
 
 ```bash
 cd editors/vscode
@@ -60,177 +80,10 @@ npm install
 npm run compile
 ```
 
-開発中は VSCode の「Extension Development Host」で起動:
-
-1. `editors/vscode` を VSCode で開く
-2. F5 で Extension Development Host を起動
-3. `.ts.md`, `.py.md`, `.rs.md` ファイルを開く
-
-### 設定項目
-
-| 設定 | デフォルト | 説明 |
-| --- | --- | --- |
-| `mds.lsp.path` | `""` | mds-lsp バイナリのパス。空の場合は同封 server を優先し、その後 PATH から検索 |
-| `mds.lsp.enabled` | `true` | LSP サーバーの有効/無効 |
-| `mds.lsp.logLevel` | `"info"` | ログレベル: error, warn, info, debug, trace |
-| `mds.lsp.additionalLanguages` | `[]` | 追加の言語拡張子（例: `[".go.md", ".java.md"]`） |
-
-### 自動有効化
-
-拡張は `mds.config.toml` がワークスペースに存在する場合に自動的に有効化されます。`mds.config.toml` の `[adapters]` セクションで有効な言語アダプターを検出し、対応する拡張子のファイルに対して LSP 機能を提供します。
-
-新しい言語を追加した場合は `mds.lsp.additionalLanguages` に拡張子を追加するだけで対応できます。
-
-### シンタックスハイライト
-
-mds 固有の TextMate grammar が含まれています:
-
-- **セクション見出し**: `## Purpose`, `## Types` 等がハイライトされます
-- **Uses テーブル**: `From` カラムの `builtin`, `package`, `workspace`, `internal` がキーワードとしてハイライト
-- **コードブロック**: TypeScript, Python, Rust の埋め込みシンタックスハイライト
-
-### スニペット
-
-VSCode スニペットも含まれています:
-
-| プレフィックス | 説明 |
-| --- | --- |
-| `mds-doc` | 完全な実装ドキュメントテンプレート |
-| `mds-uses` | Uses テーブル（ヘッダー付き） |
-| `mds-use-row` | Uses テーブルの1行 |
-| `mds-section` | セクション見出し |
-| `mds-code-section` | コードセクション（Uses + コードブロック） |
-| `mds-code` | コードブロック |
-| `mds-config` | 基本的な mds.config.toml |
-| `mds-config-full` | 全セクション付き mds.config.toml |
-
-## Neovim
-
-### nvim-lspconfig での設定例
-
-```lua
-local lspconfig = require('lspconfig')
-local configs = require('lspconfig.configs')
-
-if not configs.mds_lsp then
-  configs.mds_lsp = {
-    default_config = {
-      cmd = { 'mds-lsp' },
-      filetypes = { 'markdown' },
-      root_dir = lspconfig.util.root_pattern('mds.config.toml'),
-      settings = {},
-    },
-  }
-end
-
-lspconfig.mds_lsp.setup({
-  on_attach = function(client, bufnr)
-    -- 必要に応じてキーマップを設定
-  end,
-})
-```
-
-### ファイルタイプの設定
-
-```lua
-vim.filetype.add({
-  extension = {
-    ['ts.md'] = 'markdown',
-    ['py.md'] = 'markdown',
-    ['rs.md'] = 'markdown',
-  },
-})
-```
-
-## Helix
-
-`languages.toml` に以下を追加:
-
-```toml
-[[language]]
-name = "markdown"
-language-servers = ["mds-lsp"]
-file-types = ["md"]
-
-[language-server.mds-lsp]
-command = "mds-lsp"
-```
-
-## その他のエディタ
-
-mds-lsp は標準の LSP プロトコル（stdio トランスポート）に準拠しているため、LSP をサポートする任意のエディタで利用可能です。
-
-必要な設定:
-
-1. コマンド: `mds-lsp`
-2. トランスポート: stdio
-3. ルートパターン: `mds.config.toml`
-4. ファイルタイプ: `*.ts.md`, `*.py.md`, `*.rs.md`, `mds.config.toml`, `package.md`
-
-## LSP 機能一覧
-
-### Phase 1: リアルタイム診断
-
-ファイルを開いた時・編集時に自動で検証が実行されます。
-
-| 検証対象 | 内容 |
-| --- | --- |
-| セクション構造 | Purpose, Contract, Types, Source, Cases, Test の存在チェック |
-| テーブル形式 | Uses テーブルの From, Target, Expose, Summary カラム検証 |
-| 言語一致 | ファイル拡張子（.ts.md 等）とコードブロック言語ラベルの一致 |
-| コードブロック | import/use/require 文の混入禁止チェック |
-| Markdown リンク | ローカルリンクの参照先存在チェック |
-| mds.config.toml | TOML 構文、必須フィールド、サポートされるキーの検証 |
-| package.md | セクション構造、Package テーブルの検証 |
-
-### Phase 2: コードナビゲーション
-
-| 機能 | 説明 |
-| --- | --- |
-| Go to Definition | Uses テーブルの Target セルから参照先の `.{lang}.md` ファイルへジャンプ |
-| Find References | 現在のファイルがどの実装 Markdown の Uses で参照されているか検索 |
-| Document Symbols | `##` / `###` 見出しをシンボルとしてアウトライン表示 |
-| Workspace Symbols | `src-md/` 配下の全モジュール名を検索 |
-
-### Phase 3: コードアシスト
-
-| 機能 | 説明 |
-| --- | --- |
-| セクション名補完 | `## ` の後に Purpose, Contract 等の候補を表示 |
-| テーブルカラム補完 | テーブル行内で From, Target 等の候補を表示 |
-| コードブロック言語補完 | ` ``` ` の後にファイルから推測した言語を候補表示 |
-| スニペット | ドキュメントテンプレート、Uses 行、コードブロック |
-| Hover | セクション見出しの説明、Uses ターゲットの Purpose を表示 |
-| Code Action | 欠損セクションの自動追加（Quick Fix） |
+その後 VS Code の Extension Development Host で起動します。
 
 ## トラブルシューティング
 
-### LSP サーバーが起動しない
-
-Marketplace 版の拡張を使っている場合は、まず Output パネルの「mds Language Server」チャンネルを確認してください。同封 server が自動的に使われます。
-
-```bash
-# VSCode 以外のエディタ、または mds.lsp.path 上書き時は PATH 上の mds-lsp を確認
-which mds-lsp
-
-# 手動で起動テスト（Ctrl+C で終了）
-mds-lsp
-```
-
-### ログの確認
-
-VSCode の場合、Output パネルで「mds Language Server」チャンネルを選択してログを確認できます。
-
-ログレベルを変更するには:
-
-```json
-{
-  "mds.lsp.logLevel": "debug"
-}
-```
-
-### 診断が表示されない
-
-1. `mds.config.toml` が存在し、`enabled = true` になっているか確認
-2. ファイルが `src-md/` ディレクトリ配下にあるか確認
-3. ファイル拡張子が `.ts.md`, `.py.md`, `.rs.md` のいずれかであるか確認
+- diagnostics が出ない場合は file が `.mds/source` か `.mds/test` の配下にあるか確認
+- bridge 結果が stale に見える場合は package を再 build するか workspace を開き直して index を更新
+- `mds.lsp.path` を上書きしている場合は extension version と binary version の整合を確認

@@ -2371,6 +2371,8 @@ fn init_generates_selected_ai_agent_kit_and_project_skeleton() {
     let rules = fs::read_to_string(temp.path().join(".claude/rules/mds.md")).unwrap();
     assert!(rules.contains("mds-managed: true"));
     assert!(rules.contains("mds lint"));
+    assert!(rules.contains("Normal import/use/require statements belong in code blocks"));
+    assert!(!rules.contains("### {{IMPORTS}} Section"));
     let config = fs::read_to_string(temp.path().join("mds.config.toml")).unwrap();
     assert!(config.contains("linter = \"eslint\""));
     assert!(config.contains("fixer = \"prettier --write\""));
@@ -2382,6 +2384,23 @@ fn init_generates_selected_ai_agent_kit_and_project_skeleton() {
     assert!(!root_module.contains("## Exports"));
     assert!(!root_module.contains("## Imports"));
     assert!(!root_module.contains("## Source"));
+    let reference_root = fs::read_to_string(temp.path().join(".mds/reference/root-module.md")).unwrap();
+    assert!(reference_root.contains("## API"));
+    assert!(reference_root.contains("## Source"));
+    assert!(!reference_root.contains("## Exports"));
+    assert!(!reference_root.contains("## Imports"));
+    let reference_impl = fs::read_to_string(temp.path().join(".mds/reference/impl.md")).unwrap();
+    assert!(reference_impl.contains("## API"));
+    assert!(reference_impl.contains("import { formatName } from './format-name';"));
+    assert!(!reference_impl.contains("## Exports"));
+    assert!(!reference_impl.contains("## Imports"));
+    assert!(!reference_impl.contains("## Types"));
+    let reference_test = fs::read_to_string(temp.path().join(".mds/reference/test.md")).unwrap();
+    assert!(reference_test.contains("## Covers"));
+    assert!(reference_test.contains("## Test"));
+    assert!(reference_test.contains("import { greet } from './greet';"));
+    assert!(!reference_test.contains("## Imports"));
+    assert!(!reference_test.contains("## Types"));
 }
 
 #[test]
@@ -2489,9 +2508,10 @@ fn init_generates_ai_categories_per_target() {
     assert!(!temp.path().join(".opencode/agents/mds-lint.md").exists());
     let ts_skill = fs::read_to_string(temp.path().join(".opencode/skills/mds-ts/SKILL.md")).unwrap();
     assert!(ts_skill.contains("Descriptor import style: `typescript`"));
-    assert!(ts_skill.contains("## Imports"));
-    assert!(ts_skill.contains("## Exports"));
+    assert!(ts_skill.contains("Write dependencies in the code fence itself"));
     assert!(ts_skill.contains("import { ImportedSymbol } from './dep';"));
+    assert!(!ts_skill.contains("## Imports"));
+    assert!(!ts_skill.contains("## Exports"));
 }
 
 #[test]
@@ -2627,8 +2647,16 @@ fn new_creates_source_doc_under_fixed_authoring_root() {
         },
     });
     assert_eq!(result.exit_code, 0, "{}", result.stderr);
-    assert!(temp.path().join(".mds/source/greet.ts.md").exists());
+    let path = temp.path().join(".mds/source/greet.ts.md");
+    assert!(path.exists());
     assert!(!temp.path().join("src-md/greet.ts.md").exists());
+    let content = fs::read_to_string(path).unwrap();
+    assert!(content.contains("## API"));
+    assert!(content.contains("## Source"));
+    assert!(content.contains("## Cases"));
+    assert!(!content.contains("## Exports"));
+    assert!(!content.contains("## Imports"));
+    assert!(!content.contains("## Types"));
 }
 
 #[test]
@@ -2653,9 +2681,11 @@ fn new_creates_metadata_only_root_module_doc() {
     });
     assert_eq!(result.exit_code, 0, "{}", result.stderr);
     let content = fs::read_to_string(temp.path().join(".mds/source/index.ts.md")).unwrap();
-    assert!(content.contains("## Exports"));
-    assert!(content.contains("## Imports"));
+    assert!(content.contains("## API"));
     assert!(!content.contains("## Source"));
+    assert!(!content.contains("## Exports"));
+    assert!(!content.contains("## Imports"));
+    assert!(!content.contains("## Types"));
 }
 
 #[test]
@@ -2681,7 +2711,13 @@ fn new_creates_test_doc_under_fixed_test_root() {
     assert_eq!(result.exit_code, 0, "{}", result.stderr);
     let path = temp.path().join(".mds/test/greet.md");
     assert!(path.exists());
-    assert!(fs::read_to_string(path).unwrap().contains("## Covers"));
+    let content = fs::read_to_string(path).unwrap();
+    assert!(content.contains("## Covers"));
+    assert!(content.contains("## Cases"));
+    assert!(content.contains("## Test"));
+    assert!(content.contains("import { describe, expect, it } from 'vitest';"));
+    assert!(!content.contains("## Imports"));
+    assert!(!content.contains("## Types"));
 }
 
 #[test]
@@ -3061,76 +3097,17 @@ fn build_write_updates_rust_package_source_tree_directly() {
 }
 
 #[test]
-fn descriptor_catalog_example_covers_all_builtin_descriptors() {
+fn descriptor_catalog_example_is_removed_from_live_examples() {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let repo_root = manifest_dir.parent().unwrap().parent().unwrap();
-    let catalog_path = repo_root.join("examples/descriptor-catalog/coverage.toml");
-    let catalog = fs::read_to_string(&catalog_path).unwrap();
-    let catalog: toml::Value = catalog.parse().unwrap();
-
-    assert_eq!(
-        catalog_ids(&catalog, "language_ids"),
-        descriptor_ids(manifest_dir.join("src/descriptors/languages/base")),
-    );
-    assert_eq!(
-        catalog_ids(&catalog, "framework_ids"),
-        descriptor_ids(manifest_dir.join("src/descriptors/languages/overlays")),
-    );
-    assert_eq!(
-        catalog_ids(&catalog, "linter_ids"),
-        descriptor_ids_many(&[
-            manifest_dir.join("src/descriptors/linters"),
-            manifest_dir.join("src/descriptors/tools/lint"),
-        ]),
-    );
-    assert_eq!(
-        catalog_ids(&catalog, "typecheck_tool_ids"),
-        descriptor_ids(manifest_dir.join("src/descriptors/tools/typecheck")),
-    );
-    assert_eq!(
-        catalog_ids(&catalog, "test_tool_ids"),
-        descriptor_ids(manifest_dir.join("src/descriptors/tools/test")),
-    );
-    assert_eq!(
-        catalog_ids(&catalog, "package_manager_ids"),
-        descriptor_ids(manifest_dir.join("src/descriptors/package-managers")),
-    );
+    assert!(!repo_root.join("examples/descriptor-catalog").exists());
 }
 
 #[test]
-fn descriptor_samples_example_covers_and_builds_all_language_descriptors() {
+fn descriptor_samples_example_is_removed_from_live_examples() {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let repo_root = manifest_dir.parent().unwrap().parent().unwrap();
-    let sample_root = repo_root.join("examples/descriptor-samples");
-
-    assert_eq!(
-        sample_descriptor_ids(&sample_root.join(".mds/source")),
-        descriptor_ids_many(&[
-            manifest_dir.join("src/descriptors/languages/base"),
-            manifest_dir.join("src/descriptors/languages/overlays"),
-        ]),
-    );
-
-    let lint = execute(CliRequest {
-        cwd: sample_root.clone(),
-        package: None,
-        verbose: false,
-        command: Command::Lint { fix: false, check: false },
-    });
-    assert_eq!(lint.exit_code, 0, "{}", lint.stderr);
-
-    let build = execute(CliRequest {
-        cwd: sample_root,
-        package: None,
-        verbose: false,
-        command: Command::Build {
-            mode: BuildMode::DryRun,
-        },
-    });
-    assert_eq!(build.exit_code, 0, "{}", build.stderr);
-    assert!(build.stdout.contains("src/sample.ts"));
-    assert!(build.stdout.contains("src/sample.vue"));
-    assert!(build.stdout.contains(".mds/manifest.toml"));
+    assert!(!repo_root.join("examples/descriptor-samples").exists());
 }
 
 struct TestDir {

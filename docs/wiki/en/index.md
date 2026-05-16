@@ -2,81 +2,62 @@
 
 > *This page was translated from [Japanese](../ja/index.md) by AI.*
 
-This wiki is for people who want to use mds, consider adopting it, or participate in its development.
+This wiki documents the current authoring-v2 surface of mds.
 
-mds is a development toolchain that treats Markdown as the source of truth for design, implementation, and testing, generating language-specific derived code from code blocks within Markdown.
+mds uses canonical source and verification roots, tableless Markdown documents, package output planning, and editor tooling that remaps generated-file results back to Markdown. Legacy metadata-table workflows are not the live model for this wiki.
 
-## What is your goal?
+## Start Here
 
-### I want to try mds
+1. [Getting Started](getting-started.md) - Install mds and prepare a package
+2. [Configuration](configuration.md) - Canonical roots, output patterns, and checks
+3. [Markdown Source](markdown-source.md) - Current source and test document shapes
+4. [Commands](commands.md) - CLI reference and common flows
+5. [Generation Mechanism](generation.md) - How outputs are planned and written
 
-1. [Getting Started](getting-started.md) — Prerequisites and minimal setup
-2. [Example Projects](../../../examples/) — Working minimal examples
-3. [Commands](commands.md) — Basic usage
+## Core Topics
 
-### I want to understand the philosophy of mds
+- [Core Concepts](concepts.md) - Source of truth, logical modules, generated-file bridge
+- [Quality Checks](quality.md) - Structural checks, tool execution, check policies
+- [Troubleshooting](troubleshooting.md) - Common authoring-v2 failures and fixes
+- [Editor Integration (LSP)](editor-integration.md) - VS Code extension and other editors
+- [AI Agent Integration](ai-agent-integration.md) - Agent kit generation and template upkeep
 
-1. [Core Concepts](concepts.md) — Source of truth, derived code, public surface
-2. [Markdown Source](markdown-source.md) — Types and roles of Markdown documents
-3. [Generation Mechanism](generation.md) — Code generation rules
+## Additional Guides
 
-### I want to introduce mds to an existing project
+- [Monorepo Usage](monorepo.md) - Package-by-package adoption in larger repositories
+- [Package Info Sync](package-sync.md) - How `mds package sync` updates managed package metadata
+- [Distribution Policy](distribution.md) - CLI, installer, and editor distribution
+- [Contributing](contributing.md) - Reporting and proposal workflow
+- [Development Guide](development.md) - Build, test, and debug this repository
+- [LSP Development Guide](lsp-development.md) - Extension and server implementation notes
+- [Roadmap](roadmap.md) - Current focus and follow-up areas
 
-1. [Getting Started](getting-started.md) — Verify minimal setup
-2. [Configuration](configuration.md) — Details of mds.config.toml
-3. [Monorepo Usage](monorepo.md) — Managing multiple packages
+## Current Live Model
 
-### I want to integrate with AI agents
-
-1. [AI Agent Integration](ai-agent-integration.md) — Supported CLIs and configuration generation
-
-### I want to use mds in my editor
-
-1. [Editor Integration (LSP)](editor-integration.md) — VSCode extension, Neovim, real-time diagnostics
-
-### I want to solve a problem
-
-1. [Troubleshooting](troubleshooting.md) — Common problems and solutions
-2. [Quality Checks](quality.md) — Running checks and diagnostics
-
-### I want to contribute to mds development
-
-1. [Contributing](contributing.md) — Policies for reports and proposals
-2. [Development Guide](development.md) — Environment setup, build, test, debug
-3. [LSP Development Guide](lsp-development.md) — Developing, debugging, and adding features to mds-lsp
-4. [Descriptor Guide](descriptors.md) — Language, quality tool, and package manager descriptors
-
-## Reading Order
-
-If you are reading for the first time, the following order is recommended.
-
-1. [Getting Started](getting-started.md)
-2. [Core Concepts](concepts.md)
-3. [Markdown Source](markdown-source.md)
-4. [Commands](commands.md)
-5. [Configuration](configuration.md)
-6. [Generation Mechanism](generation.md)
+- Source docs live under `.mds/source`; verification docs live under `.mds/test`.
+- Source docs use `Purpose`, `Contract`, `API`, `Source`, and `Cases`.
+- Test docs use `Purpose`, `Covers`, `Cases`, and `Test`.
+- Output paths come from `[roots]`, `[output]`, and optional `[[output.override]]`.
+- `mds-lsp` can bridge hover, definition, and diagnostics from generated files back to Markdown.
 
 ## Page List
 
 | Page | Description |
 | --- | --- |
-| [Getting Started](getting-started.md) | Explains pre-installation prerequisites, minimal setup, and basic execution steps. |
-| [Core Concepts](concepts.md) | Explains terms such as source of truth, derived code, implementation Markdown, public surface, and dependencies. |
-| [Markdown Source](markdown-source.md) | Explains the types and roles of Markdown documents handled by mds. |
-| [Commands](commands.md) | Explains the purpose and usage of each mds command. |
-| [Configuration](configuration.md) | Explains the role and main settings of `mds.config.toml`. |
-| [Monorepo Usage](monorepo.md) | Explains per-package target detection and multi-language handling. |
-| [Generation Mechanism](generation.md) | Explains the rules for generating derived code from `Types`, `Source`, and `Test`. |
-| [Language Adapters](language-adapters.md) | Explains where language-specific differences for TypeScript, Python, and Rust are handled. |
-| [Quality Checks](quality.md) | Explains structural checks, static analysis, auto-fix, testing, and environment diagnostics. |
-| [Package Info Sync](package-sync.md) | Explains the mechanism for syncing `package.md` from package information. |
-| [Distribution Policy](distribution.md) | Explains GitHub Releases binaries, the installer, and VS Code Marketplace packages. |
-| [Troubleshooting](troubleshooting.md) | Explains common problems and how to verify them. |
-| [AI Agent Integration](ai-agent-integration.md) | Explains configuration generation and extension methods for AI coding agents. |
-| [Editor Integration (LSP)](editor-integration.md) | Explains real-time diagnostics, navigation, completion via LSP server, and the VSCode extension. |
-| [Contributing](contributing.md) | Explains what to check when participating in development. |
-| [Development Guide](development.md) | Explains procedures for environment setup, build, test, and debug. |
-| [Descriptor Guide](descriptors.md) | Explains built-in and workspace descriptor directories for languages, quality tools, and package managers. |
-| [LSP Development Guide](lsp-development.md) | Explains procedures for developing, debugging, and adding capabilities to mds-lsp. |
-| [Roadmap](roadmap.md) | Explains the current focus area and future plans. |
+| [Getting Started](getting-started.md) | Installation, minimal package layout, first commands |
+| [Configuration](configuration.md) | `mds.config.toml`, canonical roots, output patterns, checks |
+| [Markdown Source](markdown-source.md) | Source/test docs, overview docs, root module docs |
+| [Commands](commands.md) | `init`, `new`, `build`, `lint`, `typecheck`, `test`, `doctor`, `package sync` |
+| [Generation Mechanism](generation.md) | Logical modules, default outputs, overrides, manifests |
+| [Core Concepts](concepts.md) | Source of truth, output planning, package boundaries |
+| [Quality Checks](quality.md) | Structural diagnostics, selected tools, check policy |
+| [Troubleshooting](troubleshooting.md) | Common failures and confirmation steps |
+| [Editor Integration (LSP)](editor-integration.md) | Bundled VS Code extension and other editor setup |
+| [AI Agent Integration](ai-agent-integration.md) | Agent kit generation and template maintenance |
+| [Monorepo Usage](monorepo.md) | Per-package enablement and safe output boundaries |
+| [Package Info Sync](package-sync.md) | Managed package metadata synchronization |
+| [Distribution Policy](distribution.md) | Release binaries, installer, and editor packages |
+| [Contributing](contributing.md) | Contribution policy |
+| [Development Guide](development.md) | Repository build, test, and debug workflow |
+| [LSP Development Guide](lsp-development.md) | Internal notes for the editor stack |
+| [Roadmap](roadmap.md) | Current focus areas |

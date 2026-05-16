@@ -1,151 +1,83 @@
 # AI エージェント連携
 
-このページでは、mds の AI コーディングエージェント向け設定ファイル (agent kit) の仕組みと、新しい AI CLI 向けテンプレートの追加方法を説明します。
+このページでは、mds の current な AI agent kit flow を説明します。
 
 ## 概要
 
-`mds init --ai` は、AI コーディングエージェントが mds プロジェクトで正しく作業できるように、各 AI CLI のベストプラクティスに沿った設定ファイルを生成します。
+`mds init --ai` は、対応する AI CLI 向けに instructions、skills、commands を生成し、agent が authoring-v2 package を独自解釈せず扱えるようにします。
 
-生成されるファイルには、mds のマークダウンフォーマット仕様 (Uses テーブル、セクション構造、制約) が含まれており、AI エージェントが正しい形式で実装マークダウンを作成できるようになります。
+生成される guidance は次を教えます。
+
+- canonical `.mds/source` と `.mds/test`
+- tableless な source/test document
+- 新規 doc の scaffold に `mds new` を使うこと
+- generated output の通常 validation flow
 
 ## 対応 AI CLI
 
-| AI CLI | 指定名 | 生成先 | 特徴 |
-| --- | --- | --- | --- |
-| Claude Code | `claude-code`, `claude` | `.claude/rules/`, `.claude/skills/`, `.claude/commands/` | path-scoped rules で自動読み込み、skill でオンデマンド参照、slash commands |
-| Codex CLI | `codex-cli`, `codex` | `.codex/instructions.md`, `.codex/skills/` | AGENTS.md 補完用の instructions と skill |
-| Opencode | `opencode` | `.opencode/agents/`, `.opencode/skills/` | subagent 定義 (build/check)、YAML frontmatter 付き skill |
-| GitHub Copilot | `github-copilot-cli`, `copilot` | `.github/instructions/`, `.github/prompts/` | applyTo frontmatter 付き path-specific instructions、prompt files |
+| AI CLI | 指定名 | 出力先 |
+| --- | --- | --- |
+| Claude Code | `claude-code`, `claude` | `.claude/rules/`, `.claude/skills/`, `.claude/commands/` |
+| Codex CLI | `codex-cli`, `codex` | `.codex/instructions.md`, `.codex/skills/` |
+| Opencode | `opencode` | `.opencode/agents/`, `.opencode/skills/` |
+| GitHub Copilot | `github-copilot-cli`, `copilot` | `.github/instructions/`, `.github/prompts/` |
 
-## 使い方
+## 基本的な使い方
 
 ```bash
-# 全 AI CLI 向けに全カテゴリを生成 (計画の表示のみ)
+# plan だけ表示
 mds init --ai --target all --categories all
 
-# 計画を適用
+# plan を適用
 mds init --ai --target all --categories all --yes
 
-# Claude Code 向けのみ
+# 1 つの CLI だけ生成
 mds init --ai --target claude-code --yes
-
-# 特定カテゴリのみ
-mds init --ai --target all --categories instructions,skills --yes
 ```
 
-### カテゴリ
+## カテゴリ
 
-| カテゴリ | 説明 |
+| カテゴリ | 目的 |
 | --- | --- |
-| `instructions` | AI CLI のルールファイル。mds のワークフローとマークダウンフォーマットを記載 |
-| `skills` | オンデマンドで参照される詳細なスキル定義 |
-| `commands` | 即座に実行可能なコマンド定義 (mds lint, mds build 等) |
+| `instructions` | 常時参照される rule と workflow guidance |
+| `skills` | 必要時に読む詳細 reference |
+| `commands` | 対象 CLI でそのまま実行しやすい command snippet |
 
-### オプション
+## 設計ルール
 
-| フラグ | 説明 |
-| --- | --- |
-| `--ai` | AI 初期化のみ実行 (プロジェクト初期化をスキップ) |
-| `--target <list>` | 対象 AI CLI をカンマ区切りで指定。`all` で全対象 |
-| `--categories <list>` | 生成カテゴリをカンマ区切りで指定。`all` で全カテゴリ |
-| `--yes` | 計画を実際に適用する |
-| `--force` | 非管理ファイルの上書きを許可する |
+- `CLAUDE.md`、`AGENTS.md`、`copilot-instructions.md` などの user-owned file は書き換えません。
+- generated file には `mds-managed: true` を付け、再実行時に安全に更新します。
+- 非管理 file の上書きは `--force` がある場合だけです。
 
-## 設計方針
+## template が教えるべき内容
 
-### メインファイル非侵害
+template には current live surface を書きます。
 
-CLAUDE.md、AGENTS.md、copilot-instructions.md などの**ユーザー所有ファイルは一切生成・変更しません**。各 CLI のネイティブ参照パスに配置し、生成後にメインファイルへの統合方法をガイド表示します。
+1. source doc は `.mds/source`、test doc は `.mds/test` に置く
+2. source doc は `Purpose`、`Contract`、`API`、`Source`、`Cases` を使う
+3. test doc は `Purpose`、`Covers`、`Cases`、`Test` を使う
+4. 新規 doc は `mds new` で scaffold する
+5. validation は通常 `mds lint`、`mds build --dry-run`、`mds build`、`mds typecheck`、`mds test` の順で行う
 
-### frontmatter 管理
+## 新しい AI CLI の追加
 
-生成ファイルには YAML frontmatter に `mds-managed: true` が含まれます。これにより:
+`mds/core/src/init/templates/<target-key>/` の下に `manifest.toml` と category template を作成します。
 
-- `mds init` 再実行時に安全に更新できる
-- 非管理ファイル (手動作成) との区別が明確
-- `--force` なしでは非管理ファイルを上書きしない
+典型的な構成:
 
-### 各 AI CLI のネイティブ形式
-
-テンプレートは各 AI CLI のベストプラクティスに従います:
-
-- **Claude Code**: `.claude/rules/` の path-scoped rules (frontmatter の `paths` で対象ファイルを指定)
-- **Opencode**: `.opencode/agents/` の subagent 定義 (frontmatter の `mode`, `tools` で権限制御)
-- **GitHub Copilot**: `.github/instructions/` の path-specific instructions (frontmatter の `applyTo` で対象指定)
-- **Codex CLI**: `.codex/` の instructions と skills
-
-## 新しい AI CLI の追加方法 (mds 開発者向け)
-
-mds はデータ駆動のテンプレートシステムを採用しています。新しい AI CLI のサポートを追加するには、以下の手順に従います。
-
-### 1. テンプレートディレクトリを作成
-
-```
+```text
 mds/core/src/init/templates/<target-key>/
-├── manifest.toml       ← ファイルマッピング定義
-├── instructions.md     ← instructions カテゴリのテンプレート
-├── skill.md            ← skills カテゴリのテンプレート
-└── command-check.md    ← commands カテゴリのテンプレート
+├── manifest.toml
+├── instructions.md
+├── skill.md
+└── command-check.md
 ```
 
-`<target-key>` は `AiTarget` enum の `key()` メソッドが返す文字列と一致させます。
+その後:
 
-### 2. manifest.toml を定義
+1. `AiTarget` に target を追加
+2. template の出力先を新しい CLI の native path に合わせる
+3. generated frontmatter に `mds-managed: true` を含める
+4. `cargo check --workspace`、`cargo test --workspace`、focused な `mds init --ai` smoke test で検証する
 
-```toml
-# 各 [[file]] エントリがテンプレートファイルと出力先のマッピング
-
-[[file]]
-template = "instructions.md"     # テンプレートファイル名
-output_path = ".new-cli/rules.md"  # プロジェクトルートからの相対パス
-category = "instructions"         # instructions, skills, commands のいずれか
-
-[[file]]
-template = "skill.md"
-output_path = ".new-cli/skills/mds.md"
-category = "skills"
-```
-
-### 3. テンプレートファイルを作成
-
-テンプレートには以下を含めます:
-
-- 対象 AI CLI のネイティブ frontmatter 形式
-- `mds-managed: true` (再実行時の更新判定用)
-- mds のマークダウンフォーマットリファレンス (Uses テーブル、セクション構造、制約)
-- mds のコマンド一覧 (check, build, lint, test)
-
-### 4. AiTarget enum にバリアントを追加
-
-`mds/core/src/model.rs` の `AiTarget` enum に:
-
-```rust
-pub enum AiTarget {
-    // ...existing...
-    NewCli,
-}
-```
-
-`key()` メソッドで `"new-cli"` を返すようにし、`parse()` で受け付けるエイリアスを定義します。
-
-### 5. ビルドして確認
-
-```bash
-cargo check --workspace
-cargo test --workspace
-cargo run -p mds-cli -- init --ai --target <target-key> --package /tmp/test-project --yes
-```
-
-checked-in template file を更新したら、まず Rust workspace を直接検証し、その後 repository root から `mds init --ai` の smoke test を行ってください。`build.rs` が `manifest.toml` を自動検出してテンプレートレジストリに登録するため、別途 self-hosted sync 手順は不要です。
-
-## テンプレートに含めるべき内容
-
-AI エージェントが mds プロジェクトで正しく作業するために、テンプレートには以下の情報が必要です:
-
-1. **ワークフロー**: `mds lint` → `mds typecheck` → `mds build --dry-run` → `mds build` → `mds test`
-2. **ファイル命名規約**: `src-md/name.{lang}.md` → `src/name.{lang}`
-3. **必須セクション構造**: Purpose, Contract, Types, Source, Cases, Test (H2, 順序固定)
-4. **Uses テーブル仕様**: From (internal/package/builtin/workspace), Target, Expose, Summary
-5. **致命的制約**: コードブロック内に import/use/require を書かない
-6. **Expose トークン構文**: `Name`, `Name as Alias`, `default: Name`, `* as ns`
-7. **見出し制約**: 実装 md に H1 なし、H5+ なし
+`build.rs` が template manifest を自動登録するため、別の sync step は不要です。

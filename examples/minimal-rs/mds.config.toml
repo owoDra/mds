@@ -4,9 +4,14 @@ enabled = true
 allow_raw_source = false
 
 [roots]
-source = "src"
-types = "src"
-test = "tests"
+source_md = ".mds/source"
+test_md = ".mds/test"
+source_out = "src"
+test_out = "tests"
+
+[output]
+source = "{source_out}/{module}.{ext}"
+test = "{test_out}/{module}.test.{ext}"
 
 [quality.rs]
 linter = "cargo clippy"

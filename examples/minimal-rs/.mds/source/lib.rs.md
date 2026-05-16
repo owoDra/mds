@@ -8,17 +8,9 @@
 
 - `greet` module を crate root から利用できるようにする。
 
-## Exports
+## API
 
-| Name | Visibility | Summary |
-| --- | --- | --- |
-| greet | public | Greeting module |
-
-## Imports
-
-| From | Target | Symbols | Via | Summary | Reference |
-| --- | --- | --- | --- | --- | --- |
-| - | - | - | - | - | - |
+crate root は `minimal_rs::greet` として greeting module を公開する。
 
 ## Source
 

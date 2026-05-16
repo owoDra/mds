@@ -242,14 +242,14 @@ editors/vscode/
 
 ### 言語の動的検出
 
-`extension.ts` はワークスペースの `mds.config.toml` ファイルを読み取り、`[quality.*]` や `[adapters.*]` セクションから有効な言語を動的に検出します。これにより、新しい言語アダプターが追加されてもコード変更なしで対応できます。
+`extension.ts` はワークスペースの `mds.config.toml` を読み取り、canonical な `.mds/source` / `.mds/test` root を追跡しつつ、`[quality.*]` と `mds.lsp.additionalLanguages` から editor 側の追加対象を導出します。
 
 検出された言語に基づいて:
 - LSP クライアントの document selector が動的に構築される
 - ファイル監視対象が動的に設定される
 - コードブロック内の埋め込み言語サポートが有効化される
 
-`LANGUAGE_REGISTRY` に新しい言語を追加するだけで、拡張側の対応が完了します。
+必要に応じて `LANGUAGE_REGISTRY` と `mds.lsp.additionalLanguages` を更新することで、拡張側を current authoring model に合わせられます。
 
 ### 埋め込み言語サポート
 

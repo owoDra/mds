@@ -1,88 +1,49 @@
-# Markdown as Source of Truth
+# Markdown Source
 
 > *This page was translated from [Japanese](../ja/markdown-source.md) by AI.*
 
-This page explains the types and roles of Markdown documents handled by mds.
+This page explains the current Markdown document model used by mds.
 
-## Basic Policy
+## Canonical Roots
 
-In mds, Markdown is not merely a place for descriptive text.
+- `.mds/source` contains source docs and source overviews.
+- `.mds/test` contains verification docs and test overviews.
 
-Markdown contains purpose, contracts, public interface, dependencies, implementation code, and test code. Language-specific files that are generated are derivatives created from Markdown.
+These roots are fixed. They are part of the authoring model, not optional naming preferences.
 
-## Document Types
+## Document Kinds
 
-The main Markdown document types handled by mds are the following three:
+| Path | Role | Expected sections |
+| --- | --- | --- |
+| `.mds/source/overview.md` | Source hierarchy overview | `Purpose`, `Architecture`, `Rules` |
+| `.mds/test/overview.md` | Verification overview | `Purpose`, `Architecture`, `Rules` |
+| `.mds/source/**/*.lang.md` | One feature or root module in a source tree | `Purpose`, `Contract`, `API`, optional `Source`, `Cases` |
+| `.mds/test/**/*.md` | Executable verification for one feature or module | `Purpose`, `Covers`, `Cases`, `Test` |
 
-| Document | Role |
-| --- | --- |
-| `index.md` | Describes the purpose, structure, public interface, and rules of a directory or hierarchy. |
-| `package.md` | Describes package information, dependencies, and package-level rules. |
-| `*.ts.md`, `*.py.md`, `*.rs.md` | Records the implementation, types, and tests for a single feature. |
+Language root module docs such as `.mds/source/index.ts.md`, `.mds/source/lib.rs.md`, and `.mds/source/mod.rs.md` usually focus on `Purpose` and `API`, and add `Source` only when the root module owns runtime behavior.
 
-## `index.md`
+## Source Docs
 
-`index.md` is the entry point of a hierarchy.
+Source docs are the place for stable behavior, public surface notes, and generated source code.
 
-It primarily contains:
+- `Purpose` explains why the feature exists.
+- `Contract` records stable inputs, outputs, constraints, and failure conditions.
+- `API` describes public exports and entrypoints in prose.
+- `Source` contains executable code fences that become source outputs.
+- `Cases` records representative behavior.
 
-- The purpose of the hierarchy
-- The structure of the hierarchy
-- What is exposed externally
-- Rules to follow within the hierarchy
+A source doc can begin as prose only and gain a `Source` fence later.
 
-mds reads the public interface from `index.md` and verifies the relationship between the hierarchy's design and generation targets.
+## Test Docs
 
-## `package.md`
+Test docs describe executable verification.
 
-`package.md` is a document that describes package-level information.
+- `Purpose` explains the behavior being verified.
+- `Covers` names the source module ids under test.
+- `Cases` records the expectations.
+- `Test` contains executable test fences.
 
-It primarily contains:
-
-- Package name and version
-- Dependencies
-- Development dependencies
-- Package-level rules
-
-`mds package sync` synchronizes the managed sections of `package.md` based on language-specific package information files.
-
-## Implementation Markdown
-
-Implementation Markdown is a document representing a single feature.
-
-By default, implementation Markdown is placed under `src-md`.
-
-| Filename | Target Language |
-| --- | --- |
-| `src-md/**/*.ts.md` | TypeScript |
-| `src-md/**/*.py.md` | Python |
-| `src-md/**/*.rs.md` | Rust |
-
-## Implementation Markdown Sections
-
-Implementation Markdown handles the following sections:
-
-| Section | Role |
-| --- | --- |
-| `Purpose` | Describes the purpose of the feature. |
-| `Contract` | Describes inputs, outputs, constraints, and failure conditions. |
-| `Types` | Contains type definitions and type-related code. |
-| `Source` | Contains implementation code. |
-| `Cases` | Describes representative usage examples and expected results. |
-| `Test` | Contains test code. |
-
-`Purpose`, `Contract`, and `Cases` are descriptions for humans to confirm intent. mds does not infer implementation code from these descriptions.
-
-The code blocks in `Types`, `Source`, and `Test` are the direct generation sources for derived code.
-
-## Writing Dependencies
-
-import, use, require, and similar statements are not written directly inside code blocks as a rule.
-
-Dependencies are written in the `Uses` table. mds generates dependency declarations appropriate for the target language through language adapters.
-
-This rule ensures that dependencies are not buried within code and remain easy to verify in the document.
-
+Keep source behavior in source docs and executable verification in test docs. With the default check policy, mixing them is an error.
 ## Writing Public Interface
 
 Functions, types, modules, and other public items are written in the `Exports` table of the root module or implementation Markdown.

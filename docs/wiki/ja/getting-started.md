@@ -1,102 +1,108 @@
 # はじめに
 
-このページでは、mds を試すために必要な前提と、基本的な実行手順を説明します。
+このページでは、mds を試すための current な最小構成を説明します。
 
 ## インストール
 
-GitHub Releases の platform 別バイナリをインストールスクリプトで取得します（推奨）:
+GitHub Releases の platform 別バイナリをインストールします。
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/owo-x-project/owox-mds/latest/install.sh | sh
 ```
 
-OS / architecture に合う release archive を取得し、既定では `mds` と `mds-lsp` が `~/.local/bin` にインストールされます。
+既定では `mds` と `mds-lsp` の両方が `~/.local/bin` に入ります。
 
-### VSCode 拡張
-
-Marketplace で **"mds"** を検索するか、以下のコマンドでインストールできます。
+### VS Code 拡張
 
 ```bash
 code --install-extension owo-x-project.mds
 ```
 
-Marketplace 版の拡張は platform-specific package として公開され、対応する `mds-lsp` バイナリを同封しています。別エディタで LSP を使う場合や `mds.lsp.path` を明示的に上書きする場合だけ、`mds-lsp` を別途用意してください。
+Marketplace 版の拡張には対応する `mds-lsp` バイナリが同梱されます。
 
-## 前提
-
-mds は開発中のツールです。現在アルファ版として公開されています。
-
-## 必要な実行環境
-
-ビルド済み `mds` CLI バイナリ自体にはランタイム依存はありません。
+## 実行環境
 
 | 用途 | 必要なもの |
 | --- | --- |
-| mds コマンドの実行 | なし（GitHub Releases のビルド済みバイナリ） |
-| TypeScript の検査、修正、テスト | Node.js 24 以上と、選択した ESLint、Prettier、Biome、Vitest、Jest など |
-| Python の検査、修正、テスト | Python 3.13 以上と、選択した Ruff、Black、Pytest、unittest など |
-| Rust の検査、修正、テスト | Rust 1.86 以上、Cargo と、選択した rustfmt、Clippy、cargo-nextest など |
+| `mds` 自体の実行 | ビルド済み binary を使う場合は追加不要 |
+| TypeScript の検査 | Node.js と `[quality.ts]` で選んだ tool |
+| Python の検査 | Python と `[quality.py]` で選んだ tool |
+| Rust の検査 | Rust/Cargo と `[quality.rs]` で選んだ tool |
 
-`mds lint` と `mds build` は、Markdown の構造と生成を扱います。`mds typecheck`、`mds lint`、`mds test` は、対象言語ごとに選択した型検査・検査・テスト実行ツールを利用します。未選択のツールは暗黙には必須になりません。
+未選択の tool は不足扱いになりません。
 
-## 最小構成
+## 最小 package 構成
 
-mds の対象パッケージには、次のファイルを用意します。
+```text
+my-package/
+├── mds.config.toml
+├── package.md
+├── package.json
+├── .mds/
+│   ├── source/
+│   │   ├── overview.md
+│   │   └── greet.ts.md
+│   └── test/
+│       ├── overview.md
+│       └── greet.ts.md
+├── src/
+└── tests/
+```
 
-| ファイル | 役割 |
-| --- | --- |
-| `mds.config.toml` | mds の有効化、入力元、出力先、言語アダプターを設定します。 |
-| `package.md` | パッケージ名、依存関係、パッケージ単位のルールを説明します。 |
-| `src-md/**/*.ts.md` | TypeScript の実装 Markdown です。 |
-| `src-md/**/*.py.md` | Python の実装 Markdown です。 |
-| `src-md/**/*.rs.md` | Rust の実装 Markdown です。 |
-| `package.json`、`pyproject.toml`、`Cargo.toml`、`pubspec.yaml`、`*.csproj`、`CMakeLists.txt` などの認識済み metadata | `mds init` と package 検出で必須の package manager metadata です。 |
+`package.json`、`pyproject.toml`、`Cargo.toml` などの package manager metadata はそのまま authoritative source として扱います。`package.md` は mds 側の package 文書です。
 
-すべての言語を同時に使う必要はありません。対象にする言語だけを有効にします。
+## 最小設定
 
-## 基本的な流れ
+```toml
+[package]
+enabled = true
+allow_raw_source = false
 
-まず、対象パッケージの構造と code block を lint します。
+[roots]
+source_md = ".mds/source"
+test_md = ".mds/test"
+source_out = "src"
+test_out = "tests"
+
+[output]
+source = "{source_out}/{module}.{ext}"
+test = "{test_out}/{module}.test.{ext}"
+```
+
+非既定の file naming が必要なら、Markdown root を変えるのではなく `[[output.override]]` を使います。
+
+## authoring model
+
+- source doc は `.mds/source/**/*.lang.md` に置きます。
+- test doc は `.mds/test/**/*.md` に置きます。
+- `mds new greet.ts.md`、`mds new overview.md`、`mds new index.ts.md` で current tableless template を作れます。
+- source behavior は source doc、executable verification は test doc に分けます。
+
+## 最初のフロー
 
 ```bash
+mds init --package ./path/to/package
 mds lint --package ./path/to/package
-```
-
-型検査を設定している場合は、続けて実行します。
-
-```bash
-mds typecheck --package ./path/to/package
-```
-
-次に、生成予定と差分を確認します。
-
-```bash
 mds build --package ./path/to/package --dry-run
-```
-
-問題がなければ、派生コードを書き込みます。
-
-```bash
 mds build --package ./path/to/package
+mds typecheck --package ./path/to/package
+mds test --package ./path/to/package
 ```
 
-## 生成されるもの
+## 既定の出力対応
 
-実装 Markdown の `Types`、`Source`、`Test` に書いたコードブロックから、対象言語のファイルが生成されます。
-
-たとえば `src-md/foo/bar.ts.md` は、既定では次のようなファイルに対応します。
-
-| 種別 | 生成先の例 |
+| Markdown doc | 既定の出力先 |
 | --- | --- |
-| `Source` | `src/foo/bar.ts` |
-| `Types` | `src/foo/bar.types.ts` |
-| `Test` | `tests/foo/bar.test.ts` |
+| `.mds/source/greet.ts.md` | `src/greet.ts` |
+| `.mds/test/greet.ts.md` | `tests/greet.test.ts` |
+| `.mds/source/lib.rs.md` | `src/lib.rs` |
+| `.mds/test/lib.rs.md` | override が無ければ `tests/lib.test.rs` |
 
-生成先の詳細は、[生成の仕組み](generation.md)を参照してください。
+logical module id は `.mds/source` または `.mds/test` からの相対 path から `.md` と最後の言語 suffix を除いて決まります。
 
 ## 次に読むページ
 
-- [基本概念](concepts.md)
+- [設定](configuration.md)
 - [Markdown 正本](markdown-source.md)
 - [コマンド](commands.md)
-- [設定](configuration.md)
+- [生成の仕組み](generation.md)

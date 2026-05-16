@@ -2,61 +2,43 @@
 
 > *This page was translated from [Japanese](../ja/monorepo.md) by AI.*
 
-This page explains the approach to using mds in repositories containing multiple packages.
+This page explains how mds fits repositories with multiple packages.
 
 ## Basic Policy
 
-mds determines targets on a per-package basis.
+mds enables packages one package at a time. A repository can mix mds packages and non-mds packages safely.
 
-Even if a single repository contains a mix of TypeScript, Python, and Rust packages, you can decide whether to enable mds for each package individually.
+## How Packages Are Detected
 
-## Target Package Detection
+mds looks for package roots that contain:
 
-mds determines target packages primarily from the following information.
+- `mds.config.toml`
+- `package.md`
+- recognized package-manager metadata such as `package.json`, `pyproject.toml`, or `Cargo.toml`
 
-| Information | Role |
-| --- | --- |
-| `mds.config.toml` | Determines whether mds is enabled. |
-| `package.md` | Confirms per-package description and sync targets. |
-| `package.json` | Reads Node.js package information. |
-| `pyproject.toml` | Reads Python package information. |
-| `Cargo.toml` | Reads Rust package information. |
+Non-target packages are not rewritten.
 
-Non-target packages are never automatically included in generation or modification.
+## Per-Package Authoring Layout
 
-## Specifying `--package`
+Each package keeps its own canonical authoring roots and output roots.
 
-To target only a specific package, specify `--package`.
-
-```bash
-mds lint --package packages/example
+```text
+package-a/
+├── mds.config.toml
+├── package.md
+├── .mds/source/
+├── .mds/test/
+├── src/
+└── tests/
 ```
 
-If `--package` is omitted, mds searches for enabled packages under the current directory.
+## Multiple Languages
 
-## Multi-Language Handling
+Different packages can use different language suffixes and different `[quality.<lang>]` sections. The package boundary, output planning, and managed-file safety rules stay the same.
 
-Even if a single repository contains multiple languages, language-specific differences are handled by language adapters.
+## Recommended Practices
 
-| Language | Primary Detection Targets |
-| --- | --- |
-| TypeScript | `*.ts.md`, `package.json` |
-| Python | `*.py.md`, `pyproject.toml` |
-| Rust | `*.rs.md`, `Cargo.toml` |
-
-Even within the same repository, enabled languages can differ per package.
-
-## Generation Target Safety
-
-mds raises an error if a generation target escapes outside the target package.
-
-Additionally, it does not overwrite existing files that lack an mds management header. This protects other packages and hand-written files within the same repository.
-
-## Recommended Practices for Monorepos
-
-- Place an `mds.config.toml` in each package.
-- Prepare a `package.md` for each package.
-- Separate implementation Markdown into the default `src-md` directory.
-- Avoid mixing responsibilities between generated code and hand-written code.
-- Verify the generation plan with `mds build --dry-run` on the first run.
-- Run `mds lint` first for continuous inspection.
+- keep one `mds.config.toml` per package
+- keep outputs inside that package
+- use `.mds/source` and `.mds/test` everywhere for authoring roots
+- verify a new package with `mds lint` and `mds build --dry-run` before the first write

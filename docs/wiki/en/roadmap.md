@@ -2,72 +2,26 @@
 
 > *This page was translated from [Japanese](../ja/roadmap.md) by AI.*
 
-This page explains the current core scope and future direction of mds.
+This page summarizes the current focus of mds.
 
-## Current Core Scope
+## Current Focus
 
-The current core scope is Markdown parsing, structure inspection, generation planning, and derived code generation.
+- authoring-v2 with canonical `.mds/source` and `.mds/test` roots
+- package output planning through `[roots]`, `[output]`, and `[[output.override]]`
+- source-map-backed generated-file bridge for editor features
+- current `init`, `new`, examples, and AI kit templates
+- structural diagnostics and selected toolchain execution
 
-The target languages are TypeScript, Python, and Rust.
+## Near-Term Follow-Up
 
-The main scope includes the following:
+- continue tightening live docs, examples, and templates around authoring-v2
+- broaden package-level validation and editor ergonomics
+- extend output patterns and quality integration where packages need them
+- improve release, distribution, and onboarding polish
 
-- Reading `mds.config.toml`
-- Detecting mds-enabled packages
-- Inspecting `package.md`
-- Inspecting the public surface of `index.md`
-- Inspecting implementation Markdown
-- Inspecting `Expose` and `Uses`
-- Generation from `Types`, `Source`, `Test`
-- Adding generation headers
-- Generating `.mds/manifest.toml`
-- Diff display with `mds build --dry-run`
+## Stable Policies
 
-## Future Enhancement Areas
-
-The following areas will be enhanced in the future:
-
-- Static inspection in Markdown state
-- Auto-fix in Markdown state
-- Test execution in Markdown state
-- Runtime environment diagnosis
-- Package information sync
-- Initialization command
-- Pre-publish quality inspection
-- Distribution channel development
-
-## Language Adapters
-
-Language adapters for TypeScript, Python, and Rust will be developed.
-
-Language adapters handle dependency declarations, file naming conventions, inspection tools, test execution, and language-specific additional generated artifacts.
-
-## Distribution
-
-mds aims for distribution accessible from multiple environments.
-
-Target distribution channels are:
-
-- Cargo
-- npm
-- Python package
-- Native executables
-
-## Quality and Safety
-
-mds maintains the following policies for safely handling generated code:
-
-- Does not overwrite existing files without a managed header.
-- Rejects generation if the target is outside the package.
-- Does not write generated output if the manifest is corrupted.
-- Inspects distribution artifacts and provenance information before publishing.
-
-## Unchanging Policies
-
-The following policies are maintained as the core of mds:
-
-- Markdown is treated as the source of truth.
-- Generated code is treated as derived artifacts.
-- Does not infer and generate implementation code from design descriptions.
-- One implementation Markdown handles only one feature.
-- Language-specific differences are encapsulated in language adapters.
+- Markdown remains the source of truth.
+- Generated files remain derived artifacts.
+- Source docs and test docs stay split by responsibility.
+- Output safety wins over convenience when the two conflict.

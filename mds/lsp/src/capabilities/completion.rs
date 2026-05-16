@@ -7,6 +7,13 @@ use tower_lsp::lsp_types::{*};
 use crate::convert::{line_at};
 use crate::labels::{resolve_label};
 use crate::state::{WorkspaceState};
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum MarkdownDocKind {
+    Source,
+    Test,
+    Unknown,
+}
 pub fn provide_completions(
     text: &str,
     position: Position,
@@ -220,9 +227,25 @@ fn code_block_language_completions(path: Option<&Path>) -> Vec<CompletionItem> {
         .collect()
 }
 
+fn markdown_doc_kind(path: Option<&Path>) -> MarkdownDocKind {
+    let Some(path) = path else {
+        return MarkdownDocKind::Unknown;
+    };
+
+    let normalized = path.to_string_lossy().replace('\\', "/");
+    if normalized.contains("/.mds/test/") {
+        MarkdownDocKind::Test
+    } else if normalized.contains("/.mds/source/") {
+        MarkdownDocKind::Source
+    } else {
+        MarkdownDocKind::Unknown
+    }
+}
+
 fn snippet_completions(path: Option<&Path>, config: &Config) -> Vec<CompletionItem> {
     let mut items = Vec::new();
     let lang = path.and_then(lang_for_markdown_path);
+    let doc_kind = markdown_doc_kind(path);
 
     let lang_label = lang
         .as_ref()
@@ -230,95 +253,79 @@ fn snippet_completions(path: Option<&Path>, config: &Config) -> Vec<CompletionIt
         .or_else(|| all_fence_label_completions().into_iter().map(|(label, _)| label).next())
         .unwrap_or_else(|| "text".to_string());
 
-    // Full implementation document template
     items.push(CompletionItem {
-        label: "mds: New Implementation Document".to_string(),
+        label: "mds: New Source Document".to_string(),
         kind: Some(CompletionItemKind::SNIPPET),
-        detail: Some("Full mds implementation document template".to_string()),
+        detail: Some("Tableless authoring-v2 source document".to_string()),
         insert_text: Some(format!(
             "## {purpose}\n\n${{1:Describe the module purpose}}\n\n\
-             ## {contract}\n\n${{2:Define the public contract}}\n\n\
-              ## {exports}\n\n| {name} | {visibility} | {summary} |\n\
-              | --- | --- | --- |\n\
-              | ${{3:symbolName}} | public | ${{4:description}} |\n\n\
-              ##### ${{3:symbolName}}\n\n${{5:Describe the shared symbol.}}\n\n\
-              ## {imports}\n\n| {from} | {target} | {symbols} | {via} | {summary} | {reference} |\n\
-              | --- | --- | --- | --- | --- | --- |\n\
-              | ${{6:builtin}} | ${{7:target}} | ${{8:Name}} | - | ${{9:description}} | - |\n\n\
-              ## {source}\n\n\
-              ```{lang_label}\n${{12:// implementation}}\n```\n\n\
-             ## {cases}\n\n${{13:Describe use cases}}\n\n\
-              ## {test}\n\n\
-              ```{lang_label}\n${{18:// test code}}\n```\n",
+             ## {contract}\n\n${{2:Define behavior, constraints, and boundaries}}\n\n\
+             ## {api}\n\n${{3:Describe the public API in prose. Keep import/export details in the source block.}}\n\n\
+             ## {source}\n\n\
+             ```{lang_label}\n${{4:// implementation}}\n```\n\n\
+             ## {cases}\n\n- ${{5:Describe expected behavior}}\n",
             purpose = resolve_label("purpose", config),
             contract = resolve_label("contract", config),
-            exports = resolve_label("exports", config),
-            imports = resolve_label("imports", config),
+            api = resolve_label("api", config),
             source = resolve_label("source", config),
             cases = resolve_label("cases", config),
-            test = resolve_label("test", config),
-            from = resolve_label("from", config),
-            target = resolve_label("target", config),
-            symbols = resolve_label("symbols", config),
-            via = resolve_label("via", config),
-            summary = resolve_label("summary", config),
-            reference = resolve_label("reference", config),
-            name = resolve_label("name", config),
-            visibility = resolve_label("visibility", config),
         )),
         insert_text_format: Some(InsertTextFormat::SNIPPET),
-        sort_text: Some("9_template".to_string()),
+        sort_text: Some(
+            match doc_kind {
+                MarkdownDocKind::Source => "8_source_template",
+                _ => "9_source_template",
+            }
+            .to_string(),
+        ),
+        ..Default::default()
+    });
+
+    items.push(CompletionItem {
+        label: "mds: New Test Document".to_string(),
+        kind: Some(CompletionItemKind::SNIPPET),
+        detail: Some("Tableless authoring-v2 test document".to_string()),
+        insert_text: Some(format!(
+            "## {purpose}\n\n${{1:Describe the verification goal}}\n\n\
+             ## {covers}\n\n- ${{2:module.id}}\n\n\
+             ## {cases}\n\n- ${{3:Describe the test case}}\n\n\
+             ## {test}\n\n\
+             ```{lang_label}\n${{4:// test code}}\n```\n",
+            purpose = resolve_label("purpose", config),
+            covers = resolve_label("covers", config),
+            cases = resolve_label("cases", config),
+            test = resolve_label("test", config),
+        )),
+        insert_text_format: Some(InsertTextFormat::SNIPPET),
+        sort_text: Some(
+            match doc_kind {
+                MarkdownDocKind::Test => "8_test_template",
+                _ => "9_test_template",
+            }
+            .to_string(),
+        ),
         ..Default::default()
     });
 
     items.push(CompletionItem {
         label: "mds: New Spec Document".to_string(),
         kind: Some(CompletionItemKind::SNIPPET),
-        detail: Some("mds source spec without generated Source code".to_string()),
+        detail: Some("Tableless source spec without generated code".to_string()),
         insert_text: Some(format!(
             "## {purpose}\n\n${{1:Describe the feature purpose}}\n\n\
              ## {contract}\n\n${{2:Define behavior, constraints, and boundaries}}\n\n\
-             ## {exports}\n\n| {name} | {visibility} | {summary} |\n\
-             | --- | --- | --- |\n\
-             | ${{3:symbolName}} | public | ${{4:description}} |\n\n\
-             ##### ${{3:symbolName}}\n\n${{5:Describe the shared definition and who should reference it.}}\n\n\
-             ## {imports}\n\n| {from} | {target} | {symbols} | {via} | {summary} | {reference} |\n\
-             | --- | --- | --- | --- | --- | --- |\n\
-             | - | - | - | - | - | - |\n\n\
-             ## {cases}\n\n- ${{6:Describe expected behavior}}\n",
+             ## {api}\n\n${{3:Describe the public API in prose.}}\n\n\
+             ## {cases}\n\n- ${{4:Describe expected behavior}}\n",
             purpose = resolve_label("purpose", config),
             contract = resolve_label("contract", config),
-            exports = resolve_label("exports", config),
-            imports = resolve_label("imports", config),
+            api = resolve_label("api", config),
             cases = resolve_label("cases", config),
-            from = resolve_label("from", config),
-            target = resolve_label("target", config),
-            symbols = resolve_label("symbols", config),
-            via = resolve_label("via", config),
-            summary = resolve_label("summary", config),
-            reference = resolve_label("reference", config),
-            name = resolve_label("name", config),
-            visibility = resolve_label("visibility", config),
         )),
         insert_text_format: Some(InsertTextFormat::SNIPPET),
         sort_text: Some("9_spec_template".to_string()),
         ..Default::default()
     });
 
-    // Imports table row snippet
-    items.push(CompletionItem {
-        label: "mds: Imports Table Row".to_string(),
-        kind: Some(CompletionItemKind::SNIPPET),
-        detail: Some("Add a new Imports table row".to_string()),
-        insert_text: Some(
-            "| ${1|builtin,external,package,workspace,internal|} | ${2:target} | ${3:Name} | ${4:-} | ${5:description} | ${6:-} |".to_string(),
-        ),
-        insert_text_format: Some(InsertTextFormat::SNIPPET),
-        sort_text: Some("9_uses_row".to_string()),
-        ..Default::default()
-    });
-
-    // Code block snippet
     items.push(CompletionItem {
         label: "mds: Code Block".to_string(),
         kind: Some(CompletionItemKind::SNIPPET),
@@ -329,21 +336,39 @@ fn snippet_completions(path: Option<&Path>, config: &Config) -> Vec<CompletionIt
         ..Default::default()
     });
 
-    // Section snippet
+    let section_choices = match doc_kind {
+        MarkdownDocKind::Source => format!(
+            "{purpose},{contract},{api},{source},{cases}",
+            purpose = resolve_label("purpose", config),
+            contract = resolve_label("contract", config),
+            api = resolve_label("api", config),
+            source = resolve_label("source", config),
+            cases = resolve_label("cases", config),
+        ),
+        MarkdownDocKind::Test => format!(
+            "{purpose},{covers},{cases},{test}",
+            purpose = resolve_label("purpose", config),
+            covers = resolve_label("covers", config),
+            cases = resolve_label("cases", config),
+            test = resolve_label("test", config),
+        ),
+        MarkdownDocKind::Unknown => format!(
+            "{purpose},{contract},{api},{source},{covers},{cases},{test}",
+            purpose = resolve_label("purpose", config),
+            contract = resolve_label("contract", config),
+            api = resolve_label("api", config),
+            source = resolve_label("source", config),
+            covers = resolve_label("covers", config),
+            cases = resolve_label("cases", config),
+            test = resolve_label("test", config),
+        ),
+    };
+
     items.push(CompletionItem {
         label: "mds: New Section".to_string(),
         kind: Some(CompletionItemKind::SNIPPET),
-        detail: Some("Add a new mds section".to_string()),
-        insert_text: Some(format!(
-            "## ${{1|{purpose},{contract},{imports},{exports},{source},{cases},{test}|}}\n\n${{2:Content}}\n",
-            purpose = resolve_label("purpose", config),
-            contract = resolve_label("contract", config),
-            imports = resolve_label("imports", config),
-            exports = resolve_label("exports", config),
-            source = resolve_label("source", config),
-            cases = resolve_label("cases", config),
-            test = resolve_label("test", config),
-        )),
+        detail: Some("Add a new authoring-v2 section".to_string()),
+        insert_text: Some(format!("## ${{1|{section_choices}|}}\n\n${{2:Content}}\n")),
         insert_text_format: Some(InsertTextFormat::SNIPPET),
         sort_text: Some("9_section".to_string()),
         ..Default::default()

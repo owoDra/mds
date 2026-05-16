@@ -466,17 +466,85 @@ fn test_table_cell_not_a_table() {
 }
 
 #[test]
-fn test_completion_snippet_provided() {
-    let text = "## ";
+fn test_source_snippet_completion_is_tableless() {
+    let text = "module";
     let position = Position {
         line: 0,
-        character: 3,
+        character: 0,
     };
     let config = mds_core::Config::default();
-    let items = provide_completions(text, position, None, &config, None);
+    let path = std::path::Path::new("/workspace/.mds/source/app/greet.ts.md");
+    let items = provide_completions(text, position, Some(path), &config, None);
     let labels: Vec<&str> = items.iter().map(|i| i.label.as_str()).collect();
+
     assert!(
-        labels.contains(&"仕様"),
-        "should provide section completions: {labels:?}"
+        labels.contains(&"mds: New Source Document"),
+        "should provide source snippet: {labels:?}"
+    );
+    assert!(
+        labels.contains(&"mds: New Spec Document"),
+        "should provide spec snippet: {labels:?}"
+    );
+    assert!(
+        !labels.contains(&"mds: Imports Table Row"),
+        "should not provide legacy imports row snippet: {labels:?}"
+    );
+
+    let source = items
+        .iter()
+        .find(|item| item.label == "mds: New Source Document")
+        .and_then(|item| item.insert_text.as_deref())
+        .expect("source snippet insert text");
+    assert!(source.contains("## API"), "unexpected source snippet: {source}");
+    assert!(source.contains("## Source"), "unexpected source snippet: {source}");
+    assert!(!source.contains("## Imports"), "unexpected source snippet: {source}");
+    assert!(!source.contains("## Exports"), "unexpected source snippet: {source}");
+    assert!(!source.contains("## Types"), "unexpected source snippet: {source}");
+
+    let spec = items
+        .iter()
+        .find(|item| item.label == "mds: New Spec Document")
+        .and_then(|item| item.insert_text.as_deref())
+        .expect("spec snippet insert text");
+    assert!(spec.contains("## API"), "unexpected spec snippet: {spec}");
+    assert!(!spec.contains("## Imports"), "unexpected spec snippet: {spec}");
+    assert!(!spec.contains("## Exports"), "unexpected spec snippet: {spec}");
+}
+
+#[test]
+fn test_test_snippet_completion_uses_covers_and_test_sections() {
+    let text = "module";
+    let position = Position {
+        line: 0,
+        character: 0,
+    };
+    let config = mds_core::Config::default();
+    let path = std::path::Path::new("/workspace/.mds/test/app/greet.ts.md");
+    let items = provide_completions(text, position, Some(path), &config, None);
+
+    let test_snippet = items
+        .iter()
+        .find(|item| item.label == "mds: New Test Document")
+        .and_then(|item| item.insert_text.as_deref())
+        .expect("test snippet insert text");
+    assert!(
+        test_snippet.contains("## Covers"),
+        "unexpected test snippet: {test_snippet}"
+    );
+    assert!(
+        test_snippet.contains("## Test"),
+        "unexpected test snippet: {test_snippet}"
+    );
+    assert!(
+        !test_snippet.contains("## Source"),
+        "unexpected test snippet: {test_snippet}"
+    );
+    assert!(
+        !test_snippet.contains("## Imports"),
+        "unexpected test snippet: {test_snippet}"
+    );
+    assert!(
+        !test_snippet.contains("## Exports"),
+        "unexpected test snippet: {test_snippet}"
     );
 }

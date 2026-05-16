@@ -9,8 +9,6 @@
 | [minimal-ts](minimal-ts/) | TypeScript の最小構成 |
 | [minimal-py](minimal-py/) | Python の最小構成 |
 | [minimal-rs](minimal-rs/) | Rust の最小構成 |
-| [descriptor-catalog](descriptor-catalog/) | built-in descriptor coverage catalog |
-| [descriptor-samples](descriptor-samples/) | built-in language / framework descriptor の runnable samples |
 
 ## 使い方
 
@@ -34,7 +32,7 @@ cargo run --manifest-path Cargo.toml -p mds-cli -- build --package examples/mini
 - `mds.config.toml` — mds の設定ファイル
 - `package.json` / `pyproject.toml` / `Cargo.toml` — 言語のパッケージ情報
 - `.mds/source/overview.md` — source root の overview
-- `.mds/source/*.lang.md` — 実装 Markdown
-- `.mds/test/**/*.md` — テスト Markdown
+- `.mds/source/*.lang.md` — tableless source Markdown
+- `.mds/test/*.lang.md` — tableless test Markdown
 
-生成後、`src/` と `tests/` に派生コードが作られます。
+生成後、`src/` と `tests/` に `[output]` / `[[output.override]]` に従った派生コードが作られます。

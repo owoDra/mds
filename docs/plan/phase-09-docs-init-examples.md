@@ -13,7 +13,7 @@
 - `mds new` templates を tableless authoring style へ更新する。
 - AI agent kit templates から `Imports`、`Exports`、`Types` tables を外す。
 - VS Code snippets と completion snippets を tableless source/test sections へ更新する。
-- docs build で `[[module]]` / `[[module#symbol]]` を通常 Markdown links へ変換する。
+- repository に README / wiki を変換する既存 docs build surface が無いため、`[[module]]` / `[[module#symbol]]` を通常 Markdown links へ変換する build step は今回は未実装として記録する。
 - `examples/minimal-ts` の duplicated test suffix、例: `greet.test.test.ts` を解消する。
 - minimal Rust / Python examples を tableless style へ寄せる。
 - `examples/descriptor-samples/` と `examples/descriptor-catalog/` を削除または新方針に合わせて縮小する。
@@ -33,3 +33,4 @@
 - README、wiki、VS Code README、examples は利用者が最初に見るため、old model の断片が残ると混乱する。
 - descriptor docs を完全削除する場合、package manager / quality tool manifest の説明まで失わないように分離する。
 - examples は migration fixture ではない。破壊的変更後の canonical examples として最小に保つ。
+- README / wiki を変換する docs build surface が repository に存在しないため、Phase 09 では live docs 自体を通常 Markdown links へ更新し、wiki-link build conversion は follow-up として残す。

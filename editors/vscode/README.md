@@ -7,10 +7,18 @@ Language support for [mds](https://github.com/owo-x-project/owox-mds) implementa
 - **Syntax highlighting** for mds Markdown files with embedded code blocks
 - **Language Server** integration via `mds-lsp` for real-time diagnostics
 - **Markdown preview** commands for mds implementation Markdown files
-- **Snippets** for common mds section structures
+- **Snippets** for tableless authoring-v2 source/test documents and config files
 - **Code block detection** with embedded language support through stable virtual documents
-- **Authoring assistance** for `Imports`, `Exports`, H5 shared definitions, and quick fixes
-- **Any language** — automatically detects all `.{ext}.md` files in `src-md/` and `.mds/source/`, plus test docs under `.mds/test/`
+- **Generated-file bridge** for hover, definition, and diagnostics remapped back into Markdown
+- **Authoring assistance** for tableless source/test docs, H5 shared definitions, and quick fixes
+- **Any language** — automatically detects `.{ext}.md` files under `.mds/source/` and `.mds/test/`
+
+## Authoring Model
+
+- Source docs live under `.mds/source/**/*.md` and typically use `Purpose`, `Contract`, `API`, `Source`, and `Cases`.
+- Test docs live under `.mds/test/**/*.md` and typically use `Purpose`, `Covers`, `Cases`, and `Test`.
+- Write imports and exports in prose plus normal code blocks. Legacy metadata tables remain readable, but snippets and default completions now prefer tableless authoring-v2.
+- When an external language server answers on generated code, the extension uses the generated-file bridge to map results back to the Markdown source.
 
 ## Requirements
 

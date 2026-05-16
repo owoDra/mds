@@ -2,103 +2,109 @@
 
 > *This page was translated from [Japanese](../ja/getting-started.md) by AI.*
 
-This page explains the prerequisites for trying mds and the basic execution steps.
+This page shows the smallest current setup for trying mds.
 
 ## Installation
 
-Install the latest platform-specific binary from GitHub Releases with the one-liner script (recommended):
+Install the latest platform-specific binary from GitHub Releases:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/owo-x-project/owox-mds/latest/install.sh | sh
 ```
 
-This downloads the matching release archive for your OS / architecture and installs both `mds` and `mds-lsp` to `~/.local/bin` by default.
+This installs both `mds` and `mds-lsp` to `~/.local/bin` by default.
 
-### VSCode Extension
-
-Search for **"mds"** in the Marketplace, or install with the following command.
+### VS Code extension
 
 ```bash
 code --install-extension owo-x-project.mds
 ```
 
-The Marketplace extension is published as a platform-specific package and includes the matching `mds-lsp` binary. You only need to install `mds-lsp` separately when using another editor or when overriding `mds.lsp.path`.
+The Marketplace extension bundles the matching `mds-lsp` binary.
 
-## Prerequisites
-
-mds is a tool under development. It is currently released as an alpha version.
-
-## Required Runtime Environment
-
-No runtime dependencies are required for the pre-built `mds` CLI binary.
+## Runtime Requirements
 
 | Purpose | Requirements |
 | --- | --- |
-| Running mds commands | None (pre-built binary from GitHub Releases) |
-| TypeScript checking, fixing, testing | Node.js 24 or later, plus your chosen ESLint, Prettier, Biome, Vitest, Jest, etc. |
-| Python checking, fixing, testing | Python 3.13 or later, plus your chosen Ruff, Black, Pytest, unittest, etc. |
-| Rust checking, fixing, testing | Rust 1.86 or later, Cargo, plus your chosen rustfmt, Clippy, cargo-nextest, etc. |
+| Running `mds` itself | None when using the prebuilt binary |
+| TypeScript checks | Node.js and the tools you select in `[quality.ts]` |
+| Python checks | Python and the tools you select in `[quality.py]` |
+| Rust checks | Rust/Cargo and the tools you select in `[quality.rs]` |
 
-`mds lint` and `mds build` handle Markdown structure and generation. `mds typecheck`, `mds lint`, and `mds test` use the selected type checker, linter, and test runner for each target language. Tools that are not selected are not implicitly required.
+Unselected tools are not treated as missing.
 
-## Minimal Setup
+## Minimal Package Layout
 
-Prepare the following files for an mds target package.
+```text
+my-package/
+├── mds.config.toml
+├── package.md
+├── package.json
+├── .mds/
+│   ├── source/
+│   │   ├── overview.md
+│   │   └── greet.ts.md
+│   └── test/
+│       ├── overview.md
+│       └── greet.ts.md
+├── src/
+└── tests/
+```
 
-| File | Role |
-| --- | --- |
-| `mds.config.toml` | Configures mds activation, input source, output destination, and language adapters. |
-| `package.md` | Describes the package name, dependencies, and per-package rules. |
-| `src-md/**/*.ts.md` | Implementation Markdown for TypeScript. |
-| `src-md/**/*.py.md` | Implementation Markdown for Python. |
-| `src-md/**/*.rs.md` | Implementation Markdown for Rust. |
-| Recognized package manager metadata such as `package.json`, `pyproject.toml`, `Cargo.toml`, `pubspec.yaml`, `*.csproj`, `CMakeLists.txt` | Package manager metadata required by `mds init` and package detection. |
+`package.json`, `pyproject.toml`, `Cargo.toml`, and other recognized package metadata stay authoritative for package-manager details. `package.md` is the mds-facing document for package purpose and managed metadata snapshots.
 
-You do not need to use all languages simultaneously. Enable only the languages you target.
+## Minimal Config
 
-## Basic Workflow
+```toml
+[package]
+enabled = true
+allow_raw_source = false
 
-First, lint the structure of the target package and configured code blocks.
+[roots]
+source_md = ".mds/source"
+test_md = ".mds/test"
+source_out = "src"
+test_out = "tests"
+
+[output]
+source = "{source_out}/{module}.{ext}"
+test = "{test_out}/{module}.test.{ext}"
+```
+
+If your package needs non-default output names, add `[[output.override]]` entries instead of changing the authoring roots.
+
+## Authoring Model
+
+- Source docs live in `.mds/source/**/*.lang.md`.
+- Test docs live in `.mds/test/**/*.md`.
+- Use `mds new greet.ts.md`, `mds new overview.md`, or `mds new index.ts.md` to scaffold the current tableless templates.
+- Keep source behavior in source docs and executable verification in test docs.
+
+## First Workflow
 
 ```bash
+mds init --package ./path/to/package
 mds lint --package ./path/to/package
-```
-
-If the package configures a type checker, run it next.
-
-```bash
-mds typecheck --package ./path/to/package
-```
-
-Next, verify the generation plan and differences.
-
-```bash
 mds build --package ./path/to/package --dry-run
-```
-
-If there are no problems, write the derived code.
-
-```bash
 mds build --package ./path/to/package
+mds typecheck --package ./path/to/package
+mds test --package ./path/to/package
 ```
 
-## What Gets Generated
+## Default Output Mapping
 
-Files for the target language are generated from code blocks written in `Types`, `Source`, and `Test` sections of implementation Markdown.
-
-For example, `src-md/foo/bar.ts.md` corresponds by default to the following files.
-
-| Kind | Example Output |
+| Markdown doc | Default output |
 | --- | --- |
-| `Source` | `src/foo/bar.ts` |
-| `Types` | `src/foo/bar.types.ts` |
-| `Test` | `tests/foo/bar.test.ts` |
+| `.mds/source/greet.ts.md` | `src/greet.ts` |
+| `.mds/test/greet.ts.md` | `tests/greet.test.ts` |
+| `.mds/source/lib.rs.md` | `src/lib.rs` |
+| `.mds/test/lib.rs.md` | `tests/lib.test.rs` unless overridden |
 
-For details on output destinations, see [Generation Mechanism](generation.md).
+The logical module id comes from the path inside `.mds/source` or `.mds/test` after removing `.md` and the trailing language suffix.
 
-## Next Pages to Read
+## Next Pages
 
-- [Core Concepts](concepts.md)
+- [Configuration](configuration.md)
 - [Markdown Source](markdown-source.md)
 - [Commands](commands.md)
-- [Configuration](configuration.md)
+- [Generation Mechanism](generation.md)

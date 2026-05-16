@@ -1,89 +1,65 @@
 # トラブルシューティング
 
-このページでは、mds を使うときによく起きる問題と確認方法を説明します。
+このページでは、current な mds 利用でよく起きる失敗をまとめます。
 
-## mds が有効なパッケージが見つからない
+## mds package が見つからない
 
-`mds lint`、`mds typecheck` などで対象パッケージが見つからない場合は、次の点を確認してください。
+次を確認してください。
 
-- 対象パッケージに `mds.config.toml` があるか
-- `mds.config.toml` の `[package]` で `enabled = true` になっているか
-- `--package` に正しいパスを指定しているか
-- 対象パッケージに `package.md` があるか
+- `mds.config.toml` がある
+- `[package].enabled = true`
+- `--package` が package root を指している
+- `package.md` と package manager metadata が想定どおりにある
 
-## 必須セクションがないと言われる
+## authoring root が違う
 
-実装 Markdown には、mds が期待するセクションが必要です。
+current package は canonical root だけを使います。
 
-`Purpose`、`Contract`、`Types`、`Source`、`Cases`、`Test` があるか確認してください。
+- `source_md` は `.mds/source`
+- `test_md` は `.mds/test`
 
-見出しの階層も重要です。実装 Markdown の主要セクションは、`##` の見出しとして書きます。
+出力 layout を変えたい場合は `[output]` や `[[output.override]]` を変え、Markdown root は変えません。
 
-## `Imports`、`Exports`、`Expose`、`Uses` の表でエラーになる
+## 必須 section が足りない
 
-表の列名、値、重複を確認してください。
+編集中の doc kind に対応する shape を確認してください。
 
-`Uses` の依存種別は、定められた値を使います。
+- source doc: `Purpose`、`Contract`、`API`、`Source`、`Cases`
+- test doc: `Purpose`、`Covers`、`Cases`、`Test`
+- overview doc: `Purpose`、`Architecture`、`Rules`
 
-| 値 | 意味 |
-| --- | --- |
-| `builtin` | 言語や実行環境に組み込まれた依存です。 |
-| `package` | 外部パッケージへの依存です。 |
-| `workspace` | 同じ作業領域内の別パッケージへの依存です。 |
-| `internal` | 同じパッケージ内の依存です。 |
+## source/test 混在や legacy table warning
 
-大小文字の違いや、同じ意味の行の重複はエラーになります。
+`split_source_and_test = true` のときは、source behavior は source doc、executable test は test doc に分けます。`legacy_tables` warning が出たら、旧 metadata table pattern を消し、API intent は prose で書きます。
 
-## 生成先のファイルを上書きできない
+## wiki-style link が解決できない
 
-mds は、管理ヘッダーがない既存ファイルを上書きしません。
+- `[[module]]` は package-local logical module id に解決する必要があります。
+- `[[module#symbol]]` は shared definition や prose に書いた symbol 名など Markdown-native な情報に解決する必要があります。
 
-生成先に手書きのファイルがある場合は、次のいずれかを選びます。
+source/test doc の path から導かれる module id と symbol の綴りを確認してください。
 
-- 生成先を変更します。
-- 手書きファイルを別の場所へ移動します。
-- 生成元の Markdown の配置を見直します。
+## output path が想定と違う
 
-手書きファイルに mds 管理ヘッダーを手で付けて回避することは推奨しません。
+次を確認します。
 
-## マニフェストが壊れていると言われる
+- `[roots].source_out`
+- `[roots].test_out`
+- `[output]`
+- `[[output.override]]`
 
-`.mds/manifest.toml` が TOML として読めない、または期待する形式と違う場合、mds は生成を書き込みません。
+書き込む前に `mds build --dry-run` で plan を確認してください。
 
-これは、管理対象の判断を誤ってファイルを壊さないためです。
+## file を上書きできない
 
-まず `mds build --dry-run` と `mds lint` で状況を確認してください。
+mds は managed header が付いた file だけを上書きします。対象 path に handwritten file がある場合は、その file を移動するか output pattern を変えます。
 
-## 必要なツールがないと言われる
+## 必要な tool が足りない
 
-`mds lint`、`mds test`、`mds doctor` では、言語ごとの実行環境や選択した検査ツールが必要です。
-
-`mds doctor` を実行すると、足りないツールを確認できます。
+次を実行してください。
 
 ```bash
-mds doctor --package path/to/package
+mds doctor --package ./path/to/package
 ```
 
-使わないツールが不足扱いになる場合は、`mds.config.toml` の `[quality.ts]`、`[quality.py]`、`[quality.rs]` を確認してください。不要な `linter`、`fixer`、`test_runner` は `false` にし、`required` からも外します。
-
-## 生成予定だけ確認したい
-
-`mds build --dry-run` を使います。
-
-```bash
-mds build --package path/to/package --dry-run
-```
-
-このコマンドはファイルを書き込みません。生成予定と差分だけを表示します。
-
-## エラーの種類を確認したい
-
-終了コードを確認してください。
-
-| 終了コード | 意味 |
-| --- | --- |
-| `0` | 成功しました。 |
-| `1` | 診断または検査エラーがあります。 |
-| `2` | コマンドの使い方または設定に誤りがあります。 |
-| `3` | 内部エラーが発生しました。 |
-| `4` | 実行環境または必要なツールが不足しています。 |
+そのうえで、関連する `[quality.<lang>]` が本当に必要な tool だけを要求しているか確認します。

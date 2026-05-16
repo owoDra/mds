@@ -1,68 +1,47 @@
-# Quality Inspection
+# Quality Checks
 
 > *This page was translated from [Japanese](../ja/quality.md) by AI.*
 
-This page explains the quality inspections handled by mds.
+This page explains how mds validates authoring-v2 packages.
 
-## Quality Inspection Philosophy
+## Structural Validation
 
-In mds, not only generated files but also the state of the source Markdown is inspected.
+`mds lint` validates the Markdown model before it invokes any external tool.
 
-By combining Markdown structure, dependency, generation target, code block, and target language inspections, discrepancies between the source of truth and derived code are reduced.
+It checks:
 
-## Structural Inspection
+- required sections for the current doc kind
+- canonical `.mds/source` and `.mds/test` roots
+- output planning stays inside the package
+- managed-file safety before overwriting outputs
+- package-local wiki-style links and symbol references
 
-`mds lint` inspects the structure of Markdown before running configured linters.
+## Check Policy
 
-It primarily verifies:
+`[check]` controls several authoring-v2 diagnostics.
 
-- Whether required sections exist
-- Whether `Imports`, `Exports`, `Expose`, and `Uses` tables are correct
-- Whether the target language can be determined from the implementation Markdown filename
-- Whether the generation target stays within the package boundary
-- Whether there is a risk of overwriting hand-written files at the generation target
-- Whether there are contradictions between `package.md` and package information
+| Key | Default | Meaning |
+| --- | --- | --- |
+| `legacy_tables` | `warn` | Warn or error on old metadata-table patterns |
+| `unresolved_module_symbols` | `warn` | Policy for unresolved `[[module#symbol]]` |
+| `implementation_section_only` | `true` | Only executable sections are generation sources |
+| `split_source_and_test` | `true` | Reject mixing source behavior and test behavior in the wrong doc kind |
 
-## Static Analysis
+Unresolved `[[module]]` is always an error.
 
-`mds lint` performs language-specific static analysis on code blocks within Markdown.
+## Tool-Driven Checks
 
-Code blocks are treated as temporary files, with dependency declarations generated from `Uses` attached for inspection.
+After structural validation, mds can invoke the commands configured in `[quality.<lang>]`.
 
-Inspection tools can be selected per language. For TypeScript, ESLint or Biome; for Python, Ruff; for Rust, Cargo Clippy, among others. If unselected, static analysis for that language is not executed.
+Examples:
 
-## Auto-fix
+- `mds lint` for linters
+- `mds lint --fix` for fixers
+- `mds typecheck` for typecheck commands
+- `mds test` for test runners
+- `mds doctor` for runtime and tool availability
 
-`mds lint --fix` applies auto-fixes to code blocks within Markdown.
-
-This process does not freely rewrite Markdown descriptions or structure. The fix targets are code blocks in `Types`, `Source`, and `Test`.
-
-To only confirm differences, use `--check`.
-
-```bash
-mds lint --package path/to/package --fix --check
-```
-
-Fix tools can also be selected per language. For TypeScript, Prettier or Biome; for Python, Ruff format or Black; for Rust, rustfmt, among others.
-
-## Testing
-
-`mds test` performs language-specific test execution targeting the `Test` section within Markdown.
-
-By placing test code in implementation Markdown, the feature's purpose, contract, implementation, and tests can be tracked from the same document.
-
-For test execution tools, TypeScript uses Vitest or Jest, Python uses Pytest or unittest, and Rust uses Cargo test or cargo-nextest.
-
-## Environment Diagnostics
-
-`mds doctor` diagnoses the execution environment and required tools.
-
-```bash
-mds doctor --package path/to/package
-```
-
-The diagnostics verify required execution environments and tools based on the language adapters enabled for the target package and the `[quality.*]` settings. Unselected tools are not treated as missing.
-
+## Auto-Fix Scope
 ## Recommended Verification Order
 
 During development, verifying in the following order makes it easier to isolate issues:

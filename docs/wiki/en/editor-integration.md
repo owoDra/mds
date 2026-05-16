@@ -2,59 +2,79 @@
 
 > *This page was translated from [Japanese](../ja/editor-integration.md) by AI.*
 
-mds provides `mds-lsp`, a server compliant with the Language Server Protocol (LSP). You can use real-time validation, code navigation, completion, and hover information for mds Markdown files in your editor.
+mds provides `mds-lsp`, a Language Server Protocol server for authoring-v2 Markdown packages.
 
-**Key features:**
+## Main Features
 
 | Feature | Description |
 | --- | --- |
-| Real-time diagnostics | Section structure, table format, language matching, config validation, link validation |
-| Go to Definition | Jump from Uses table Target to the referenced implementation Markdown |
-| Find References | Search where Exposed names are Used |
-| Document Symbols | Outline display of section headings |
-| Workspace Symbols | Search module names across all `src-md/` |
-| Completion | Section names, table column names, code block languages, snippets |
-| Hover | Section descriptions, Purpose display of referenced modules |
-| Code Action | Auto-add missing sections (Quick Fix) |
+| Diagnostics | Section structure, canonical roots, legacy-table warnings, source/test mixing, unresolved wiki-style links |
+| Hover and Definition | Prefer generated-file delegation, then remap results back to Markdown with the source map bridge |
+| Completion and Snippets | Current source/test headings, code fences, and config snippets |
+| Code Actions | Add missing source/test headings for tableless docs |
+| Outline | Document symbols for Markdown headings |
 
 ## Installation
 
-### VS Code Marketplace (recommended for VS Code)
+### VS Code
 
 ```bash
 code --install-extension owo-x-project.mds
 ```
 
-The Marketplace extension is published as a platform-specific package and includes the matching `mds-lsp` binary. VS Code users usually do not need a separate LSP install.
+The Marketplace extension bundles the matching `mds-lsp` binary.
 
-### install.sh (for other editors)
-
-The install script installs both `mds` and `mds-lsp` from GitHub Releases:
+### Other editors
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/owo-x-project/owox-mds/latest/install.sh | sh
 ```
 
-### Build from source (for developers)
+This installs both `mds` and `mds-lsp`.
+
+### Build from source
 
 ```bash
 cargo build -p mds-lsp --release
-cp target/release/mds-lsp /usr/local/bin/
 ```
 
-When working inside this repository, build `mds-lsp` directly from the root Cargo workspace. No self-hosted sync step is required.
+When working inside this repository, build `mds-lsp` from the root Cargo workspace. No self-hosted sync step is involved.
 
-### Verify installation
+## VS Code Settings
 
-```bash
-mds-lsp --version   # Display version (if not supported, starts waiting on stdio)
-```
+| Setting | Default | Meaning |
+| --- | --- | --- |
+| `mds.lsp.path` | `""` | Explicit path to `mds-lsp`; bundled server is preferred first |
+| `mds.lsp.enabled` | `true` | Enables or disables the language server |
+| `mds.lsp.logLevel` | `"info"` | Server log level |
+| `mds.lsp.additionalLanguages` | `[]` | Extra `*.lang.md` suffixes for editor features |
 
-`mds-lsp` operates with stdio transport. The editor automatically manages the process on startup.
+## Activation Model
 
-## VSCode
+The extension activates when a workspace contains `mds.config.toml`. It watches the canonical `.mds/source` and `.mds/test` roots by default, and `mds.lsp.additionalLanguages` can extend editor-only file matching for extra suffixes.
 
-### Developing the extension locally
+## Generated-File Bridge
+
+`mds-lsp` stores source maps for generated outputs. The VS Code extension uses bridge commands to:
+
+- delegate hover and definition to generated files when that gives better language-service results
+- remap the resulting ranges back to the owning Markdown code fence
+- mirror generated diagnostics back onto indexed Markdown documents
+
+Completion still falls back to shadow-document techniques when delegation is not the right fit.
+
+## Other Editors
+
+Use `mds-lsp` over stdio with `mds.config.toml` as the root marker.
+
+Recommended file coverage:
+
+- `.mds/source/**/*.md`
+- `.mds/test/**/*.md`
+- `mds.config.toml`
+- `package.md`
+
+## Local Development
 
 ```bash
 cd editors/vscode
@@ -62,177 +82,10 @@ npm install
 npm run compile
 ```
 
-During development, launch via VSCode's "Extension Development Host":
-
-1. Open `editors/vscode` in VSCode
-2. Press F5 to launch Extension Development Host
-3. Open `.ts.md`, `.py.md`, `.rs.md` files
-
-### Configuration options
-
-| Setting | Default | Description |
-| --- | --- | --- |
-| `mds.lsp.path` | `""` | Path to the mds-lsp binary. If empty, uses the bundled server first, then searches PATH |
-| `mds.lsp.enabled` | `true` | Enable/disable the LSP server |
-| `mds.lsp.logLevel` | `"info"` | Log level: error, warn, info, debug, trace |
-| `mds.lsp.additionalLanguages` | `[]` | Additional language extensions (e.g., `[".go.md", ".java.md"]`) |
-
-### Auto-activation
-
-The extension is automatically activated when `mds.config.toml` exists in the workspace. It detects enabled language adapters from the `[adapters]` section of `mds.config.toml` and provides LSP features for files with the corresponding extensions.
-
-When adding a new language, simply add the extension to `mds.lsp.additionalLanguages`.
-
-### Syntax highlighting
-
-mds-specific TextMate grammar is included:
-
-- **Section headings**: `## Purpose`, `## Types`, etc. are highlighted
-- **Uses table**: `builtin`, `package`, `workspace`, `internal` in the `From` column are highlighted as keywords
-- **Code blocks**: Embedded syntax highlighting for TypeScript, Python, Rust
-
-### Snippets
-
-VSCode snippets are also included:
-
-| Prefix | Description |
-| --- | --- |
-| `mds-doc` | Complete implementation document template |
-| `mds-uses` | Uses table (with header) |
-| `mds-use-row` | One row of Uses table |
-| `mds-section` | Section heading |
-| `mds-code-section` | Code section (Uses + code block) |
-| `mds-code` | Code block |
-| `mds-config` | Basic mds.config.toml |
-| `mds-config-full` | mds.config.toml with all sections |
-
-## Neovim
-
-### Configuration example with nvim-lspconfig
-
-```lua
-local lspconfig = require('lspconfig')
-local configs = require('lspconfig.configs')
-
-if not configs.mds_lsp then
-  configs.mds_lsp = {
-    default_config = {
-      cmd = { 'mds-lsp' },
-      filetypes = { 'markdown' },
-      root_dir = lspconfig.util.root_pattern('mds.config.toml'),
-      settings = {},
-    },
-  }
-end
-
-lspconfig.mds_lsp.setup({
-  on_attach = function(client, bufnr)
-    -- Set up keymaps as needed
-  end,
-})
-```
-
-### Filetype configuration
-
-```lua
-vim.filetype.add({
-  extension = {
-    ['ts.md'] = 'markdown',
-    ['py.md'] = 'markdown',
-    ['rs.md'] = 'markdown',
-  },
-})
-```
-
-## Helix
-
-Add the following to `languages.toml`:
-
-```toml
-[[language]]
-name = "markdown"
-language-servers = ["mds-lsp"]
-file-types = ["md"]
-
-[language-server.mds-lsp]
-command = "mds-lsp"
-```
-
-## Other Editors
-
-mds-lsp conforms to the standard LSP protocol (stdio transport) and can be used with any editor that supports LSP.
-
-Required configuration:
-
-1. Command: `mds-lsp`
-2. Transport: stdio
-3. Root pattern: `mds.config.toml`
-4. File types: `*.ts.md`, `*.py.md`, `*.rs.md`, `mds.config.toml`, `package.md`
-
-## LSP Feature List
-
-### Phase 1: Real-time Diagnostics
-
-Validation is automatically executed when files are opened or edited.
-
-| Validation Target | Content |
-| --- | --- |
-| Section structure | Existence check for Purpose, Contract, Types, Source, Cases, Test |
-| Table format | Validation of From, Target, Expose, Summary columns in Uses table |
-| Language matching | Match between file extension (.ts.md, etc.) and code block language label |
-| Code blocks | Check for prohibited import/use/require statements |
-| Markdown links | Existence check for local link targets |
-| mds.config.toml | TOML syntax, required fields, supported keys validation |
-| package.md | Section structure, Package table validation |
-
-### Phase 2: Code Navigation
-
-| Feature | Description |
-| --- | --- |
-| Go to Definition | Jump from Uses table Target cell to the corresponding `.{lang}.md` file |
-| Find References | Search which implementation Markdown's Uses references the current file |
-| Document Symbols | Display `##` / `###` headings as symbols in outline |
-| Workspace Symbols | Search all module names under `src-md/` |
-
-### Phase 3: Code Assist
-
-| Feature | Description |
-| --- | --- |
-| Section name completion | Show candidates like Purpose, Contract after `## ` |
-| Table column completion | Show candidates like From, Target within table rows |
-| Code block language completion | Show language candidates inferred from file after ` ``` ` |
-| Snippets | Document templates, Uses rows, code blocks |
-| Hover | Display section heading descriptions, Purpose of Uses targets |
-| Code Action | Auto-add missing sections (Quick Fix) |
+Then run the extension in VS Code's Extension Development Host.
 
 ## Troubleshooting
 
-### LSP server does not start
-
-If you installed the Marketplace extension, first check the "mds Language Server" Output channel. The bundled server should be used automatically.
-
-```bash
-# For non-VS Code editors or custom mds.lsp.path, check if mds-lsp is in PATH
-which mds-lsp
-
-# Manual startup test (Ctrl+C to exit)
-mds-lsp
-```
-
-### Checking logs
-
-In VSCode, select the "mds Language Server" channel in the Output panel to check logs.
-
-To change the log level:
-
-```json
-{
-  "mds.lsp.logLevel": "debug"
-}
-```
-
-### Diagnostics not showing
-
-1. Check that `mds.config.toml` exists and has `enabled = true`
-2. Check that the file is under the `src-md/` directory
-3. Check that the file extension is one of `.ts.md`, `.py.md`, `.rs.md`
+- If diagnostics do not appear, confirm that the file is under `.mds/source` or `.mds/test`.
+- If bridge results look stale, rebuild the package or reopen the workspace so the index refreshes.
+- If you override `mds.lsp.path`, confirm the selected binary matches the extension version.

@@ -2,152 +2,84 @@
 
 > *This page was translated from [Japanese](../ja/ai-agent-integration.md) by AI.*
 
-This page explains the mechanism of mds's AI coding agent configuration files (agent kit) and how to add templates for new AI CLIs.
+This page explains the current AI agent kit flow in mds.
 
 ## Overview
 
-`mds init --ai` generates configuration files following each AI CLI's best practices so that AI coding agents can work correctly in mds projects.
+`mds init --ai` generates instructions, skills, and command files for supported AI CLIs so agents can work with authoring-v2 packages without inventing their own document shape.
 
-The generated files contain mds's Markdown format specifications (Uses tables, section structure, constraints), enabling AI agents to create implementation Markdown in the correct format.
+The generated guidance teaches:
+
+- canonical `.mds/source` and `.mds/test` roots
+- tableless source and test documents
+- `mds new` for scaffolding new docs
+- the normal validation flow for generated outputs
 
 ## Supported AI CLIs
 
-| AI CLI | Identifier | Output Path | Features |
-| --- | --- | --- | --- |
-| Claude Code | `claude-code`, `claude` | `.claude/rules/`, `.claude/skills/`, `.claude/commands/` | Path-scoped rules for auto-loading, skills for on-demand reference, slash commands |
-| Codex CLI | `codex-cli`, `codex` | `.codex/instructions.md`, `.codex/skills/` | Instructions and skills complementing AGENTS.md |
-| Opencode | `opencode` | `.opencode/agents/`, `.opencode/skills/` | Subagent definitions (build/check), skills with YAML frontmatter |
-| GitHub Copilot | `github-copilot-cli`, `copilot` | `.github/instructions/`, `.github/prompts/` | Path-specific instructions with applyTo frontmatter, prompt files |
+| AI CLI | Identifier | Output path |
+| --- | --- | --- |
+| Claude Code | `claude-code`, `claude` | `.claude/rules/`, `.claude/skills/`, `.claude/commands/` |
+| Codex CLI | `codex-cli`, `codex` | `.codex/instructions.md`, `.codex/skills/` |
+| Opencode | `opencode` | `.opencode/agents/`, `.opencode/skills/` |
+| GitHub Copilot | `github-copilot-cli`, `copilot` | `.github/instructions/`, `.github/prompts/` |
 
-## Usage
+## Basic Usage
 
 ```bash
-# Generate all categories for all AI CLIs (plan display only)
+# Show the plan
 mds init --ai --target all --categories all
 
 # Apply the plan
 mds init --ai --target all --categories all --yes
 
-# For Claude Code only
+# Generate only for one CLI
 mds init --ai --target claude-code --yes
-
-# Specific categories only
-mds init --ai --target all --categories instructions,skills --yes
 ```
 
-### Categories
+## Categories
 
-| Category | Description |
+| Category | Purpose |
 | --- | --- |
-| `instructions` | AI CLI rule files. Documents mds workflows and Markdown format |
-| `skills` | Detailed skill definitions referenced on demand |
-| `commands` | Immediately executable command definitions (mds lint, mds build, etc.) |
+| `instructions` | Always-on rules and workflow guidance |
+| `skills` | Detailed on-demand reference files |
+| `commands` | Ready-to-run command snippets for the target CLI |
 
-### Options
+## Design Rules
 
-| Flag | Description |
-| --- | --- |
-| `--ai` | Run AI initialization only (skip project initialization) |
-| `--target <list>` | Specify target AI CLIs as comma-separated list. `all` for all targets |
-| `--categories <list>` | Specify generation categories as comma-separated list. `all` for all categories |
-| `--yes` | Actually apply the plan |
-| `--force` | Allow overwriting non-managed files |
+- User-owned files such as `CLAUDE.md`, `AGENTS.md`, and `copilot-instructions.md` are not rewritten.
+- Generated files include `mds-managed: true` so reruns can update them safely.
+- Non-managed files are only overwritten when `--force` is given.
 
-## Design Principles
+## What the Templates Should Teach
 
-### Non-invasive to main files
+Templates should explain the current live surface:
 
-**User-owned files such as CLAUDE.md, AGENTS.md, and copilot-instructions.md are never generated or modified.** Files are placed in each CLI's native reference path, and after generation, guidance on how to integrate with main files is displayed.
+1. Source docs live in `.mds/source` and test docs live in `.mds/test`.
+2. Source docs use `Purpose`, `Contract`, `API`, `Source`, and `Cases`.
+3. Test docs use `Purpose`, `Covers`, `Cases`, and `Test`.
+4. New docs should be scaffolded with `mds new`.
+5. Validation normally runs through `mds lint`, `mds build --dry-run`, `mds build`, `mds typecheck`, and `mds test`.
 
-### Frontmatter management
+## Adding a New AI CLI
 
-Generated files include `mds-managed: true` in their YAML frontmatter. This enables:
+Create a template directory under `mds/core/src/init/templates/<target-key>/` with a `manifest.toml` plus category templates.
 
-- Safe updates when re-running `mds init`
-- Clear distinction from non-managed (manually created) files
-- Non-managed files are not overwritten without `--force`
+Typical files:
 
-### Native format for each AI CLI
-
-Templates follow each AI CLI's best practices:
-
-- **Claude Code**: Path-scoped rules in `.claude/rules/` (target files specified via `paths` in frontmatter)
-- **Opencode**: Subagent definitions in `.opencode/agents/` (permission control via `mode` and `tools` in frontmatter)
-- **GitHub Copilot**: Path-specific instructions in `.github/instructions/` (target specified via `applyTo` in frontmatter)
-- **Codex CLI**: Instructions and skills in `.codex/`
-
-## Adding a New AI CLI (for mds developers)
-
-mds adopts a data-driven template system. To add support for a new AI CLI, follow these steps.
-
-### 1. Create template directory
-
-```
+```text
 mds/core/src/init/templates/<target-key>/
-├── manifest.toml       ← File mapping definition
-├── instructions.md     ← Template for instructions category
-├── skill.md            ← Template for skills category
-└── command-check.md    ← Template for commands category
+├── manifest.toml
+├── instructions.md
+├── skill.md
+└── command-check.md
 ```
 
-`<target-key>` must match the string returned by the `key()` method of the `AiTarget` enum.
+Then:
 
-### 2. Define manifest.toml
+1. Add the target to `AiTarget`.
+2. Keep template output paths in the new CLI's native location.
+3. Include `mds-managed: true` in generated frontmatter.
+4. Validate with `cargo check --workspace`, `cargo test --workspace`, and a focused `mds init --ai` smoke test.
 
-```toml
-# Each [[file]] entry maps a template file to an output path
-
-[[file]]
-template = "instructions.md"     # Template filename
-output_path = ".new-cli/rules.md"  # Relative path from project root
-category = "instructions"         # One of: instructions, skills, commands
-
-[[file]]
-template = "skill.md"
-output_path = ".new-cli/skills/mds.md"
-category = "skills"
-```
-
-### 3. Create template files
-
-Templates should include:
-
-- The target AI CLI's native frontmatter format
-- `mds-managed: true` (for update detection on re-run)
-- mds Markdown format reference (Uses tables, section structure, constraints)
-- mds command list (check, build, lint, test)
-
-### 4. Add a variant to the AiTarget enum
-
-In `mds/core/src/model.rs`, add to the `AiTarget` enum:
-
-```rust
-pub enum AiTarget {
-    // ...existing...
-    NewCli,
-}
-```
-
-Make `key()` return `"new-cli"` and define accepted aliases in `parse()`.
-
-### 5. Build and verify
-
-```bash
-cargo check --workspace
-cargo test --workspace
-cargo run -p mds-cli -- init --ai --target <target-key> --package /tmp/test-project --yes
-```
-
-After updating the checked-in template files, validate the Rust workspace directly and then smoke-test `mds init --ai` from the repository root. `build.rs` automatically detects `manifest.toml` and registers it in the template registry, so no separate self-hosted sync step is needed.
-
-## Content to Include in Templates
-
-For AI agents to work correctly in mds projects, templates need the following information:
-
-1. **Workflow**: `mds lint` → `mds typecheck` → `mds build --dry-run` → `mds build` → `mds test`
-2. **File naming convention**: `src-md/name.{lang}.md` → `src/name.{lang}`
-3. **Required section structure**: Purpose, Contract, Types, Source, Cases, Test (H2, fixed order)
-4. **Uses table specification**: From (internal/package/builtin/workspace), Target, Expose, Summary
-5. **Critical constraint**: Do not write import/use/require inside code blocks
-6. **Expose token syntax**: `Name`, `Name as Alias`, `default: Name`, `* as ns`
-7. **Heading constraints**: No H1 in implementation md, no H5+
+`build.rs` registers template manifests automatically, so no separate sync step is needed.

@@ -1,23 +1,19 @@
-# app.greet.test
+# app.greet test
+
+## Purpose
 
 [[greet]] の挙動を検証する。
 
-## 対象
+## Covers
 
 - [[greet]]
-- [[greet#greet]]
 
-## ケース
+## Cases
 
-- 通常名
-  - input: `{ name: "World" }`
-  - expect: `"Hello, World!"`
+- 通常名では `"Hello, World!"` を返す。
+- `name` が未指定のときは `"Hello, Anonymous!"` を返す。
 
-- 未指定
-  - input: `{}`
-  - expect: `"Hello, Anonymous!"`
-
-## 実装
+## Test
 
 ```ts
 import { describe, expect, it } from "vitest";

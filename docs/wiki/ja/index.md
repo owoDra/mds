@@ -1,80 +1,61 @@
 # mds 日本語 wiki
 
-この wiki は、mds を利用する人、導入を検討する人、開発に参加する人に向けた日本語の説明です。
+この wiki は、mds の current authoring-v2 surface を説明する live docs です。
 
-mds は、Markdown を設計、実装、テストの正本として扱い、Markdown 内のコードブロックから言語ごとの派生コードを生成する開発ツールチェーンです。
+mds は canonical な source / verification roots、tableless な Markdown 文書、package output planning、generated file から Markdown へ差し戻す editor tooling を前提にしています。旧 metadata table workflow は、この wiki の live model ではありません。
 
-## あなたの目的は？
+## まず読むページ
 
-### mds を試してみたい
+1. [はじめに](getting-started.md) - mds の導入と package 準備
+2. [設定](configuration.md) - canonical roots、output patterns、checks
+3. [Markdown 正本](markdown-source.md) - current source/test 文書の形
+4. [コマンド](commands.md) - CLI と基本フロー
+5. [生成の仕組み](generation.md) - 出力計画と書き込みの流れ
 
-1. [はじめに](getting-started.md) — 前提条件と最小構成
-2. [サンプルプロジェクト](../../../examples/) — 動作する最小構成の例
-3. [コマンド](commands.md) — 基本的な使い方
+## 中心トピック
 
-### mds の考え方を理解したい
+- [基本概念](concepts.md) - 正本、logical module、generated-file bridge
+- [品質検査](quality.md) - 構造診断、tool 実行、check policy
+- [トラブルシューティング](troubleshooting.md) - よくある authoring-v2 の失敗と確認手順
+- [エディタ統合 (LSP)](editor-integration.md) - VS Code 拡張と他 editor
+- [AI エージェント連携](ai-agent-integration.md) - agent kit 生成と template 管理
 
-1. [基本概念](concepts.md) — 正本・派生コード・公開面
-2. [Markdown 正本](markdown-source.md) — Markdown 文書の種類と役割
-3. [生成の仕組み](generation.md) — コード生成の規則
+## 補助ガイド
 
-### 既存プロジェクトに mds を導入したい
+- [モノレポでの使い方](monorepo.md) - 大きな repository での package 単位導入
+- [パッケージ情報同期](package-sync.md) - `mds package sync` の managed metadata 更新
+- [配布方針](distribution.md) - CLI、installer、editor package の配布
+- [コントリビューション](contributing.md) - 報告と提案の進め方
+- [開発ガイド](development.md) - repository の build、test、debug
+- [LSP 開発ガイド](lsp-development.md) - editor stack の内部メモ
+- [ロードマップ](roadmap.md) - 現在の focus と follow-up
 
-1. [はじめに](getting-started.md) — 最小構成の確認
-2. [設定](configuration.md) — mds.config.toml の詳細
-3. [モノレポでの使い方](monorepo.md) — 複数パッケージの管理
+## 現在の live model
 
-### AI エージェントと連携したい
-
-1. [AI エージェント連携](ai-agent-integration.md) — 対応 CLI と設定生成
-
-### エディタで mds を使いたい
-
-1. [エディタ統合 (LSP)](editor-integration.md) — VSCode 拡張、Neovim、リアルタイム診断
-
-### 問題を解決したい
-
-1. [トラブルシューティング](troubleshooting.md) — よくある問題と解決策
-2. [品質検査](quality.md) — 検査と診断の実行方法
-
-### mds の開発に参加したい
-
-1. [コントリビューション](contributing.md) — 報告と提案の方針
-2. [開発ガイド](development.md) — 環境構築、ビルド、テスト、デバッグ
-3. [LSP 開発ガイド](lsp-development.md) — mds-lsp の開発、デバッグ、機能追加
-4. [descriptor ガイド](descriptors.md) — 言語、quality tool、package manager descriptor
-
-## 読む順序
-
-初めて読む場合は、次の順序がおすすめです。
-
-1. [はじめに](getting-started.md)
-2. [基本概念](concepts.md)
-3. [Markdown 正本](markdown-source.md)
-4. [コマンド](commands.md)
-5. [設定](configuration.md)
-6. [生成の仕組み](generation.md)
+- source doc は `.mds/source`、verification doc は `.mds/test` に置く
+- source doc は `Purpose`、`Contract`、`API`、`Source`、`Cases` を使う
+- test doc は `Purpose`、`Covers`、`Cases`、`Test` を使う
+- 出力 path は `[roots]`、`[output]`、`[[output.override]]` で決まる
+- `mds-lsp` は generated file 由来の hover、definition、diagnostics を Markdown へ戻せる
 
 ## ページ一覧
 
 | ページ | 内容 |
 | --- | --- |
-| [はじめに](getting-started.md) | インストール前の前提、最小構成、基本的な実行手順を説明します。 |
-| [基本概念](concepts.md) | 正本、派生コード、実装 Markdown、公開面、依存関係などの用語を説明します。 |
-| [Markdown 正本](markdown-source.md) | mds が扱う Markdown 文書の種類と役割を説明します。 |
-| [コマンド](commands.md) | mds の各コマンドの目的と使い方を説明します。 |
-| [設定](configuration.md) | `mds.config.toml` の役割と主要な設定を説明します。 |
-| [モノレポでの使い方](monorepo.md) | パッケージ単位の対象判定と複数言語の扱いを説明します。 |
-| [生成の仕組み](generation.md) | `Types`、`Source`、`Test` から派生コードが作られる規則を説明します。 |
-| [言語アダプター](language-adapters.md) | TypeScript、Python、Rust ごとの差分をどこで扱うかを説明します。 |
-| [品質検査](quality.md) | 構造検査、静的検査、自動修正、テスト、環境診断を説明します。 |
-| [パッケージ情報同期](package-sync.md) | パッケージ情報から `package.md` を同期する仕組みを説明します。 |
-| [配布方針](distribution.md) | GitHub Releases バイナリ、インストーラー、VSCode Marketplace package での配布方針を説明します。 |
-| [トラブルシューティング](troubleshooting.md) | よくある問題と確認方法を説明します。 |
-| [AI エージェント連携](ai-agent-integration.md) | AI コーディングエージェント向け設定の生成と拡張方法を説明します。 |
-| [エディタ統合 (LSP)](editor-integration.md) | LSP サーバーによるリアルタイム診断、ナビゲーション、補完、VSCode 拡張を説明します。 |
-| [コントリビューション](contributing.md) | 開発参加時に確認することを説明します。 |
-| [開発ガイド](development.md) | 開発環境の構築、ビルド、テスト、デバッグの手順を説明します。 |
-| [descriptor ガイド](descriptors.md) | built-in と workspace descriptor の配置、役割、追加方法を説明します。 |
-| [LSP 開発ガイド](lsp-development.md) | mds-lsp の開発、デバッグ、capability 追加の手順を説明します。 |
-| [ロードマップ](roadmap.md) | 現在の中心範囲と今後の予定を説明します。 |
+| [はじめに](getting-started.md) | install、最小 package 構成、最初の command |
+| [設定](configuration.md) | `mds.config.toml`、canonical roots、output patterns、checks |
+| [Markdown 正本](markdown-source.md) | source/test docs、overview docs、root module docs |
+| [コマンド](commands.md) | `init`、`new`、`build`、`lint`、`typecheck`、`test`、`doctor`、`package sync` |
+| [生成の仕組み](generation.md) | logical module、default outputs、overrides、manifest |
+| [基本概念](concepts.md) | 正本、output planning、package boundary |
+| [品質検査](quality.md) | 構造診断、selected tools、check policy |
+| [トラブルシューティング](troubleshooting.md) | よくある failure と確認手順 |
+| [エディタ統合 (LSP)](editor-integration.md) | bundled VS Code 拡張と他 editor 設定 |
+| [AI エージェント連携](ai-agent-integration.md) | agent kit 生成と template 管理 |
+| [モノレポでの使い方](monorepo.md) | package 単位の有効化と安全な出力境界 |
+| [パッケージ情報同期](package-sync.md) | managed package metadata の同期 |
+| [配布方針](distribution.md) | release binaries、installer、editor packages |
+| [コントリビューション](contributing.md) | contribution policy |
+| [開発ガイド](development.md) | repository の build、test、debug |
+| [LSP 開発ガイド](lsp-development.md) | editor stack の内部メモ |
+| [ロードマップ](roadmap.md) | 現在の focus area |

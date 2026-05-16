@@ -244,14 +244,14 @@ editors/vscode/
 
 ### Dynamic language detection
 
-`extension.ts` reads `mds.config.toml` files in the workspace and dynamically detects enabled languages from `[quality.*]` and `[adapters.*]` sections. This allows support for new language adapters without code changes.
+`extension.ts` reads `mds.config.toml` files in the workspace, tracks the canonical `.mds/source` and `.mds/test` roots, and derives additional editor coverage from `[quality.*]` sections plus `mds.lsp.additionalLanguages`.
 
 Based on detected languages:
 - The LSP client's document selector is dynamically constructed
 - File watch targets are dynamically configured
 - Embedded language support within code blocks is enabled
 
-Simply adding a new language to `LANGUAGE_REGISTRY` completes the extension-side support.
+Adding a new suffix to `LANGUAGE_REGISTRY` and, when needed, `mds.lsp.additionalLanguages` keeps the extension side aligned with the current authoring model.
 
 ### Embedded language support
 

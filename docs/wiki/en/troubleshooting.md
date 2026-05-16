@@ -2,90 +2,66 @@
 
 > *This page was translated from [Japanese](../ja/troubleshooting.md) by AI.*
 
-This page explains common problems and how to check them when using mds.
+This page lists the most common current failures when using mds.
 
-## No valid mds package found
+## No mds package found
 
-If the target package is not found when running `mds lint`, `mds typecheck`, or similar commands, check the following:
+Check the following:
 
-- Does the target package have an `mds.config.toml`?
-- Is `enabled = true` set in `[package]` of `mds.config.toml`?
-- Is the correct path specified for `--package`?
-- Does the target package have a `package.md`?
+- `mds.config.toml` exists
+- `[package].enabled = true`
+- the `--package` path points at the package root
+- `package.md` and package-manager metadata exist where expected
+
+## Wrong authoring roots
+
+Current packages use canonical authoring roots only.
+
+- `source_md` must be `.mds/source`
+- `test_md` must be `.mds/test`
+
+If you need a different output layout, change `[output]` or `[[output.override]]`, not the Markdown roots.
 
 ## Missing required sections
 
-Implementation Markdown requires sections that mds expects.
+Check the expected shape for the doc kind you are editing.
 
-Check that `Purpose`, `Contract`, `Types`, `Source`, `Cases`, and `Test` are present.
+- source docs: `Purpose`, `Contract`, `API`, `Source`, `Cases`
+- test docs: `Purpose`, `Covers`, `Cases`, `Test`
+- overview docs: `Purpose`, `Architecture`, `Rules`
 
-Heading hierarchy is also important. The main sections of implementation Markdown should be written as `##` headings.
+## Source/test mixing or legacy table warnings
 
-## Errors in `Imports`, `Exports`, `Expose`, or `Uses` tables
+If `split_source_and_test = true`, keep executable source behavior in source docs and executable tests in test docs. If you see `legacy_tables` warnings, remove old metadata-table patterns and describe API intent in prose instead.
 
-Check column names, values, and duplicates in the table.
+## Unresolved wiki-style links
 
-The dependency types in `Uses` must use the defined values.
+- `[[module]]` must resolve to a package-local logical module id.
+- `[[module#symbol]]` must resolve to Markdown-native symbols, such as shared definitions or names described in prose.
 
-| Value | Meaning |
-| --- | --- |
-| `builtin` | A dependency built into the language or runtime. |
-| `package` | A dependency on an external package. |
-| `workspace` | A dependency on another package in the same workspace. |
-| `internal` | A dependency within the same package. |
+Check the module id derived from the source/test doc path and the exact symbol spelling.
 
-Differences in letter case or duplicate rows with the same meaning will cause errors.
+## Unexpected output path
 
-## Cannot overwrite generated files
+Inspect:
 
-mds will not overwrite existing files that do not have a managed header.
+- `[roots].source_out`
+- `[roots].test_out`
+- `[output]`
+- `[[output.override]]`
 
-If there is a hand-written file at the generation target, choose one of the following:
+Run `mds build --dry-run` to confirm the planned destination before writing files.
 
-- Change the generation target.
-- Move the hand-written file to a different location.
-- Reconsider the layout of the source Markdown.
+## Cannot overwrite a file
 
-Adding an mds managed header manually to a hand-written file to work around this is not recommended.
+mds only overwrites files that already have the managed header. If the target path contains a handwritten file, move that file or change the output pattern.
 
-## Manifest is reported as corrupted
+## Required tools are missing
 
-If `.mds/manifest.toml` cannot be read as TOML, or does not match the expected format, mds will not write generated output.
-
-This is to prevent accidentally corrupting files by misjudging what is managed.
-
-First, check the situation with `mds build --dry-run` and `mds lint`.
-
-## Reported missing required tools
-
-`mds lint`, `mds test`, and `mds doctor` require language-specific runtimes and selected inspection tools.
-
-Running `mds doctor` will show you which tools are missing.
+Run:
 
 ```bash
-mds doctor --package path/to/package
+mds doctor --package ./path/to/package
 ```
 
-If unused tools are reported as missing, check `[quality.ts]`, `[quality.py]`, and `[quality.rs]` in `mds.config.toml`. Set unnecessary `linter`, `fixer`, and `test_runner` to `false`, and also remove them from `required`.
-
-## Want to preview generation plan only
-
-Use `mds build --dry-run`.
-
-```bash
-mds build --package path/to/package --dry-run
-```
-
-This command does not write files. It only displays the generation plan and diffs.
-
-## Want to check error types
-
-Check the exit code.
-
-| Exit Code | Meaning |
-| --- | --- |
-| `0` | Success. |
-| `1` | Diagnostic or inspection error. |
-| `2` | Command usage or configuration error. |
-| `3` | Internal error occurred. |
-| `4` | Runtime environment or required tools are missing. |
+Then confirm the relevant `[quality.<lang>]` section only names tools you actually want to require.

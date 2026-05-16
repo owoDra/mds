@@ -25,13 +25,14 @@ Test docs: `.mds/test/name.md` → generates language-specific test outputs and 
 
 - One file = one generated source file
 - All code blocks are concatenated (separated by blank lines) to produce output
-- Import/use/require statements are forbidden in code blocks; record dependencies in the Imports section table
+- Normal import/use/require statements belong in code blocks when the implementation needs dependencies
 - Each code block must contain exactly one logical unit by default
 - Doc comments and docstrings belong in surrounding markdown text, not inside code blocks
 - `Purpose` documents every source md; `Contract` documents impl-state behavior
+- `API` summarizes the public surface in prose
 - Source md without `Source` code is spec state; adding generated code makes it impl state
-- `Exports.Summary` must describe the public definition; do not use `-`
-- Exported definitions referenced by other files need matching H5 shared definitions with prose
+- Test docs center on `Covers`, `Cases`, and `Test`
+- New docs should not add Imports / Exports / Types tables
 
 ## Rules
 
@@ -39,5 +40,5 @@ Test docs: `.mds/test/name.md` → generates language-specific test outputs and 
 - Keep executable test intent in `.mds/test/` with `Covers`
 - Generated output naming follows built-in language descriptors
 - Code fence language must match file extension
-- Imports/use/require are forbidden in code blocks; record dependencies in the Imports section table
+- Keep imports, exports, and other executable declarations in the code blocks themselves
 - Default `mds lint` expects top-level implementations to be split per code fence; projects may relax selected checks in `[check]`

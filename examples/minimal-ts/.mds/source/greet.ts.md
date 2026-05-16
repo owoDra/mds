@@ -1,8 +1,10 @@
 # app.greet
 
+## Purpose
+
 名前を受け取り、挨拶メッセージを返す。
 
-## 仕様
+## Contract
 
 - 入力は `GreetOptions`。
 - 出力は `string`。
@@ -11,17 +13,23 @@
 
 ## API
 
-`greet` は外部公開API。
+`greet` は外部公開 API で、`GreetOptions` は挨拶生成に必要な入力だけを持つ。
 
-`GreetOptions` は挨拶生成に必要な入力だけを持つ。
+## Source
 
-## 実装
+##### GreetOptions
+
+`GreetOptions` は挨拶生成に必要な入力です。
 
 ```ts
 export interface GreetOptions {
   name?: string;
 }
 ```
+
+##### greet
+
+`greet` は入力を正規化して挨拶文字列を返します。
 
 ```ts
 export function greet(options: GreetOptions): string {
@@ -30,6 +38,7 @@ export function greet(options: GreetOptions): string {
 }
 ```
 
-## 検証
+## Cases
 
-テストは [[greet.test]] に分離する。
+- `name: "World"` を渡すと `"Hello, World!"` を返す。
+- `name` が未指定または空白のみのときは `"Hello, Anonymous!"` を返す。

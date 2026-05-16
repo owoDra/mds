@@ -1,18 +1,18 @@
 [[sources]]
 path = ".mds/source/greet.rs.md"
 adapter = "rs"
-hash = "4ed30c9a0a42219e347439545adf5e41be3325afb9171272867f4bc559efa1b3"
+hash = "72d6e51f9572832d7d2022aa9ba17d8d9287f3ff76cbe6a1c6baec8d775c2a66"
 [[sources.outputs]]
 kind = "source"
 path = "src/greet.rs"
-hash = "d58bfc8b776872ca99a4b29a5174632a369e90aa4b37ac1ce689b1a51630a373"
+hash = "0da2cd761415250fae00c02c3620f928fad4f1c4746526cb319b8e7f886c7478"
 
 [[sources]]
 path = ".mds/source/lib.rs.md"
 adapter = "rs"
-hash = "5181415f4df817dc6313599d61e2f08b25e55ab3c43f4d752211e27e613d388f"
+hash = "2a521cbf3c5c7afb289065f0f991fd3c3cbe1120cf14bc665026080d4f85cc52"
 [[sources.outputs]]
 kind = "source"
 path = "src/lib.rs"
-hash = "b6083ae2731fdb4c4a57f957b84761d08a3b7c6329889e906777fce148c25a87"
+hash = "23d544e059ec2f11175da8e6ba7f74f634bdaf990d16b9f377c2f348d6069360"
 

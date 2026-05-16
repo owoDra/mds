@@ -1,82 +1,51 @@
 # 基本概念
 
-このページでは、mds を理解するために必要な基本概念を説明します。
-
-## mds
-
-mds は、Markdown を設計、実装、テストの正本として扱う開発ツールチェーンです。
-
-mds は、設計説明から自動でコードを推測して作る仕組みではありません。Markdown 内に書かれた実装コード、テストコード、メタ情報を読み取り、言語ごとのファイルを生成します。
+このページでは、current な mds model の概念を説明します。
 
 ## 正本
 
-正本とは、人間とツールが参照する一次情報です。
+mds では、Markdown が package 設計、実装、検証の一次情報です。生成された source file は派生 output であり、authoritative な変更点ではありません。
 
-mds では、実装 Markdown が正本です。生成された `.ts`、`.py`、`.rs` などのファイルは正本ではなく、Markdown から作られる派生物です。
+## source doc
 
-この考え方により、設計、依存関係、公開面、実装、テストを同じ場所で確認できます。
+source doc は `.mds/source` の下にあり、通常は 1 機能または 1 つの root module を表します。
 
-## 派生コード
+source doc には次をまとめます。
 
-派生コードとは、Markdown から生成されるファイルです。
+- `Purpose` に機能の意図
+- `Contract` に stable behavior
+- `API` に public surface の説明
+- `Source` に executable code
+- `Cases` に代表ケース
 
-派生コードは、直接編集する対象ではありません。変更したい場合は、生成元の Markdown または生成規則を変更します。
+## test doc
 
-mds は、管理対象の生成ファイルにヘッダーを付けます。管理ヘッダーがない既存ファイルを勝手に上書きしないことで、利用者が書いたファイルを守ります。
+test doc は `.mds/test` の下にあり、executable verification を持ちます。
 
-## 実装 Markdown
+test doc には次をまとめます。
 
-実装 Markdown は、ひとつの機能を表す Markdown ファイルです。
+- `Purpose` に検証の意図
+- `Covers` に対象 source module
+- `Cases` に期待結果
+- `Test` に executable test code
 
-ファイル名は、対象言語を含む形にします。
+## logical module id
 
-| ファイル名の例 | 対象言語 |
-| --- | --- |
-| `foo.ts.md` | TypeScript |
-| `foo.py.md` | Python |
-| `foo.rs.md` | Rust |
+各 source/test doc は canonical root 内の path から logical module id を持ちます。mds はこの id を output planning と wiki-style link の両方で使います。
 
-ひとつの実装 Markdown は、ひとつの機能だけを担当します。複数の機能をひとつのファイルに混ぜると、目的、依存関係、テストの対応が分かりにくくなるためです。
+## package output config
 
-## `Types`
+`mds.config.toml` は authoring root と output location を分離します。
 
-`Types` は、型、インターフェイス、型定義用コードを書くセクションです。
+- `[roots]` は `.mds/source` と `.mds/test` を固定しつつ output base directory を持つ
+- `[output]` と `[[output.override]]` は実際の file path を決める
 
-TypeScript では型定義ファイル、Python ではスタブファイル、Rust では型用のファイルとして扱われます。具体的な出力規則は言語ごとに異なります。
+これにより authoring model を安定させたまま package ごとの output rule を表現できます。
 
-## `Source`
+## generated-file bridge
 
-`Source` は、実装コードを書くセクションです。
+mds は generation planning 中に source map を記録します。`mds-lsp` はその source map を使い、generated file 経由の editor operation を元の Markdown range に remap できます。
 
-mds は、このセクションのコードブロックを読み取り、対象言語の通常のソースファイルを生成します。
+## package boundary
 
-## `Test`
-
-`Test` は、テストコードを書くセクションです。
-
-mds は、このセクションのコードブロックを読み取り、対象言語のテストファイルを生成します。
-
-## `Expose`
-
-`Expose` は、実装 Markdown や階層が外部へ公開するものを表すメタ情報です。
-
-公開する関数、型、モジュールなどを表に書くことで、利用者とツールが公開面を確認できるようにします。
-
-## `Uses`
-
-`Uses` は、`Types`、`Source`、`Test` が利用する依存関係を表すメタ情報です。
-
-import、use、require などの依存宣言をコードブロックの外に出すことで、言語アダプターが対象言語に合わせた依存宣言を生成できます。
-
-## 言語アダプター
-
-言語アダプターは、言語ごとの差分を担当する部品です。
-
-主に次の処理を担当します。
-
-- import や use の生成
-- 生成ファイル名の決定
-- 検査ツールやテスト実行との接続
-- 言語ごとの追加生成物の管理
-
-mds の中核処理は、Markdown の読み取り、構造検査、生成計画を担当します。言語ごとの違いは、できるだけ言語アダプターに閉じ込めます。
+`package.json`、`pyproject.toml`、`Cargo.toml` などの package manager metadata は package-manager behavior の正本です。`package.md` は mds 向けの package 文書で、feature-level authoring は `.mds/source` と `.mds/test` に置きます。
