@@ -1,4 +1,4 @@
-use std::collections::{HashMap};
+use std::collections::{HashMap, HashSet};
 use std::path::{PathBuf};
 use mds_core::descriptor::{lang_for_markdown_path};
 use mds_core::diagnostics::{RunState};
@@ -6,7 +6,10 @@ use mds_core::markdown::{load_implementation_docs};
 use mds_core::markdown::{source_markdown_root};
 use mds_core::markdown::{test_markdown_root};
 use mds_core::package::{discover_packages};
-use tower_lsp::jsonrpc::{Result};
+use serde::de::DeserializeOwned;
+use serde::{Deserialize};
+use serde_json::Value;
+use tower_lsp::jsonrpc::{Error, Result};
 use tower_lsp::lsp_types::{*};
 use tower_lsp::{Client};
 use tower_lsp::{LanguageServer};
@@ -17,9 +20,85 @@ use crate::state::{OpenFile};
 use crate::state::{PackageState};
 use crate::state::{SharedState};
 use crate::state::{WorkspaceIndex};
+use crate::state::{WorkspaceState};
+
+const RESOLVE_GENERATED_POSITION_COMMAND: &str = "mds.resolveGeneratedPosition";
+const REMAP_GENERATED_LOCATIONS_COMMAND: &str = "mds.remapGeneratedLocations";
+const REMAP_GENERATED_RANGE_COMMAND: &str = "mds.remapGeneratedRange";
+
+#[derive(Debug, Deserialize)]
+struct ResolveGeneratedPositionParams {
+    markdown_uri: Url,
+    position: Position,
+}
+
+#[derive(Debug, Deserialize)]
+struct RemapGeneratedRangeParams {
+    uri: Url,
+    range: Range,
+}
+
+#[derive(Debug, Deserialize)]
+struct RemapGeneratedLocationsParams {
+    locations: Vec<Location>,
+}
+
 pub struct MdsLanguageServer {
     pub client: Client,
     pub state: SharedState,
+}
+
+fn bridge_commands() -> Vec<String> {
+    vec![
+        RESOLVE_GENERATED_POSITION_COMMAND.to_string(),
+        REMAP_GENERATED_LOCATIONS_COMMAND.to_string(),
+        REMAP_GENERATED_RANGE_COMMAND.to_string(),
+    ]
+}
+
+fn invalid_params(message: impl Into<String>) -> Error {
+    Error::invalid_params(message.into())
+}
+
+fn parse_single_argument<T>(arguments: Vec<Value>) -> Result<T>
+where
+    T: DeserializeOwned,
+{
+    let mut arguments = arguments.into_iter();
+    let value = arguments
+        .next()
+        .ok_or_else(|| invalid_params("expected a single command argument"))?;
+    if arguments.next().is_some() {
+        return Err(invalid_params("expected exactly one command argument"));
+    }
+    serde_json::from_value(value)
+        .map_err(|err| invalid_params(format!("failed to decode command arguments: {err}")))
+}
+
+fn execute_bridge_command(state: &WorkspaceState, params: ExecuteCommandParams) -> Result<Option<Value>> {
+    let result = match params.command.as_str() {
+        RESOLVE_GENERATED_POSITION_COMMAND => {
+            let command = parse_single_argument::<ResolveGeneratedPositionParams>(params.arguments)?;
+            serde_json::to_value(state.resolve_generated_position(&command.markdown_uri, command.position))
+        }
+        REMAP_GENERATED_LOCATIONS_COMMAND => {
+            let command = parse_single_argument::<RemapGeneratedLocationsParams>(params.arguments)?;
+            serde_json::to_value(state.remap_generated_locations(&command.locations))
+        }
+        REMAP_GENERATED_RANGE_COMMAND => {
+            let command = parse_single_argument::<RemapGeneratedRangeParams>(params.arguments)?;
+            serde_json::to_value(state.remap_generated_range(&command.uri, command.range))
+        }
+        _ => {
+            return Err(invalid_params(format!(
+                "unsupported executeCommand `{}`",
+                params.command
+            )));
+        }
+    }
+    .map_err(|err| invalid_params(format!("failed to encode command result: {err}")))?;
+
+    Ok(Some(result))
 }
 
 impl MdsLanguageServer {
@@ -102,12 +181,18 @@ impl MdsLanguageServer {
 fn build_workspace_index(package: &mds_core::Package) -> WorkspaceIndex {
     let mut run_state = RunState::default();
     let docs_vec = load_implementation_docs(package, &mut run_state).unwrap_or_default();
+    let generation_plan = mds_core::plan_generation_with_source_map(package, &docs_vec, &mut run_state);
 
     let mut docs = HashMap::new();
     let mut expose_index: HashMap<String, Vec<PathBuf>> = HashMap::new();
     let mut file_exposes: HashMap<PathBuf, Vec<String>> = HashMap::new();
     let mut module_index: HashMap<String, Vec<PathBuf>> = HashMap::new();
     let mut symbol_index: HashMap<(String, String), Vec<PathBuf>> = HashMap::new();
+    let generated_files: HashSet<PathBuf> = generation_plan
+        .generated
+        .into_iter()
+        .map(|file| file.path)
+        .collect();
 
     for doc in docs_vec {
         // Build expose index from the document's uses/exposes
@@ -170,6 +255,8 @@ fn build_workspace_index(package: &mds_core::Package) -> WorkspaceIndex {
         file_exposes,
         module_index,
         symbol_index,
+        source_map: generation_plan.source_map,
+        generated_files,
     }
 }
 
@@ -259,6 +346,10 @@ impl LanguageServer for MdsLanguageServer {
                 document_symbol_provider: Some(OneOf::Left(true)),
                 workspace_symbol_provider: Some(OneOf::Left(true)),
                 code_action_provider: Some(CodeActionProviderCapability::Simple(true)),
+                execute_command_provider: Some(ExecuteCommandOptions {
+                    commands: bridge_commands(),
+                    work_done_progress_options: WorkDoneProgressOptions::default(),
+                }),
                 ..Default::default()
             },
             server_info: Some(ServerInfo {
@@ -494,13 +585,85 @@ impl LanguageServer for MdsLanguageServer {
             Ok(None)
         }
     }
+
+    async fn execute_command(&self, params: ExecuteCommandParams) -> Result<Option<Value>> {
+        let state = self.state.read().await;
+        execute_bridge_command(&state, params)
+    }
 }
 
 #[cfg(test)]
 mod tests {
+    use serde_json::json;
+    use std::path::PathBuf;
     use std::time::{SystemTime, UNIX_EPOCH};
+    use tempfile::TempDir;
+    use tower_lsp::lsp_types::{ExecuteCommandParams, Location, Position, Range, Url};
     use super::build_workspace_index;
+    use super::execute_bridge_command;
+    use super::REMAP_GENERATED_LOCATIONS_COMMAND;
+    use crate::state::{PackageState, WorkspaceState};
     use mds_core::{Config, Package};
+
+    struct BridgeFixture {
+        _temp: TempDir,
+        package_state: PackageState,
+        markdown_path: PathBuf,
+        source_generated_path: PathBuf,
+    }
+
+    fn bridge_fixture() -> BridgeFixture {
+        let temp = TempDir::new().unwrap();
+        let root = temp.path().join("pkg");
+        let markdown_path = root.join(".mds/source/foo/source-map.ts.md");
+        std::fs::create_dir_all(markdown_path.parent().unwrap()).unwrap();
+        std::fs::write(
+            &markdown_path,
+            r#"# Source map
+
+## Purpose
+
+Fixture.
+
+## Contract
+
+- Preserve source map spans.
+
+## Source
+
+```ts
+export const one = 1;
+```
+
+```ts
+export function two(): number {
+  return one + 1;
+}
+```
+
+## Test
+
+```ts
+expect(two()).toBe(2);
+```
+"#,
+        )
+        .unwrap();
+
+        let package = Package {
+            root: root.clone(),
+            config: Config::default(),
+            package_manager_id: "npm".to_string(),
+        };
+        let index = build_workspace_index(&package);
+
+        BridgeFixture {
+            _temp: temp,
+            package_state: PackageState { package, index },
+            markdown_path,
+            source_generated_path: root.join("src/foo/source-map.ts"),
+        }
+    }
 
     #[test]
     fn build_workspace_index_uses_markdown_exports_for_symbol_index() {
@@ -537,5 +700,172 @@ mod tests {
         assert_eq!(locations, vec![source.clone()]);
 
         let _ = std::fs::remove_dir_all(root);
+    }
+
+    #[test]
+    fn build_workspace_index_tracks_source_maps_and_generated_files() {
+        let fixture = bridge_fixture();
+
+        assert!(fixture
+            .package_state
+            .contains_generated_path(&fixture.source_generated_path));
+        let remapped = fixture
+            .package_state
+            .index
+            .source_map
+            .remap_generated_line(&fixture.source_generated_path, 5)
+            .expect("expected generated line to map back to markdown");
+        assert_eq!(remapped.0, fixture.markdown_path.as_path());
+        assert_eq!(remapped.1, 18);
+    }
+
+    #[test]
+    fn remap_generated_range_returns_markdown_range_for_code_fence_lines() {
+        let fixture = bridge_fixture();
+        let markdown_uri = Url::from_file_path(&fixture.markdown_path).unwrap();
+
+        let remapped = fixture
+            .package_state
+            .remap_generated_range(
+                &fixture.source_generated_path,
+                Range {
+                    start: Position {
+                        line: 4,
+                        character: 1,
+                    },
+                    end: Position {
+                        line: 5,
+                        character: 10,
+                    },
+                },
+            )
+            .expect("expected generated range to remap");
+
+        assert_eq!(remapped.uri, markdown_uri);
+        assert_eq!(
+            remapped.range,
+            Range {
+                start: Position {
+                    line: 17,
+                    character: 1,
+                },
+                end: Position {
+                    line: 18,
+                    character: 10,
+                },
+            }
+        );
+        assert!(fixture
+            .package_state
+            .remap_generated_range(
+                &fixture.source_generated_path,
+                Range {
+                    start: Position {
+                        line: 0,
+                        character: 0,
+                    },
+                    end: Position {
+                        line: 0,
+                        character: 0,
+                    },
+                },
+            )
+            .is_none());
+    }
+
+    #[test]
+    fn resolve_generated_position_returns_generated_location_for_markdown_code_fence() {
+        let fixture = bridge_fixture();
+        let markdown_uri = Url::from_file_path(&fixture.markdown_path).unwrap();
+        let generated_uri = Url::from_file_path(&fixture.source_generated_path).unwrap();
+        let state = WorkspaceState {
+            packages: vec![fixture.package_state.clone()],
+            ..WorkspaceState::default()
+        };
+
+        let resolved = state
+            .resolve_generated_position(
+                &markdown_uri,
+                Position {
+                    line: 17,
+                    character: 6,
+                },
+            )
+            .expect("expected markdown position to resolve to generated output");
+
+        assert_eq!(resolved.uri, generated_uri);
+        assert_eq!(
+            resolved.range,
+            Range {
+                start: Position {
+                    line: 4,
+                    character: 6,
+                },
+                end: Position {
+                    line: 4,
+                    character: 6,
+                },
+            }
+        );
+        assert!(state
+            .resolve_generated_position(
+                &markdown_uri,
+                Position {
+                    line: 0,
+                    character: 0,
+                },
+            )
+            .is_none());
+    }
+
+    #[test]
+    fn execute_command_remaps_generated_locations_via_json_bridge() {
+        let fixture = bridge_fixture();
+        let markdown_uri = Url::from_file_path(&fixture.markdown_path).unwrap();
+        let generated_uri = Url::from_file_path(&fixture.source_generated_path).unwrap();
+        let state = WorkspaceState {
+            packages: vec![fixture.package_state],
+            ..WorkspaceState::default()
+        };
+
+        let value = execute_bridge_command(
+            &state,
+            ExecuteCommandParams {
+                command: REMAP_GENERATED_LOCATIONS_COMMAND.to_string(),
+                arguments: vec![json!({
+                    "locations": [
+                        {
+                            "uri": generated_uri,
+                            "range": {
+                                "start": { "line": 4, "character": 2 },
+                                "end": { "line": 4, "character": 9 }
+                            }
+                        }
+                    ]
+                })],
+                work_done_progress_params: Default::default(),
+            },
+        )
+        .expect("expected execute command to succeed")
+        .expect("expected execute command payload");
+
+        let remapped: Vec<Option<Location>> = serde_json::from_value(value).unwrap();
+        assert_eq!(remapped.len(), 1);
+        assert_eq!(
+            remapped[0],
+            Some(Location {
+                uri: markdown_uri,
+                range: Range {
+                    start: Position {
+                        line: 17,
+                        character: 2,
+                    },
+                    end: Position {
+                        line: 17,
+                        character: 9,
+                    },
+                },
+            })
+        );
     }
 }

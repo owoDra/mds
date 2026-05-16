@@ -297,6 +297,181 @@ function extractBlockContent(
 }
 
 // ============================================================
+// Generated File LSP Bridge
+// ============================================================
+
+const RESOLVE_GENERATED_POSITION_COMMAND = 'mds.resolveGeneratedPosition';
+const REMAP_GENERATED_LOCATIONS_COMMAND = 'mds.remapGeneratedLocations';
+const REMAP_GENERATED_RANGE_COMMAND = 'mds.remapGeneratedRange';
+
+interface BridgePosition {
+  line: number;
+  character: number;
+}
+
+interface BridgeRange {
+  start: BridgePosition;
+  end: BridgePosition;
+}
+
+interface BridgeLocation {
+  uri: string;
+  range: BridgeRange;
+}
+
+type DiagnosticsByMarkdownUri = Map<
+  string,
+  { uri: vscode.Uri; diagnostics: vscode.Diagnostic[] }
+>;
+
+const generatedDiagnosticMirrorCache = new Map<string, DiagnosticsByMarkdownUri>();
+
+let generatedDiagnosticsCollection: vscode.DiagnosticCollection | undefined;
+
+async function executeBridgeCommand<T>(
+  command: string,
+  args: Record<string, unknown>
+): Promise<T | undefined> {
+  if (!client) {
+    return undefined;
+  }
+
+  try {
+    const result = await client.sendRequest<T | null>('workspace/executeCommand', {
+      command,
+      arguments: [args],
+    });
+    return result ?? undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function toBridgePosition(position: vscode.Position): BridgePosition {
+  return {
+    line: position.line,
+    character: position.character,
+  };
+}
+
+function fromBridgePosition(position: BridgePosition): vscode.Position {
+  return new vscode.Position(position.line, position.character);
+}
+
+function toBridgeRange(range: vscode.Range): BridgeRange {
+  return {
+    start: toBridgePosition(range.start),
+    end: toBridgePosition(range.end),
+  };
+}
+
+function fromBridgeRange(range: BridgeRange): vscode.Range {
+  return new vscode.Range(
+    fromBridgePosition(range.start),
+    fromBridgePosition(range.end)
+  );
+}
+
+function toBridgeLocation(location: vscode.Location): BridgeLocation {
+  return {
+    uri: location.uri.toString(),
+    range: toBridgeRange(location.range),
+  };
+}
+
+function fromBridgeLocation(location: BridgeLocation): vscode.Location {
+  return new vscode.Location(
+    vscode.Uri.parse(location.uri),
+    fromBridgeRange(location.range)
+  );
+}
+
+async function resolveGeneratedPosition(
+  markdownUri: vscode.Uri,
+  position: vscode.Position
+): Promise<vscode.Location | undefined> {
+  const resolved = await executeBridgeCommand<BridgeLocation | null>(
+    RESOLVE_GENERATED_POSITION_COMMAND,
+    {
+      markdown_uri: markdownUri.toString(),
+      position: toBridgePosition(position),
+    }
+  );
+  return resolved ? fromBridgeLocation(resolved) : undefined;
+}
+
+async function remapGeneratedRange(
+  uri: vscode.Uri,
+  range: vscode.Range
+): Promise<vscode.Location | undefined> {
+  const remapped = await executeBridgeCommand<BridgeLocation | null>(
+    REMAP_GENERATED_RANGE_COMMAND,
+    {
+      uri: uri.toString(),
+      range: toBridgeRange(range),
+    }
+  );
+  return remapped ? fromBridgeLocation(remapped) : undefined;
+}
+
+async function remapGeneratedLocations(
+  locations: readonly vscode.Location[]
+): Promise<Array<vscode.Location | undefined> | undefined> {
+  const remapped = await executeBridgeCommand<Array<BridgeLocation | null> | null>(
+    REMAP_GENERATED_LOCATIONS_COMMAND,
+    {
+      locations: locations.map((location) => toBridgeLocation(location)),
+    }
+  );
+  return remapped?.map((location) =>
+    location ? fromBridgeLocation(location) : undefined
+  );
+}
+
+function isDefinitionLink(
+  value: vscode.Location | vscode.DefinitionLink
+): value is vscode.DefinitionLink {
+  return 'targetUri' in value;
+}
+
+function definitionTargetsToLocations(
+  definitions: vscode.Location[] | vscode.DefinitionLink[] | undefined
+): vscode.Location[] {
+  if (!definitions) {
+    return [];
+  }
+
+  return definitions.map((definition) =>
+    isDefinitionLink(definition)
+      ? new vscode.Location(
+        definition.targetUri,
+        definition.targetSelectionRange || definition.targetRange
+      )
+      : definition
+  );
+}
+
+async function openGeneratedDocument(
+  markdownUri: vscode.Uri,
+  position: vscode.Position
+): Promise<{ document: vscode.TextDocument; position: vscode.Position } | undefined> {
+  const resolved = await resolveGeneratedPosition(markdownUri, position);
+  if (!resolved) {
+    return undefined;
+  }
+
+  try {
+    const document = await vscode.workspace.openTextDocument(resolved.uri);
+    return {
+      document,
+      position: resolved.range.start,
+    };
+  } catch {
+    return undefined;
+  }
+}
+
+// ============================================================
 // Embedded Language Support
 // ============================================================
 
@@ -478,6 +653,34 @@ function registerEmbeddedLanguageProviders(
           return undefined;
         }
 
+        try {
+          const generated = await openGeneratedDocument(document.uri, position);
+          if (generated) {
+            const hovers = await vscode.commands.executeCommand<vscode.Hover[]>(
+              'vscode.executeHoverProvider',
+              generated.document.uri,
+              generated.position
+            );
+            const hover = hovers?.[0];
+            if (hover) {
+              if (!hover.range) {
+                return hover;
+              }
+
+              const remapped = await remapGeneratedRange(
+                generated.document.uri,
+                hover.range
+              );
+              if (remapped?.uri.toString() === document.uri.toString()) {
+                return new vscode.Hover(hover.contents, remapped.range);
+              }
+              return new vscode.Hover(hover.contents);
+            }
+          }
+        } catch {
+          // Fall through to shadow document fallback.
+        }
+
         const shadowDoc = await getOrCreateShadowDoc(document, block);
         if (!shadowDoc) {
           return undefined;
@@ -514,6 +717,42 @@ function registerEmbeddedLanguageProviders(
           return undefined;
         }
 
+        try {
+          const generated = await openGeneratedDocument(document.uri, position);
+          if (generated) {
+            const definitions =
+              await vscode.commands.executeCommand<
+                vscode.Location[] | vscode.DefinitionLink[]
+              >(
+                'vscode.executeDefinitionProvider',
+                generated.document.uri,
+                generated.position
+              );
+            const generatedLocations = definitionTargetsToLocations(definitions);
+            if (generatedLocations.length > 0) {
+              const remapped = await remapGeneratedLocations(generatedLocations);
+              if (remapped) {
+                const generatedUri = generated.document.uri.toString();
+                const mappedLocations = generatedLocations.flatMap((location, index) => {
+                  const markdownLocation = remapped[index];
+                  if (markdownLocation) {
+                    return [markdownLocation];
+                  }
+                  if (location.uri.toString() === generatedUri) {
+                    return [];
+                  }
+                  return [location];
+                });
+                if (mappedLocations.length > 0) {
+                  return mappedLocations;
+                }
+              }
+            }
+          }
+        } catch {
+          // Fall through to shadow document fallback.
+        }
+
         const shadowDoc = await getOrCreateShadowDoc(document, block);
         if (!shadowDoc) {
           return undefined;
@@ -539,6 +778,149 @@ function registerEmbeddedLanguageProviders(
         }
       },
     })
+  );
+}
+
+// ============================================================
+// Generated Diagnostics Mirror
+// ============================================================
+
+function isGeneratedDiagnosticUri(uri: vscode.Uri): boolean {
+  return uri.scheme === 'file' && !uri.path.endsWith('.md');
+}
+
+function cloneDiagnosticForMarkdown(
+  range: vscode.Range,
+  diagnostic: vscode.Diagnostic
+): vscode.Diagnostic {
+  const mirrored = new vscode.Diagnostic(
+    range,
+    diagnostic.message,
+    diagnostic.severity
+  );
+  mirrored.code = diagnostic.code;
+  mirrored.source = diagnostic.source || 'generated';
+  mirrored.tags = diagnostic.tags ? [...diagnostic.tags] : undefined;
+  return mirrored;
+}
+
+function appendMirroredDiagnostic(
+  diagnosticsByMarkdownUri: DiagnosticsByMarkdownUri,
+  location: vscode.Location,
+  diagnostic: vscode.Diagnostic
+): void {
+  const key = location.uri.toString();
+  const existing = diagnosticsByMarkdownUri.get(key);
+  if (existing) {
+    existing.diagnostics.push(
+      cloneDiagnosticForMarkdown(location.range, diagnostic)
+    );
+    return;
+  }
+
+  diagnosticsByMarkdownUri.set(key, {
+    uri: location.uri,
+    diagnostics: [cloneDiagnosticForMarkdown(location.range, diagnostic)],
+  });
+}
+
+async function remapDiagnosticsForGeneratedUri(
+  uri: vscode.Uri
+): Promise<DiagnosticsByMarkdownUri> {
+  const diagnosticsByMarkdownUri: DiagnosticsByMarkdownUri = new Map();
+  const diagnostics = vscode.languages.getDiagnostics(uri);
+
+  await Promise.all(
+    diagnostics.map(async (diagnostic) => {
+      const location = await remapGeneratedRange(uri, diagnostic.range);
+      if (!location || !location.uri.path.endsWith('.md')) {
+        return;
+      }
+      appendMirroredDiagnostic(diagnosticsByMarkdownUri, location, diagnostic);
+    })
+  );
+
+  return diagnosticsByMarkdownUri;
+}
+
+function rebuildGeneratedDiagnosticsCollection(): void {
+  if (!generatedDiagnosticsCollection) {
+    return;
+  }
+
+  const aggregate = new Map<
+    string,
+    { uri: vscode.Uri; diagnostics: vscode.Diagnostic[] }
+  >();
+  for (const diagnosticsByMarkdownUri of generatedDiagnosticMirrorCache.values()) {
+    for (const [key, value] of diagnosticsByMarkdownUri) {
+      const existing = aggregate.get(key);
+      if (existing) {
+        existing.diagnostics.push(...value.diagnostics);
+        continue;
+      }
+      aggregate.set(key, {
+        uri: value.uri,
+        diagnostics: [...value.diagnostics],
+      });
+    }
+  }
+
+  generatedDiagnosticsCollection.clear();
+  if (aggregate.size === 0) {
+    return;
+  }
+
+  generatedDiagnosticsCollection.set(
+    [...aggregate.values()].map((entry) =>
+      [entry.uri, entry.diagnostics] as [vscode.Uri, vscode.Diagnostic[]]
+    )
+  );
+}
+
+async function refreshGeneratedDiagnosticsMirror(
+  uris: readonly vscode.Uri[]
+): Promise<void> {
+  const generatedUris = [...new Map(
+    uris
+      .filter((uri) => isGeneratedDiagnosticUri(uri))
+      .map((uri) => [uri.toString(), uri])
+  ).values()];
+  if (generatedUris.length === 0) {
+    return;
+  }
+
+  await Promise.all(
+    generatedUris.map(async (uri) => {
+      const remapped = await remapDiagnosticsForGeneratedUri(uri);
+      const key = uri.toString();
+      if (remapped.size === 0) {
+        generatedDiagnosticMirrorCache.delete(key);
+        return;
+      }
+      generatedDiagnosticMirrorCache.set(key, remapped);
+    })
+  );
+
+  rebuildGeneratedDiagnosticsCollection();
+}
+
+function registerGeneratedDiagnosticsMirror(
+  context: vscode.ExtensionContext
+): void {
+  generatedDiagnosticsCollection = vscode.languages.createDiagnosticCollection(
+    'mds-generated-mirror'
+  );
+
+  context.subscriptions.push(
+    generatedDiagnosticsCollection,
+    vscode.languages.onDidChangeDiagnostics((event) => {
+      void refreshGeneratedDiagnosticsMirror(event.uris);
+    })
+  );
+
+  void refreshGeneratedDiagnosticsMirror(
+    vscode.languages.getDiagnostics().map(([uri]) => uri)
   );
 }
 
@@ -778,6 +1160,7 @@ export async function activate(context: vscode.ExtensionContext) {
   }
 
   await client.start();
+  registerGeneratedDiagnosticsMirror(context);
 }
 
 export async function deactivate(): Promise<void> {

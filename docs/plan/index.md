@@ -32,7 +32,8 @@ mds 自身の self-hosting を停止し、Readable Authoring Model、core 言語
 - 2026-05-14: Phase 03 を完了し、migration promise を live surface から除去した。LSP の legacy rename quick fix を削除し、proposal / diagnostics wording を direct diagnostics framing に揃えたうえで、ユーザーフィードバックに従い `Types` の semantic acceptance を build / config / init / template / LSP から前倒しで除去した。
 - 2026-05-14: Phase 04 を完了し、core build / quality から synthetic import 注入と language-specific syntax lint を除去した。core extractor API と LSP の extractor 依存を外し、`Lang` を built-in variant のない opaque extension key 前提へ縮小した。
 - 2026-05-14: Phase 05 を完了し、parser/model に code fence span 保持を追加した。build planning に `SourceMap` / `SourceSpan` / `GenerationPlan` を導入し、initial mapping を code fence 由来 source/test output に限定したうえで、core quality の path/line remap を SourceMap lookup へ差し替えた。`cargo test -p mds-core --test parser_generation_mvp_test` が 72 tests 成功した。
-- 次回再開時は Phase 06 から開始し、package output config と descriptor 依存の残りを整理する。
+- 2026-05-16: Phase 06 を完了し、package output config を core config/model と output planning へ導入した。`[roots]` は `source_md` / `test_md` / `source_out` / `test_out` へ切り替え、`[output]` と `[[output.override]]` を追加した。output path は package config pattern と override から決定し、`build.rs` 相当の special placement も descriptor `special_files` ではなく config override で表せるようにした。`src-md` fallback は live runtime surface から除去し、`cargo test -p mds-core --test parser_generation_mvp_test`、`cargo test -p mds-lsp --test diagnostics_test`、`cd editors/vscode && npm run compile` が成功した。
+- 次回再開時は Phase 07 から開始し、source map を使った LSP bridge の最小往復を実装する。
 
 ## 全体前提
 
