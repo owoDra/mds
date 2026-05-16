@@ -27,4 +27,4 @@
 
 ## 参照
 
-- 現在の integrations は none。追加時は `<integration>.md` を置く。
+- 現在は個票なし: 追加時は `<integration>.md` を置く

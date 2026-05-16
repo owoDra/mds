@@ -27,4 +27,4 @@
 
 ## 参照
 
-- `implementation-guide.md`: first-party Rust / TypeScript を checked-in source と tests で保守する implementation team のガイド。
+- 現在は個票なし: 追加時は `<team>-guide.md` を置く
