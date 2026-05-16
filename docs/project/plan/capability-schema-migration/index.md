@@ -30,6 +30,15 @@ built-in descriptor / tool registry 依存を package config と外部 capabilit
 - wizard、core、LSP、VS Code の挙動が新 spec と整合する
 - examples と validation が新 runtime を前提に更新される
 
+## 統合位置
+
+この plan は `../v1-completion-roadmap/index.md` と統合して進める。単独で最後まで直列実行する plan ではなく、以下の位置で差し込む。
+
+1. `phase-01-architecture-and-schema/index.md`: `v1-completion-roadmap` 着手前の先行 phase
+2. `phase-02-core-runtime-migration/index.md`: `v1-completion-roadmap/phase-01-core-runtime-and-authoring-policy/` の前提 phase
+3. `phase-03-cli-and-editor-adoption/index.md`: `v1-completion-roadmap/phase-02-cli-authoring-entrypoints/` と `phase-03-lsp-workspace-and-navigation/` と `phase-04-vscode-embedded-experience/` に分散して内包する phase
+4. `phase-04-cleanup-and-validation/index.md`: `v1-completion-roadmap/phase-05-fixtures-and-exit-validation/` に内包する phase
+
 ## フェーズ一覧
 
 - `phase-01-architecture-and-schema/index.md`: architecture と schema 契約を確定する
@@ -53,7 +62,8 @@ built-in descriptor / tool registry 依存を package config と外部 capabilit
 
 ## 参照
 
-- `phase-01-architecture-and-schema/index.md`: architecture と schema 契約の確定
-- `phase-02-core-runtime-migration/index.md`: core runtime の移行
-- `phase-03-cli-and-editor-adoption/index.md`: CLI / editor の追従
-- `phase-04-cleanup-and-validation/index.md`: cleanup と回帰確認
+1. `../v1-completion-roadmap/index.md`: 統合実行順を持つ上位ロードマップ
+2. `phase-01-architecture-and-schema/index.md`: architecture と schema 契約の確定
+3. `phase-02-core-runtime-migration/index.md`: core runtime の移行
+4. `phase-03-cli-and-editor-adoption/index.md`: CLI / editor の追従
+5. `phase-04-cleanup-and-validation/index.md`: cleanup と回帰確認

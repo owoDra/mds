@@ -70,4 +70,5 @@ docs/project/plan/
 
 ## 参照
 
-- `capability-schema-migration/index.md`: built-in descriptor / tool registry 依存を config/schema runtime へ移す実装計画
+1. `v1-completion-roadmap/index.md`: 現行 spec と現行実装差分を埋める v1 完全完成ロードマップ
+2. `capability-schema-migration/index.md`: `v1-completion-roadmap` に統合して進める config/schema runtime 移行計画
