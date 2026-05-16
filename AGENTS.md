@@ -11,7 +11,7 @@
 
 ## 作業ルール
 
-- セッション開始時、ユーザー言語が日本語なら `util-genshijin`、英語なら `util-caveman` を必ず読み込む
+- セッション開始時 `util-genshijin` を必ず読み込む
 - まず `.agents/project.md` を読む
 - 対象 task がある場合は `.agents/tasks/task-*.md` を読む
 - `docs/project/index.md` から必要なカテゴリ `index.md` と個票へ降りる
