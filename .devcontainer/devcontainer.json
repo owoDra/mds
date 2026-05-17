@@ -10,9 +10,6 @@
   "updateRemoteUserUID": true,
   "shutdownAction": "stopCompose",
   "overrideCommand": false,
-  "remoteEnv": {
-    "PATH": "${containerEnv:PATH}:/home/vscode/.npm-global/bin:/home/vscode/.local/bin:/home/vscode/.local/share/pnpm"
-  },
   "customizations": {
     "vscode": {
       "extensions": [],

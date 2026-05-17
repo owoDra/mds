@@ -1,6 +1,8 @@
 FROM mcr.microsoft.com/devcontainers/base:ubuntu-24.04
 
 ARG NODE_MAJOR=24
+ARG RUST_VERSION=stable
+ARG CODEX_VERSION=latest
 ENV DEBIAN_FRONTEND=noninteractive
 
 # ---------- System packages ----------
@@ -25,10 +27,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   fd-find \
   tree \
   bubblewrap \
-  python3 \
-  python3-venv \
-  python3-pip \
-  pipx \
   && rm -rf /var/lib/apt/lists/*
 
 # ---------- JavaScript/TypeScript Dev Environment ----------
@@ -39,42 +37,27 @@ RUN mkdir -p /etc/apt/keyrings \
   > /etc/apt/sources.list.d/nodesource.list \
   && apt-get update \
   && apt-get install -y --no-install-recommends nodejs \
-  && rm -rf /var/lib/apt/lists/* \
-  && corepack enable \
-  && corepack prepare pnpm@latest --activate
+  && rm -rf /var/lib/apt/lists/*
 
-# ---------- Python Dev Environment ----------
-RUN curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/usr/local/bin sh
+# ---------- Rust Dev Environment ----------
+ENV RUSTUP_HOME=/usr/local/rustup
+ENV CARGO_HOME=/usr/local/cargo
+ENV PATH=/usr/local/cargo/bin:/usr/local/bin:${PATH}
 
-# ---------- OpenCode ----------
-RUN npm install -g opencode-ai
-RUN npm install -g @openai/codex
+RUN curl -fsSL https://sh.rustup.rs \
+  | sh -s -- -y --profile minimal --default-toolchain ${RUST_VERSION} \
+  && rustup component add rustfmt clippy \
+  && chmod -R a+w ${RUSTUP_HOME} ${CARGO_HOME}
+
+# ---------- Codex ----------
+RUN npm install -g @openai/codex@${CODEX_VERSION}
 
 # ---------- RTK ----------
 RUN curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh \
   | RTK_INSTALL_DIR=/usr/local/bin sh
 
 RUN mkdir -p \
-  /home/vscode/.config/opencode \
-  /home/vscode/.local/share/opencode \
-  /home/vscode/.cache/opencode \
-  /home/vscode/.npm-global \
   /home/vscode/.local/bin \
-  /home/vscode/.local/share/pnpm \
-  /home/vscode/.local/share/opencode \
-  /home/vscode/.cache/uv \
-  /home/vscode/.cache/pip \
-  /home/vscode/.cache/opencode \
-  /pnpm/store \
-  && chown -R vscode:vscode /home/vscode /pnpm
-
-ENV NPM_CONFIG_PREFIX=/home/vscode/.npm-global
-ENV PNPM_HOME=/home/vscode/.local/share/pnpm
-ENV PNPM_STORE_DIR=/pnpm/store
-ENV UV_CACHE_DIR=/home/vscode/.cache/uv
-ENV PIP_CACHE_DIR=/home/vscode/.cache/pip
-ENV PIPX_HOME=/home/vscode/.local/pipx
-ENV PIPX_BIN_DIR=/home/vscode/.local/bin
-ENV PATH=/home/vscode/.npm-global/bin:/home/vscode/.local/bin:/home/vscode/.local/share/pnpm:/usr/local/bin:${PATH}
+  && chown -R vscode:vscode /home/vscode
 
 WORKDIR /workspace

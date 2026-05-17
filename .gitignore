@@ -16,3 +16,6 @@ package-lock.json
 # Editor / IDE
 .vscode-test/
 *.vsix
+
+# Codex runtime mount/config
+.codex
